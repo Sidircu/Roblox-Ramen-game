@@ -11,7 +11,7 @@ local Expansions = require(Shared.Config.Expansions)
 local Surfaces = require(Shared.Config.Surfaces)
 local Franchise = require(Shared.Config.Franchise)
 local Items = require(Shared.Config.Items)
-local Walls = require(Shared.Logic.Walls)
+local Geometry = require(Shared.Logic.Geometry)
 local Footprint = require(Shared.Logic.Footprint)
 local Registry = require(Shared.Models.Registry)
 local Kit = require(Shared.Models.Kit)
@@ -52,24 +52,10 @@ end
 
 -- Recomputes the unlocked geometry from the owner's data
 function World.recompute(data)
-	local zones, openings, stairs, exps = {}, {}, {}, {}
-	for _, e in ipairs(Expansions.list) do
-		if data.zones[e.id] then
-			table.insert(exps, e)
-			for _, z in ipairs(e.zones or {}) do
-				table.insert(zones, z)
-			end
-			for _, o in ipairs(e.openings or {}) do
-				table.insert(openings, o)
-			end
-			for _, s in ipairs(e.stairs or {}) do
-				table.insert(stairs, s)
-			end
-		end
-	end
-	-- an opening is only real if both sides exist (e.g. the garden door needs the garden)
-	World.zones, World.openings, World.stairs, World.expansions = zones, openings, stairs, exps
-	World.walls = Walls.compute(zones, openings, stairs)
+	local geo = Geometry.compute(Expansions.list, data.zones, Expansions.Supplier)
+	World.zones, World.openings, World.stairs, World.expansions = geo.zones, geo.openings, geo.stairs, geo.expansions
+	World.walls = geo.walls
+	World.fixed = geo.fixed
 end
 
 function World.zoneAt(x, z, f)
@@ -92,38 +78,12 @@ end
 
 -- Door clearances that must stay free of objects
 function World.fixedRects()
-	local out = {}
-	for _, o in ipairs(World.openings) do
-		if o.axis == "z" then
-			table.insert(out, { floor = o.floor, rect = { o.from, o.at - 2.5, o.to, o.at + 2.5 } })
-		else
-			table.insert(out, { floor = o.floor, rect = { o.at - 2.5, o.from, o.at + 2.5, o.to } })
-		end
-	end
-	for _, s in ipairs(World.stairs) do
-		local r = s.rect
-		table.insert(out, { floor = s.floor, rect = { r[1], r[2] - 2.5, r[3], r[2] } })
-		table.insert(out, { floor = s.floor + 1, rect = { r[1], r[4], r[3], r[4] + 2.5 } })
-	end
-	-- supplier tablet
-	table.insert(out, { floor = 0, rect = { 16.5, 16, 18, 19 } })
-	return out
+	return World.fixed or {}
 end
 
 -- Placement validation context (see Shared.Logic.Placement)
 function World.ctx(placed)
-	return {
-		items = Items.byId,
-		zones = World.zones,
-		walls = World.walls,
-		stairs = World.stairs,
-		placed = placed,
-		fixed = World.fixedRects(),
-		entrance = { x = 0, z = 0.75 },
-		floorHeight = GameConfig.FloorHeight,
-		wallHeight = GameConfig.WallHeight,
-		wallThickness = 0.8,
-	}
+	return Geometry.ctx({ zones = World.zones, walls = World.walls, stairs = World.stairs, fixed = World.fixed }, Items.byId, placed, GameConfig)
 end
 
 local function style(id, kind)

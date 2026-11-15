@@ -222,6 +222,37 @@ function Meta.Init()
 	end, 6)
 	Net.on("ClaimDaily", claimDaily, 2)
 	Net.on("ClaimOffline", claimOffline, 2)
+	local SETTINGS = {
+		lang = function(v)
+			return v == "auto" or v == "en" or v == "it"
+		end,
+		grid = function(v)
+			return v == 1 or v == 5 or v == 10
+		end,
+		rot = function(v)
+			return v == 90 or v == 45 or v == 15
+		end,
+		music = function(v)
+			return type(v) == "number" and v >= 0 and v <= 1
+		end,
+		sfx = function(v)
+			return type(v) == "number" and v >= 0 and v <= 1
+		end,
+		lowGfx = function(v)
+			return type(v) == "boolean"
+		end,
+		autoDay = function(v)
+			return type(v) == "boolean"
+		end,
+	}
+	Net.on("SetSetting", function(player, key, value)
+		local d = Core.S.Data.get(player)
+		local check = SETTINGS[key]
+		if d and check and check(value) then
+			d.settings[key] = value
+			Core.S.Data.changed(player, "settings")
+		end
+	end, 6)
 	Net.on("TutorialStep", function(player, step)
 		local d = Core.S.Data.get(player)
 		if d and type(step) == "number" then
