@@ -1,0 +1,12 @@
+# Rojo / Studio
+*.rbxl.lock
+*.rbxlx.lock
+sourcemap.json
+roblox.toml
+
+# graphify: cache locale (il grafo graphify-out/graph.json va invece committato)
+graphify-out/cache/
+
+# Sistema
+.DS_Store
+Thumbs.db
