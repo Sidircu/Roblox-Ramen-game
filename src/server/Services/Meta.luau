@@ -82,7 +82,7 @@ function Meta.event(player, kind, amount, info)
 			q.progress = math.min(q.target, q.progress + (amount or 1))
 			questChanged = true
 			if q.progress >= q.target then
-				Core.S.Net.notify(player, "msg.quest_done", { name = "quest." .. q.id }, "success")
+				Core.S.Net.notify(player, "msg.quest_done", { name = "quest." .. q.id, n = q.target }, "success")
 			end
 		end
 	end

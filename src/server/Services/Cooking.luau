@@ -209,7 +209,9 @@ local function showDish(e, recipeId)
 	if not att then
 		return
 	end
-	local mdl = Registry.food("dish", recipeId)
+	local d = data()
+	local gold = Formulas.masteryLevel(d.mastery[recipeId] or 0) >= #Formulas.MasteryThresholds
+	local mdl = Registry.food("dish", recipeId, gold)
 	mdl:PivotTo(att.WorldCFrame * CFrame.new(0, 0.5, 0))
 	for _, d in ipairs(mdl:GetDescendants()) do
 		if d:IsA("BasePart") then

@@ -8,15 +8,46 @@ local CollectionService = game:GetService("CollectionService")
 local Camera = {}
 Camera.top = false
 Camera.build = false
+Camera.floor = 0
 local height = 48
 local conn = nil
 local player = Players.LocalPlayer
 
-local function setRoofs(hidden)
+local FLOOR_HEIGHT = 15
+
+function Camera.currentFloor()
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return 0
+	end
+	return math.max(0, math.floor((root.Position.Y + 2) / FLOOR_HEIGHT))
+end
+
+-- hides roofs, ceilings and anything on the floors above `floor` (nil = show everything)
+local function setRoofs(hidden, floor)
 	for _, tagName in ipairs({ "Roof", "Ceiling" }) do
 		for _, p in ipairs(CollectionService:GetTagged(tagName)) do
 			if p:IsA("BasePart") then
 				p.LocalTransparencyModifier = hidden and 1 or 0
+			end
+		end
+	end
+	for _, tagName in ipairs({ "Floor", "Wall" }) do
+		for _, p in ipairs(CollectionService:GetTagged(tagName)) do
+			if p:IsA("BasePart") then
+				local f = p:GetAttribute("FloorIndex") or 0
+				p.LocalTransparencyModifier = (hidden and floor and f > floor) and 1 or 0
+			end
+		end
+	end
+	local items = workspace:FindFirstChild("Restaurant") and workspace.Restaurant:FindFirstChild("Items")
+	if items then
+		for _, m in ipairs(items:GetChildren()) do
+			local above = hidden and floor and (m:GetAttribute("FloorIndex") or 0) > floor
+			for _, d in ipairs(m:GetDescendants()) do
+				if d:IsA("BasePart") then
+					d.LocalTransparencyModifier = above and 1 or 0
+				end
 			end
 		end
 	end
@@ -56,7 +87,8 @@ end
 
 function Camera.setBuildView(on)
 	Camera.build = on
-	setRoofs(on)
+	Camera.floor = Camera.currentFloor()
+	setRoofs(on, Camera.floor)
 	if not on and Camera.top then
 		Camera.setTop(false)
 	end
@@ -73,6 +105,17 @@ function Camera.Start()
 			p.LocalTransparencyModifier = 1
 		end
 	end)
+	-- follow the player up and down the stairs while building
+	while true do
+		task.wait(1)
+		if Camera.build then
+			local f = Camera.currentFloor()
+			if f ~= Camera.floor then
+				Camera.floor = f
+			end
+			setRoofs(true, Camera.floor)
+		end
+	end
 end
 
 return Camera

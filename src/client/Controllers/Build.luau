@@ -188,6 +188,18 @@ local function ownerModel(inst)
 	return nil
 end
 
+local function onFloor(tagName)
+	local floor = Core.C.Camera.floor or 0
+	local out = {}
+	for _, p in ipairs(CollectionService:GetTagged(tagName)) do
+		local f = p:GetAttribute("FloorIndex") or 0
+		if f == floor then
+			table.insert(out, p)
+		end
+	end
+	return out
+end
+
 local function buildRequest()
 	local item = Items.byId[Build.itemId]
 	if not item then
@@ -197,7 +209,7 @@ local function buildRequest()
 	local w, h, d = item.size[1], item.size[2], item.size[3]
 	local g = Build.grid
 	if code == "f" or code == "c" then
-		local hit = cast(CollectionService:GetTagged("Floor"))
+		local hit = cast(onFloor("Floor"))
 		if not hit then
 			return nil
 		end
@@ -208,7 +220,7 @@ local function buildRequest()
 		local x, z = Grid.snapFloor(hit.Position.X, hit.Position.Z, w, d, Build.rot, g)
 		return { i = item.id, x = x, z = z, r = Build.rot, f = f, s = code }
 	elseif code == "w" then
-		local hit = cast(CollectionService:GetTagged("Wall"))
+		local hit = cast(onFloor("Wall"))
 		if not hit or hit.Instance:GetAttribute("Rail") then
 			return nil
 		end

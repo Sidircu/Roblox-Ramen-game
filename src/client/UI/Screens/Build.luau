@@ -154,6 +154,7 @@ local function renderItems()
 			Kit.label(t("ui.stand_in_zone"), { Parent = refs.items, Size = UDim2.fromOffset(420, 60), TextSize = 17 })
 			return
 		end
+		Kit.label("📍 " .. t("ui.room", { name = "zone." .. zone.id }), { Parent = refs.items, Size = UDim2.fromOffset(150, 178), TextSize = 17, FontFace = T.bold, LayoutOrder = 0 })
 		local current = (w.surfaces and w.surfaces[zone.id]) or {}
 		for _, s in ipairs(Surfaces.list) do
 			local active = current[s.kind] == s.id or (not current[s.kind] and (s.id == (s.kind == "floor" and (zone.floorStyle or Surfaces.DefaultFloor) or (zone.wallStyle or Surfaces.DefaultWall))))

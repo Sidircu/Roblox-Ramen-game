@@ -163,7 +163,23 @@ function UI.Init()
 	end)
 end
 
+local function vipChat()
+	local TextChatService = game:GetService("TextChatService")
+	pcall(function()
+		TextChatService.OnIncomingMessage = function(message)
+			local props = Instance.new("TextChatMessageProperties")
+			local source = message.TextSource
+			local p = source and Players:GetPlayerByUserId(source.UserId)
+			if p and p:GetAttribute("VIP") then
+				props.PrefixText = "<font color=\"#D4A23C\">[VIP]</font> " .. message.PrefixText
+			end
+			return props
+		end
+	end)
+end
+
 function UI.Start()
+	vipChat()
 	local Data = Core.C.Data
 	Data.Changed:Connect(function()
 		UI.refreshAll()

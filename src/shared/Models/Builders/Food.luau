@@ -131,9 +131,14 @@ local function ramenBowl(m, recipe)
 	Kit.particles(steam, "steam", { rate = 3 })
 end
 
-local function dish(recipeId)
+local function dish(recipeId, gold)
 	local recipe = Recipes.byId[recipeId]
 	local m = Kit.model("Dish")
+	if gold then
+		Kit.cyl(m, 1.75, 0.04, 0, 0.01, 0, P.gold, M.foil, nc())
+		local shine = Kit.box(m, 0.3, 0.05, 0.3, 0, 0.6, 0, P.gold, M.smooth, { collide = false, shadow = false, transparency = 1 })
+		Kit.particles(shine, "sparkle", { rate = 2, color = "#FFE08A", glow = 0.6 })
+	end
 	if not recipe then
 		roundPlate(m, 1.2)
 		Kit.finish(m, Vector3.new(1.3, 0.5, 1.3))

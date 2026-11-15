@@ -588,7 +588,8 @@ function Service.serve(c, dish, actor)
 	end
 	c.fresh = dish.fresh == true
 	c.servedBy = actor
-	local m = Registry.food("dish", dish.recipe)
+	local served = data().mastery[dish.recipe] or 0
+	local m = Registry.food("dish", dish.recipe, Formulas.masteryLevel(served) >= #Formulas.MasteryThresholds)
 	m:PivotTo(CFrame.new(c.seat.dish + Vector3.new(0, 0.5, 0)) * CFrame.Angles(0, math.rad(rng:NextInteger(0, 359)), 0))
 	for _, d in ipairs(m:GetDescendants()) do
 		if d:IsA("BasePart") then

@@ -75,6 +75,7 @@ end
 local function spawn(entry)
 	local model = Registry.build(entry.i)
 	Registry.place(model, entry.x, worldY(entry), entry.z, entry.r)
+	model:SetAttribute("FloorIndex", entry.f or 0)
 	model.Parent = Core.S.World.folders().items
 	local item = Items.byId[entry.i]
 	local e = Core.S.Entities.register(entry.u, Placement.kindOf(entry.i), model, { entry = entry, item = item, isItem = true })
@@ -342,6 +343,7 @@ function Placement.move(player, uid, rawReq)
 	for _, e in ipairs({ entry, table.unpack(children(data, uid)) }) do
 		local ent = Core.S.Entities.get(e.u)
 		if ent and ent.model then
+			ent.model:SetAttribute("FloorIndex", e.f or 0)
 			Registry.place(ent.model, e.x, worldY(e), e.z, e.r)
 			Placement.ItemMoved:Fire(ent)
 		end

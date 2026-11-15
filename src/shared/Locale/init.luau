@@ -56,8 +56,9 @@ function Locale.t(key, params)
 				end
 				return Format.decimal(v, 1, current)
 			end
-			if type(v) == "string" and Locale.has(v) then
-				return Locale.t(v)
+			if type(v) == "string" and v ~= key and Locale.has(v) then
+				-- nested key (e.g. a dish name); it may use the same params ({n})
+				return Locale.t(v, params)
 			end
 			return tostring(v)
 		end)
