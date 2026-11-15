@@ -15,8 +15,8 @@
 | Mondo | **Mondo personale**: ogni giocatore è da solo nel suo mondo con il suo ristorante. Nessun estraneo |
 | Co-op | **Ibrido**: puoi **invitare amici** nel tuo mondo come aiutanti (cucinano, servono, riforniscono) |
 | Lingua | **Inglese + Italiano**, scelta automatica in base alla lingua del giocatore, modificabile nelle impostazioni |
-| Interazione | **Si gioca cliccando** (mouse o tocco). Il personaggio cammina da solo verso l'oggetto cliccato ed esegue l'azione; WASD resta disponibile |
-| Cucina | **Fisica + minigiochi a clic**: gli ingredienti si prendono davvero dalle mensole e si portano in mano; alla postazione le animazioni le fa il gioco, tu clicchi al momento giusto |
+| Interazione | **Movimento libero** con joystick/WASD come in ogni gioco Roblox. Quando sei vicino a un oggetto, **lo clicchi (o lo tocchi)** e l'azione avviene |
+| Cucina | **Fisica + clic, senza tempismo**: gli ingredienti si prendono davvero dalle mensole e si portano in mano; alla postazione ogni clic esegue un passaggio (il coltello taglia, gli ingredienti si uniscono, il maki si arrotola). Nessun minigioco a tempo, nessun gesto da fare |
 | Costruzione | Decorazioni e mobili acquistabili e piazzabili su una **griglia a terra regolabile: 1, 5 o 10 stud** |
 | Robux | **Predisposta**: gamepass e prodotti già nel codice, attivi solo dopo aver inserito gli ID. Il gioco resta completabile gratis |
 | Grafica | Stile 3D curato e pulito, luci calde, lanterne, neon notturni; modelli generati dal codice e sostituibili con modelli migliori |
@@ -120,10 +120,10 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 
 ### 3.3 Interazione "basta cliccare"
 
-- **Passi il mouse** su un oggetto interattivo → si illumina il contorno e compare un'etichetta ("Prendi salmone", "Servi", "Lava").
-- **Clicchi** → se sei lontano, il personaggio **ci cammina da solo** (percorso automatico), poi esegue l'azione con un'animazione.
-- Su telefono e tablet funziona con il tocco. WASD/joystick restano disponibili; muoversi a mano annulla il camminare automatico.
-- Il personaggio porta gli oggetti **visibilmente in mano** (scatola, ingrediente, piatto). La capienza dipende dal **Vassoio** (1 oggetto all'inizio, fino a 5).
+- Il personaggio si muove **liberamente** con WASD (PC) o joystick (telefono/tablet).
+- Quando sei **vicino** a un oggetto interattivo (entro ~10 stud) e ci passi sopra con il mouse, si illumina il contorno e compare un'etichetta ("Prendi salmone", "Servi", "Lava").
+- **Clicchi o tocchi** l'oggetto → l'azione avviene subito, con un'animazione. Se sei troppo lontano compare "Avvicinati".
+- Il personaggio porta gli oggetti **visibilmente in mano** (scatola, ingredienti, piatti). Gli ingredienti in mano sono fino a 6; i piatti e le stoviglie dipendono dal **Vassoio** (1 all'inizio, fino a 5).
 
 ---
 
@@ -154,7 +154,7 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 
 ---
 
-## 5. Cucina e minigiochi
+## 5. Cucina
 
 ### 5.1 Ordini
 - Il cliente seduto mostra una nuvoletta con l'icona del piatto.
@@ -163,47 +163,45 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 
 ### 5.2 Preparare il sushi (postazione sushi / tagliere)
 Esempio *Sake Nigiri*:
-1. Clic sul salmone sulla mensola → lo prendi.
-2. Clic sulla postazione sushi → il salmone va sul tagliere; il riso viene preso automaticamente dal rice cooker.
-3. **Minigioco "Taglio"**: compaiono 3 cerchi lungo il filetto uno dopo l'altro → clicca ognuno prima che svanisca.
-4. **Minigioco "Pressa"**: una lancetta oscilla su una barra → clicca quando è nella zona verde.
-5. Il piatto viene impiattato da solo (animazione) e appare sulla postazione, pronto da servire.
+1. Clic sul salmone sulla mensola → lo prendi in mano.
+2. Clic sulla postazione sushi → il salmone va sul tagliere; il riso viene preso da solo dal rice cooker.
+3. Clic → **il coltello taglia** il filetto (animazione).
+4. Clic → **gli ingredienti si uniscono**: la fetta si posa sul riso e diventa un nigiri.
+5. Il piatto viene impiattato da solo e resta sulla postazione, pronto da servire.
 
-I maki hanno il minigioco **"Arrotola"** (lancetta sulla stuoia di bambù) e poi "Taglio" a 6 cerchi.
+I maki hanno i passaggi **Unisci → Arrotola → Taglia**: tre clic, tre animazioni (stuoia di bambù che arrotola, coltello che fa sei pezzi).
+
+Sopra la postazione un'etichetta mostra sempre cosa c'è sul tagliere, che piatto ne verrà fuori e il prossimo passaggio ("Clicca per tagliare").
 
 ### 5.3 Preparare il ramen (postazione ramen)
 Esempio *Shoyu Ramen*:
-1. Clic sui noodles → li prendi. Clic sulla postazione ramen → li butti nell'acqua bollente.
-2. **Minigioco "Scola"**: barra di cottura che si riempie → clicca quando entra nella zona perfetta (troppo presto = crudi, troppo tardi = scotti).
-3. Il brodo viene versato in automatico dal pentolone.
-4. **Condimenti**: clic su ciascun condimento evidenziato (cipollotto, naruto, uovo, chashu…) → il personaggio li aggiunge uno per uno nella ciotola.
-5. Ciotola fumante pronta.
+1. Prendi noodles, cipollotto e naruto dalle mensole (puoi tenere in mano fino a 6 ingredienti).
+2. Clic sulla postazione ramen → gli ingredienti vengono posati.
+3. Clic → **i noodles cuociono** nel bollitore (animazione con vapore).
+4. Clic → **il brodo viene versato** dal pentolone nella ciotola.
+5. Clic → **i condimenti si dispongono** sopra.
+6. Ciotola fumante pronta.
 
 ### 5.4 Altre postazioni (sbloccate con licenze)
-| Postazione | Piatti | Minigioco |
+| Postazione | Piatti | Passaggi |
 |---|---|---|
-| Piastra (teppan) | Gyoza | "Gira" — clic quando la base è dorata |
-| Friggitrice | Tempura, Karaage | "Scola" a tempo |
-| Postazione bevande | Tè, Matcha, Ramune | "Versa" — ferma al livello giusto |
-| Postazione dolci | Mochi | "Modella" — 4 cerchi |
-| Fornello takoyaki | Takoyaki | "Gira" ×3 a ritmo |
+| Piastra (teppan) | Gyoza | Cuoci → Gira |
+| Friggitrice | Tempura, Karaage | Impana → Friggi |
+| Postazione bevande | Tè, Matcha, Ramune | Versa |
+| Postazione dolci | Mochi | Unisci → Modella |
+| Fornello takoyaki | Takoyaki | Versa → Gira |
 
-### 5.5 Qualità
-Ogni minigioco dà **Perfetto / Buono / Ok**. Non si fallisce mai del tutto: il piatto viene sempre fatto.
-
-| Risultato | Mancia | Recensione | XP |
-|---|---|---|---|
-| Perfetto | +30% | +0,5 ★ | +20% |
-| Buono | +10% | 0 | +0% |
-| Ok | 0% | −0,25 ★ | +0% |
-
-- Impostazione **"Minigiochi: Normali / Facili / Automatici"**. In automatico ogni minigioco dà sempre "Buono" (gioco ancora più rilassato, ma niente Perfetti).
-- Gli upgrade degli attrezzi (coltelli, stuoie, pentole) allargano le zone verdi.
+### 5.5 Velocità e freschezza
+Non esistono errori né tempismo: ogni piatto riesce sempre. Il guadagno dipende da:
+- **Velocità del servizio**: più pazienza resta al cliente, più alta è la mancia.
+- **Freschezza**: il pesce preso dalla vetrina refrigerata e i piatti preparati vicino al frigorifero professionale valgono di più (+10% di mancia e recensioni migliori).
+- **Attrezzi migliori** (coltelli, stuoie, scolapasta): rendono le animazioni dei passaggi più veloci.
+- **Maestria** della ricetta: aumenta il prezzo e la velocità.
 
 ### 5.6 Servire, pagare, pulire
 - Clic sul piatto pronto → lo prendi (anche più piatti, in base al Vassoio). Clic sul cliente → lo servi.
 - Il cliente mangia (barra), poi paga in automatico: le monete volano verso la cassa con un "cha-ching". Il pagamento è **prezzo del menu + mancia**.
-- Al posto restano **stoviglie sporche**: il posto non è utilizzabile finché non le raccogli. Clic → le prendi → clic sul **lavello** → minigioco "Strofina" (5 clic rapidi) → tornano pulite.
+- Al posto restano **stoviglie sporche**: il posto non è utilizzabile finché non le raccogli. Clic → le prendi → clic sul **lavello** → si lavano con un'animazione e tornano pulite.
 - Le **stoviglie pulite** sono una risorsa: se finiscono non puoi impiattare. Puoi comprare altri set di ciotole e piatti; la **lavastoviglie** lava da sola.
 
 ---
@@ -248,7 +246,7 @@ I clienti sono personaggi R15 con aspetto vario (carnagione, capelli, abiti, acc
 - Dal pannello Menu puoi **attivare/disattivare** i piatti e regolare il **prezzo** tra −30% e +30% del prezzo consigliato:
   - Prezzo più alto = più guadagno a piatto, ma meno ordini e meno pazienza.
   - Prezzo più basso = più clienti e più recensioni positive.
-- Ogni ricetta ha una **Maestria** (piatti serviti: 25 / 100 / 500 / 2.000 / 10.000): ogni livello aumenta il prezzo base del 5% e allarga le zone perfette dei minigiochi di quel piatto. Al massimo livello il piatto si serve con un **impiattamento dorato**.
+- Ogni ricetta ha una **Maestria** (piatti serviti: 25 / 100 / 500 / 2.000 / 10.000): ogni livello aumenta il prezzo base del 5% e rende più veloci i passaggi di quel piatto. Al massimo livello il piatto si serve con un **impiattamento dorato**.
 
 L'elenco completo dei piatti con ingredienti, prezzi e sblocchi è in [`03-BILANCIAMENTO.md`](03-BILANCIAMENTO.md#3-ricette).
 
@@ -275,7 +273,7 @@ Finale: Gran Maestro (richiede entrambi i Maestri)
 ```
 
 ### 8.4 Miglioramenti (upgrade)
-Vassoio (capienza), scarpe da cucina (velocità), coltelli e stuoie (minigiochi più facili), pentoloni e rice cooker (lotti più grandi), mensole più capienti, consegna più rapida, fornitore premium, insegna luminosa (più clienti), frigorifero professionale (qualità), jukebox (ambiente), cassaforte (guadagni offline), barra ordini più lunga. Dettagli in [`03-BILANCIAMENTO.md`](03-BILANCIAMENTO.md#6-miglioramenti).
+Vassoio (capienza), scarpe da cucina (velocità), coltelli, stuoie e scolapasta (passaggi più veloci), pentoloni e rice cooker (lotti più grandi), mensole più capienti, consegna più rapida, fornitore premium, insegna luminosa (più clienti), frigorifero professionale (qualità), jukebox (ambiente), cassaforte (guadagni offline), barra ordini più lunga. Dettagli in [`03-BILANCIAMENTO.md`](03-BILANCIAMENTO.md#6-miglioramenti).
 
 ### 8.5 Espansioni
 Il locale cresce per **zone**. Ogni espansione aggiunge una zona: muri, pavimento e tetto vengono ricostruiti in automatico attorno alla nuova forma, con un'animazione di cantiere (impalcature e polvere per 3 secondi).
@@ -307,13 +305,13 @@ Il personale sono NPC che lavorano da soli. Si assumono, si pagano a giornata e 
 | Cuoco di linea | contorni, fritti, piastra |
 | Manager | giornata automatica, riordino automatico, bonus a tutto il personale |
 
-Il personale lavora sempre a qualità "Buono" (i "Perfetto" restano un vantaggio di chi cucina a mano), migliorabile con l'addestramento.
+Il personale diventa più veloce con l'addestramento.
 
 ### 8.7 Guadagni offline
 Con la **Cassaforte** il ristorante produce una parte del guadagno anche quando non giochi (dal 10% al 30% della media oraria, fino a 2–24 ore in base al livello). Al rientro una schermata mostra quanto hai guadagnato.
 
 ### 8.8 Obiettivi, missioni e collezioni
-- **Missioni giornaliere** (3 al giorno): "Servi 20 ramen", "Ottieni 10 Perfetti", "Guadagna ¥5.000 di mance".
+- **Missioni giornaliere** (3 al giorno): "Servi 20 ramen", "Servi 10 piatti a clienti ancora sereni", "Guadagna ¥5.000 di mance".
 - **Obiettivi permanenti** (traguardi): con ricompense in gettoni e titoli.
 - **Ricettario**: collezione di tutti i piatti con il livello di maestria.
 - **Set di decorazioni**: piazzare tutti i pezzi di un set (es. "Matsuri", "Giardino zen", "Samurai") dà un bonus permanente.
@@ -386,7 +384,7 @@ Stile: carta washi color crema, bordi in legno scuro, accenti rosso lacca e oro,
 | Sopra gli oggetti | Barre di cottura, porzioni rimaste, pazienza, nuvolette d'ordine |
 | Fine giornata | Resoconto con grafico degli incassi della giornata |
 
-Altre schermate: inventario decorazioni, ricettario, obiettivi, premio giornaliero, guadagni offline, impostazioni (lingua, griglia, rotazione, minigiochi, volume musica/effetti, qualità grafica ridotta per dispositivi deboli).
+Altre schermate: inventario decorazioni, ricettario, obiettivi, premio giornaliero, guadagni offline, impostazioni (lingua, griglia, rotazione, volume musica/effetti, qualità grafica ridotta per dispositivi deboli).
 
 ### Tutorial
 La prima giornata è guidata: frecce luminose a terra e fumetti spiegano passo passo (prendi la scatola → riempi la mensola → cuoci il riso → apri → servi il primo cliente → lava le stoviglie → compra il primo upgrade). Si può saltare e rivedere dalle impostazioni.
@@ -398,7 +396,7 @@ La prima giornata è guidata: frecce luminose a terra e fumetti spiegano passo p
 - **Illuminazione**: tecnologia *Future* di Roblox, atmosfera leggera, bloom, correzione colore calda. Luce del giorno morbida, tramonto arancione, sera blu con lanterne e neon che illuminano davvero l'ambiente.
 - **Materiali**: legno a doghe, legno chiaro, tessuto (noren, cuscini), ardesia, metallo spazzolato (pentole), vetro (vetrina), neon (insegne).
 - **Cibo curato nel dettaglio**: nigiri con fetta di salmone a strisce chiare, maki con anello di alga e cuore colorato, ciotole di ramen con brodo del colore giusto per tipo, noodles, uovo tagliato a metà, chashu, cipollotto, naruto con la spirale.
-- **Effetti**: vapore dalle ciotole e dai pentoloni, bolle nel brodo, scintille dorate per i "Perfetto", petali di ciliegio, monete che volano alla cassa, coriandoli al livello.
+- **Effetti**: vapore dalle ciotole e dai pentoloni, bolle nel brodo, scintille dorate quando un piatto è pronto, petali di ciliegio, monete che volano alla cassa, coriandoli al livello.
 - **Animazioni**: zampa del maneki-neko, pesci nel laghetto koi e nell'acquario, shishi-odoshi che si inclina, noren che ondeggia, treno serale.
 - **Scritte giapponesi** sulle insegne: ラーメン (ramen), 寿司 (sushi), 営業中 (aperto), 準備中 (in preparazione).
 - **Audio** (da scegliere nella libreria audio di Roblox): musica di sottofondo con shamisen e koto in versione lo-fi, ambiente della strada, sfrigolio, taglio, campanello d'ingresso, gong del livello.
@@ -436,7 +434,7 @@ Tutto verrà implementato in un unico intervento, in quest'ordine (così ogni pa
 
 | Priorità | Contenuto |
 |---|---|
-| **Indispensabile** | mondo e strada, ristorante iniziale, consegne, magazzino, mensole, rice cooker e pentoloni, 3 piatti iniziali con minigiochi, clienti con pazienza e pagamento, stoviglie, giornata e resoconto, salvataggio, interfaccia base, inglese/italiano |
+| **Indispensabile** | mondo e strada, ristorante iniziale, consegne, magazzino, mensole, rice cooker e pentoloni, 3 piatti iniziali con i passaggi a clic, clienti con pazienza e pagamento, stoviglie, giornata e resoconto, salvataggio, interfaccia base, inglese/italiano |
 | **Indispensabile** | modalità costruzione con griglia 1/5/10, rotazione, vendita, inventario, catalogo decorazioni, pavimenti e pareti |
 | **Indispensabile** | livelli, licenze, tutte le ricette, upgrade, espansioni, valutazione e recensioni, prezzi del menu |
 | **Importante** | personale e automazione, tavoli e gruppi, sala tatami e VIP, missioni giornaliere, obiettivi, premio giornaliero, guadagni offline, tutorial |

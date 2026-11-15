@@ -13,7 +13,7 @@
 | Livello massimo | 50 (per ogni franchise) |
 | Yen iniziali | ¥500 + 2 scatole di ogni ingrediente base in magazzino |
 | Prezzo effettivo di un piatto | `prezzoBase × (1 + 0,05 × livelloMaestria) × moltiplicatorePrezzoMenu × bonusFranchise` |
-| Mancia | `prezzo × (0,05 + bonusQualità + bonusAmbiente + bonusComfort + bonusPazienza) × moltiplicatoreTipoCliente` |
+| Mancia | `prezzo × (0,05 + bonusFreschezza + bonusAmbiente + bonusComfort + bonusPazienza) × moltiplicatoreTipoCliente` (bonusFreschezza = 0,10 se il pesce viene dalla vetrina o se c'è un frigorifero professionale vicino alla postazione) |
 | Bonus pazienza sulla mancia | `0,10 × pazienzaResidua` (0–1) |
 | Intervallo tra clienti | `max(2,5 s; 18 s / (1 + popolarità))` |
 | Popolarità | `0,15 × (livello/10) + 0,35 × (valutazione−3) + bonusAmbiente + bonusInsegna + pubblicità` (minimo 0) |
@@ -88,45 +88,45 @@ Scatole grandi (Fornitore premium): ×3 porzioni, −10% (livello 1) o −20% (l
 
 ## 3. Ricette
 
-Passaggi: **T** = taglio, **P** = pressa, **A** = arrotola, **S** = scola, **C** = condimenti (un clic ciascuno), **G** = gira, **V** = versa, **M** = modella.
+Passaggi (un clic ciascuno, nessun tempismo): **U** = unisci, **A** = arrotola, **T** = taglia, **N** = cuoci noodles, **B** = versa brodo, **C** = condimenti, **G** = gira/cuoci sulla piastra, **F** = friggi, **I** = impana, **V** = versa, **M** = modella.
 
-| ID | Piatto | Postazione | Ingredienti | Minigiochi | Prezzo base | XP | Licenza |
+| ID | Piatto | Postazione | Ingredienti | Passaggi | Prezzo base | XP | Licenza |
 |---|---|---|---|---|---|---|---|
-| `kappa_maki` | Kappa Maki | sushi | riso, nori, cetriolo | A, T6 | ¥25 | 8 | base |
-| `sake_nigiri` | Sake Nigiri | sushi | riso, salmone | T3, P | ¥40 | 10 | base |
-| `shoyu_ramen` | Shoyu Ramen | ramen | noodles, brodo shoyu, cipollotto, naruto | S, C2 | ¥55 | 14 | base |
-| `tekka_maki` | Tekka Maki | sushi | riso, nori, tonno | A, T6 | ¥45 | 12 | Sushi I |
-| `maguro_nigiri` | Maguro Nigiri | sushi | riso, tonno | T3, P | ¥50 | 13 | Sushi I |
-| `shio_ramen` | Shio Ramen | ramen | noodles, brodo shio, cipollotto, uovo | S, C2 | ¥62 | 16 | Ramen I |
+| `kappa_maki` | Kappa Maki | sushi | riso, nori, cetriolo | U, A, T | ¥25 | 8 | base |
+| `sake_nigiri` | Sake Nigiri | sushi | riso, salmone | T, U | ¥40 | 10 | base |
+| `shoyu_ramen` | Shoyu Ramen | ramen | noodles, brodo shoyu, cipollotto, naruto | N, B, C | ¥55 | 14 | base |
+| `tekka_maki` | Tekka Maki | sushi | riso, nori, tonno | U, A, T | ¥45 | 12 | Sushi I |
+| `maguro_nigiri` | Maguro Nigiri | sushi | riso, tonno | T, U | ¥50 | 13 | Sushi I |
+| `shio_ramen` | Shio Ramen | ramen | noodles, brodo shio, cipollotto, uovo | N, B, C | ¥62 | 16 | Ramen I |
 | `edamame` | Edamame | bevande/contorni | edamame | V | ¥20 | 5 | Contorni & tè |
 | `green_tea` | Tè verde | bevande | tè verde | V | ¥12 | 3 | Contorni & tè |
-| `miso_soup` | Zuppa di miso | ramen | pasta di miso, tofu, cipollotto | C2 | ¥18 | 5 | Contorni & tè |
-| `california_roll` | California Roll | sushi | riso, nori, surimi, avocado, cetriolo, sesamo | A, T6 | ¥85 | 22 | Sushi II |
-| `ebi_nigiri` | Ebi Nigiri | sushi | riso, gambero | T3, P | ¥60 | 16 | Sushi II |
-| `miso_ramen` | Miso Ramen | ramen | noodles, brodo miso, mais, burro, cipollotto | S, C3 | ¥90 | 24 | Ramen II |
-| `gyoza` | Gyoza | piastra | gyoza crudi | G | ¥45 | 12 | Piastra |
-| `temaki_salmon` | Temaki al salmone | sushi | nori, riso, salmone, avocado | A | ¥95 | 26 | Sushi III |
-| `dragon_roll` | Dragon Roll | sushi | riso, nori, anguilla, avocado, salsa unagi | A, T6, C1 | ¥150 | 38 | Sushi III |
-| `tonkotsu_ramen` | Tonkotsu Ramen | ramen | noodles, brodo tonkotsu, chashu, uovo, kikurage | S, C3 | ¥140 | 36 | Ramen III |
-| `tantanmen` | Tantanmen | ramen | noodles, brodo tonkotsu, carne macinata, olio piccante, cipollotto | S, C3 | ¥150 | 38 | Ramen III |
-| `ebi_tempura` | Ebi Tempura | friggitrice | gambero, pastella | S | ¥90 | 24 | Friggitrice |
-| `karaage` | Karaage | friggitrice | pollo, pastella | S | ¥80 | 22 | Friggitrice |
-| `sashimi_moriawase` | Sashimi misto | sushi | salmone, tonno, ricciola, daikon | T3 ×3 | ¥260 | 60 | Sushi IV |
-| `ikura_gunkan` | Ikura Gunkan | sushi | riso, nori, ikura | P, A | ¥180 | 44 | Sushi IV |
-| `takoyaki` | Takoyaki | fornello takoyaki | polpo, pastella, cipollotto | G ×3 | ¥110 | 28 | Street food |
-| `tsukemen` | Tsukemen | ramen | noodles spessi, brodo tonkotsu, chashu, uovo | S, C2 | ¥200 | 50 | Ramen IV |
-| `mochi` | Mochi | dolci | mochi, matcha | M | ¥70 | 18 | Dolci & Matcha |
+| `miso_soup` | Zuppa di miso | ramen | pasta di miso, tofu, cipollotto | U, V | ¥18 | 5 | Contorni & tè |
+| `california_roll` | California Roll | sushi | riso, nori, surimi, avocado, cetriolo, sesamo | U, A, T | ¥85 | 22 | Sushi II |
+| `ebi_nigiri` | Ebi Nigiri | sushi | riso, gambero | T, U | ¥60 | 16 | Sushi II |
+| `miso_ramen` | Miso Ramen | ramen | noodles, brodo miso, mais, burro, cipollotto | N, B, C | ¥90 | 24 | Ramen II |
+| `gyoza` | Gyoza | piastra | gyoza crudi | G, G | ¥45 | 12 | Piastra |
+| `temaki_salmon` | Temaki al salmone | sushi | nori, riso, salmone, avocado | U, A | ¥95 | 26 | Sushi III |
+| `dragon_roll` | Dragon Roll | sushi | riso, nori, anguilla, avocado, salsa unagi | U, A, T, C | ¥150 | 38 | Sushi III |
+| `tonkotsu_ramen` | Tonkotsu Ramen | ramen | noodles, brodo tonkotsu, chashu, uovo, kikurage | N, B, C | ¥140 | 36 | Ramen III |
+| `tantanmen` | Tantanmen | ramen | noodles, brodo tonkotsu, carne macinata, olio piccante, cipollotto | N, B, C | ¥150 | 38 | Ramen III |
+| `ebi_tempura` | Ebi Tempura | friggitrice | gambero, pastella | I, F | ¥90 | 24 | Friggitrice |
+| `karaage` | Karaage | friggitrice | pollo, pastella | I, F | ¥80 | 22 | Friggitrice |
+| `sashimi_moriawase` | Sashimi misto | sushi | salmone, tonno, ricciola, daikon | T, T, U | ¥260 | 60 | Sushi IV |
+| `ikura_gunkan` | Ikura Gunkan | sushi | riso, nori, ikura | U, A | ¥180 | 44 | Sushi IV |
+| `takoyaki` | Takoyaki | fornello takoyaki | polpo, pastella, cipollotto | V, G | ¥110 | 28 | Street food |
+| `tsukemen` | Tsukemen | ramen | noodles spessi, brodo tonkotsu, chashu, uovo | N, B, C | ¥200 | 50 | Ramen IV |
+| `mochi` | Mochi | dolci | mochi, matcha | U, M | ¥70 | 18 | Dolci & Matcha |
 | `matcha_latte` | Matcha latte | bevande | matcha | V | ¥60 | 14 | Dolci & Matcha |
-| `ramune` | Ramune | bevande | ramune | — | ¥35 | 6 | Dolci & Matcha |
-| `otoro_nigiri` | Otoro Nigiri | sushi | riso, otoro | T3, P | ¥300 | 75 | Maestro Sushi |
-| `omakase` | Omakase | sushi | otoro, ricciola, ikura, gambero, riso, nori | T3 ×4, P ×2 | ¥900 | 200 | Maestro Sushi |
-| `mayu_ramen` | Mayu Tonkotsu | ramen | noodles, brodo tonkotsu, aglio nero, chashu, uovo, kikurage | S, C4 | ¥320 | 80 | Maestro Ramen |
-| `kaiseki` | Menu degustazione | sushi + ramen | otoro, ikura, brodo tonkotsu, noodles, matcha, mochi | tutti | ¥2.000 | 450 | Gran Maestro |
+| `ramune` | Ramune | bevande | ramune | V | ¥35 | 6 | Dolci & Matcha |
+| `otoro_nigiri` | Otoro Nigiri | sushi | riso, otoro | T, U | ¥300 | 75 | Maestro Sushi |
+| `omakase` | Omakase | sushi | otoro, ricciola, ikura, gambero, riso, nori | T, T, U, A | ¥900 | 200 | Maestro Sushi |
+| `mayu_ramen` | Mayu Tonkotsu | ramen | noodles, brodo tonkotsu, aglio nero, chashu, uovo, kikurage | N, B, C | ¥320 | 80 | Maestro Ramen |
+| `kaiseki` | Menu degustazione | sushi + ramen | otoro, ikura, brodo tonkotsu, noodles, matcha, mochi | T, U, N, B, C | ¥2.000 | 450 | Gran Maestro |
 
 Riso cotto: il rice cooker trasforma 1 porzione di riso crudo in 1 porzione di riso per sushi. Brodo: 1 porzione di base = 1 porzione di brodo nel pentolone.
 
 ### Maestria (per ricetta)
-| Livello | Piatti serviti | Prezzo | Zona perfetta |
+| Livello | Piatti serviti | Prezzo | Velocità passaggi |
 |---|---|---|---|
 | 1 | 25 | +5% | +5% |
 | 2 | 100 | +10% | +10% |
@@ -207,7 +207,7 @@ Colonne: prezzo, punti ambiente (Amb.), livello di sblocco, tipo di piazzamento,
 | `storage_rack_large` | Scaffale magazzino grande | ¥3.000 | 9 | 12 scatole |
 | `fridge` | Frigorifero professionale | ¥15.000 | 16 | +10% qualità a tutti i piatti nel suo raggio |
 
-Stoviglie iniziali: 12.
+Stoviglie iniziali: 12. Il set di stoviglie si compra dal Fornitore (non si piazza).
 
 ### 5.3 Decorazioni
 | ID | Nome | Categoria | Prezzo | Amb. | Liv. | Piazzamento |
@@ -292,9 +292,9 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 |---|---|---|---|---|
 | `up_tray` | Vassoio | 1→5 | ¥1.500 (L2) · ¥8.000 (L8) · ¥40.000 (L18) · ¥150.000 (L30) | capienza 1→2→3→4→5 |
 | `up_shoes` | Scarpe da cucina | 0→5 | ¥1.000 × 3^n | +8% velocità per livello |
-| `up_knife` | Coltello (Santoku → Yanagiba → Damasco → Hon-yaki) | 0→4 | ¥2.000 · ¥15.000 · ¥90.000 · ¥400.000 | +8% zona perfetta taglio/pressa |
-| `up_mat` | Stuoia makisu | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | +10% zona perfetta arrotola |
-| `up_strainer` | Scolapasta tebo | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | +10% zona perfetta scola |
+| `up_knife` | Coltello (Santoku → Yanagiba → Damasco → Hon-yaki) | 0→4 | ¥2.000 · ¥15.000 · ¥90.000 · ¥400.000 | −10% durata dei passaggi T e U |
+| `up_mat` | Stuoia makisu | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | −12% durata del passaggio A |
+| `up_strainer` | Scolapasta tebo | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | −12% durata dei passaggi N, B, C, F |
 | `up_shelf` | Mensole rinforzate | 0→3 | ¥5.000 · ¥30.000 · ¥200.000 | +25% porzioni per slot |
 | `up_delivery` | Consegna | 0→3 | ¥4.000 · ¥40.000 · ¥250.000 | 45 s → 30 s → 15 s → 5 s |
 | `up_supplier` | Fornitore premium | 0→2 | ¥20.000 (L10) · ¥200.000 (L25) | scatole grandi −10% / −20% |
@@ -325,7 +325,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `staff_line_cook` | Cuoco di linea | 18 | ¥30.000 | ¥1.100 | 0,8 |
 | `staff_manager` | Manager | 26 | ¥150.000 | ¥3.000 | — (+10% velocità a tutti) |
 
-- **Addestramento** (livelli 1→5): costo `assunzione × 0,8 × 2,2^(livello−1)`; +15% velocità per livello; dal livello 4 il personale ha il 15% di probabilità di "Perfetto".
+- **Addestramento** (livelli 1→5): costo `assunzione × 0,8 × 2,2^(livello−1)`; +15% velocità per livello.
 - **Posti personale**: 2 con il locale base, +1 per Sala Est, Sala Ovest, Terrazza; +3 con la Cucina professionale; +3 con il Secondo piano. Massimo 12.
 
 ---
@@ -369,7 +369,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 - Numero massimo di clienti contemporanei: posti disponibili + coda (massimo 40 NPC in totale, personale incluso, per non pesare sul server).
 
 ### Recensione
-`stelle = 5 − penaltàAttesa − penaltàSporco + bonusQualità + bonusAmbiente(0–0,5) + bonusComfort(0–0,3)`, limitata tra 1 e 5.
+`stelle = 4,2 − penaltàAttesa − penaltàSporco + bonusFreschezza(0,3) + bonusAmbiente(0–0,5) + bonusComfort(0–0,3)`, limitata tra 1 e 5.
 - penaltàAttesa: 0 se il cliente ha usato meno del 50% della pazienza, poi fino a −2.
 - penaltàSporco: −0,5 se ci sono stoviglie sporche entro 6 stud.
 - Cliente andato via senza mangiare: 1 ★.

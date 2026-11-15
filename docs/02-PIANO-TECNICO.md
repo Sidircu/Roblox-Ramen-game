@@ -131,10 +131,8 @@ Un test controlla l'integrità: ogni ingrediente usato esiste, ogni licenza punt
 | Controller | Responsabilità |
 |---|---|
 | `DataController` | copia locale dei dati del giocatore + eventi di cambiamento |
-| `InteractionController` | raggio dal cursore/tocco, evidenziazione (`Highlight`) e etichetta sull'oggetto, clic → camminata automatica → richiesta al server |
-| `AutoWalkController` | percorso con `PathfindingService`, `Humanoid:MoveTo` punto per punto, si annulla se il giocatore si muove a mano |
+| `InteractionController` | raggio dal cursore/tocco, evidenziazione (`Highlight`) ed etichetta sull'oggetto se il giocatore è abbastanza vicino, clic/tocco → richiesta al server |
 | `CarryVisualController` | posa delle braccia quando si porta qualcosa, pila di oggetti in mano |
-| `MinigameController` | i minigiochi (lancetta, cerchi, barra di cottura, strofina, versa) con tempi precisi lato client |
 | `BuildController` | modalità costruzione: anteprima, griglia 1/5/10, rotazione, colori valido/non valido, vista dall'alto |
 | `GridVisualizer` | linee della griglia disegnate solo attorno al cursore (poche parti, solo in costruzione) |
 | `CameraController` | occlusione "Invisicam", vista dall'alto in costruzione, nasconde il tetto quando serve |
@@ -193,7 +191,7 @@ Permessi (salvati nei dati del proprietario): `helper` (cucina, serve, pulisce, 
   meta = { quests = {…}, achievements = {…}, daily = { streak = 0, last = 0 }, lastSeen = 0, sets = {…} },
   franchise = { stars = 0, city = "tokyo" },
   perms = { [userId] = "helper" | "comanager" },
-  settings = { lang = "auto", grid = 1, rot = 90, minigames = "normal", music = 0.5, sfx = 0.8, lowGfx = false },
+  settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false },
   receipts = { …ultimi 50 PurchaseId },
 }
 ```
@@ -247,11 +245,11 @@ Il server manda una copia iniziale e poi solo i cambiamenti (`DataChanged(percor
 - Il client invia `Interact(uid)`; il server controlla distanza (≤ 9 stud), permessi, cosa ha in mano il giocatore e lo stato dell'oggetto; risponde con l'azione eseguita o con un messaggio ("Hai le mani piene").
 - Ciò che si porta in mano è uno stack sul server (`{ tipo, id, quantità }`); il modello viene saldato alla mano e si vede anche dagli amici.
 
-### Preparazione e minigiochi
-1. Il giocatore porta gli ingredienti alla postazione → il server crea una **sessione di preparazione** con i passaggi della ricetta e un seme casuale.
-2. Il client esegue i minigiochi con il seme e manda i tempi dei clic; il server controlla che siano plausibili (durata minima, numero di clic) e calcola la qualità.
-3. In modalità "Automatici" il server assegna "Buono" senza minigiochi.
-4. Il piatto pronto è un oggetto fisico sulla postazione, collegato al biglietto d'ordine.
+### Preparazione a clic
+1. Il giocatore porta gli ingredienti alla postazione: vengono posati sul tagliere solo quelli che possono formare una ricetta sbloccata.
+2. Quando gli ingredienti sul tagliere corrispondono esattamente a una ricetta (riso e brodo si prendono da soli dal rice cooker e dal pentolone), ogni clic sulla postazione esegue il passaggio successivo con un'animazione sul server (coltello, stuoia, bollitore, mestolo).
+3. Durante un'animazione i clic vengono ignorati; la durata dipende da attrezzi, maestria e livello del personale.
+4. Dopo l'ultimo passaggio il piatto è un oggetto fisico sulla postazione, pronto da prendere e servire. Un clic a mani vuote su un tagliere con ingredienti non validi li rimette in mano.
 
 ### Clienti (macchina a stati)
 `Arriva → (Aspetta in coda) → Va al posto → Legge il menu → Ordina → Aspetta → Mangia → Paga → Recensisce → Esce`
@@ -302,7 +300,7 @@ Il server manda una copia iniziale e poi solo i cambiamenti (`DataChanged(percor
 - Il client non manda mai prezzi, quantità guadagnate o risultati finali: manda intenzioni ("clicco questo", "piazza questo oggetto qui", "compra questa licenza").
 - Acquisti Robux: `ProcessReceipt` concede il premio solo dopo averlo salvato, e registra il `PurchaseId` per non concederlo due volte.
 
-Remoti principali: `Interact`, `MinigameResult`, `OrderSupplies`, `PlaceItem`, `MoveItem`, `RemoveItem`, `PaintSurface`, `BuyLicense`, `BuyUpgrade`, `BuyExpansion`, `BuyAd`, `HireStaff`, `TrainStaff`, `FireStaff`, `SetMenu`, `SetDayState`, `ClaimQuest`, `ClaimDaily`, `ClaimOffline`, `SetSetting`, `SetPermission`, `Franchise`, `GetSnapshot` (funzione); dal server: `DataChanged`, `Notify`, `PlaySfx`, `StartMinigame`.
+Remoti principali: `Interact`, `OrderSupplies`, `PlaceItem`, `MoveItem`, `RemoveItem`, `PaintSurface`, `BuyLicense`, `BuyUpgrade`, `BuyExpansion`, `BuyAd`, `HireStaff`, `TrainStaff`, `FireStaff`, `SetMenu`, `SetDayState`, `ClaimQuest`, `ClaimDaily`, `ClaimOffline`, `SetSetting`, `SetPermission`, `Franchise`, `GetSnapshot` (funzione); dal server: `DataChanged`, `Notify`, `PlaySfx`, `Tickets`.
 
 ---
 
@@ -339,7 +337,7 @@ Tutto in un'unica sessione di lavoro, a blocchi, con un commit per blocco:
 |---|---|---|
 | **B0 Base** | progetto Rojo, avvio servizi/controller, Net, utilità, Locale, Config completi, DataService, tema UI | `rojo build` ok, test della configurazione verdi |
 | **B1 Mondo** | Kit e Palette, strada, edificio a zone, illuminazione e giornata, modelli dei mobili iniziali | il mondo si vede bello di giorno e di sera |
-| **B2 Ciclo base** | interazione a clic, camminata automatica, oggetti in mano, fornitore e furgone, magazzino, mensole, rice cooker, pentoloni, 3 ricette con minigiochi, clienti, pagamento, stoviglie, resoconto | una giornata completa giocabile |
+| **B2 Ciclo base** | interazione a clic, oggetti in mano, fornitore e furgone, magazzino, mensole, rice cooker, pentoloni, 3 ricette con i passaggi a clic, clienti, pagamento, stoviglie, resoconto | una giornata completa giocabile |
 | **B3 Costruzione** | modalità costruzione, griglia 1/5/10, rotazione, validazione, vendita, inventario, pavimenti e pareti, catalogo completo dei modelli | si arreda il locale e si salva |
 | **B4 Progressione** | livelli, licenze, tutte le ricette e postazioni, upgrade, pubblicità, espansioni, valutazione, prezzi del menu, maestrie | si arriva al livello 20 con il pannello sviluppatore senza blocchi |
 | **B5 Personale** | bacheca dei compiti, tutti i ruoli, stipendi, addestramento, tavoli e gruppi, sala tatami e VIP | il locale va avanti da solo con il personale |

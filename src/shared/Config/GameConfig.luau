@@ -1,0 +1,96 @@
+--!nonstrict
+-- General tuning constants. Balance tables live in the sibling Config modules.
+return {
+	PlaceName = "Sakura Ramen & Sushi Tycoon",
+
+	-- Interaction
+	InteractRange = 11, -- studs between character and object
+	IngredientHandCapacity = 6,
+
+	-- Building
+	FloorHeight = 15, -- floor-to-floor distance
+	WallHeight = 14,
+	CellSize = 2, -- wall generation grid
+	PathCell = 1, -- walkability grid for placement validation
+	PathClearance = 0.9, -- obstacles are inflated by this (corridors >= 2 studs)
+	GridSizes = { 1, 5, 10 },
+	RotationSteps = { 90, 45, 15 },
+	SellRefund = 0.75,
+	FullRefundSeconds = 30,
+
+	-- Day cycle (1 game hour = 1 real minute)
+	Day = {
+		OpenHour = 11,
+		CloseHour = 23,
+		SecondsPerHour = 60,
+		PrepClock = 9.5,
+		Peaks = { { 12, 14 }, { 19, 21 } },
+		PeakFactor = 0.6,
+		ReportAutoClose = 15,
+		ManagerAutoOpenDelay = 20,
+	},
+
+	-- Customers
+	Customers = {
+		MaxNpcs = 40,
+		BaseInterval = 18,
+		MinInterval = 2.5,
+		MenuReadTime = { 2, 4 },
+		EatTime = { sushi = 12, ramen = 18, side = 8, drink = 6, dessert = 8 },
+		ExtraOrderChance = 0.4,
+		SecondOrderChance = 0.15,
+		QueuePerBench = 3,
+		BaseQueue = 2,
+		StuckTeleportSeconds = 8,
+		SeatHeightOffset = 1.05,
+		WalkSpeed = 10,
+		DefaultRating = 3.0,
+		RecentReviews = 50,
+	},
+
+	-- Cooking step durations (seconds) and which upgrade speeds them up
+	Steps = {
+		combine = { time = 0.9, tool = "up_knife" },
+		cut = { time = 1.0, tool = "up_knife" },
+		roll = { time = 1.1, tool = "up_mat" },
+		mold = { time = 1.0, tool = "up_mat" },
+		boil = { time = 1.4, tool = "up_strainer" },
+		pour = { time = 0.9, tool = "up_strainer" },
+		top = { time = 0.9, tool = "up_strainer" },
+		batter = { time = 0.8, tool = "up_strainer" },
+		fry = { time = 1.4, tool = "up_strainer" },
+		flip = { time = 1.1, tool = "up_strainer" },
+	},
+
+	-- Supply
+	DeliveryOverflowBoxes = 30,
+	BigBoxMultiplier = 3,
+
+	-- Dishes (plates and bowls)
+	StartDishes = 12,
+	DishSetSize = 6,
+	DishSetPrice = 300,
+
+	-- Freshness bonus (neta case fish or professional fridge nearby)
+	FreshTipBonus = 0.10,
+	FreshReviewBonus = 0.3,
+
+	-- Economy
+	StartYen = 500,
+	HelperRewardShare = 0.2,
+
+	-- Player
+	WalkSpeed = 16,
+
+	-- Saving
+	AutosaveSeconds = 120,
+	SessionLockSeconds = 600,
+	DataStoreName = "Profiles_v1",
+
+	-- Staff
+	StaffWalkSpeed = 13,
+	StaffSpeedPerLevel = 0.15,
+	ManagerSpeedBonus = 0.10,
+	MaxStaff = 12,
+	AutoRestockCheck = 30,
+}

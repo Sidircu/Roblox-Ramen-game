@@ -1,0 +1,679 @@
+--!nonstrict
+-- Customers: arrive from the street, take a seat, order, wait (patience), eat, pay, review, leave.
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local GameConfig = require(Shared.Config.GameConfig)
+local Customers = require(Shared.Config.Customers)
+local Recipes = require(Shared.Config.Recipes)
+local Expansions = require(Shared.Config.Expansions)
+local Formulas = require(Shared.Logic.Formulas)
+local TableUtil = require(Shared.Util.TableUtil)
+local Registry = require(Shared.Models.Registry)
+local Uid = require(Shared.Util.Uid)
+local Core = require(script.Parent.Parent.Core)
+
+local Service = {}
+Service.active = {} -- [uid] = customer
+local queue = {} -- waiting groups
+local rng = Random.new()
+local menuCache, menuCacheTime = nil, 0
+
+local CFG = GameConfig.Customers
+local MAIN = { sushi = true, ramen = true }
+
+local function data()
+	return Core.S.Session.ownerData()
+end
+
+------------------------------------------------------------------ menu availability
+
+function Service.availableMenu()
+	if menuCache and os.clock() - menuCacheTime < 2 then
+		return menuCache
+	end
+	local d = data()
+	local out = {}
+	if not d then
+		return out
+	end
+	local Supply, Appliance = Core.S.Supply, Core.S.Appliance
+	local stations = {}
+	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+		stations[e.item.fn.station] = true
+	end
+	for _, r in ipairs(Core.S.Progression.menuRecipes(d)) do
+		local ok = stations[r.station] == true
+		if ok then
+			for _, g in ipairs(r.ing) do
+				if Supply.shelfStock(g) <= 0 and Supply.boxCount(g) <= 0 then
+					ok = false
+					break
+				end
+			end
+		end
+		if ok and r.rice and not (Appliance.willHave("ricecooker") or Supply.boxCount("rice") > 0) then
+			ok = false
+		end
+		if ok and r.broth and not (Appliance.willHave("pot", r.broth) or Supply.boxCount(r.broth) > 0) then
+			ok = false
+		end
+		if ok then
+			table.insert(out, r)
+		end
+	end
+	menuCache, menuCacheTime = out, os.clock()
+	return out
+end
+
+local function chooseOrder(c, mainOnly)
+	local d = data()
+	local menu = Service.availableMenu()
+	local list = {}
+	for _, r in ipairs(menu) do
+		local isMain = MAIN[r.cat] == true
+		if (mainOnly and isMain) or (not mainOnly and not isMain) then
+			table.insert(list, r)
+		end
+	end
+	if #list == 0 then
+		if mainOnly then
+			list = menu
+		else
+			return nil
+		end
+	end
+	local prefer = {}
+	for _, p in ipairs(c.cfg.prefer) do
+		prefer[p] = true
+	end
+	local pick = TableUtil.weightedPick(list, function(r)
+		local m = d.menu[r.id]
+		local w = Formulas.demandFactor(m and m.price or 1)
+		if prefer[r.cat] then
+			w *= 2
+		end
+		if prefer.cheap and r.price <= 60 then
+			w *= 2
+		end
+		if prefer.expensive and r.price >= 150 then
+			w *= 2.5
+		end
+		if prefer.mastery and Formulas.masteryLevel(d.mastery[r.id] or 0) >= 2 then
+			w *= 3
+		end
+		return w
+	end, rng)
+	return pick
+end
+
+------------------------------------------------------------------ helpers
+
+local function setState(c, state)
+	c.state = state
+	if c.npc and c.npc.model then
+		c.npc.model:SetAttribute("State", state)
+	end
+end
+
+local function setOrder(c, recipe)
+	c.order = recipe and recipe.id or nil
+	if c.npc and c.npc.model then
+		c.npc.model:SetAttribute("Order", c.order or "")
+	end
+end
+
+local function patienceTick(c, dt)
+	c.patience = math.max(0, c.patience - dt)
+	c.minPatience = math.min(c.minPatience, c.patience / c.patienceMax)
+	if c.npc and c.npc.model then
+		c.npc.model:SetAttribute("Patience", c.patience / c.patienceMax)
+	end
+end
+
+local function floorPos(seat)
+	local p = seat.sit.Position
+	local floorY = Core.S.World.floorY(seat.floor)
+	local back = -seat.sit.LookVector * 1.4
+	return Vector3.new(p.X + back.X, floorY + 0.5, p.Z + back.Z)
+end
+
+local function dirtyNear(pos)
+	for _, e in ipairs(Core.S.Entities.ofKind("dirty")) do
+		local p = Core.S.Entities.position(e)
+		if p and (p - pos).Magnitude < 6 then
+			return true
+		end
+	end
+	return false
+end
+
+local function streetPoint(side)
+	return Vector3.new(side * (70 + rng:NextNumber() * 20), 0, Expansions.StreetWalkZ)
+end
+
+local function entrance()
+	return Vector3.new(Expansions.Entrance.x + rng:NextNumber() * 2 - 1, 0, Expansions.Entrance.z - 1)
+end
+
+local function dishKind(recipeId)
+	local r = Recipes.byId[recipeId]
+	if r and (r.dish == "bowl" or r.dish == "soup" or r.dish == "tsukemen") then
+		return "bowl"
+	end
+	return "plate"
+end
+
+------------------------------------------------------------------ lifecycle
+
+local function release(c)
+	Service.active[c.uid] = nil
+	Core.S.Entities.unregister(c.uid)
+	if c.ticket then
+		Core.S.Cooking.removeTicket(c.ticket.id)
+		c.ticket = nil
+	end
+	if c.seat then
+		c.seat.occupant = nil
+		c.seat.reserved = nil
+	end
+	if c.dishModel then
+		c.dishModel:Destroy()
+		c.dishModel = nil
+	end
+	if c.bench then
+		Core.S.Seating.freeBench(c.bench)
+		c.bench = nil
+	end
+	if c.npc then
+		c.npc.model:SetAttribute("State", nil)
+		c.npc.model:SetAttribute("Order", nil)
+		Core.S.Npc.release(c.npc)
+		c.npc = nil
+	end
+end
+
+local function leaveRestaurant(c)
+	local Npc = Core.S.Npc
+	setState(c, "leaving")
+	setOrder(c, nil)
+	if c.npc then
+		Npc.stand(c.npc)
+		Npc.walkTo(c.npc, entrance())
+		Npc.walkTo(c.npc, streetPoint(c.side))
+	end
+	release(c)
+end
+
+local function review(c, walkedOut)
+	local Progression, Economy = Core.S.Progression, Core.S.Economy
+	local amb = Core.S.Placement.ambience
+	local pos = c.seat and c.seat.dish or Vector3.new()
+	local stars = Formulas.review({
+		left = walkedOut,
+		patienceLeft = c.minPatience,
+		dirtyNearby = dirtyNear(pos),
+		fresh = c.fresh,
+		freshBonus = GameConfig.FreshReviewBonus,
+		ambienceTier = amb.tier,
+		comfort = c.seat and c.seat.comfort or 0,
+	})
+	Progression.addReview(stars, c.cfg.reviewWeight or 1)
+	local L = Economy.ledger
+	L.reviews += 1
+	L.stars += stars
+	if walkedOut then
+		L.walkouts += 1
+	else
+		L.customers += 1
+	end
+	local owner = Core.S.Session.owner
+	Core.S.Net.fx("review", { stars = stars, pos = (c.npc and c.npc.root and c.npc.root.Position or pos) + Vector3.new(0, 3, 0), type = c.cfg.id })
+	if not walkedOut then
+		Core.S.Meta.event(owner, "customers", 1)
+		if stars >= 4 then
+			Core.S.Meta.event(owner, "happy", 1)
+		end
+		local d = data()
+		d.stats.customers += 1
+		if stars >= 5 and c.cfg.reviewWeight then
+			Economy.addSakura(owner, 3)
+			Core.S.Net.notifyAll("msg.critic_happy", nil, "success")
+		end
+		if stars >= 5 and c.cfg.influencer then
+			d.boosts.influencer = (d.stats.days or 0) + 2
+			Core.S.Net.notifyAll("msg.influencer_happy", nil, "success")
+		end
+	else
+		Core.S.Net.notifyAll("msg.customer_left", nil, "warning")
+	end
+end
+
+local function pay(c, recipe)
+	local d = data()
+	local Economy = Core.S.Economy
+	local owner = Core.S.Session.owner
+	local amb = Core.S.Placement.ambience
+	local price = Core.S.Progression.priceOf(d, recipe)
+	local tip = Formulas.tip(price, {
+		fresh = c.fresh,
+		freshBonus = GameConfig.FreshTipBonus,
+		ambienceTip = amb.tip,
+		comfort = c.seat and c.seat.comfort or 0,
+		patienceLeft = c.patience / c.patienceMax,
+		customerTip = c.cfg.tip,
+	})
+	local got = Economy.add(owner, price, "sale")
+	local gotTip = Economy.add(owner, tip, "tip")
+	local helper = c.servedBy
+	if helper and typeof(helper) == "Instance" and helper ~= owner and helper.Parent then
+		local share = math.floor((price + tip) * GameConfig.HelperRewardShare + 0.5)
+		Economy.add(helper, share, "helper")
+		Core.S.Progression.addXp(helper, math.floor(recipe.xp * 0.5))
+	end
+	Core.S.Net.fx("money", { amount = got + gotTip, tip = gotTip, pos = (c.npc and c.npc.root and c.npc.root.Position or c.seat.dish) + Vector3.new(0, 3, 0) })
+	Core.S.Net.fx("sfx", { name = "coin", pos = c.seat.dish })
+end
+
+local function eat(c, recipe)
+	setState(c, "eating")
+	local eatTime = CFG.EatTime[recipe.cat] or 10
+	task.wait(eatTime * (0.85 + rng:NextNumber() * 0.3))
+	if c.dishModel then
+		c.dishModel:Destroy()
+		c.dishModel = nil
+	end
+	pay(c, recipe)
+	c.dishKind = dishKind(recipe.id)
+	c.eaten += 1
+end
+
+local function leaveDirty(c)
+	if not c.seat or c.eaten == 0 then
+		return
+	end
+	local m = Registry.food("dirty", c.dishKind or "plate")
+	m:PivotTo(CFrame.new(c.seat.dish + Vector3.new(0, 0.3, 0)))
+	m.Parent = Core.S.World.folders().dynamic
+	local uid = Uid.new("d")
+	Core.S.Entities.register(uid, "dirty", m, { seat = c.seat })
+	c.seat.dirty = uid
+end
+
+-- Main AI for one customer
+local function run(c)
+	local Npc = Core.S.Npc
+	local Seating = Core.S.Seating
+	-- walk in
+	Npc.walkTo(c.npc, entrance())
+	-- wait in queue until a seat is free
+	if not c.seat then
+		setState(c, "queue")
+		c.bench = Seating.benchSpot(c.uid)
+		if c.bench then
+			Npc.walkTo(c.npc, c.bench.sit.Position)
+			Npc.sit(c.npc, c.bench.sit)
+		end
+		local waited = 0
+		while not c.seat and waited < 60 do
+			task.wait(1)
+			waited += 1
+			if c.groupLeader == c and c.groupSeatsReady then
+				break
+			end
+			if c.assignedSeat then
+				c.seat = c.assignedSeat
+			end
+		end
+		if c.bench then
+			Npc.stand(c.npc)
+			Seating.freeBench(c.bench)
+			c.bench = nil
+		end
+		if not c.seat then
+			return leaveRestaurant(c)
+		end
+	end
+	setState(c, "walking")
+	c.seat.occupant = c.uid
+	Npc.walkTo(c.npc, floorPos(c.seat))
+	Npc.sit(c.npc, c.seat.sit)
+	setState(c, "reading")
+	task.wait(rng:NextNumber() * (CFG.MenuReadTime[2] - CFG.MenuReadTime[1]) + CFG.MenuReadTime[1])
+	local ordersLeft = c.cfg.ordersEach or 1
+	local first = true
+	while ordersLeft > 0 do
+		local recipe = chooseOrder(c, first)
+		if not recipe then
+			break
+		end
+		setOrder(c, recipe)
+		c.patience = c.patienceMax * (first and 1 or 0.85)
+		setState(c, "order")
+		-- wait to be noticed / served
+		while c.state == "order" or c.state == "waiting" do
+			task.wait(0.5)
+			patienceTick(c, 0.5)
+			if c.patience <= 0 then
+				review(c, true)
+				if c.npc and c.npc.play then
+					Npc.emote(c.npc, "wave")
+				end
+				return leaveRestaurant(c)
+			end
+			local phase = Core.S.Day.phase
+			if phase == "report" or phase == "prep" then
+				return leaveRestaurant(c)
+			end
+		end
+		if c.state ~= "served" then
+			return leaveRestaurant(c)
+		end
+		eat(c, recipe)
+		ordersLeft -= 1
+		first = false
+		if ordersLeft == 0 and c.eaten == 1 and rng:NextNumber() < CFG.ExtraOrderChance then
+			ordersLeft = 1
+		end
+	end
+	review(c, false)
+	if c.npc then
+		Npc.emote(c.npc, "cheer")
+	end
+	task.wait(0.8)
+	leaveDirty(c)
+	if c.seat then
+		c.seat.occupant = nil
+		c.seat.reserved = nil
+	end
+	leaveRestaurant(c)
+end
+
+local function spawnCustomer(cfg, side, seat, group)
+	local npc = Core.S.Npc.acquireCustomer(cfg.look)
+	if not npc then
+		return nil
+	end
+	local uid = Uid.new("c")
+	local d = data()
+	local amb = Core.S.Placement.ambience
+	local patience = cfg.patience
+	local clock = Core.S.Day.clock or 12
+	if cfg.lunchPatience and clock >= 12 and clock < 14 then
+		patience = cfg.lunchPatience
+	end
+	patience = patience * (1 + amb.patience)
+	local c = {
+		uid = uid, cfg = cfg, npc = npc, seat = seat, side = side, state = "arriving", group = group,
+		patienceMax = patience, patience = patience, minPatience = 1, eaten = 0, fresh = false,
+	}
+	local _ = d
+	Service.active[uid] = c
+	Core.S.Entities.register(uid, "customer", npc.model, { customer = c })
+	npc.model:SetAttribute("Type", cfg.id)
+	npc.model:SetAttribute("Patience", 1)
+	local start = streetPoint(side)
+	Core.S.Npc.spawn(npc, CFrame.new(start + Vector3.new(0, 3, 0)) * CFrame.Angles(0, math.rad(side > 0 and 90 or -90), 0))
+	task.spawn(function()
+		local ok, err = pcall(run, c)
+		if not ok then
+			warn("[Customers] " .. tostring(err))
+			release(c)
+		end
+	end)
+	return c
+end
+
+local function pickType(d)
+	local list = {}
+	local hasTables = false
+	local hasVip = false
+	for _, s in ipairs(Core.S.Seating.seats) do
+		if s.group and not s.vip then
+			hasTables = true
+		end
+		if s.vip then
+			hasVip = true
+		end
+	end
+	for _, cfg in ipairs(Customers.list) do
+		if d.level >= cfg.lv and (not cfg.needsTable or hasTables) and (not cfg.vip or hasVip) and (cfg.group[1] == 1 or hasTables or cfg.vip) then
+			table.insert(list, cfg)
+		end
+	end
+	local tourists = false
+	for id, day in pairs(d.ads or {}) do
+		if id == "ad_tv" and day == (d.stats.days or 0) + 1 then
+			tourists = true
+		end
+	end
+	return TableUtil.weightedPick(list, function(cfg)
+		if tourists and cfg.id == "cust_tourist" then
+			return cfg.weight * 2
+		end
+		return cfg.weight
+	end, rng)
+end
+
+function Service.trySpawn(forcedType)
+	local d = data()
+	if not d then
+		return false
+	end
+	if Core.S.Npc.count() >= CFG.MaxNpcs then
+		return false
+	end
+	if #Service.availableMenu() == 0 then
+		if not Service.warnedMenu then
+			Service.warnedMenu = true
+			Core.S.Net.notifyAll("msg.no_menu", nil, "warning")
+		end
+		return false
+	end
+	Service.warnedMenu = false
+	local cfg = forcedType and Customers.byId[forcedType] or pickType(d)
+	if not cfg then
+		return false
+	end
+	local size = rng:NextInteger(cfg.group[1], cfg.group[2])
+	local needsTable = cfg.needsTable or size > 1
+	local seats = Core.S.Seating.find(size, needsTable, cfg.vip == true)
+	local side = rng:NextNumber() < 0.5 and -1 or 1
+	if not seats then
+		-- queue (only if there is room)
+		local waiting = 0
+		for _, g in ipairs(queue) do
+			waiting += #g.members
+		end
+		if waiting + size > CFG.BaseQueue + Core.S.Seating.queueCapacity() then
+			return false
+		end
+		local group = { members = {}, size = size, needsTable = needsTable, vip = cfg.vip == true }
+		for _ = 1, size do
+			local c = spawnCustomer(cfg, side, nil, group)
+			if c then
+				table.insert(group.members, c)
+			end
+		end
+		table.insert(queue, group)
+		return true
+	end
+	Core.S.Seating.reserve(seats, "pending")
+	local group = { members = {} }
+	for i = 1, size do
+		local c = spawnCustomer(cfg, side, seats[i], group)
+		if c then
+			seats[i].reserved = c.uid
+			table.insert(group.members, c)
+		else
+			Core.S.Seating.release(seats[i])
+		end
+		task.wait(0.4)
+	end
+	if cfg.celebrity then
+		Core.S.Net.notifyAll("msg.celebrity", nil, "success")
+		task.spawn(function()
+			for _ = 1, 4 do
+				task.wait(2)
+				Service.trySpawn("cust_student")
+			end
+		end)
+	end
+	return true
+end
+
+local function serveQueue()
+	for i = #queue, 1, -1 do
+		local g = queue[i]
+		local alive = {}
+		for _, c in ipairs(g.members) do
+			if Service.active[c.uid] and c.state == "queue" then
+				table.insert(alive, c)
+			end
+		end
+		if #alive == 0 then
+			table.remove(queue, i)
+		else
+			local seats = Core.S.Seating.find(#alive, g.needsTable and #alive > 1, g.vip)
+			if seats then
+				for k, c in ipairs(alive) do
+					seats[k].reserved = c.uid
+					c.assignedSeat = seats[k]
+				end
+				table.remove(queue, i)
+			end
+		end
+	end
+end
+
+------------------------------------------------------------------ interaction
+
+function Service.use(actor, e)
+	local c = e.customer
+	if not c then
+		return false
+	end
+	local Hands = Core.S.Hands
+	if c.state == "order" then
+		local t = Core.S.Cooking.addTicket(c.uid, c.order)
+		if not t then
+			return false, "msg.tickets_full"
+		end
+		c.ticket = t
+		setState(c, "waiting")
+		Core.S.Net.fx("sfx", { name = "click", pos = Core.S.Entities.position(e) })
+		return true
+	elseif c.state == "waiting" then
+		local hands = Hands.get(actor)
+		if hands.kind == "dish" then
+			for i, dish in ipairs(hands.items) do
+				if dish.recipe == c.order then
+					Hands.removeAt(actor, i)
+					Service.serve(c, dish, actor)
+					return true
+				end
+			end
+			return false, "msg.wrong_dish", { dish = "rec." .. c.order }
+		end
+		return false, "msg.customer_waits", { dish = "rec." .. c.order }
+	elseif c.state == "reading" or c.state == "walking" then
+		return false, "msg.customer_reading"
+	end
+	return false, "msg.customer_happy"
+end
+
+function Service.serve(c, dish, actor)
+	local recipe = Recipes.byId[dish.recipe]
+	if c.ticket then
+		Core.S.Cooking.removeTicket(c.ticket.id)
+		c.ticket = nil
+	end
+	c.fresh = dish.fresh == true
+	c.servedBy = actor
+	local m = Registry.food("dish", dish.recipe)
+	m:PivotTo(CFrame.new(c.seat.dish + Vector3.new(0, 0.5, 0)) * CFrame.Angles(0, math.rad(rng:NextInteger(0, 359)), 0))
+	for _, d in ipairs(m:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.CanQuery = false
+		end
+	end
+	m.Parent = Core.S.World.folders().dynamic
+	c.dishModel = m
+	setState(c, "served")
+	local d = data()
+	local owner = Core.S.Session.owner
+	d.stats.dishes += 1
+	Core.S.Economy.ledger.served += 1
+	Core.S.Economy.ledger.bestDish[recipe.id] = (Core.S.Economy.ledger.bestDish[recipe.id] or 0) + 1
+	Core.S.Progression.addMastery(recipe.id)
+	Core.S.Progression.addXp(owner, recipe.xp)
+	Core.S.Meta.event(owner, "serve", 1, { recipe = recipe.id })
+	if recipe.cat == "sushi" then
+		Core.S.Meta.event(owner, "serve_sushi", 1)
+	elseif recipe.cat == "ramen" then
+		Core.S.Meta.event(owner, "serve_ramen", 1)
+	end
+	Core.S.Data.changed(owner, "stats")
+end
+
+function Service.collectDirty(actor, e)
+	local Hands = Core.S.Hands
+	local ok, reason = Hands.add(actor, "dirty", { dish = "plate" })
+	if not ok then
+		return false, reason
+	end
+	if e.seat then
+		e.seat.dirty = nil
+	end
+	Core.S.Entities.unregister(e.uid)
+	if e.model then
+		e.model:Destroy()
+	end
+	return true
+end
+
+-- customers waiting to order (for waiters) and waiting food
+function Service.list(state)
+	local out = {}
+	for _, c in pairs(Service.active) do
+		if c.state == state then
+			table.insert(out, c)
+		end
+	end
+	return out
+end
+
+function Service.sendAllHome()
+	for _, c in pairs(Service.active) do
+		c.state = "leaving"
+	end
+end
+
+------------------------------------------------------------------ loop
+
+local function spawnLoop()
+	local timer = 0
+	while true do
+		local dt = task.wait(0.5)
+		serveQueue()
+		local Day = Core.S.Day
+		if Day and Day.phase == "open" and Core.S.Session.owner then
+			timer += dt
+			local pop = Core.S.Progression.popularity()
+			local interval = Formulas.customerInterval(CFG.BaseInterval, CFG.MinInterval, pop, Day.isPeak(), GameConfig.Day.PeakFactor, Core.S.Economy.boostActive("rush"))
+			if Core.S.Seating.freeCount() == 0 then
+				interval = interval * 1.5
+			end
+			if timer >= interval then
+				timer = 0
+				pcall(Service.trySpawn)
+			end
+		else
+			timer = 0
+		end
+	end
+end
+
+function Service.Start()
+	task.spawn(spawnLoop)
+end
+
+return Service
