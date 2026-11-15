@@ -3928,10 +3928,6 @@ local function noren(m, item, color, text, textColor)
 		local x = -w / 2 + pw * (i + 0.5)
 		local cloth = Kit.box(m, pw - 0.08, h - 0.25, 0.05, x, (h - 0.25) / 2 + 0.05, d / 2 - 0.12, color, M.fabric, { collide = false })
 		cloth:SetAttribute("Animate", "sway")
-		if text then
-			local ch = string.sub(text, 1, 0) -- placeholder to keep luau happy
-			local _ = ch
-		end
 	end
 	if text then
 		local panel = Kit.box(m, w - 0.2, h * 0.5, 0.02, 0, h * 0.55, d / 2 - 0.16, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
@@ -4188,9 +4184,6 @@ return function(Registry)
 		end
 		Kit.ball(m, 0.6, w / 2 - 0.9, h - 0.8, z - 0.03, P.lacquer, M.smooth, { collide = false })
 		frame(m, w, h, 0.2, P.wood_black)
-		for _, part in ipairs(m:GetChildren()) do
-			local _ = part
-		end
 	end)
 	Registry.register("byobu", function(m, item)
 		Kit.finish(m, size(item))
@@ -15197,10 +15190,6 @@ function Interaction.highlightRecipe(recipeId)
 				end
 			end
 		elseif kind == "station" and model.PrimaryPart then
-			local cfgOk = model.Name ~= nil
-			local _ = cfgOk
-			local item = model:GetAttribute("Recipe")
-			local _2 = item
 			local stationId = string.gsub(model.Name, "_station", "")
 			if stationId == r.station or (model.Name == "griddle" and r.station == "griddle") or (model.Name == "fryer" and r.station == "fryer") or (model.Name == "takoyaki_stove" and r.station == "takoyaki") then
 				local box = Instance.new("SelectionBox")

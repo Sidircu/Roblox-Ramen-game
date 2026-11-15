@@ -241,10 +241,6 @@ function Interaction.highlightRecipe(recipeId)
 				end
 			end
 		elseif kind == "station" and model.PrimaryPart then
-			local cfgOk = model.Name ~= nil
-			local _ = cfgOk
-			local item = model:GetAttribute("Recipe")
-			local _2 = item
 			local stationId = string.gsub(model.Name, "_station", "")
 			if stationId == r.station or (model.Name == "griddle" and r.station == "griddle") or (model.Name == "fryer" and r.station == "fryer") or (model.Name == "takoyaki_stove" and r.station == "takoyaki") then
 				local box = Instance.new("SelectionBox")

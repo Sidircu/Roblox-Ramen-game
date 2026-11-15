@@ -48,9 +48,9 @@
     "semantic_hash": ""
   },
   "src/client/Controllers/Interaction.luau": {
-    "mtime": 1794761273.6928144,
-    "seen": 1794776610.456927,
-    "ast_hash": "3e240d5d7dbf66eca7f1d947d2fd3591",
+    "mtime": 1794776678.0342536,
+    "seen": 1794776680.1062331,
+    "ast_hash": "459d9bdcb0ec3a795bcda2321f56ae80",
     "semantic_hash": ""
   },
   "src/client/Controllers/Lighting.luau": {
@@ -558,9 +558,9 @@
     "semantic_hash": ""
   },
   "src/shared/Models/Builders/Decor.luau": {
-    "mtime": 1794759468.448707,
-    "seen": 1794776610.4570186,
-    "ast_hash": "b08362d18183375e4fcce224e1e5ae24",
+    "mtime": 1794776678.0354807,
+    "seen": 1794776680.1063745,
+    "ast_hash": "1df72d6adebaa97df9d23cbe7b9c02ce",
     "semantic_hash": ""
   },
   "src/shared/Models/Builders/Food.luau": {

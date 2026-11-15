@@ -1,7 +1,7 @@
 # Graph Report - Roblox-Ramen-game  (2026-11-15)
 
 ## Corpus Check
-- 119 files · ~110,989 words
+- 119 files · ~110,940 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: (none) 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `642b80ad`
+- Built from commit: `8953fdb6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -70,20 +70,20 @@
 6. `Kit.new()` - 23 edges
 7. `dish()` - 21 edges
 8. `Hands.get()` - 19 edges
-9. `Piano tecnico — architettura e implementazione` - 18 edges
-10. `Placement.validate()` - 18 edges
+9. `Placement.validate()` - 18 edges
+10. `Piano tecnico — architettura e implementazione` - 18 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `12. Interfaccia e lingue` --references--> `refresh()`  [INFERRED]
   docs/02-PIANO-TECNICO.md → src/server/Services/Appliance.luau
-- `runTrain()` --calls--> `S.train()`  [INFERRED]
-  src/client/Controllers/Ambient.luau → src/shared/Models/Builders/Street.luau
-- `Build.Init()` --calls--> `Color.hex()`  [INFERRED]
-  src/client/Controllers/Build.luau → src/shared/Util/Color.luau
 - `Interaction.highlightRecipe()` --calls--> `Color.hex()`  [INFERRED]
   src/client/Controllers/Interaction.luau → src/shared/Util/Color.luau
 - `Interaction.Init()` --calls--> `Color.hex()`  [INFERRED]
   src/client/Controllers/Interaction.luau → src/shared/Util/Color.luau
+- `runTrain()` --calls--> `S.train()`  [INFERRED]
+  src/client/Controllers/Ambient.luau → src/shared/Models/Builders/Street.luau
+- `Build.Init()` --calls--> `Color.hex()`  [INFERRED]
+  src/client/Controllers/Build.luau → src/shared/Util/Color.luau
 
 ## Import Cycles
 - None detected.
@@ -265,16 +265,16 @@ Nodes (4): serveQueue(), spawnLoop(), Day.isPeak(), Formulas.customerInterval()
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `refresh()` connect `Services/Staff.luau` to `Kit.box`?**
-  _High betweenness centrality (0.129) - this node is a cross-community bridge._
+  _High betweenness centrality (0.156) - this node is a cross-community bridge._
 - **Are the 53 inferred relationships involving `Kit.box()` (e.g. with `buildShell()` and `buildStreet()`) actually correct?**
   _`Kit.box()` has 53 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Kit.box` be split into smaller, more focused modules?**
   _Cohesion score 0.06660231660231661 - nodes in this community are weakly interconnected._
 - **Why does `Piano tecnico — architettura e implementazione` connect `Piano tecnico — architettura e implementazione` to `Services/Staff.luau`, `10. Sistemi di gioco`, `01-GAME-DESIGN.md`, `7. Salvataggi`?**
-  _High betweenness centrality (0.126) - this node is a cross-community bridge._
+  _High betweenness centrality (0.145) - this node is a cross-community bridge._
 - **Are the 31 inferred relationships involving `Kit.finish()` (e.g. with `bonsai()` and `chochin()`) actually correct?**
   _`Kit.finish()` has 31 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Services/Staff.luau` be split into smaller, more focused modules?**
   _Cohesion score 0.0653417645287564 - nodes in this community are weakly interconnected._
 - **Why does `12. Interfaccia e lingue` connect `Services/Staff.luau` to `Piano tecnico — architettura e implementazione`?**
-  _High betweenness centrality (0.124) - this node is a cross-community bridge._
+  _High betweenness centrality (0.143) - this node is a cross-community bridge._
