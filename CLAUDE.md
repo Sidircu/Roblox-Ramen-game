@@ -5,12 +5,23 @@ Gioco Roblox (Luau + Rojo). Prima di scrivere codice leggi i documenti in `docs/
 
 Regole del progetto:
 - Lingua della conversazione con l'utente: italiano. Codice, identificatori e commenti nel codice: inglese.
-- Ogni file Luau inizia con `--!strict`. Niente librerie esterne: le utilità stanno in `src/shared/Util`.
+- Ogni file Luau inizia con `--!nonstrict` e **non usa annotazioni di tipo** (così i controlli statici di `tools/check_luau.py` restano affidabili).
+- Moduli in `src/shared/Logic/` e `src/shared/Config/`: solo sintassi Lua standard (niente `+=`, `continue`, stringhe con backtick), così girano nei test con lupa.
+- Niente librerie esterne: le utilità stanno in `src/shared/Util`.
 - Tutti i numeri di gioco vanno in `src/shared/Config/` (mai prezzi o tempi scritti nel codice dei sistemi).
 - Tutti i testi visibili passano da `Locale.t(key)`; ogni chiave esiste sia in `en.luau` sia in `it.luau`.
 - Il server è autoritativo: il client manda solo intenzioni, il server valida tutto.
-- Logica pura (formule, griglia, impronte, percorsi) in `src/shared/Logic/`, senza API Roblox, coperta da test Lune in `tests/`.
+- I servizi si chiamano tra loro solo tramite `Core.S.<Servizio>` (server) e `Core.C.<Controller>` (client), mai con require circolari.
 - Se cambiano i documenti di design, aggiorna anche `03-BILANCIAMENTO.md` e i moduli `Config` corrispondenti.
+
+Prima di ogni commit esegui (tutti devono dare 0 problemi):
+```
+python3 tools/check_luau.py        # sintassi a blocchi, variabili non dichiarate, require, lingue
+python3 tools/check_api.py         # chiamate Core.S.X.f / Core.C.X.f esistenti
+python3 tools/run_logic_tests.py   # test della logica (pip install lupa)
+python3 tools/build_place.py       # rigenera build/SakuraRamenTycoon.rbxlx
+graphify update .                  # aggiorna il grafo
+```
 
 ## graphify
 

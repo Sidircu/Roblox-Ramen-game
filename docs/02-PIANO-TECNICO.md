@@ -8,23 +8,22 @@
 
 | Strumento | Uso |
 |---|---|
-| **Rojo** 7.x | Il codice vive come file `.luau` nel repository; `rojo build` produce il file del gioco `.rbxl`; `rojo serve` + plugin Rojo in Studio per la sincronizzazione dal vivo |
-| **Luau** (`--!strict`) | Linguaggio di tutto il gioco, con tipi |
-| **Lune** | Esegue i test della logica pura (formule, griglia, configurazioni) fuori da Studio |
-| **StyLua + Selene** | Formattazione e controllo del codice |
-| **graphify** | Grafo della conoscenza del progetto (`graphify-out/`), aggiornato dopo ogni modifica con `graphify update .` |
-| **Roblox Studio** | Sul tuo PC: apri il `.rbxl`, provi, pubblichi |
+| `tools/build_place.py` | Compila `src/` (convenzioni Rojo) in `build/SakuraRamenTycoon.rbxlx`, da aprire in Studio |
+| `tools/check_luau.py` | Controllo statico: blocchi e parentesi, variabili non dichiarate, percorsi `require`, parità delle lingue e chiavi mancanti |
+| `tools/check_api.py` | Ogni chiamata `Core.S.X.f` / `Core.C.X.f` deve esistere nel modulo chiamato |
+| `tools/run_logic_tests.py` | Esegue i moduli puri (`Logic`, `Config`) in un runtime Lua 5.1 (lupa) con i test di `tests/` |
+| **Rojo** (facoltativo) | `rojo serve` + plugin per la sincronizzazione dal vivo in Studio (`default.project.json`) |
+| **graphify** | Grafo della conoscenza (`graphify-out/`), aggiornato con `graphify update .` |
+| **Roblox Studio** | Sul tuo PC: apri il `.rbxlx`, provi, pubblichi |
 
-> Nota: in questa sessione cloud lo scaricamento automatico di Rojo è stato bloccato dai controlli di sicurezza. Nella sessione di implementazione ti chiederò il permesso di installare Rojo, Lune, StyLua e Selene (da crates.io o dalle release ufficiali su GitHub).
+> Rojo, Lune e l'analizzatore di tipi Luau non sono stati usati: nella sessione cloud lo scaricamento ed esecuzione di binari esterni è bloccato dai controlli automatici. Per questo il codice è scritto senza annotazioni di tipo (`--!nonstrict`) e verificato con i controlli in `tools/`.
 
 ### Come lo userai tu
-1. Scarichi `build/SakuraRamenTycoon.rbxl` dal repository (verrà incluso già compilato).
-2. Doppio clic → si apre in Roblox Studio → **Play** per provarlo (in Studio funziona tutto tranne teletrasporti e acquisti reali, che vengono simulati).
+1. Scarichi `build/SakuraRamenTycoon.rbxlx` dal repository.
+2. In Studio: **File → Open from File** → **Play** per provarlo (in Studio funziona tutto tranne teletrasporti e acquisti reali).
 3. **File → Publish to Roblox** per pubblicarlo.
 4. In **Game Settings**: *Security → Enable Studio Access to API Services* (salvataggi in Studio), *Places → Max Players: 6*, server privati Roblox disattivati.
-5. Per i Robux: crei gamepass e prodotti nella dashboard Creator e copi gli ID in `src/shared/Config/Monetization.luau`.
-
----
+5. Per i Robux: crei gamepass e prodotti nella dashboard Creator e copi gli ID in `src/shared/Config/Monetization.luau`, poi ricompili.
 
 ## 2. Struttura del progetto
 
@@ -33,7 +32,7 @@ Roblox-Ramen-game/
 ├─ default.project.json          # mappa Rojo: cartelle → servizi Roblox
 ├─ build/                        # .rbxl compilato (incluso per comodità)
 ├─ docs/                         # questo piano
-├─ tests/                        # test Lune della logica pura
+├─ tests/                        # test della logica pura (tools/run_logic_tests.py)
 ├─ graphify-out/                 # grafo graphify (aggiornato)
 └─ src/
    ├─ first/                     # ReplicatedFirst: schermata di caricamento
@@ -321,9 +320,9 @@ Animazioni decorative, treno e particelle girano solo sul client.
 
 ## 15. Test e controlli
 
-- **Test Lune** (`tests/`): formule (prezzo, mancia, recensione, popolarità, XP), griglia e impronte, ricerca dei passaggi, ambiente con rendimenti decrescenti, integrità della configurazione, parità delle lingue, migrazione dei salvataggi.
-- **Controllo statico**: Selene + analisi dei tipi Luau; StyLua per la formattazione.
-- **Costruzione**: `rojo build` deve produrre il `.rbxl` senza errori.
+- **Test della logica** (`tests/logic_spec.lua`, eseguiti con lupa): formule (XP, prezzi, mance, recensioni), griglia 1/5/10, sovrapposizioni, muri e porte, validità del layout iniziale, piazzamento a terra/parete/soffitto/su bancone, blocco dei passaggi, locale completo su tre piani, ambiente, integrità della configurazione.
+- **Controllo statico** (`tools/check_luau.py`, `tools/check_api.py`): blocchi, variabili non dichiarate, require, parità delle lingue, chiamate tra servizi.
+- **Costruzione**: `tools/build_place.py` produce il `.rbxlx`.
 - **In Studio** (tu): lista di controllo di gioco per la prima giornata, la costruzione, le espansioni e il personale, più il pannello sviluppatore per arrivare velocemente ai livelli alti.
 - **graphify**: `graphify update .` alla fine di ogni blocco di lavoro, così il grafo `graphify-out/` resta allineato al codice.
 
@@ -351,7 +350,7 @@ Tutto in un'unica sessione di lavoro, a blocchi, con un commit per blocco:
 
 | Rischio | Soluzione |
 |---|---|
-| Non posso aprire Studio dal cloud: errori visibili solo in gioco | logica pura testata con Lune, tipi rigidi, avvio robusto che isola gli errori dei singoli servizi, log chiari; tu fai la prova finale in Studio |
+| Non posso aprire Studio dal cloud: errori visibili solo in gioco | logica pura testata con lupa, controlli statici propri, avvio robusto che isola gli errori dei singoli servizi, log chiari; tu fai la prova finale in Studio |
 | Modelli da sole parti meno dettagliati di quelli fatti in Blender | proporzioni e colori curati, luci e particelle; cartella `AssetOverrides` per sostituirli senza toccare il codice |
 | Suoni e musica richiedono ID dalla libreria Roblox | spazi già pronti in `Config/Audio`; suoni di base inclusi in Roblox dove disponibili |
 | ID delle animazioni standard | uso delle animazioni R15 di Roblox; se un ID non carica, l'NPC si muove comunque (solo senza quella animazione) |
