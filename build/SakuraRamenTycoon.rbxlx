@@ -1392,6 +1392,7 @@ return {
 	["msg.no_menu"] = "Customers can't order: restock the shelves!",
 	["msg.no_permission"] = "Only the owner (or a co-manager) can do this.",
 	["msg.no_recipe_fits"] = "These ingredients don't make a dish here.",
+	["msg.no_saving"] = "Saving is off: enable 'Studio Access to API Services' to keep progress.",
 	["msg.not_enough"] = "Not enough money.",
 	["msg.not_for_this"] = "That doesn't go with what's on the board.",
 	["msg.order_placed"] = "📦 Order sent: {n} boxes, arriving in {seconds}s.",
@@ -1416,6 +1417,7 @@ return {
 	["msg.quest_done"] = "🎯 Quest done: {name}",
 	["msg.rack_hint"] = "Bring a box here to put it back.",
 	["msg.seat_busy"] = "Someone is using it.",
+	["msg.selftest_result"] = "🧪 Self-test: {passed}/{total} passed. Failed: {failed} (details in Output)",
 	["msg.shelf_empty"] = "The shelf is empty.",
 	["msg.shelf_full"] = "The shelf is full.",
 	["msg.sink_hint"] = "Bring dirty dishes here.",
@@ -2056,6 +2058,7 @@ return {
 	["msg.no_menu"] = "I clienti non possono ordinare: rifornisci le mensole!",
 	["msg.no_permission"] = "Solo il proprietario (o un co-gestore) può farlo.",
 	["msg.no_recipe_fits"] = "Questi ingredienti non formano un piatto qui.",
+	["msg.no_saving"] = "Salvataggio disattivato: attiva 'Studio Access to API Services' per conservare i progressi.",
 	["msg.not_enough"] = "Soldi insufficienti.",
 	["msg.not_for_this"] = "Non va con ciò che c'è sul tagliere.",
 	["msg.order_placed"] = "📦 Ordine inviato: {n} scatole, arrivo tra {seconds}s.",
@@ -2080,6 +2083,7 @@ return {
 	["msg.quest_done"] = "🎯 Missione completata: {name}",
 	["msg.rack_hint"] = "Porta qui una scatola per rimetterla a posto.",
 	["msg.seat_busy"] = "Qualcuno lo sta usando.",
+	["msg.selftest_result"] = "🧪 Autotest: {passed}/{total} superati. Falliti: {failed} (dettagli nell'Output)",
 	["msg.shelf_empty"] = "La mensola è vuota.",
 	["msg.shelf_full"] = "La mensola è piena.",
 	["msg.sink_hint"] = "Porta qui le stoviglie sporche.",
@@ -6770,7 +6774,7 @@ function Uid.new(prefix)
 end
 
 return Uid
-]]></ProtectedString></Properties></Item></Item></Item><Item class="Folder" referent="RBX000058"><Properties><string name="Name">AssetOverrides</string></Properties></Item></Item><Item class="ServerScriptService" referent="RBX000088"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX000087"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX000060"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item><Item class="Folder" referent="RBX000058"><Properties><string name="Name">AssetOverrides</string></Properties></Item></Item><Item class="ServerScriptService" referent="RBX000089"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX000088"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX000060"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of server services (avoids circular requires).
 local Core = {
 	S = {},
@@ -6785,7 +6789,7 @@ local Services = script.Parent.Services
 local ORDER = {
 	"Net", "Data", "Session", "Economy", "Progression", "World", "Entities", "Placement", "Hands",
 	"Supply", "Appliance", "Seating", "Cooking", "Npc", "Customers", "Tasks", "Staff", "Day",
-	"Meta", "Franchise", "Monetization", "Leaderboard", "Interaction", "Dev",
+	"Meta", "Franchise", "Monetization", "Leaderboard", "Interaction", "SelfTest", "Dev",
 }
 
 for _, name in ipairs(ORDER) do
@@ -6825,7 +6829,7 @@ for _, name in ipairs(ORDER) do
 end
 
 Core.Started = true
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000086"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX000062"><Properties><string name="Name">Appliance</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000087"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX000062"><Properties><string name="Name">Appliance</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Rice cookers, broth pots, sink, dishwasher, fridges and the clean/dirty dish pool.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Ingredients = require(Shared.Config.Ingredients)
@@ -8934,6 +8938,9 @@ local function run(player, cmd, arg)
 		for _ = 1, 20 do
 			S.Progression.addReview(5, 1)
 		end
+	elseif cmd == "selftest" then
+		task.spawn(S.SelfTest.run, player)
+		return
 	elseif cmd == "reset" and RunService:IsStudio() then
 		S.Data.reset(owner)
 		S.Session.OwnerReady:Fire(owner, S.Data.get(owner))
@@ -10345,9 +10352,16 @@ end
 function Npc.create(opts)
 	opts = opts or {}
 	local model
+	local desc = describe(opts.look or "casual", opts.shirt)
 	local ok, err = pcall(function()
-		model = Players:CreateHumanoidModelFromDescription(describe(opts.look or "casual", opts.shirt), Enum.HumanoidRigType.R15)
+		model = Players:CreateHumanoidModelFromDescriptionAsync(desc, Enum.HumanoidRigType.R15)
 	end)
+	if not ok or not model then
+		-- older engine versions only have the non-Async name
+		ok, err = pcall(function()
+			model = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15)
+		end)
+	end
 	if not ok or not model then
 		warn("[Npc] could not create rig: " .. tostring(err))
 		return nil
@@ -11643,7 +11657,227 @@ function Seating.Init()
 end
 
 return Seating
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000081"><Properties><string name="Name">Session</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000081"><Properties><string name="Name">SelfTest</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- End-to-end self test of the core loop, started from the dev panel. It drives the real services
+-- with an invisible worker: restock, rice, cook a kappa maki, serve a customer, get paid, wash.
+-- Results go to the Output window and to a toast.
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Ingredients = require(Shared.Config.Ingredients)
+local PlacementLogic = require(Shared.Logic.Placement)
+local Uid = require(Shared.Util.Uid)
+local Core = require(script.Parent.Parent.Core)
+
+local SelfTest = {}
+local running = false
+
+local function waitFor(fn, timeout)
+	local t0 = os.clock()
+	while os.clock() - t0 < timeout do
+		local v = fn()
+		if v then
+			return v
+		end
+		task.wait(0.25)
+	end
+	return nil
+end
+
+function SelfTest.run(player)
+	if running then
+		return
+	end
+	running = true
+	local S = Core.S
+	local d = S.Session.ownerData()
+	local actor = { uid = "selftest", alive = true, model = nil }
+	local results = {}
+
+	local function check(name, fn)
+		local ok, err = pcall(fn)
+		table.insert(results, { name = name, ok = ok, err = err })
+		if ok then
+			print("[SelfTest] PASS " .. name)
+		else
+			warn("[SelfTest] FAIL " .. name .. ": " .. tostring(err))
+		end
+		S.Hands.clear(actor)
+		return ok
+	end
+
+	local function ensureBox(g)
+		local entry = S.Supply.findBox(g)
+		if not entry then
+			table.insert(d.storage, { u = Uid.new("b"), g = g, n = Ingredients.byId[g].units })
+			S.Supply.layout()
+		end
+		local e, ent = S.Supply.findBox(g)
+		assert(e and ent, "no box entity for " .. g)
+		return e, ent
+	end
+
+	local function returnLeftover()
+		local h = S.Hands.get(actor)
+		if h.kind == "box" then
+			for _, b in ipairs(h.items) do
+				S.Supply.returnBox(b)
+			end
+		end
+		S.Hands.clear(actor)
+	end
+
+	local function firstOf(kind, filter)
+		for _, e in ipairs(S.Entities.ofKind(kind)) do
+			if not filter or filter(e) then
+				return e
+			end
+		end
+		return nil
+	end
+
+	check("world and starter objects", function()
+		assert(#S.World.zones > 0, "no zones")
+		assert(firstOf("shelf"), "no shelf")
+		assert(firstOf("station", function(e)
+			return e.item.fn.station == "sushi"
+		end), "no sushi station")
+		assert(firstOf("ricecooker"), "no rice cooker")
+		assert(firstOf("sink"), "no sink")
+		assert(firstOf("rack"), "no storage rack")
+	end)
+
+	check("seats around the counter", function()
+		S.Seating.refresh()
+		assert(#S.Seating.seats >= 6, "only " .. #S.Seating.seats .. " seats")
+	end)
+
+	check("restock a shelf", function()
+		for _, g in ipairs({ "nori", "cucumber" }) do
+			local _, ent = ensureBox(g)
+			assert(S.Supply.takeBox(actor, ent), "could not take the box")
+			local shelf = firstOf("shelf", function(e)
+				return not e.item.fn.fishOnly
+			end)
+			local ok, msg = S.Supply.useShelf(actor, shelf, nil)
+			assert(ok, "useShelf: " .. tostring(msg))
+			returnLeftover()
+			assert(S.Supply.shelfStock(g) > 0, g .. " not on the shelf")
+		end
+	end)
+
+	check("cook rice", function()
+		local rc = firstOf("ricecooker")
+		if not S.Appliance.hasRice() then
+			local _, ent = ensureBox("rice")
+			assert(S.Supply.takeBox(actor, ent), "could not take the rice box")
+			local ok, msg = S.Appliance.load(actor, rc)
+			assert(ok or msg == "msg.cooking_wait", "load: " .. tostring(msg))
+			returnLeftover()
+			local st = d.appliances[rc.uid]
+			if st and st.c > 0 then
+				st.t = workspace:GetServerTimeNow() - 1 -- fast-forward
+			end
+			assert(waitFor(S.Appliance.hasRice, 5), "rice never got ready")
+		end
+	end)
+
+	check("cook a kappa maki with clicks", function()
+		for _, g in ipairs({ "nori", "cucumber" }) do
+			local shelf, slot = S.Supply.findShelfWith(g)
+			assert(shelf, "no " .. g .. " on the shelves")
+			local ok, msg = S.Supply.useShelf(actor, shelf, slot)
+			assert(ok, "take " .. g .. ": " .. tostring(msg))
+		end
+		local station = firstOf("station", function(e)
+			return e.item.fn.station == "sushi" and not S.Cooking.stationState(e).busy and not S.Cooking.stationState(e).ready
+		end)
+		assert(station, "no free sushi station")
+		local ok, msg = S.Cooking.use(actor, station, 4)
+		assert(ok, "deposit: " .. tostring(msg))
+		for _ = 1, 6 do
+			if S.Cooking.stationState(station).ready then
+				break
+			end
+			local stepOk, stepMsg = S.Cooking.use(actor, station, 4)
+			assert(stepOk, "step: " .. tostring(stepMsg))
+		end
+		assert(S.Cooking.stationState(station).ready, "dish not ready")
+		assert(S.Cooking.use(actor, station, 4), "could not take the dish")
+		assert(S.Hands.get(actor).kind == "dish", "no dish in hand")
+		actor.keepDish = S.Hands.get(actor).items[1]
+	end)
+
+	check("customer orders, is served and pays", function()
+		assert(actor.keepDish, "no dish from the previous step")
+		if S.Day.phase == "prep" then
+			S.Day.open()
+		end
+		assert(S.Day.phase == "open", "the day is not open")
+		local before = d.yen
+		local known = {}
+		for uid in pairs(S.Customers.active) do
+			known[uid] = true
+		end
+		assert(S.Customers.trySpawn("cust_student"), "no customer could be spawned (seats? menu?)")
+		local c = waitFor(function()
+			for uid, cust in pairs(S.Customers.active) do
+				if not known[uid] and cust.state == "order" then
+					return cust
+				end
+			end
+			return nil
+		end, 75)
+		assert(c, "the customer never sat down to order")
+		c.order = "kappa_maki"
+		c.npc.model:SetAttribute("Order", "kappa_maki")
+		local e = S.Entities.get(c.uid)
+		assert(S.Customers.use(actor, e), "could not take the order")
+		assert(c.state == "waiting", "state after order: " .. tostring(c.state))
+		S.Hands.set(actor, "dish", { actor.keepDish })
+		local ok, msg = S.Customers.use(actor, e)
+		assert(ok, "serve: " .. tostring(msg))
+		assert(waitFor(function()
+			return d.yen > before
+		end, 40), "the customer did not pay")
+		actor.customerSeat = c.seat
+	end)
+
+	check("collect the dirty dish and wash it", function()
+		local dirty = waitFor(function()
+			return firstOf("dirty")
+		end, 30)
+		assert(dirty, "no dirty dish appeared")
+		local ok, msg = S.Customers.collectDirty(actor, dirty)
+		assert(ok, "collect: " .. tostring(msg))
+		local sink = firstOf("sink")
+		local okWash, washMsg = S.Appliance.useSink(actor, sink, 4)
+		assert(okWash, "wash: " .. tostring(washMsg))
+	end)
+
+	check("placement rules", function()
+		local ctx = S.World.ctx(d.placed)
+		local ok, reason = PlacementLogic.validate(ctx, { i = "bamboo_pot", x = 12, z = 4, r = 0, f = 0, s = "f" })
+		assert(ok, "valid spot refused: " .. tostring(reason))
+		ok = PlacementLogic.validate(ctx, { i = "stool_wood", x = 0, z = 22, r = 0, f = 0, s = "f" })
+		assert(not ok, "stool in the kitchen accepted")
+	end)
+
+	S.Hands.forget(actor)
+	local passed, failed = 0, {}
+	for _, r in ipairs(results) do
+		if r.ok then
+			passed += 1
+		else
+			table.insert(failed, r.name)
+		end
+	end
+	print(string.format("[SelfTest] %d/%d passed", passed, #results))
+	S.Net.notify(player, "msg.selftest_result", { passed = passed, total = #results, failed = #failed > 0 and table.concat(failed, ", ") or "—" }, #failed == 0 and "success" or "error")
+	running = false
+	return passed, #results
+end
+
+return SelfTest
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000082"><Properties><string name="Name">Session</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Personal worlds: public servers act as an entrance that teleports every player to their
 -- own reserved server; friends can join through invites. In Studio the server is a world directly.
 local Players = game:GetService("Players")
@@ -11733,9 +11967,15 @@ local function worldCode(userId)
 	if entry and entry.code then
 		return entry.code, entry.ps
 	end
+	-- ReserveServerAsync is the newer name; ReserveServer is the older fallback
 	local code, psId = safe(function()
-		return TeleportService:ReserveServer(game.PlaceId)
+		return TeleportService:ReserveServerAsync(game.PlaceId)
 	end)
+	if not code then
+		code, psId = safe(function()
+			return TeleportService:ReserveServer(game.PlaceId)
+		end)
+	end
 	if not code then
 		return nil
 	end
@@ -11750,10 +11990,22 @@ local function worldCode(userId)
 	return code, psId
 end
 
-local function teleport(player, code, data)
+local function teleport(player, code, data, psId)
 	for attempt = 1, 3 do
 		local opts = Instance.new("TeleportOptions")
-		opts.ReservedServerAccessCode = code
+		-- the access code is the long-standing way; ReservedServerId is the newer property
+		local set = pcall(function()
+			if attempt == 2 and psId then
+				opts.ReservedServerId = psId
+			else
+				opts.ReservedServerAccessCode = code
+			end
+		end)
+		if not set then
+			pcall(function()
+				opts.ReservedServerId = psId
+			end)
+		end
 		opts:SetTeleportData(data or {})
 		local ok, err = pcall(function()
 			TeleportService:TeleportAsync(game.PlaceId, { player }, opts)
@@ -11768,8 +12020,8 @@ local function teleport(player, code, data)
 end
 
 function Session.sendToOwnWorld(player)
-	local code = worldCode(player.UserId)
-	if code and teleport(player, code, { owner = player.UserId }) then
+	local code, psId = worldCode(player.UserId)
+	if code and teleport(player, code, { owner = player.UserId }, psId) then
 		return true
 	end
 	return false
@@ -11783,6 +12035,9 @@ local function becomeOwner(player)
 		if data and Session.owner == player then
 			Session.OwnerReady:Fire(player, data)
 			broadcastInfo()
+			if not Core.S.Data.storeAvailable() then
+				Core.S.Net.notify(player, "msg.no_saving", nil, "warning")
+			end
 		end
 	end)
 end
@@ -11842,7 +12097,7 @@ local function onLobbyPlayer(player)
 				friends = player:IsFriendsWith(ownerId)
 			end)
 			if live and live.code and friends then
-				if teleport(player, live.code, { owner = ownerId, guest = true }) then
+				if teleport(player, live.code, { owner = ownerId, guest = true }, live.ps) then
 					return
 				end
 			else
@@ -11955,10 +12210,10 @@ function Session.Start()
 	task.spawn(function()
 		while true do
 			if Session.mode == "world" and Session.owner and liveMap and isReservedServer then
-				local code = worldCode(Session.owner.UserId)
+				local code, psId = worldCode(Session.owner.UserId)
 				if code then
 					safe(function()
-						liveMap:SetAsync(tostring(Session.owner.UserId), { code = code, t = os.time() }, 180)
+						liveMap:SetAsync(tostring(Session.owner.UserId), { code = code, ps = psId, t = os.time() }, 180)
 					end)
 				end
 			end
@@ -11968,7 +12223,7 @@ function Session.Start()
 end
 
 return Session
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000082"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000083"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Staff: hiring, training, salaries and the AI that automates the restaurant.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -12522,7 +12777,7 @@ function Staff.Start()
 end
 
 return Staff
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000083"><Properties><string name="Name">Supply</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000084"><Properties><string name="Name">Supply</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier orders, the delivery truck, boxes in the storage room and shelf slots.
 local TweenService = game:GetService("TweenService")
 
@@ -13158,7 +13413,7 @@ end
 
 Supply.updateBoxLabel = updateBoxLabel
 return Supply
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000084"><Properties><string name="Name">Tasks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000085"><Properties><string name="Name">Tasks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Task board helpers for staff: finds work, claims targets so two workers never do the same job.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Recipes = require(Shared.Config.Recipes)
@@ -13351,7 +13606,7 @@ function Tasks.findRefill(kinds)
 end
 
 return Tasks
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000085"><Properties><string name="Name">World</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000086"><Properties><string name="Name">World</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Builds the street and the restaurant shell from the unlocked zones; exposes the geometry
 -- (zones, walls, stairs, openings) used by placement, seating and NPC services.
 local CollectionService = game:GetService("CollectionService")
@@ -13850,7 +14105,7 @@ function World.Start()
 end
 
 return World
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000125"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000124"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000123"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000100"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000089"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000126"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000125"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000124"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000101"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000090"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client-only animations: swaying lanterns and noren, maneki-neko paws, koi, shishi-odoshi,
 -- streamers, and the evening train on the viaduct.
 local RunService = game:GetService("RunService")
@@ -13944,7 +14199,7 @@ function Ambient.Start()
 end
 
 return Ambient
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000090"><Properties><string name="Name">Audio</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000091"><Properties><string name="Name">Audio</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Sound effects (2D or positional) and background music.
 local SoundService = game:GetService("SoundService")
 
@@ -14024,7 +14279,7 @@ function Audio.Start()
 end
 
 return Audio
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000091"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000092"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build mode: ghost preview on a 1/5/10 stud grid, rotation, local validation (same rules as the
 -- server), placing, moving, storing and selling objects.
 local Players = game:GetService("Players")
@@ -14581,7 +14836,7 @@ function Build.Start()
 end
 
 return Build
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000092"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000093"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build-mode camera (top view) and hiding roofs/ceilings while building.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -14702,7 +14957,7 @@ function Camera.Start()
 end
 
 return Camera
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000093"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Local copy of the player's profile ("me"), the restaurant owner's data ("world"),
 -- session info, day state and tickets.
 local Players = game:GetService("Players")
@@ -14827,7 +15082,7 @@ function Data.Start()
 end
 
 return Data
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">Effects</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Effects</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Visual feedback for server events: money popups, review stars, level up confetti,
 -- dish ready sparkles, construction dust, sounds.
 local Players = game:GetService("Players")
@@ -14947,7 +15202,7 @@ function Effects.Init()
 end
 
 return Effects
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000096"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Hover highlight + action label on nearby interactables; click / tap / E sends Interact.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -15295,7 +15550,7 @@ function Interaction.Start()
 end
 
 return Interaction
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000096"><Properties><string name="Name">Lighting</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000097"><Properties><string name="Name">Lighting</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Time-of-day look (sky colors, atmosphere, bloom, color grading) and night lights.
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
@@ -15399,7 +15654,7 @@ function LightingC.Start()
 end
 
 return LightingC
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000097"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000098"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Guided first day: step panel, arrow beam to the target and a floating marker.
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
@@ -15632,7 +15887,7 @@ function Tutorial.Start()
 end
 
 return Tutorial
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000098"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000099"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Screen manager, toasts and shared UI helpers.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -15832,7 +16087,7 @@ function UI.Start()
 end
 
 return UI
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000099"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000100"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Localized billboards over customers (order + patience), stations (board / next step),
 -- rice cookers & pots, shelf slots, dirty dishes and staff name tags.
 local Players = game:GetService("Players")
@@ -16116,13 +16371,13 @@ function WorldUI.Start()
 end
 
 return WorldUI
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000102"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of client controllers and UI screens.
 return {
 	C = {},
 	Screens = {},
 }
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000102"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000103"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client entry point.
 if not game:IsLoaded() then
 	game.Loaded:Wait()
@@ -16168,7 +16423,7 @@ for _, name in ipairs(ORDER) do
 		end)
 	end
 end
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000122"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000103"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000123"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Helper to build standard modal screens: Base.make(name, titleKey, size, render)
 -- render(content, screen) rebuilds the content each refresh.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -16213,7 +16468,7 @@ function Base.make(name, titleKey, size, render)
 end
 
 return Base
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Emoji icons for catalog cards (no image assets needed).
 local Icons = {
 	cat = {
@@ -16251,7 +16506,7 @@ function Icons.forItem(item)
 end
 
 return Icons
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Tiny declarative UI toolkit + the visual theme (washi paper, dark wood, lacquer red, gold).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Color = require(Shared.Util.Color)
@@ -16526,7 +16781,7 @@ function Kit.row(icon, titleText, subtitle, height)
 end
 
 return Kit
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000121"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000122"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build panel: catalog by category, inventory, floor/wall styles, grid & rotation tools,
 -- selection actions (move / rotate / store / sell).
 local Players = game:GetService("Players")
@@ -16808,7 +17063,7 @@ function Screen.close()
 end
 
 return Screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000108"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -16856,7 +17111,7 @@ screen = Base.make("DayReport", "ui.report", UDim2.fromScale(0.42, 0.74), functi
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000108"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Kit = require(script.Parent.Parent.Kit)
@@ -16866,6 +17121,7 @@ local CMDS = {
 	{ "💴 +10.000", "yen", 10000 }, { "💴 +1M", "yen", 1000000 }, { "🌸 +50", "sakura", 50 }, { "⬆️ +1 level", "level", nil },
 	{ "Level 25", "level", 25 }, { "Level 45", "level", 45 }, { "🎫 All licenses", "licenses" }, { "🏗️ All zones", "zones" },
 	{ "📦 Stock boxes", "stock" }, { "🧍 Spawn customer", "spawn" }, { "🕚 Close day", "time" }, { "⭐ 5-star reviews", "rating" },
+	{ "🧪 Self-test", "selftest" },
 	{ "♻️ Reset (Studio)", "reset" },
 }
 
@@ -16877,7 +17133,7 @@ return Base.make("Dev", "ui.dev", UDim2.fromScale(0.5, 0.6), function(content)
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -16921,7 +17177,7 @@ return Base.make("Expansions", "ui.expansions", UDim2.fromScale(0.66, 0.76), fun
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login calendar, leaderboards and franchise.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -17083,7 +17339,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Always-visible HUD: wallet, level, clock/day controls, rating, tickets, hands and menu bar.
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
@@ -17320,7 +17576,7 @@ function HUD.open() end
 function HUD.close() end
 
 return HUD
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Invite friends to the personal world and set their permissions.
 local Players = game:GetService("Players")
 local SocialService = game:GetService("SocialService")
@@ -17367,7 +17623,7 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.66), function(con
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17419,7 +17675,7 @@ return Base.make("Licenses", "ui.licenses", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Menu board: enable dishes, set prices (-30%..+30%), recipe book with mastery.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -17512,7 +17768,7 @@ screen = Base.make("Menu", "ui.menu", UDim2.fromScale(0.66, 0.76), function(cont
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17533,7 +17789,7 @@ return Base.make("Offline", "ui.offline", UDim2.fromScale(0.36, 0.4), function(c
 		Core.C.UI.close("Offline")
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17584,7 +17840,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 		end
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17625,7 +17881,7 @@ return Base.make("Shop", "ui.shop", UDim2.fromScale(0.6, 0.72), function(content
 		Kit.label("🛒 " .. t("ui.shop_soon"), { Parent = scroll, Size = UDim2.new(1, 0, 0, 80), TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17691,7 +17947,7 @@ return Base.make("Staff", "ui.staff", UDim2.fromScale(0.66, 0.78), function(cont
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier tablet: order boxes of ingredients and dish sets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -17797,7 +18053,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17869,4 +18125,4 @@ return Base.make("Upgrades", "ui.upgrades", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000126"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000127"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000128"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000127"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000128"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000129"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

@@ -111,9 +111,16 @@ end
 function Npc.create(opts)
 	opts = opts or {}
 	local model
+	local desc = describe(opts.look or "casual", opts.shirt)
 	local ok, err = pcall(function()
-		model = Players:CreateHumanoidModelFromDescription(describe(opts.look or "casual", opts.shirt), Enum.HumanoidRigType.R15)
+		model = Players:CreateHumanoidModelFromDescriptionAsync(desc, Enum.HumanoidRigType.R15)
 	end)
+	if not ok or not model then
+		-- older engine versions only have the non-Async name
+		ok, err = pcall(function()
+			model = Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15)
+		end)
+	end
 	if not ok or not model then
 		warn("[Npc] could not create rig: " .. tostring(err))
 		return nil

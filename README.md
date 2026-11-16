@@ -12,6 +12,8 @@ Gioco Roblox tycoon: gestisci un ristorante giapponese di ramen e sushi, cucini 
 
 Pannello sviluppatore (pulsante 🛠️, solo in Studio o per il creatore del gioco): yen, livelli, licenze, zone, scorte, clienti, chiusura della giornata.
 
+**🧪 Autotest**: nel pannello sviluppatore, esegue da solo tutto il ciclo di gioco (mensola, riso, kappa maki a clic, cliente servito e pagante, stoviglie lavate, regole di piazzamento) e scrive il risultato di ogni passaggio nella finestra Output (`[SelfTest] PASS/FAIL ...`). È il primo pulsante da premere dopo aver aperto il gioco.
+
 In alternativa puoi usare [Rojo](https://rojo.space) (`rojo serve` con `default.project.json`) per sincronizzare il codice dal vivo.
 
 ## Robux, suoni, modelli
@@ -36,6 +38,7 @@ In alternativa puoi usare [Rojo](https://rojo.space) (`rojo serve` con `default.
 ```
 python3 tools/check_luau.py
 python3 tools/check_api.py
+python3 tools/check_roblox_api.py   # dopo aver scaricato build/API-Dump.json (istruzioni nel file)
 pip install lupa && python3 tools/run_logic_tests.py
 python3 tools/build_place.py
 ```

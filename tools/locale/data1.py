@@ -1,0 +1,82 @@
+# (key, english, italian)
+NAMES = [
+# ingredients
+("ing.rice","Rice","Riso"),("ing.nori","Nori seaweed","Alga nori"),("ing.cucumber","Cucumber","Cetriolo"),
+("ing.salmon","Salmon","Salmone"),("ing.noodles","Noodles","Noodles"),("ing.broth_shoyu","Shoyu broth","Brodo shoyu"),
+("ing.scallion","Scallion","Cipollotto"),("ing.naruto","Naruto","Naruto"),("ing.tuna","Tuna","Tonno"),
+("ing.egg","Ajitama egg","Uovo ajitama"),("ing.broth_shio","Shio broth","Brodo shio"),("ing.edamame","Edamame","Edamame"),
+("ing.green_tea","Green tea","Tè verde"),("ing.miso_paste","Miso paste","Pasta di miso"),("ing.tofu","Tofu","Tofu"),
+("ing.avocado","Avocado","Avocado"),("ing.surimi","Surimi","Surimi"),("ing.sesame","Sesame","Sesamo"),
+("ing.shrimp","Shrimp","Gambero"),("ing.broth_miso","Miso ramen broth","Brodo miso"),("ing.corn","Corn","Mais"),
+("ing.butter","Butter","Burro"),("ing.gyoza_raw","Raw gyoza","Gyoza crudi"),("ing.eel","Eel","Anguilla"),
+("ing.eel_sauce","Eel sauce","Salsa unagi"),("ing.broth_tonkotsu","Tonkotsu broth","Brodo tonkotsu"),("ing.chashu","Chashu pork","Chashu"),
+("ing.kikurage","Wood ear mushroom","Funghi kikurage"),("ing.minced_pork","Minced pork","Carne macinata"),("ing.chili_oil","Chili oil","Olio piccante"),
+("ing.batter","Tempura batter","Pastella"),("ing.chicken","Chicken","Pollo"),("ing.yellowtail","Yellowtail","Ricciola"),
+("ing.ikura","Ikura","Ikura"),("ing.daikon","Daikon","Daikon"),("ing.octopus","Octopus","Polpo"),
+("ing.tsukemen_noodles","Thick noodles","Noodles spessi"),("ing.mochi","Mochi","Mochi"),("ing.matcha","Matcha","Matcha"),
+("ing.ramune","Ramune","Ramune"),("ing.otoro","Otoro","Otoro"),("ing.black_garlic","Black garlic oil","Olio d'aglio nero"),
+# recipes
+("rec.kappa_maki","Kappa Maki","Kappa Maki"),("rec.sake_nigiri","Salmon Nigiri","Nigiri al salmone"),("rec.shoyu_ramen","Shoyu Ramen","Shoyu Ramen"),
+("rec.tekka_maki","Tekka Maki","Tekka Maki"),("rec.maguro_nigiri","Tuna Nigiri","Nigiri al tonno"),("rec.shio_ramen","Shio Ramen","Shio Ramen"),
+("rec.edamame","Edamame","Edamame"),("rec.green_tea","Green Tea","Tè verde"),("rec.miso_soup","Miso Soup","Zuppa di miso"),
+("rec.california_roll","California Roll","California Roll"),("rec.ebi_nigiri","Shrimp Nigiri","Nigiri al gambero"),("rec.miso_ramen","Miso Ramen","Miso Ramen"),
+("rec.gyoza","Gyoza","Gyoza"),("rec.temaki_salmon","Salmon Temaki","Temaki al salmone"),("rec.dragon_roll","Dragon Roll","Dragon Roll"),
+("rec.tonkotsu_ramen","Tonkotsu Ramen","Tonkotsu Ramen"),("rec.tantanmen","Tantanmen","Tantanmen"),("rec.ebi_tempura","Shrimp Tempura","Tempura di gamberi"),
+("rec.karaage","Karaage","Karaage"),("rec.sashimi_moriawase","Sashimi Platter","Sashimi misto"),("rec.ikura_gunkan","Ikura Gunkan","Ikura Gunkan"),
+("rec.takoyaki","Takoyaki","Takoyaki"),("rec.tsukemen","Tsukemen","Tsukemen"),("rec.mochi","Mochi","Mochi"),
+("rec.matcha_latte","Matcha Latte","Matcha latte"),("rec.ramune","Ramune","Ramune"),("rec.otoro_nigiri","Otoro Nigiri","Nigiri di otoro"),
+("rec.omakase","Omakase","Omakase"),("rec.mayu_ramen","Black Garlic Tonkotsu","Mayu Tonkotsu"),("rec.kaiseki","Tasting Menu","Menu degustazione"),
+("rec.yudofu","Yudofu","Yudofu"),("rec.matcha_soba","Matcha Soba","Soba al matcha"),("rec.okonomiyaki","Okonomiyaki","Okonomiyaki"),
+("rec.kushikatsu","Kushikatsu","Kushikatsu"),("rec.butter_corn_ramen","Butter Corn Ramen","Ramen burro e mais"),("rec.jingisukan","Jingisukan","Jingisukan"),
+("rec.hakata_ramen","Hakata Ramen","Hakata Ramen"),("rec.yatai_gyoza","Yatai Gyoza","Gyoza dello yatai"),("rec.okinawa_soba","Okinawa Soba","Okinawa Soba"),
+("rec.goya_champuru","Goya Champuru","Goya Champuru"),
+# licenses
+("lic.lic_base","Starter License","Licenza base"),("lic.lic_sushi1","Sushi I","Sushi I"),("lic.lic_ramen1","Ramen I","Ramen I"),
+("lic.lic_sides","Sides & Tea","Contorni e tè"),("lic.lic_sushi2","Sushi II","Sushi II"),("lic.lic_ramen2","Ramen II","Ramen II"),
+("lic.lic_griddle","Griddle","Piastra"),("lic.lic_sushi3","Sushi III","Sushi III"),("lic.lic_ramen3","Ramen III","Ramen III"),
+("lic.lic_fryer","Fryer","Friggitrice"),("lic.lic_sushi4","Sushi IV","Sushi IV"),("lic.lic_street","Street Food","Street food"),
+("lic.lic_ramen4","Ramen IV","Ramen IV"),("lic.lic_dessert","Desserts & Matcha","Dolci e matcha"),("lic.lic_sushi_master","Sushi Master","Maestro del sushi"),
+("lic.lic_ramen_master","Ramen Master","Maestro del ramen"),("lic.lic_grandmaster","Grand Master","Gran maestro"),
+# surfaces
+("surf.floor_wood_light","Light wood","Legno chiaro"),("surf.floor_wood_dark","Dark wood","Legno scuro"),("surf.floor_tatami","Tatami","Tatami"),
+("surf.floor_slate","Slate","Ardesia"),("surf.floor_pebble","River pebbles","Ciottoli di fiume"),("surf.floor_marble","Black marble","Marmo nero"),
+("surf.floor_hinoki","Hinoki wood","Legno di hinoki"),("surf.wall_plaster","Cream plaster","Intonaco crema"),("surf.wall_wood","Wood panels","Pannelli in legno"),
+("surf.wall_shoji","Shoji","Shoji"),("surf.wall_brick","Dark brick","Mattone scuro"),("surf.wall_bamboo","Bamboo","Bambù"),
+("surf.wall_yakisugi","Charred wood (yakisugi)","Legno bruciato yakisugi"),("surf.wall_gold","Gold & lacquer","Oro e lacca"),
+# upgrades
+("upg.up_tray","Tray","Vassoio"),("upg.up_shoes","Kitchen shoes","Scarpe da cucina"),("upg.up_knife","Knife","Coltello"),
+("upg.up_mat","Makisu mat","Stuoia makisu"),("upg.up_strainer","Tebo strainer","Scolapasta tebo"),("upg.up_shelf","Reinforced shelves","Mensole rinforzate"),
+("upg.up_delivery","Delivery","Consegna"),("upg.up_supplier","Premium supplier","Fornitore premium"),("upg.up_sign","Lit sign","Insegna luminosa"),
+("upg.up_ticket","Order rail","Barra degli ordini"),("upg.up_jukebox","Jukebox","Jukebox"),("upg.up_safe","Safe (offline earnings)","Cassaforte (guadagni offline)"),
+("upg.up_autorestock","Auto restock","Riordino automatico"),
+# ads
+("ad.ad_flyers","Flyers","Volantini"),("ad.ad_radio","Radio spot","Spot radio"),("ad.ad_tv","TV commercial","Spot TV"),
+# staff
+("staff.staff_waiter","Waiter","Cameriere"),("staff.staff_dishwasher","Dishwasher","Lavapiatti"),("staff.staff_stocker","Stocker","Magazziniere"),
+("staff.staff_sushi_chef","Sushi chef","Cuoco sushi"),("staff.staff_ramen_chef","Ramen chef","Cuoco ramen"),("staff.staff_line_cook","Line cook","Cuoco di linea"),
+("staff.staff_manager","Manager","Manager"),
+# zones
+("zone.zone_base","Restaurant","Locale base"),("zone.zone_east","East hall","Sala Est"),("zone.zone_storage2","Bigger storage","Magazzino ampliato"),
+("zone.zone_west","West hall","Sala Ovest"),("zone.zone_terrace","Street terrace","Terrazza esterna"),("zone.zone_garden","Zen garden","Giardino zen"),
+("zone.zone_tatami","Private tatami room","Sala tatami privata"),("zone.zone_kitchen_pro","Pro kitchen","Cucina professionale"),("zone.zone_floor2","Second floor","Secondo piano"),
+("zone.sign_rooftop","Giant rooftop sign","Insegna gigante"),("zone.facade_deluxe","Deluxe facade","Facciata deluxe"),("zone.zone_rooftop","Rooftop terrace","Terrazza sul tetto"),
+# customers
+("cust.cust_student","Student","Studente"),("cust.cust_salaryman","Salaryman","Salaryman"),("cust.cust_tourist","Tourist","Turista"),
+("cust.cust_couple","Couple","Coppia"),("cust.cust_elder","Elder","Anziano"),("cust.cust_family","Family","Famiglia"),
+("cust.cust_influencer","Influencer","Influencer"),("cust.cust_critic","Food critic","Critico gastronomico"),("cust.cust_vip","VIP guest","Ospite VIP"),
+("cust.cust_celebrity","Celebrity","Celebrità"),
+# cities
+("city.tokyo","Tokyo","Tokyo"),("city.kyoto","Kyoto","Kyoto"),("city.osaka","Osaka","Osaka"),("city.sapporo","Sapporo","Sapporo"),
+("city.fukuoka","Fukuoka","Fukuoka"),("city.okinawa","Okinawa","Okinawa"),
+# events & sets
+("event.hanami","Hanami (cherry blossoms)","Hanami (ciliegi in fiore)"),("event.tanabata","Tanabata & Matsuri","Tanabata e Matsuri"),
+("event.tsukimi","Tsukimi (moon viewing)","Tsukimi (luna piena)"),("event.shogatsu","Shogatsu (New Year)","Shōgatsu (Capodanno)"),
+("set.matsuri","Matsuri set","Set Matsuri"),("set.zen","Zen garden set","Set Giardino zen"),("set.samurai","Samurai set","Set Samurai"),
+("set.neon","Tokyo neon set","Set Neon di Tokyo"),("set.sakura","Cherry blossom set","Set Ciliegi"),
+# quests
+("quest.q_serve","Serve {n} dishes","Servi {n} piatti"),("quest.q_serve_sushi","Serve {n} sushi dishes","Servi {n} piatti di sushi"),
+("quest.q_serve_ramen","Serve {n} bowls of ramen","Servi {n} ciotole di ramen"),("quest.q_tips","Earn ¥{n} in tips","Guadagna ¥{n} di mance"),
+("quest.q_earn","Earn ¥{n}","Guadagna ¥{n}"),("quest.q_happy","Make {n} customers happy (4+ stars)","Rendi felici {n} clienti (4+ stelle)"),
+("quest.q_customers","Welcome {n} customers","Accogli {n} clienti"),("quest.q_restock","Restock shelves {n} times","Rifornisci le mensole {n} volte"),
+("quest.q_wash","Wash {n} dishes","Lava {n} stoviglie"),("quest.q_five_stars","Get {n} five-star reviews","Ottieni {n} recensioni a 5 stelle"),
+]

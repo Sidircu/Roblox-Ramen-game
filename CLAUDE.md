@@ -10,6 +10,7 @@ Regole del progetto:
 - Niente librerie esterne: le utilità stanno in `src/shared/Util`.
 - Tutti i numeri di gioco vanno in `src/shared/Config/` (mai prezzi o tempi scritti nel codice dei sistemi).
 - Tutti i testi visibili passano da `Locale.t(key)`; ogni chiave esiste sia in `en.luau` sia in `it.luau`.
+  I testi si modificano in `tools/locale/data*.py` (inglese e italiano affiancati) e si rigenerano con `python3 tools/locale/gen.py src/shared/Locale`: non modificare a mano `en.luau`/`it.luau`.
 - Il server è autoritativo: il client manda solo intenzioni, il server valida tutto.
 - I servizi si chiamano tra loro solo tramite `Core.S.<Servizio>` (server) e `Core.C.<Controller>` (client), mai con require circolari.
 - Se cambiano i documenti di design, aggiorna anche `03-BILANCIAMENTO.md` e i moduli `Config` corrispondenti.
@@ -19,6 +20,7 @@ Prima di ogni commit esegui (tutti devono dare 0 problemi):
 python3 tools/check_luau.py        # sintassi a blocchi, variabili non dichiarate, require, lingue
 python3 tools/check_api.py         # chiamate Core.S.X.f / Core.C.X.f esistenti
 python3 tools/run_logic_tests.py   # test della logica (pip install lupa)
+python3 tools/check_roblox_api.py  # enum, classi, servizi, metodi e proprietà Roblox (serve build/API-Dump.json, vedi il file)
 python3 tools/build_place.py       # rigenera build/SakuraRamenTycoon.rbxlx
 graphify update .                  # aggiorna il grafo
 ```

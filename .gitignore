@@ -10,3 +10,6 @@ graphify-out/cache/
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Roblox API dump used by tools/check_roblox_api.py (download, do not commit)
+build/API-Dump.json

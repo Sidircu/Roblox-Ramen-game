@@ -88,9 +88,15 @@ local function worldCode(userId)
 	if entry and entry.code then
 		return entry.code, entry.ps
 	end
+	-- ReserveServerAsync is the newer name; ReserveServer is the older fallback
 	local code, psId = safe(function()
-		return TeleportService:ReserveServer(game.PlaceId)
+		return TeleportService:ReserveServerAsync(game.PlaceId)
 	end)
+	if not code then
+		code, psId = safe(function()
+			return TeleportService:ReserveServer(game.PlaceId)
+		end)
+	end
 	if not code then
 		return nil
 	end
@@ -105,10 +111,22 @@ local function worldCode(userId)
 	return code, psId
 end
 
-local function teleport(player, code, data)
+local function teleport(player, code, data, psId)
 	for attempt = 1, 3 do
 		local opts = Instance.new("TeleportOptions")
-		opts.ReservedServerAccessCode = code
+		-- the access code is the long-standing way; ReservedServerId is the newer property
+		local set = pcall(function()
+			if attempt == 2 and psId then
+				opts.ReservedServerId = psId
+			else
+				opts.ReservedServerAccessCode = code
+			end
+		end)
+		if not set then
+			pcall(function()
+				opts.ReservedServerId = psId
+			end)
+		end
 		opts:SetTeleportData(data or {})
 		local ok, err = pcall(function()
 			TeleportService:TeleportAsync(game.PlaceId, { player }, opts)
@@ -123,8 +141,8 @@ local function teleport(player, code, data)
 end
 
 function Session.sendToOwnWorld(player)
-	local code = worldCode(player.UserId)
-	if code and teleport(player, code, { owner = player.UserId }) then
+	local code, psId = worldCode(player.UserId)
+	if code and teleport(player, code, { owner = player.UserId }, psId) then
 		return true
 	end
 	return false
@@ -138,6 +156,9 @@ local function becomeOwner(player)
 		if data and Session.owner == player then
 			Session.OwnerReady:Fire(player, data)
 			broadcastInfo()
+			if not Core.S.Data.storeAvailable() then
+				Core.S.Net.notify(player, "msg.no_saving", nil, "warning")
+			end
 		end
 	end)
 end
@@ -197,7 +218,7 @@ local function onLobbyPlayer(player)
 				friends = player:IsFriendsWith(ownerId)
 			end)
 			if live and live.code and friends then
-				if teleport(player, live.code, { owner = ownerId, guest = true }) then
+				if teleport(player, live.code, { owner = ownerId, guest = true }, live.ps) then
 					return
 				end
 			else
@@ -310,10 +331,10 @@ function Session.Start()
 	task.spawn(function()
 		while true do
 			if Session.mode == "world" and Session.owner and liveMap and isReservedServer then
-				local code = worldCode(Session.owner.UserId)
+				local code, psId = worldCode(Session.owner.UserId)
 				if code then
 					safe(function()
-						liveMap:SetAsync(tostring(Session.owner.UserId), { code = code, t = os.time() }, 180)
+						liveMap:SetAsync(tostring(Session.owner.UserId), { code = code, ps = psId, t = os.time() }, 180)
 					end)
 				end
 			end

@@ -8,6 +8,7 @@ local CMDS = {
 	{ "💴 +10.000", "yen", 10000 }, { "💴 +1M", "yen", 1000000 }, { "🌸 +50", "sakura", 50 }, { "⬆️ +1 level", "level", nil },
 	{ "Level 25", "level", 25 }, { "Level 45", "level", 45 }, { "🎫 All licenses", "licenses" }, { "🏗️ All zones", "zones" },
 	{ "📦 Stock boxes", "stock" }, { "🧍 Spawn customer", "spawn" }, { "🕚 Close day", "time" }, { "⭐ 5-star reviews", "rating" },
+	{ "🧪 Self-test", "selftest" },
 	{ "♻️ Reset (Studio)", "reset" },
 }
 

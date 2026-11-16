@@ -68,6 +68,9 @@ local function run(player, cmd, arg)
 		for _ = 1, 20 do
 			S.Progression.addReview(5, 1)
 		end
+	elseif cmd == "selftest" then
+		task.spawn(S.SelfTest.run, player)
+		return
 	elseif cmd == "reset" and RunService:IsStudio() then
 		S.Data.reset(owner)
 		S.Session.OwnerReady:Fire(owner, S.Data.get(owner))
