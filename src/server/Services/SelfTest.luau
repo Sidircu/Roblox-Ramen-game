@@ -4,6 +4,8 @@
 -- Results go to the Output window and to a toast.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Ingredients = require(Shared.Config.Ingredients)
+local Expansions = require(Shared.Config.Expansions)
+local Registry = require(Shared.Models.Registry)
 local PlacementLogic = require(Shared.Logic.Placement)
 local Uid = require(Shared.Util.Uid)
 local Core = require(script.Parent.Parent.Core)
@@ -192,6 +194,21 @@ function SelfTest.run(player)
 		local sink = firstOf("sink")
 		local okWash, washMsg = S.Appliance.useSink(actor, sink, 4)
 		assert(okWash, "wash: " .. tostring(washMsg))
+	end)
+
+	check("plain and renovated models", function()
+		local plain = Registry.build("counter_straight", { styles = {} })
+		local full = Registry.build("counter_straight", { styles = Expansions.allStyles() })
+		assert(not plain:FindFirstChild("Detail_counter"), "the plain counter has renovation details")
+		assert(full:FindFirstChild("Detail_counter") and full:FindFirstChild("Detail_tableware"), "the renovated counter misses its details")
+		assert(#full:GetDescendants() > #plain:GetDescendants(), "the renovated counter is not more detailed")
+		plain:Destroy()
+		full:Destroy()
+		for _, e in ipairs(Expansions.list) do
+			if e.reno then
+				assert(e.cosmetic and not e.zones, e.id .. " must be cosmetic")
+			end
+		end
 	end)
 
 	check("placement rules", function()

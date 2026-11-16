@@ -10,6 +10,7 @@ It runs the real builder modules (src/shared/Models) on a small Roblox API mock
   python3 tools/preview.py facade out.png        (street view of the restaurant)
   python3 tools/preview.py interior out.png      (roof removed, starter layout)
   python3 tools/preview.py street out.png   [--focus=xmin,xmax,zmin,zmax] frames an area
+  --basic   plain starting look (no renovations / detail styles); default is the finished look
 Requires: pip install lupa matplotlib numpy
 """
 import math
@@ -116,7 +117,7 @@ function scene_items(ids)
   local perRow = math.max(2, math.ceil(math.sqrt(#ids)))
   for i, id in ipairs(ids) do
     local item = Items.byId[id]
-    local m = Registry.build(id)
+    local m = Registry.build(id, __basic and { styles = {} } or nil)
     local w = item.size[1]
     Registry.place(m, x + w / 2, 0, z, 0)
     m.Parent = root
@@ -156,6 +157,13 @@ function scene_restaurant(withItems)
   local StarterLayout = require(Shared.Config.StarterLayout)
   local zones = { zone_base = true }
   for z in string.gmatch(__zones or "", "[^,]+") do zones[z] = true end
+  -- finished look by default (every renovation); --basic shows the plain starting restaurant
+  if not __basic then
+    for _, e in ipairs(Expansions.list) do
+      if e.reno and e.id ~= "facade_deluxe" and e.id ~= "sign_rooftop" then zones[e.id] = true end
+    end
+  end
+  local styles = Expansions.styles(zones)
   local geo = Geometry.compute(Expansions.list, zones, Expansions.Supplier)
   local root = Instance.new("Model")
   local shell = Instance.new("Folder")
@@ -164,7 +172,7 @@ function scene_restaurant(withItems)
   if withItems then
     for _, s in ipairs(StarterLayout.items) do
       local item = Items.byId[s.i]
-      local m = Registry.build(s.i)
+      local m = Registry.build(s.i, { styles = styles })
       local y = 0
       if s.s == "c" then y = 14 - item.size[2]
       elseif s.s == "w" then y = s.y - item.size[2] / 2
@@ -384,6 +392,8 @@ def main():
     for a in sys.argv[2:]:
         if a.startswith("--zones="):
             g.__zones = a.split("=", 1)[1]
+        if a == "--basic":
+            g.__basic = True
         if a.startswith("--view="):
             vals = [float(v) for v in a.split("=", 1)[1].split(",")]
             opts = {"elev": vals[0], "azim": vals[1]}

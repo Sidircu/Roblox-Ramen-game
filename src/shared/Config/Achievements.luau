@@ -10,6 +10,7 @@ local templates = {
 	{ stat = "level", tiers = { 5, 10, 20, 30, 40, 50 }, sakura = { 5, 10, 15, 20, 30, 50 } },
 	{ stat = "licenses", tiers = { 3, 8, 17 }, sakura = { 5, 15, 40 } },
 	{ stat = "zones", tiers = { 2, 5, 9 }, sakura = { 5, 15, 40 } },
+	{ stat = "renos", tiers = { 3, 8, 15 }, sakura = { 5, 15, 40 } },
 	{ stat = "five_stars", tiers = { 10, 100, 1000, 10000 }, sakura = { 5, 10, 25, 50 } },
 	{ stat = "franchise", tiers = { 1, 2, 3, 4, 5 }, sakura = { 20, 30, 40, 50, 100 } },
 	{ stat = "days", tiers = { 1, 10, 50, 200 }, sakura = { 3, 10, 25, 50 } },

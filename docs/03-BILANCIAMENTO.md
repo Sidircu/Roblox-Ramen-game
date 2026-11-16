@@ -347,6 +347,29 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `facade_deluxe` | Facciata deluxe | 30 | ¥1.000.000 | — | +60 ambiente |
 | `zone_rooftop` | Terrazza sul tetto | 35 | ¥2.000.000 | 52×28 esterno | vista, fuochi d'artificio |
 
+### 8.1 Ristrutturazioni (estetiche, `reno` in `Config/Expansions.luau`)
+Il locale iniziale è spoglio. Ogni ristrutturazione si compra una volta; l'atmosfera si somma come quella delle decorazioni. Le voci con *stile* aggiungono il gruppo `Detail_<stile>` ai modelli piazzati.
+
+| ID | Ristrutturazione | Gruppo | Liv. | Costo | Atmosfera | Altro |
+|---|---|---|---|---|---|---|
+| `reno_storage` | Magazzino in ordine | interno | 2 | ¥1.500 | +2 | |
+| `reno_wainscot` | Boiserie koshi-ita | interno | 3 | ¥3.500 | +5 | |
+| `reno_kitchen_tiles` | Piastrelle in cucina | interno | 4 | ¥4.000 | +3 | |
+| `reno_facade` | Facciata machiya | esterno | 4 | ¥6.000 | +6 | +0,03 popolarità |
+| `reno_entrance` | Ingresso tradizionale | esterno | 5 | ¥8.000 | +8 | +0,04 popolarità |
+| `reno_counter` | Bancone in hinoki | arredi | 6 | ¥10.000 | +10 | stile `counter` |
+| `reno_eaves` | Tettoia di tegole | esterno | 7 | ¥14.000 | +10 | +0,04 popolarità |
+| `reno_kitchen_gear` | Attrezzatura da chef | arredi | 8 | ¥16.000 | +6 | stile `kitchen` |
+| `reno_windows` | Finestre a grata | esterno | 9 | ¥18.000 | +10 | |
+| `reno_beams` | Travi e pilastri | interno | 10 | ¥22.000 | +14 | richiede la boiserie |
+| `reno_tableware` | Servizio da tavola | arredi | 11 | ¥28.000 | +16 | stile `tableware` |
+| `reno_bamboo` | Recinzione inu-yarai | esterno | 13 | ¥40.000 | +18 | richiede la facciata machiya |
+| `reno_furnish` | Rifiniture degli arredi | arredi | 15 | ¥60.000 | +24 | stile `furnish` |
+
+Totale ¥231.000 e +122 atmosfera (circa un livello di ambiente in più a metà partita). Anche `sign_rooftop` e `facade_deluxe` stanno nella scheda Ristrutturazioni. Traguardo *Completa {n} ristrutturazioni*: 3 / 8 / 15 → 🌸5 / 15 / 40.
+
+Oggetti iniziali: bancone (3 moduli + 2 terminali), 6 sgabelli, postazioni sushi e ramen, 2 mensole, cuociriso, pentola del brodo, lavello, scaffale del magazzino e **una sola lanterna**: tutte le altre decorazioni si comprano.
+
 ---
 
 ## 9. Clienti
@@ -384,7 +407,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | Missioni giornaliere | 3 al giorno; ricompensa `¥(200 × livello)` + 🌸2 ciascuna; 🌸5 bonus se completi tutte e 3 |
 | Accesso giornaliero | giorni 1–7: ¥500, ¥1.000, 🌸3, ¥2.500, 🌸5, ¥5.000, 🌸15 + decorazione esclusiva; scala con il livello |
 | Critico 5 ★ | 🌸3 |
-| Obiettivi | 60 traguardi su 6 categorie (piatti, clienti, yen, decorazioni, personale, maestrie) con 🌸5–50 |
+| Obiettivi | traguardi a livelli (piatti, clienti, yen, decorazioni, personale, maestrie, licenze, zone, ristrutturazioni…) con 🌸3–100 |
 | Set di decorazioni | Matsuri, Giardino zen, Samurai, Neon di Tokyo, Ciliegi: +5% mance o +0,1 popolarità ciascuno |
 | Franchise | ogni stella: +25% yen, +10% XP; ¥2.000 iniziali nella nuova città |
 

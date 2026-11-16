@@ -51,6 +51,15 @@ local function run(player, cmd, arg)
 			d.zones[e.id] = true
 		end
 		S.Session.OwnerReady:Fire(owner, d)
+	elseif cmd == "renos" or cmd == "plain" then
+		-- all renovations on (detailed look) or off (plain starting look)
+		for _, e in ipairs(Expansions.list) do
+			if e.reno then
+				d.zones[e.id] = cmd == "renos" or nil
+			end
+		end
+		S.Data.changed(owner, "zones")
+		S.Session.OwnerReady:Fire(owner, d)
 	elseif cmd == "spawn" then
 		task.spawn(S.Customers.trySpawn, type(arg) == "string" and arg or nil)
 	elseif cmd == "time" then

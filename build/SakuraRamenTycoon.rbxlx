@@ -122,6 +122,7 @@ local templates = {
 	{ stat = "level", tiers = { 5, 10, 20, 30, 40, 50 }, sakura = { 5, 10, 15, 20, 30, 50 } },
 	{ stat = "licenses", tiers = { 3, 8, 17 }, sakura = { 5, 15, 40 } },
 	{ stat = "zones", tiers = { 2, 5, 9 }, sakura = { 5, 15, 40 } },
+	{ stat = "renos", tiers = { 3, 8, 15 }, sakura = { 5, 15, 40 } },
 	{ stat = "five_stars", tiers = { 10, 100, 1000, 10000 }, sakura = { 5, 10, 25, 50 } },
 	{ stat = "franchise", tiers = { 1, 2, 3, 4, 5 }, sakura = { 20, 30, 40, 50, 100 } },
 	{ stat = "days", tiers = { 1, 10, 50, 200 }, sakura = { 3, 10, 25, 50 } },
@@ -287,13 +288,29 @@ local list = {
 		zones = { { id = "floor2", rect = { -18, 0, 18, 28 }, floor = 1, area = "dining", room = "f2" } },
 		stairs = { { floor = 0, rect = { -17.5, 1, -13.5, 15 } } },
 	},
-	{ id = "sign_rooftop", lv = 28, cost = 500000, requires = { "zone_base" }, popularity = 0.3, cosmetic = true },
-	{ id = "facade_deluxe", lv = 30, cost = 1000000, requires = { "zone_base" }, ambience = 60, cosmetic = true },
+	{ id = "sign_rooftop", lv = 28, cost = 500000, requires = { "zone_base" }, popularity = 0.3, cosmetic = true, reno = "exterior" },
+	{ id = "facade_deluxe", lv = 30, cost = 1000000, requires = { "zone_base" }, ambience = 60, cosmetic = true, reno = "exterior" },
 	{
 		id = "zone_rooftop", lv = 35, cost = 2000000, requires = { "zone_floor2" },
 		zones = { { id = "rooftop", rect = { -18, 0, 18, 28 }, floor = 2, area = "outdoor", outdoor = true } },
 		stairs = { { floor = 1, rect = { 13.5, 1, 17.5, 15 } } },
 	},
+	-- Renovations: the starting restaurant is plain; these add the detailed look piece by piece.
+	-- reno = tab group; the shell builder reads the owned ids, `style` keeps the matching
+	-- Detail_<style> group inside placeable models (see Registry.build).
+	{ id = "reno_storage", lv = 2, cost = 1500, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 2 },
+	{ id = "reno_wainscot", lv = 3, cost = 3500, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 5 },
+	{ id = "reno_kitchen_tiles", lv = 4, cost = 4000, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 3 },
+	{ id = "reno_facade", lv = 4, cost = 6000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 6, popularity = 0.03 },
+	{ id = "reno_entrance", lv = 5, cost = 8000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 8, popularity = 0.04 },
+	{ id = "reno_counter", lv = 6, cost = 10000, requires = { "zone_base" }, cosmetic = true, reno = "furniture", style = "counter", ambience = 10 },
+	{ id = "reno_eaves", lv = 7, cost = 14000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 10, popularity = 0.04 },
+	{ id = "reno_kitchen_gear", lv = 8, cost = 16000, requires = { "zone_base" }, cosmetic = true, reno = "furniture", style = "kitchen", ambience = 6 },
+	{ id = "reno_windows", lv = 9, cost = 18000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 10 },
+	{ id = "reno_beams", lv = 10, cost = 22000, requires = { "reno_wainscot" }, cosmetic = true, reno = "interior", ambience = 14 },
+	{ id = "reno_tableware", lv = 11, cost = 28000, requires = { "zone_base" }, cosmetic = true, reno = "furniture", style = "tableware", ambience = 16 },
+	{ id = "reno_bamboo", lv = 13, cost = 40000, requires = { "reno_facade" }, cosmetic = true, reno = "exterior", ambience = 18 },
+	{ id = "reno_furnish", lv = 15, cost = 60000, requires = { "zone_base" }, cosmetic = true, reno = "furniture", style = "furnish", ambience = 24 },
 }
 
 local byId = {}
@@ -302,9 +319,33 @@ for i, e in ipairs(list) do
 	byId[e.id] = e
 end
 
+-- Set of detail styles owned with these zones/renovations ({ counter = true, ... })
+local function styles(zones)
+	local out = {}
+	for _, e in ipairs(list) do
+		if e.style and zones and zones[e.id] then
+			out[e.style] = true
+		end
+	end
+	return out
+end
+
+-- Every style (used by previews and thumbnails that show the finished look)
+local function allStyles()
+	local out = {}
+	for _, e in ipairs(list) do
+		if e.style then
+			out[e.style] = true
+		end
+	end
+	return out
+end
+
 return {
 	list = list,
 	byId = byId,
+	styles = styles,
+	allStyles = allStyles,
 	-- Fixed points of the plot (relative to origin)
 	Entrance = { x = 0, z = -1.5 },
 	StreetWalkZ = -11.5,
@@ -874,7 +915,8 @@ return {
 	SlotsByZone = { zone_east = 1, zone_west = 1, zone_terrace = 1, zone_kitchen_pro = 3, zone_floor2 = 3 },
 }
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000021"><Properties><string name="Name">StarterLayout</string><ProtectedString name="Source"><![CDATA[--!nonstrict
--- Objects placed in a brand-new restaurant (all can be moved later).
+-- Objects placed in a brand-new restaurant (all can be moved later). The start is plain on
+-- purpose: decorations and renovations (Config/Expansions) are bought over time.
 -- s: "f" floor, "w" wall (y = height of the object's center), "c" ceiling, "t" on top of item index p
 return {
 	items = {
@@ -897,13 +939,8 @@ return {
 		{ i = "broth_pot", x = -2, z = 26.1, r = 0, s = "f" },
 		{ i = "sink", x = 6, z = 26.35, r = 0, s = "f" },
 		{ i = "storage_rack", x = 24, z = 26.6, r = 0, s = "f" },
-		{ i = "chochin_red", x = -6, z = 6, r = 0, s = "c" },
-		{ i = "chochin_red", x = 6, z = 6, r = 0, s = "c" },
+		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
 		{ i = "chochin_white", x = 0, z = 9, r = 0, s = "c" },
-		{ i = "bamboo_pot", x = 16.5, z = 1.5, r = 0, s = "f" },
-		{ i = "bamboo_pot", x = -11.5, z = 1.5, r = 0, s = "f" },
-		{ i = "menu_plaques", x = 17.45, y = 6.5, z = 6, r = 90, s = "w" },
-		{ i = "maneki_neko", x = -11, z = 14.5, r = 0, s = "t", p = 1 },
 	},
 	boxes = {
 		{ g = "rice", n = 2 }, { g = "nori", n = 2 }, { g = "cucumber", n = 2 }, { g = "salmon", n = 2 },
@@ -1074,6 +1111,7 @@ return {
 	["ach.gold_mastery"] = "Golden mastery on {n} recipes",
 	["ach.level"] = "Reach level {n}",
 	["ach.licenses"] = "Own {n} licenses",
+	["ach.renos"] = "Complete {n} renovations",
 	["ach.staff"] = "Hire {n} staff members",
 	["ach.washed"] = "Wash {n} dishes",
 	["ach.zones"] = "Own {n} zones",
@@ -1416,6 +1454,7 @@ return {
 	["msg.quest_bonus"] = "All quests done! +{n} 🌸",
 	["msg.quest_done"] = "🎯 Quest done: {name}",
 	["msg.rack_hint"] = "Bring a box here to put it back.",
+	["msg.reno_bought"] = "🪚 Renovation done: {name}!",
 	["msg.seat_busy"] = "Someone is using it.",
 	["msg.selftest_result"] = "🧪 Self-test: {passed}/{total} passed. Failed: {failed} (details in Output)",
 	["msg.shelf_empty"] = "The shelf is empty.",
@@ -1631,6 +1670,11 @@ return {
 	["ui.r_walkouts"] = "Customers who left",
 	["ui.ready_to_serve"] = "Ready to serve",
 	["ui.regional"] = "Regional dish of {city}",
+	["ui.reno_amb"] = "+{n} ambience",
+	["ui.reno_exterior"] = "Exterior",
+	["ui.reno_furniture"] = "Furniture and tableware",
+	["ui.reno_hint"] = "Your restaurant starts plain. Each renovation adds traditional details and ambience, which brings more customers and better tips.",
+	["ui.reno_interior"] = "Interior",
 	["ui.report"] = "Day report",
 	["ui.req_level"] = "Level {level}",
 	["ui.restart_tutorial"] = "Restart tutorial",
@@ -1660,6 +1704,8 @@ return {
 	["ui.tab_leaderboard"] = "Leaderboard",
 	["ui.tab_menu"] = "Menu",
 	["ui.tab_quests"] = "Quests",
+	["ui.tab_reno"] = "🪚 Renovations",
+	["ui.tab_zones"] = "🏗️ Rooms",
 	["ui.top_view"] = "Top view",
 	["ui.total"] = "Total",
 	["ui.upgrades"] = "Upgrades",
@@ -1698,6 +1744,19 @@ return {
 	["zone.floor2"] = "Second floor",
 	["zone.garden"] = "Garden",
 	["zone.kitchen_pro"] = "Pro kitchen",
+	["zone.reno_bamboo"] = "Inu-yarai fence",
+	["zone.reno_beams"] = "Beams and pillars",
+	["zone.reno_counter"] = "Hinoki counter",
+	["zone.reno_eaves"] = "Tiled eaves",
+	["zone.reno_entrance"] = "Traditional entrance",
+	["zone.reno_facade"] = "Machiya facade",
+	["zone.reno_furnish"] = "Fine furnishing",
+	["zone.reno_kitchen_gear"] = "Chef's gear",
+	["zone.reno_kitchen_tiles"] = "Kitchen tiles",
+	["zone.reno_storage"] = "Tidy storage",
+	["zone.reno_tableware"] = "Tableware",
+	["zone.reno_wainscot"] = "Koshi-ita wainscot",
+	["zone.reno_windows"] = "Lattice windows",
 	["zone.rooftop"] = "Rooftop",
 	["zone.sign_rooftop"] = "Giant rooftop sign",
 	["zone.storage2"] = "Storage annex",
@@ -1715,6 +1774,19 @@ return {
 	["zone.zone_terrace"] = "Street terrace",
 	["zone.zone_west"] = "West hall",
 	["zonedesc.facade_deluxe"] = "A luxurious exterior",
+	["zonedesc.reno_bamboo"] = "Curved bamboo fence along the street front",
+	["zonedesc.reno_beams"] = "Exposed ceiling beams, nageshi and hashira posts",
+	["zonedesc.reno_counter"] = "Hinoki top, slatted front, brass hooks, warm light and a plate niche",
+	["zonedesc.reno_eaves"] = "Kawara roof tiles with ridge, rafters and onigawara",
+	["zonedesc.reno_entrance"] = "Sliding lattice doors, salt cones, potted pines and a stone step",
+	["zonedesc.reno_facade"] = "Timber bands and koshi lattice on the street front",
+	["zonedesc.reno_furnish"] = "Cushions, brass trims, kumiko screens on booths and a red felt runner",
+	["zonedesc.reno_kitchen_gear"] = "Utensil rails, kanji plates, tools and props on every station",
+	["zonedesc.reno_kitchen_tiles"] = "White ceramic tiles and a steel trim on the kitchen walls",
+	["zonedesc.reno_storage"] = "Concrete wainscot, safety lines and a marked loading door",
+	["zonedesc.reno_tableware"] = "Condiments, tea and sake sets, menu cards on every table",
+	["zonedesc.reno_wainscot"] = "Dark wooden panels and a rail along the dining walls",
+	["zonedesc.reno_windows"] = "Kumiko lattice, wooden sills and flower boxes",
 	["zonedesc.sign_rooftop"] = "Visible from far away: more customers",
 	["zonedesc.zone_base"] = "Your first restaurant",
 	["zonedesc.zone_east"] = "Room for your first tables",
@@ -1740,6 +1812,7 @@ return {
 	["ach.gold_mastery"] = "Maestria d'oro su {n} ricette",
 	["ach.level"] = "Raggiungi il livello {n}",
 	["ach.licenses"] = "Possiedi {n} licenze",
+	["ach.renos"] = "Completa {n} ristrutturazioni",
 	["ach.staff"] = "Assumi {n} persone",
 	["ach.washed"] = "Lava {n} stoviglie",
 	["ach.zones"] = "Possiedi {n} zone",
@@ -2082,6 +2155,7 @@ return {
 	["msg.quest_bonus"] = "Tutte le missioni completate! +{n} 🌸",
 	["msg.quest_done"] = "🎯 Missione completata: {name}",
 	["msg.rack_hint"] = "Porta qui una scatola per rimetterla a posto.",
+	["msg.reno_bought"] = "🪚 Ristrutturazione completata: {name}!",
 	["msg.seat_busy"] = "Qualcuno lo sta usando.",
 	["msg.selftest_result"] = "🧪 Autotest: {passed}/{total} superati. Falliti: {failed} (dettagli nell'Output)",
 	["msg.shelf_empty"] = "La mensola è vuota.",
@@ -2297,6 +2371,11 @@ return {
 	["ui.r_walkouts"] = "Clienti andati via",
 	["ui.ready_to_serve"] = "Pronto da servire",
 	["ui.regional"] = "Piatto regionale di {city}",
+	["ui.reno_amb"] = "+{n} atmosfera",
+	["ui.reno_exterior"] = "Esterno",
+	["ui.reno_furniture"] = "Arredi e servizio",
+	["ui.reno_hint"] = "Il ristorante parte spoglio. Ogni ristrutturazione aggiunge dettagli tradizionali e atmosfera, che porta più clienti e mance migliori.",
+	["ui.reno_interior"] = "Interno",
 	["ui.report"] = "Resoconto della giornata",
 	["ui.req_level"] = "Livello {level}",
 	["ui.restart_tutorial"] = "Rivedi il tutorial",
@@ -2326,6 +2405,8 @@ return {
 	["ui.tab_leaderboard"] = "Classifiche",
 	["ui.tab_menu"] = "Menu",
 	["ui.tab_quests"] = "Missioni",
+	["ui.tab_reno"] = "🪚 Ristrutturazioni",
+	["ui.tab_zones"] = "🏗️ Spazi",
 	["ui.top_view"] = "Vista dall'alto",
 	["ui.total"] = "Totale",
 	["ui.upgrades"] = "Miglioramenti",
@@ -2364,6 +2445,19 @@ return {
 	["zone.floor2"] = "Secondo piano",
 	["zone.garden"] = "Giardino",
 	["zone.kitchen_pro"] = "Cucina professionale",
+	["zone.reno_bamboo"] = "Recinzione inu-yarai",
+	["zone.reno_beams"] = "Travi e pilastri",
+	["zone.reno_counter"] = "Bancone in hinoki",
+	["zone.reno_eaves"] = "Tettoia di tegole",
+	["zone.reno_entrance"] = "Ingresso tradizionale",
+	["zone.reno_facade"] = "Facciata machiya",
+	["zone.reno_furnish"] = "Rifiniture degli arredi",
+	["zone.reno_kitchen_gear"] = "Attrezzatura da chef",
+	["zone.reno_kitchen_tiles"] = "Piastrelle in cucina",
+	["zone.reno_storage"] = "Magazzino in ordine",
+	["zone.reno_tableware"] = "Servizio da tavola",
+	["zone.reno_wainscot"] = "Boiserie koshi-ita",
+	["zone.reno_windows"] = "Finestre a grata",
 	["zone.rooftop"] = "Tetto",
 	["zone.sign_rooftop"] = "Insegna gigante",
 	["zone.storage2"] = "Magazzino ampliato",
@@ -2381,6 +2475,19 @@ return {
 	["zone.zone_terrace"] = "Terrazza esterna",
 	["zone.zone_west"] = "Sala Ovest",
 	["zonedesc.facade_deluxe"] = "Un esterno di lusso",
+	["zonedesc.reno_bamboo"] = "Recinzione curva in bambù lungo la facciata",
+	["zonedesc.reno_beams"] = "Travi a vista, nageshi e pilastri hashira",
+	["zonedesc.reno_counter"] = "Piano in hinoki, fronte a listelli, ganci in ottone, luce calda e nicchia dei piatti",
+	["zonedesc.reno_eaves"] = "Tegole kawara con colmo, travetti e onigawara",
+	["zonedesc.reno_entrance"] = "Porte scorrevoli a grata, coni di sale, pini in vaso e gradino in pietra",
+	["zonedesc.reno_facade"] = "Fasce in legno e grata koshi sulla facciata",
+	["zonedesc.reno_furnish"] = "Cuscini, finiture in ottone, grate kumiko sui box e telo rosso sulla panca",
+	["zonedesc.reno_kitchen_gear"] = "Barre portautensili, targhe in kanji, attrezzi e accessori su ogni postazione",
+	["zonedesc.reno_kitchen_tiles"] = "Piastrelle bianche e profilo in acciaio sulle pareti della cucina",
+	["zonedesc.reno_storage"] = "Zoccolo in cemento, linee di sicurezza e portone di carico segnalato",
+	["zonedesc.reno_tableware"] = "Condimenti, set da tè e sakè, menù su ogni tavolo",
+	["zonedesc.reno_wainscot"] = "Pannelli di legno scuro e corrimano lungo le pareti della sala",
+	["zonedesc.reno_windows"] = "Grata kumiko, davanzali in legno e fioriere",
 	["zonedesc.sign_rooftop"] = "Visibile da lontano: più clienti",
 	["zonedesc.zone_base"] = "Il tuo primo locale",
 	["zonedesc.zone_east"] = "Spazio per i primi tavoli",
@@ -3741,15 +3848,22 @@ end
 
 -- Tiled eave (hisashi) projecting from a street facing wall (axis "z" segment).
 -- outsideSign -1 means the street is at -Z. Tiles rows, round tile channels, rafter tails, end caps.
-function B.eave(parent, seg, y, outsideSign, depth)
+-- Street eave. tiled = renovation "tiled eaves" (kawara channels, ridge, rafters, onigawara);
+-- otherwise a plain sheet-metal canopy.
+function B.eave(parent, seg, y, outsideSign, depth, tiled)
 	depth = depth or 3
 	local len = seg.b - seg.a + 2
 	local cx = (seg.a + seg.b) / 2
 	local z = seg.line + outsideSign * (depth / 2 + 0.5)
 	local yaw = outsideSign < 0 and 0 or 180
-	local rise = 1.6
-	local roof = Kit.wedge(parent, len, rise, depth, CFrame.new(cx, y + rise / 2, z) * CFrame.Angles(0, math.rad(yaw), 0), P.tile, M.roof, { collide = false })
+	local rise = tiled and 1.6 or 0.8
+	local roof = Kit.wedge(parent, len, rise, depth, CFrame.new(cx, y + rise / 2, z) * CFrame.Angles(0, math.rad(yaw), 0), tiled and P.tile or P.steel, tiled and M.roof or M.metal, { collide = false })
 	tag(roof, "Roof")
+	if not tiled then
+		local edge = Kit.box(parent, len, 0.2, 0.12, cx, y - 0.05, seg.line + outsideSign * (depth + 0.45), P.steel_dark, M.metal, { collide = false })
+		tag(edge, "Roof")
+		return
+	end
 	-- round tile channels running down the slope
 	local slope = math.sqrt(depth * depth + rise * rise)
 	local n = math.floor(len / 0.7)
@@ -3811,7 +3925,10 @@ end
 
 -- Interior finishes on one side of a wall: koshi-ita wainscot, hashira posts and nageshi beam
 -- in dining rooms; white tiles in kitchens; plain concrete wainscot in storage rooms.
-function B.wallTrim(parent, seg, y0, side, area, height)
+-- reno = { wainscot, beams, tiles, storage } (owned renovations); the plain room only gets
+-- a skirting board.
+function B.wallTrim(parent, seg, y0, side, area, height, reno)
+	reno = reno or {}
 	local len = seg.b - seg.a
 	local mid = (seg.a + seg.b) / 2
 	local NC = { collide = false, shadow = false }
@@ -3822,22 +3939,32 @@ function B.wallTrim(parent, seg, y0, side, area, height)
 		table.insert(parts, p)
 		return p
 	end
+	local skirting = area == "kitchen" and P.steel or (area == "storage" and P.stone_dark or P.wood_dark)
+	add(faceBox(parent, seg, side, len, 0.35, 0.06, mid, y0 + 0.175, 0.43, skirting, area == "kitchen" and M.metal or M.wood, NC))
 	if area == "kitchen" then
-		add(faceBox(parent, seg, side, len, 6.4, 0.06, mid, y0 + 0.6 + 3.2, 0.43, P.white, M.tiles, NC))
-		add(faceBox(parent, seg, side, len, 0.12, 0.12, mid, y0 + 7.05, 0.46, P.metal, M.metal, NC))
+		if reno.tiles then
+			add(faceBox(parent, seg, side, len, 6.4, 0.06, mid, y0 + 0.6 + 3.2, 0.44, P.white, M.tiles, NC))
+			add(faceBox(parent, seg, side, len, 0.12, 0.12, mid, y0 + 7.05, 0.47, P.metal, M.metal, NC))
+		end
 	elseif area == "storage" then
-		add(faceBox(parent, seg, side, len, 3, 0.06, mid, y0 + 1.5, 0.43, P.concrete, M.concrete, NC))
-		add(faceBox(parent, seg, side, len, 0.15, 0.1, mid, y0 + 3.05, 0.45, P.neon_yellow, M.smooth, NC))
+		if reno.storage then
+			add(faceBox(parent, seg, side, len, 3, 0.06, mid, y0 + 1.5, 0.44, P.concrete, M.concrete, NC))
+			add(faceBox(parent, seg, side, len, 0.15, 0.1, mid, y0 + 3.05, 0.46, P.neon_yellow, M.smooth, NC))
+		end
 	else
-		local panel = area == "tatami" and P.hinoki or P.wood_dark
-		add(faceBox(parent, seg, side, len, 2.7, 0.08, mid, y0 + 1.35, 0.44, panel, M.planks, NC))
-		add(faceBox(parent, seg, side, len, 0.18, 0.16, mid, y0 + 2.75, 0.48, P.wood_light, M.wood, NC))
-		add(faceBox(parent, seg, side, len, 0.4, 0.2, mid, y0 + 10.2, 0.5, P.wood_dark, M.wood, NC))
-		local posts = math.max(1, math.floor(len / 6))
-		for i = 0, posts do
-			local along = seg.a + len * i / posts
-			along = math.clamp(along, seg.a + 0.25, seg.b - 0.25)
-			add(faceBox(parent, seg, side, 0.45, height - 0.2, 0.14, along, y0 + (height - 0.2) / 2, 0.47, P.wood_dark, M.wood, NC))
+		if reno.wainscot then
+			local panel = area == "tatami" and P.hinoki or P.wood_dark
+			add(faceBox(parent, seg, side, len, 2.7, 0.08, mid, y0 + 1.35, 0.45, panel, M.planks, NC))
+			add(faceBox(parent, seg, side, len, 0.18, 0.16, mid, y0 + 2.75, 0.49, P.wood_light, M.wood, NC))
+		end
+		if reno.beams then
+			add(faceBox(parent, seg, side, len, 0.4, 0.2, mid, y0 + 10.2, 0.5, P.wood_dark, M.wood, NC))
+			local posts = math.max(1, math.floor(len / 6))
+			for i = 0, posts do
+				local along = seg.a + len * i / posts
+				along = math.clamp(along, seg.a + 0.25, seg.b - 0.25)
+				add(faceBox(parent, seg, side, 0.45, height - 0.2, 0.14, along, y0 + (height - 0.2) / 2, 0.48, P.wood_dark, M.wood, NC))
+			end
 		end
 	end
 	return parts
@@ -3845,7 +3972,9 @@ end
 
 -- Kyoto machiya street front: koshi lattice band, timber frame and inu-yarai bamboo fence.
 -- avoid = list of {from, to} ranges along the wall to keep clear (doors).
-function B.facadeDetail(parent, seg, y0, side, avoid)
+-- opts = { koshi = bool (timber bands and lattice), bamboo = bool (inu-yarai fence) }
+function B.facadeDetail(parent, seg, y0, side, avoid, opts)
+	opts = opts or { koshi = true, bamboo = true }
 	local len = seg.b - seg.a
 	local mid = (seg.a + seg.b) / 2
 	local NC = { collide = false, shadow = false }
@@ -3854,18 +3983,23 @@ function B.facadeDetail(parent, seg, y0, side, avoid)
 		tag(p, "Roof")
 		return p
 	end
-	-- timber frame bands
-	add(faceBox(parent, seg, side, len, 0.35, 0.16, mid, y0 + 4.5, 0.68, P.wood_dark, M.wood, NC))
-	add(faceBox(parent, seg, side, len, 0.3, 0.16, mid, y0 + 9.6, 0.68, P.wood_dark, M.wood, NC))
-	-- koshi lattice (lower band)
-	add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 1.5, 0.72, P.wood_dark, M.wood, NC))
-	add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 4.15, 0.72, P.wood_dark, M.wood, NC))
-	local step = 0.42
-	for i = 0, math.floor(len / step) do
-		local along = seg.a + 0.2 + i * step
-		if along < seg.b - 0.2 and not inAvoid(along, avoid) then
-			add(faceBox(parent, seg, side, 0.13, 2.6, 0.12, along, y0 + 2.85, 0.76, P.wood, M.wood, NC))
-		end
+	if opts.koshi then
+		-- timber frame bands
+		add(faceBox(parent, seg, side, len, 0.35, 0.16, mid, y0 + 4.5, 0.68, P.wood_dark, M.wood, NC))
+		add(faceBox(parent, seg, side, len, 0.3, 0.16, mid, y0 + 9.6, 0.68, P.wood_dark, M.wood, NC))
+		-- koshi lattice (lower band)
+		add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 1.5, 0.72, P.wood_dark, M.wood, NC))
+		add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 4.15, 0.72, P.wood_dark, M.wood, NC))
+		local step = 0.42
+		for i = 0, math.floor(len / step) do
+			local along = seg.a + 0.2 + i * step
+			if along < seg.b - 0.2 and not inAvoid(along, avoid) then
+				add(faceBox(parent, seg, side, 0.13, 2.6, 0.12, along, y0 + 2.85, 0.76, P.wood, M.wood, NC))
+			end
+	end
+	end
+	if not opts.bamboo then
+		return
 	end
 	-- inu-yarai: curved bamboo fence leaning against the base of the wall
 	for i = 0, math.floor(len / 0.55) do
@@ -3916,7 +4050,8 @@ function B.entranceDetail(parent, o, y0)
 end
 
 -- Loading door: rolled-up shutter, hazard stripe and a small sign
-function B.shutter(parent, o, y0, height)
+-- marked = renovation "tidy storage" (hazard stripes and the loading sign)
+function B.shutter(parent, o, y0, height, marked)
 	local NC = { collide = false, shadow = false }
 	local len = o.to - o.from
 	local cx = (o.from + o.to) / 2
@@ -3924,6 +4059,9 @@ function B.shutter(parent, o, y0, height)
 	Kit.box(parent, len + 0.4, 1.1, 0.9, cx, y0 + height + 0.1, z - 0.2, P.steel, M.metal, NC)
 	for k = 0, 3 do
 		Kit.box(parent, len, 0.22, 0.06, cx, y0 + height - 0.4 - k * 0.3, z, P.metal, M.metal, NC)
+	end
+	if not marked then
+		return
 	end
 	for k = 0, math.floor(len / 0.6) do
 		local stripe = Kit.box(parent, 0.3, 0.02, 0.6, o.from + 0.3 + k * 0.6, y0 - 0.33, o.at - 1.2, k % 2 == 0 and P.neon_yellow or P.black, M.smooth, NC)
@@ -3945,7 +4083,8 @@ function B.parapet(parent, seg, y0)
 end
 
 -- Paper-lit lattice window on an exterior wall
-function B.window(parent, along, y, seg, outsideSign, w, h)
+-- fancy = renovation "lattice windows" (kumiko grid, sill and flower box); else a plain frame
+function B.window(parent, along, y, seg, outsideSign, w, h, fancy)
 	local off = outsideSign * 0.65
 	local x = seg.axis == "z" and along or seg.line + off
 	local z = seg.axis == "z" and seg.line + off or along
@@ -3954,6 +4093,9 @@ function B.window(parent, along, y, seg, outsideSign, w, h)
 	glow.Transparency = 0.15
 	tag(glow, "Roof")
 	local cols, rows = math.max(2, math.floor(w / 0.8)), math.max(2, math.floor(h / 0.8))
+	if not fancy then
+		cols, rows = 2, 1
+	end
 	for i = 0, cols do
 		local a = along - w / 2 + w * i / cols
 		local bx = seg.axis == "z" and a or x + outsideSign * 0.06
@@ -3961,17 +4103,19 @@ function B.window(parent, along, y, seg, outsideSign, w, h)
 		local bar = Kit.box(parent, seg.axis == "z" and 0.1 or 0.08, h, seg.axis == "z" and 0.08 or 0.1, bx, y, bz, P.wood_dark, M.wood, { collide = false, shadow = false })
 		tag(bar, "Roof")
 	end
-	-- sill with a flower box
-	local sillA = seg.axis == "z" and w + 0.6 or 0.5
-	local sillB = seg.axis == "z" and 0.5 or w + 0.6
-	local sill = Kit.box(parent, sillA, 0.18, sillB, x + (seg.axis == "x" and outsideSign * 0.2 or 0), y - h / 2 - 0.12, z + (seg.axis == "z" and outsideSign * 0.2 or 0), P.wood_dark, M.wood, { collide = false, shadow = false })
-	tag(sill, "Roof")
-	for k = 0, math.floor(w / 0.6) do
-		local fa = along - w / 2 + 0.3 + k * 0.6
-		local fx = seg.axis == "z" and fa or x + outsideSign * 0.3
-		local fz = seg.axis == "z" and z + outsideSign * 0.3 or fa
-		local leaf = Kit.blob(parent, 0.55, 0.4, 0.55, fx, y - h / 2 + 0.12, fz, k % 3 == 1 and P.sakura_dark or P.leaf, M.leafy, { collide = false, shadow = false })
-		tag(leaf, "Roof")
+	if fancy then
+		-- sill with a flower box
+		local sillA = seg.axis == "z" and w + 0.6 or 0.5
+		local sillB = seg.axis == "z" and 0.5 or w + 0.6
+		local sill = Kit.box(parent, sillA, 0.18, sillB, x + (seg.axis == "x" and outsideSign * 0.2 or 0), y - h / 2 - 0.12, z + (seg.axis == "z" and outsideSign * 0.2 or 0), P.wood_dark, M.wood, { collide = false, shadow = false })
+		tag(sill, "Roof")
+		for k = 0, math.floor(w / 0.6) do
+			local fa = along - w / 2 + 0.3 + k * 0.6
+			local fx = seg.axis == "z" and fa or x + outsideSign * 0.3
+			local fz = seg.axis == "z" and z + outsideSign * 0.3 or fa
+			local leaf = Kit.blob(parent, 0.55, 0.4, 0.55, fx, y - h / 2 + 0.12, fz, k % 3 == 1 and P.sakura_dark or P.leaf, M.leafy, { collide = false, shadow = false })
+			tag(leaf, "Roof")
+	end
 	end
 	for j = 0, rows do
 		local yy = y - h / 2 + h * j / rows
@@ -5305,7 +5449,7 @@ local function stool(m, item, seatColor, seatMat, legColor, swivel)
 		Kit.cyl(m, 0.28, h - 0.5, 0, (h - 0.5) / 2 + 0.1, 0, P.metal, M.metal, { reflectance = 0.2 })
 		Kit.cyl(m, 1.2, 0.08, 0, 0.9, 0, P.metal, M.metal, { collide = false })
 		Kit.cyl(m, 1.6, 0.35, 0, h - 0.2, 0, seatColor, seatMat)
-		Kit.cyl(m, 1.66, 0.06, 0, h - 0.38, 0, P.gold, M.metal, { collide = false })
+		Kit.cyl(Kit.detail(m, "furnish"), 1.66, 0.06, 0, h - 0.38, 0, P.gold, M.metal, { collide = false })
 	else
 		for _, c in ipairs({ { -0.5, -0.5 }, { 0.5, -0.5 }, { 0.5, 0.5 }, { -0.5, 0.5 } }) do
 			Kit.box(m, 0.18, h - 0.3, 0.18, c[1], (h - 0.3) / 2, c[2], legColor, M.wood, { rot = CFrame.Angles(c[2] * 0.08, 0, -c[1] * 0.08) })
@@ -5314,70 +5458,81 @@ local function stool(m, item, seatColor, seatMat, legColor, swivel)
 			Kit.box(m, r[3], 0.1, r[4], r[1], 0.8, r[2], legColor, M.wood, { collide = false })
 		end
 		Kit.cyl(m, 1.55, 0.28, 0, h - 0.16, 0, P.wood_light, M.wood)
-		Kit.cyl(m, 1.6, 0.06, 0, h - 0.29, 0, P.wood_dark, M.wood, nc())
+		local df = Kit.detail(m, "furnish")
+		Kit.cyl(df, 1.6, 0.06, 0, h - 0.29, 0, P.wood_dark, M.wood, nc())
 		if seatMat == M.fabric then
 			Kit.cyl(m, 1.45, 0.2, 0, h + 0.02, 0, seatColor, M.fabric, { collide = false })
-			Kit.cyl(m, 1.47, 0.04, 0, h - 0.07, 0, P.gold, M.fabric, nc())
-			Kit.ball(m, 0.14, 0, h + 0.13, 0, P.gold, M.fabric, nc())
+			Kit.cyl(df, 1.47, 0.04, 0, h - 0.07, 0, P.gold, M.fabric, nc())
+			Kit.ball(df, 0.14, 0, h + 0.13, 0, P.gold, M.fabric, nc())
 		else
 			-- wood grain rings on the bare seat
-			Kit.cyl(m, 1.0, 0.02, 0, h, 0, P.wood, M.wood, nc())
-			Kit.cyl(m, 0.5, 0.025, 0, h + 0.005, 0, P.wood_light, M.wood, nc())
+			Kit.cyl(df, 1.0, 0.02, 0, h, 0, P.wood, M.wood, nc())
+			Kit.cyl(df, 0.5, 0.025, 0, h + 0.005, 0, P.wood_light, M.wood, nc())
 		end
 	end
 	point(root, "SitPoint", 0, h, 0, 0)
 end
 
+-- Plain counter: cabinet, wooden top, chef ledge, kick plate and foot rail.
+-- Detail_counter (renovation "hinoki counter"): slats, brass hooks and brackets, light strip,
+-- hinoki top and edge band, plate niche. Detail_tableware: condiments on the ledge.
 local function counter(m, item, kind)
 	local root = Kit.finish(m, size(item))
 	local w, h, d = item.size[1], item.size[2], item.size[3]
+	local dc = Kit.detail(m, "counter")
 	-- cabinet (customer side faces -Z)
 	Kit.box(m, w, h - 0.25, d - 0.6, 0, (h - 0.25) / 2, 0.3, P.wood_dark, M.wood)
-	-- vertical slats on the customer side with a dark rail above and below
+	-- kick plate and foot rail
+	Kit.box(m, w, 0.35, 0.1, 0, 0.175, -d / 2 + 0.62, P.black, M.smooth, nc())
+	Kit.cylH(m, 0.12, w, 0, 0.7, -d / 2 + 0.25, P.steel, M.metal, { collide = false, reflectance = 0.1 })
+	-- top with front overhang and the raised chef ledge (tsukedai) on the kitchen side
+	Kit.box(m, w, 0.22, d, 0, h - 0.11, 0, P.wood_light, M.wood)
+	Kit.box(m, w, 0.35, 0.5, 0, h + 0.15, d / 2 - 0.25, P.wood, M.wood, nc())
+	if kind == "corner" then
+		Kit.box(m, 0.5, 0.35, d - 0.5, w / 2 - 0.25, h + 0.15, -0.25, P.wood, M.wood, nc())
+	elseif kind == "end" then
+		Kit.box(m, 0.15, h - 0.4, d - 0.4, w / 2 - 0.075, (h - 0.4) / 2 + 0.1, 0, P.wood_black, M.wood, nc())
+	end
+
+	-- renovated look: vertical slats on the customer side with dark rails above and below
 	local n = math.max(2, math.floor(w / 0.5))
 	for i = 0, n - 1 do
 		local x = -w / 2 + 0.25 + (w - 0.5) * i / math.max(1, n - 1)
-		Kit.box(m, 0.12, h - 0.75, 0.08, x, (h - 0.25) / 2 + 0.1, -d / 2 + 0.58, P.wood, M.wood, nc())
+		Kit.box(dc, 0.12, h - 0.75, 0.08, x, (h - 0.25) / 2 + 0.1, -d / 2 + 0.58, P.wood, M.wood, nc())
 	end
-	Kit.box(m, w, 0.12, 0.12, 0, h - 0.5, -d / 2 + 0.56, P.wood_black, M.wood, nc())
-	Kit.box(m, w, 0.12, 0.12, 0, 0.42, -d / 2 + 0.56, P.wood_black, M.wood, nc())
-	-- brass bag hooks under the overhang
+	Kit.box(dc, w, 0.12, 0.12, 0, h - 0.5, -d / 2 + 0.56, P.wood_black, M.wood, nc())
+	Kit.box(dc, w, 0.12, 0.12, 0, 0.42, -d / 2 + 0.56, P.wood_black, M.wood, nc())
+	-- brass bag hooks under the overhang, brass foot rail sleeve and brackets
 	for x = -w / 2 + 0.7, w / 2 - 0.4, 1.4 do
-		Kit.box(m, 0.08, 0.2, 0.08, x, h - 0.7, -d / 2 + 0.5, P.brass, M.metal, nc())
-		Kit.box(m, 0.08, 0.06, 0.2, x, h - 0.82, -d / 2 + 0.42, P.brass, M.metal, nc())
+		Kit.box(dc, 0.08, 0.2, 0.08, x, h - 0.7, -d / 2 + 0.5, P.brass, M.metal, nc())
+		Kit.box(dc, 0.08, 0.06, 0.2, x, h - 0.82, -d / 2 + 0.42, P.brass, M.metal, nc())
+	end
+	Kit.cylH(dc, 0.13, w, 0, 0.7, -d / 2 + 0.25, P.brass, M.metal, { collide = false, shadow = false, reflectance = 0.15 })
+	for x = -w / 2 + 0.5, w / 2 - 0.3, 2 do
+		Kit.box(dc, 0.08, 0.08, 0.36, x, 0.7, -d / 2 + 0.43, P.brass, M.metal, nc())
 	end
 	-- warm light strip hidden under the overhang
-	Kit.box(m, w - 0.1, 0.05, 0.08, 0, h - 0.27, -d / 2 + 0.66, P.lamp_warm, M.neon, nc())
-	-- kick plate and foot rail on brass brackets
-	Kit.box(m, w, 0.35, 0.1, 0, 0.175, -d / 2 + 0.62, P.black, M.smooth, nc())
-	Kit.cylH(m, 0.12, w, 0, 0.7, -d / 2 + 0.25, P.brass, M.metal, { collide = false, reflectance = 0.15 })
-	for x = -w / 2 + 0.5, w / 2 - 0.3, 2 do
-		Kit.box(m, 0.08, 0.08, 0.36, x, 0.7, -d / 2 + 0.43, P.brass, M.metal, nc())
-	end
-	-- hinoki counter top with front overhang and a dark edge band
-	Kit.box(m, w, 0.22, d, 0, h - 0.11, 0, P.hinoki, M.wood)
-	Kit.box(m, w, 0.1, 0.06, 0, h - 0.17, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
-	-- raised chef ledge (tsukedai) on the kitchen side
-	Kit.box(m, w, 0.35, 0.5, 0, h + 0.15, d / 2 - 0.25, P.wood_light, M.wood, nc())
-	Kit.box(m, w, 0.06, 0.56, 0, h + 0.35, d / 2 - 0.25, P.hinoki, M.wood, nc())
+	Kit.box(dc, w - 0.1, 0.05, 0.08, 0, h - 0.27, -d / 2 + 0.66, P.lamp_warm, M.neon, nc())
+	-- hinoki top with a dark edge band, hinoki cap on the ledge
+	Kit.box(dc, w, 0.04, d, 0, h + 0.005, 0, P.hinoki, M.wood, nc())
+	Kit.box(dc, w, 0.1, 0.06, 0, h - 0.17, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
+	Kit.box(dc, w, 0.06, 0.56, 0, h + 0.35, d / 2 - 0.25, P.hinoki, M.wood, nc())
 	-- kitchen side: open niche with stacked plates and bowls
-	Kit.box(m, w - 0.4, 1.2, 0.08, 0, h - 1.05, d / 2 + 0.01, P.wood_black, M.wood, nc())
-	Kit.box(m, w - 0.4, 0.06, 0.4, 0, h - 1.05, d / 2 - 0.2, P.wood, M.wood, nc())
+	Kit.box(dc, w - 0.4, 1.2, 0.08, 0, h - 1.05, d / 2 + 0.01, P.wood_black, M.wood, nc())
+	Kit.box(dc, w - 0.4, 0.06, 0.4, 0, h - 1.05, d / 2 - 0.2, P.wood, M.wood, nc())
 	for x = -w / 2 + 0.6, w / 2 - 0.5, 1 do
 		for k = 0, 2 do
-			Kit.cyl(m, 0.6, 0.07, x, h - 0.98 + k * 0.08, d / 2 - 0.2, k == 2 and P.indigo or P.porcelain, M.smooth, nc())
+			Kit.cyl(dc, 0.6, 0.07, x, h - 0.98 + k * 0.08, d / 2 - 0.2, k == 2 and P.indigo or P.porcelain, M.smooth, nc())
 		end
 	end
 	if kind == "corner" then
-		Kit.box(m, 0.5, 0.35, d - 0.5, w / 2 - 0.25, h + 0.15, -0.25, P.wood_light, M.wood, nc())
-		Kit.box(m, 0.56, 0.06, d - 0.5, w / 2 - 0.25, h + 0.35, -0.25, P.hinoki, M.wood, nc())
+		Kit.box(dc, 0.56, 0.06, d - 0.5, w / 2 - 0.25, h + 0.35, -0.25, P.hinoki, M.wood, nc())
 	elseif kind == "end" then
-		Kit.box(m, 0.15, h - 0.4, d - 0.4, w / 2 - 0.075, (h - 0.4) / 2 + 0.1, 0, P.wood_black, M.wood, nc())
-		Kit.box(m, 0.2, 0.12, d, w / 2 - 0.1, h - 0.06, 0, P.wood_black, M.wood, nc())
+		Kit.box(dc, 0.2, 0.12, d, w / 2 - 0.1, h - 0.06, 0, P.wood_black, M.wood, nc())
 	end
 	-- condiments on the ledge (one set per straight/corner segment)
 	if kind ~= "end" then
-		condiments(m, kind == "corner" and -0.3 or 0, h + 0.38, d / 2 - 0.25, 0)
+		condiments(Kit.detail(m, "tableware"), kind == "corner" and -0.3 or 0, h + 0.38, d / 2 - 0.25, 0)
 	end
 	root:SetAttribute("TopY", h)
 end
@@ -5389,37 +5544,41 @@ local function tableTop(m, item, topColor, legColor, low)
 		-- round chabudai with an inlaid rim and four folding legs
 		local r = math.min(w, d) - 0.2
 		Kit.cyl(m, r, 0.2, 0, h - 0.1, 0, topColor, M.wood)
-		Kit.cyl(m, r - 0.3, 0.04, 0, h + 0.005, 0, Color3.new(1, 1, 1):Lerp(topColor, 0.85), M.wood, nc())
-		Kit.cyl(m, r + 0.04, 0.06, 0, h - 0.18, 0, P.wood_black, M.wood, nc())
+		local df = Kit.detail(m, "furnish")
+		Kit.cyl(df, r - 0.3, 0.04, 0, h + 0.005, 0, Color3.new(1, 1, 1):Lerp(topColor, 0.85), M.wood, nc())
+		Kit.cyl(df, r + 0.04, 0.06, 0, h - 0.18, 0, P.wood_black, M.wood, nc())
 		for _, c in ipairs({ { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } }) do
 			Kit.box(m, 0.3, h - 0.2, 0.3, c[1] * r * 0.3, (h - 0.2) / 2, c[2] * r * 0.3, legColor, M.wood)
 		end
 		Kit.box(m, r * 0.7, 0.1, 0.2, 0, h - 0.27, 0, legColor, M.wood, nc())
 		Kit.box(m, 0.2, 0.1, r * 0.7, 0, h - 0.27, 0, legColor, M.wood, nc())
 		-- tea set: kyusu teapot and cups on a small tray
-		Kit.cyl(m, 1.1, 0.05, 0.6, h + 0.03, -0.5, P.bamboo, M.wood, nc())
-		Kit.blob(m, 0.45, 0.4, 0.45, 0.45, h + 0.25, -0.5, P.matcha, M.smooth, nc())
-		Kit.cylH(m, 0.08, 0.3, 0.75, h + 0.3, -0.5, P.matcha, M.smooth, nc())
-		Kit.cyl(m, 0.12, 0.06, 0.45, h + 0.47, -0.5, P.wood_dark, M.smooth, nc())
+		local dt = Kit.detail(m, "tableware")
+		Kit.cyl(dt, 1.1, 0.05, 0.6, h + 0.03, -0.5, P.bamboo, M.wood, nc())
+		Kit.blob(dt, 0.45, 0.4, 0.45, 0.45, h + 0.25, -0.5, P.matcha, M.smooth, nc())
+		Kit.cylH(dt, 0.08, 0.3, 0.75, h + 0.3, -0.5, P.matcha, M.smooth, nc())
+		Kit.cyl(dt, 0.12, 0.06, 0.45, h + 0.47, -0.5, P.wood_dark, M.smooth, nc())
 		for _, cx in ipairs({ 0.85, 1.0 }) do
-			Kit.cyl(m, 0.2, 0.2, cx, h + 0.15, -0.25, P.porcelain, M.smooth, nc())
+			Kit.cyl(dt, 0.2, 0.2, cx, h + 0.15, -0.25, P.porcelain, M.smooth, nc())
 		end
 	else
 		Kit.box(m, w, 0.2, d, 0, h - 0.1, 0, topColor, M.wood)
-		Kit.box(m, w - 0.1, 0.06, d - 0.1, 0, h + 0.005, 0, Color3.new(1, 1, 1):Lerp(topColor, 0.85), M.wood, nc())
-		Kit.box(m, w + 0.04, 0.08, d + 0.04, 0, h - 0.18, 0, legColor, M.wood, nc())
+		local df = Kit.detail(m, "furnish")
+		Kit.box(df, w - 0.1, 0.06, d - 0.1, 0, h + 0.005, 0, Color3.new(1, 1, 1):Lerp(topColor, 0.85), M.wood, nc())
+		Kit.box(df, w + 0.04, 0.08, d + 0.04, 0, h - 0.18, 0, legColor, M.wood, nc())
 		Kit.box(m, 0.4, h - 0.5, 0.4, 0, (h - 0.5) / 2 + 0.2, 0, legColor, M.wood)
 		Kit.box(m, math.min(w, 2.2), 0.2, 0.4, 0, 0.1, 0, legColor, M.wood)
 		Kit.box(m, 0.4, 0.2, math.min(d, 2.2), 0, 0.1, 0, legColor, M.wood)
 		Kit.box(m, w - 0.6, 0.15, 0.3, 0, h - 0.28, 0, legColor, M.wood, nc())
 		-- brass caps on the cross feet
 		for _, c in ipairs({ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) do
-			Kit.box(m, 0.44, 0.22, 0.44, c[1] * (math.min(w, 2.2) / 2 - 0.2), 0.11, c[2] * (math.min(d, 2.2) / 2 - 0.2), P.brass, M.metal, nc())
+			Kit.box(df, 0.44, 0.22, 0.44, c[1] * (math.min(w, 2.2) / 2 - 0.2), 0.11, c[2] * (math.min(d, 2.2) / 2 - 0.2), P.brass, M.metal, nc())
 		end
 		-- condiments along the back edge and a folded menu card
-		condiments(m, 0, h, d / 2 - 0.3, 0)
-		Kit.wedge(m, 0.5, 0.4, 0.3, CFrame.new(-w / 2 + 0.45, h + 0.2, d / 2 - 0.3), P.paper_warm, M.smooth, nc())
-		Kit.box(m, 0.42, 0.12, 0.02, -w / 2 + 0.45, h + 0.21, d / 2 - 0.32, P.lacquer, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(37), 0, 0) })
+		local dt = Kit.detail(m, "tableware")
+		condiments(dt, 0, h, d / 2 - 0.3, 0)
+		Kit.wedge(dt, 0.5, 0.4, 0.3, CFrame.new(-w / 2 + 0.45, h + 0.2, d / 2 - 0.3), P.paper_warm, M.smooth, nc())
+		Kit.box(dt, 0.42, 0.12, 0.02, -w / 2 + 0.45, h + 0.21, d / 2 - 0.32, P.lacquer, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(37), 0, 0) })
 	end
 	root:SetAttribute("TopY", h)
 end
@@ -5430,7 +5589,7 @@ local function chair(m, item, color, mat)
 		Kit.box(m, 0.18, seatH - 0.12, 0.18, c[1], (seatH - 0.12) / 2, c[2], color, mat)
 	end
 	Kit.box(m, 1.5, 0.15, 1.5, 0, seatH - 0.06, 0, color, mat)
-	Kit.box(m, 1.4, 0.08, 1.4, 0, seatH + 0.02, 0, P.paper_warm, M.fabric, { collide = false })
+	Kit.box(Kit.detail(m, "furnish"), 1.4, 0.08, 1.4, 0, seatH + 0.02, 0, P.paper_warm, M.fabric, { collide = false })
 	-- backrest on +Z (the sitter faces -Z)
 	Kit.box(m, 0.16, 1.6, 0.16, -0.6, seatH + 0.8, 0.66, color, mat)
 	Kit.box(m, 0.16, 1.6, 0.16, 0.6, seatH + 0.8, 0.66, color, mat)
@@ -5443,7 +5602,7 @@ local function cushion(m, root, x, z, color, h)
 	Kit.box(m, 1.7, h, 1.7, x, h / 2, z, color, M.fabric)
 	Kit.box(m, 1.5, 0.04, 1.5, x, h + 0.01, z, Color3.new(1, 1, 1):Lerp(color, 0.7), M.fabric, { collide = false })
 	for _, c in ipairs({ { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } }) do
-		Kit.ball(m, 0.16, x + c[1] * 0.85, h / 2, z + c[2] * 0.85, P.gold, M.fabric, { collide = false })
+		Kit.ball(Kit.detail(m, "furnish"), 0.16, x + c[1] * 0.85, h / 2, z + c[2] * 0.85, P.gold, M.fabric, { collide = false })
 	end
 end
 
@@ -5498,22 +5657,23 @@ return function(Registry)
 			Kit.box(m, w - 0.3, h - 2.2, 0.15, 0, 1.9 + (h - 2.2) / 2, z + side * 0.33, P.lacquer_dark, M.leather, { collide = false })
 		end
 		Kit.box(m, w - 1.2, 0.2, 2, 0, 2.6, 0, P.wood_light, M.wood)
-		Kit.box(m, w - 1.25, 0.08, 2.05, 0, 2.48, 0, P.wood_dark, M.wood, nc())
 		Kit.box(m, 0.4, 2.4, 0.4, 0, 1.3, 0, P.wood_black, M.wood)
-		Kit.box(m, 1.6, 0.15, 0.8, 0, 0.08, 0, P.wood_black, M.wood, nc())
-		condiments(m, 0, 2.7, 0, 90)
+		local df = Kit.detail(m, "furnish")
+		Kit.box(df, w - 1.25, 0.08, 2.05, 0, 2.48, 0, P.wood_dark, M.wood, nc())
+		Kit.box(df, 1.6, 0.15, 0.8, 0, 0.08, 0, P.wood_black, M.wood, nc())
+		condiments(Kit.detail(m, "tableware"), 0, 2.7, 0, 90)
 		-- kumiko lattice panels on top of both backrests and dark cap rails
 		for side = -1, 1, 2 do
 			local z = side * 1.85 + side * 0.5
-			Kit.box(m, w, 0.12, 0.36, 0, h + 0.06, z, P.wood_black, M.wood, nc())
-			Kit.box(m, w - 0.2, 0.7, 0.06, 0, h + 0.47, z, P.paper, M.smooth, { collide = false, shadow = false, transparency = 0.1 })
+			Kit.box(df, w, 0.12, 0.36, 0, h + 0.06, z, P.wood_black, M.wood, nc())
+			Kit.box(df, w - 0.2, 0.7, 0.06, 0, h + 0.47, z, P.paper, M.smooth, { collide = false, shadow = false, transparency = 0.1 })
 			for x = -w / 2 + 0.1, w / 2 - 0.05, 0.45 do
-				Kit.box(m, 0.05, 0.7, 0.1, x, h + 0.47, z, P.wood_dark, M.wood, nc())
+				Kit.box(df, 0.05, 0.7, 0.1, x, h + 0.47, z, P.wood_dark, M.wood, nc())
 			end
 			for _, y in ipairs({ h + 0.3, h + 0.6 }) do
-				Kit.box(m, w - 0.2, 0.05, 0.1, 0, y, z, P.wood_dark, M.wood, nc())
+				Kit.box(df, w - 0.2, 0.05, 0.1, 0, y, z, P.wood_dark, M.wood, nc())
 			end
-			Kit.box(m, w, 0.1, 0.2, 0, h + 0.86, z, P.wood_black, M.wood, nc())
+			Kit.box(df, w, 0.1, 0.2, 0, h + 0.86, z, P.wood_black, M.wood, nc())
 		end
 		local i = 0
 		for side = -1, 1, 2 do
@@ -5529,17 +5689,18 @@ return function(Registry)
 		local root = Kit.finish(m, size(item))
 		Kit.box(m, 4, 0.2, 2.4, 0, 1.2, 0, P.wood_black, M.wood)
 		Kit.box(m, 3.9, 0.04, 2.3, 0, 1.31, 0, P.lacquer_dark, M.smooth, { collide = false })
-		Kit.box(m, 4.06, 0.08, 2.46, 0, 1.08, 0, P.gold, M.metal, nc())
+		Kit.box(Kit.detail(m, "furnish"), 4.06, 0.08, 2.46, 0, 1.08, 0, P.gold, M.metal, nc())
 		-- sake set: tokkuri flask and choko cups on a lacquer tray, plus a small ikebana
-		Kit.box(m, 0.9, 0.06, 0.5, 0, 1.36, 0, P.lacquer, M.smooth, nc())
-		Kit.blob(m, 0.28, 0.42, 0.28, -0.2, 1.58, 0, P.porcelain, M.smooth, nc())
-		Kit.cyl(m, 0.12, 0.16, -0.2, 1.85, 0, P.porcelain, M.smooth, nc())
-		Kit.cyl(m, 0.14, 0.1, 0.12, 1.44, -0.08, P.indigo, M.smooth, nc())
-		Kit.cyl(m, 0.14, 0.1, 0.3, 1.44, 0.08, P.indigo, M.smooth, nc())
-		Kit.cyl(m, 0.3, 0.3, 1.5, 1.48, 0, P.wood_black, M.smooth, nc())
-		Kit.box(m, 0.04, 0.6, 0.04, 1.5, 1.85, 0, P.leaf_dark, M.wood, nc())
-		Kit.ball(m, 0.2, 1.5, 2.15, 0, P.maple, M.smooth, nc())
-		Kit.ball(m, 0.14, 1.6, 1.98, 0.06, P.sakura, M.smooth, nc())
+		local dt = Kit.detail(m, "tableware")
+		Kit.box(dt, 0.9, 0.06, 0.5, 0, 1.36, 0, P.lacquer, M.smooth, nc())
+		Kit.blob(dt, 0.28, 0.42, 0.28, -0.2, 1.58, 0, P.porcelain, M.smooth, nc())
+		Kit.cyl(dt, 0.12, 0.16, -0.2, 1.85, 0, P.porcelain, M.smooth, nc())
+		Kit.cyl(dt, 0.14, 0.1, 0.12, 1.44, -0.08, P.indigo, M.smooth, nc())
+		Kit.cyl(dt, 0.14, 0.1, 0.3, 1.44, 0.08, P.indigo, M.smooth, nc())
+		Kit.cyl(dt, 0.3, 0.3, 1.5, 1.48, 0, P.wood_black, M.smooth, nc())
+		Kit.box(dt, 0.04, 0.6, 0.04, 1.5, 1.85, 0, P.leaf_dark, M.wood, nc())
+		Kit.ball(dt, 0.2, 1.5, 2.15, 0, P.maple, M.smooth, nc())
+		Kit.ball(dt, 0.14, 1.6, 1.98, 0.06, P.sakura, M.smooth, nc())
 		for _, c in ipairs({ { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } }) do
 			Kit.box(m, 0.3, 1.1, 0.3, c[1] * 1.7, 0.55, c[2] * 0.95, P.wood_black, M.wood)
 		end
@@ -5566,9 +5727,10 @@ return function(Registry)
 			Kit.box(m, 0.15, 0.7, 0.15, x, 1.95, 0.6, P.wood_dark, M.wood, nc())
 		end
 		-- red felt runner (mosen) like a tea house bench
-		Kit.box(m, w - 0.6, 0.04, 1.1, 0, 1.62, 0, P.lacquer, M.fabric, nc())
-		Kit.box(m, w - 0.6, 0.6, 0.04, 0, 1.33, -0.56, P.lacquer, M.fabric, nc())
-		Kit.box(m, 0.6, 0.18, 0.5, w / 2 - 0.7, 1.73, 0.15, P.indigo, M.fabric, nc())
+		local df = Kit.detail(m, "furnish")
+		Kit.box(df, w - 0.6, 0.04, 1.1, 0, 1.62, 0, P.lacquer, M.fabric, nc())
+		Kit.box(df, w - 0.6, 0.6, 0.04, 0, 1.33, -0.56, P.lacquer, M.fabric, nc())
+		Kit.box(df, 0.6, 0.18, 0.5, w / 2 - 0.7, 1.73, 0.15, P.indigo, M.fabric, nc())
 		for i, x in ipairs({ -1.6, 0, 1.6 }) do
 			point(root, "Queue" .. i, x, 1.6, 0, 0)
 		end
@@ -5726,13 +5888,14 @@ local function shelfUnit(m, item)
 	local rows = math.ceil(slots / cols)
 	-- frame: dark posts on black feet, light hinoki back boards
 	Kit.box(m, w, h, 0.12, 0, h / 2, d / 2 - 0.06, P.wood_dark, M.planks)
-	Kit.box(m, w - 0.4, h - 0.3, 0.03, 0, h / 2, d / 2 - 0.135, P.hinoki, M.planks, nc())
+	local dk = Kit.detail(m, "kitchen")
+	Kit.box(dk, w - 0.4, h - 0.3, 0.03, 0, h / 2, d / 2 - 0.135, P.hinoki, M.planks, nc())
 	for _, x in ipairs({ -w / 2 + 0.1, w / 2 - 0.1 }) do
 		Kit.box(m, 0.2, h, d, x, h / 2, 0, P.wood_dark, M.wood)
-		Kit.box(m, 0.28, 0.12, d + 0.08, x, 0.06, 0, P.wood_black, M.wood, nc())
+		Kit.box(dk, 0.28, 0.12, d + 0.08, x, 0.06, 0, P.wood_black, M.wood, nc())
 		for _, y in ipairs({ 0.55, h - 0.55 }) do
-			Kit.box(m, 0.24, 0.3, 0.03, x, y, -d / 2 - 0.015, P.charcoal, M.metal, nc())
-			Kit.ball(m, 0.07, x, y, -d / 2 - 0.04, P.brass, M.metal, nc())
+			Kit.box(dk, 0.24, 0.3, 0.03, x, y, -d / 2 - 0.015, P.charcoal, M.metal, nc())
+			Kit.ball(dk, 0.07, x, y, -d / 2 - 0.04, P.brass, M.metal, nc())
 		end
 	end
 	if cols == 2 then
@@ -5743,7 +5906,7 @@ local function shelfUnit(m, item)
 	for r = 0, rows - 1 do
 		local y = 0.15 + r * rowH
 		Kit.box(m, w - 0.2, 0.12, d, 0, y, 0, P.wood_light, M.wood)
-		Kit.box(m, w - 0.3, 0.16, 0.05, 0, y + 0.02, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
+		Kit.box(dk, w - 0.3, 0.16, 0.05, 0, y + 0.02, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
 		for c = 0, cols - 1 do
 			idx += 1
 			if idx <= slots then
@@ -5752,17 +5915,17 @@ local function shelfUnit(m, item)
 				local s = slot(m, idx, cw - 0.1, rowH - 0.2, d - 0.1, x, y + 0.06 + (rowH - 0.2) / 2, 0)
 				s:SetAttribute("Width", cw - 0.2)
 				-- paper price tag on the shelf lip
-				Kit.box(m, 0.55, 0.13, 0.02, x, y + 0.02, -d / 2 - 0.055, P.paper, M.smooth, nc())
-				Kit.box(m, 0.12, 0.13, 0.025, x - 0.2, y + 0.02, -d / 2 - 0.058, P.lacquer, M.smooth, nc())
+				Kit.box(dk, 0.55, 0.13, 0.02, x, y + 0.02, -d / 2 - 0.055, P.paper, M.smooth, nc())
+				Kit.box(dk, 0.12, 0.13, 0.025, x - 0.2, y + 0.02, -d / 2 - 0.058, P.lacquer, M.smooth, nc())
 			end
 		end
 	end
 	-- crown with a kanji header board ("ingredients")
 	Kit.box(m, w + 0.2, 0.18, d + 0.15, 0, h - 0.06, -0.02, P.wood_black, M.wood)
-	Kit.box(m, w + 0.3, 0.06, d + 0.25, 0, h + 0.06, -0.02, P.wood_dark, M.wood, nc())
-	local sign = Kit.box(m, math.min(2.2, w - 0.8), 0.6, 0.08, 0, h + 0.4, -d / 2 + 0.2, P.hinoki, M.wood, nc())
+	Kit.box(dk, w + 0.3, 0.06, d + 0.25, 0, h + 0.06, -0.02, P.wood_dark, M.wood, nc())
+	local sign = Kit.box(dk, math.min(2.2, w - 0.8), 0.6, 0.08, 0, h + 0.4, -d / 2 + 0.2, P.hinoki, M.wood, nc())
 	Kit.text(sign, Enum.NormalId.Front, "食材", { color = "#2B2320", font = JP_FONT, pps = 40 })
-	Kit.box(m, math.min(2.2, w - 0.8) + 0.12, 0.08, 0.1, 0, h + 0.74, -d / 2 + 0.2, P.wood_dark, M.wood, nc())
+	Kit.box(dk, math.min(2.2, w - 0.8) + 0.12, 0.08, 0.1, 0, h + 0.74, -d / 2 + 0.2, P.wood_dark, M.wood, nc())
 end
 
 local function riceCooker(m, item, pro)
@@ -5771,18 +5934,19 @@ local function riceCooker(m, item, pro)
 	local standH = h - 1.4
 	-- wooden stand with a drawer and kanji label
 	Kit.box(m, w, standH, w, 0, standH / 2, 0, P.wood_dark, M.wood)
-	Kit.box(m, w + 0.1, 0.1, w + 0.1, 0, standH - 0.05, 0, P.wood_black, M.wood, nc())
-	Kit.box(m, w - 0.3, standH - 0.45, 0.04, 0, standH / 2 + 0.05, -w / 2 - 0.02, P.wood, M.wood, nc())
-	Kit.box(m, 0.4, 0.06, 0.06, 0, standH - 0.35, -w / 2 - 0.06, P.brass, M.metal, nc())
-	local label = Kit.box(m, 0.8, 0.34, 0.03, 0, standH / 2 - 0.1, -w / 2 - 0.05, P.paper, M.smooth, nc())
+	local dk = Kit.detail(m, "kitchen")
+	Kit.box(dk, w + 0.1, 0.1, w + 0.1, 0, standH - 0.05, 0, P.wood_black, M.wood, nc())
+	Kit.box(dk, w - 0.3, standH - 0.45, 0.04, 0, standH / 2 + 0.05, -w / 2 - 0.02, P.wood, M.wood, nc())
+	Kit.box(dk, 0.4, 0.06, 0.06, 0, standH - 0.35, -w / 2 - 0.06, P.brass, M.metal, nc())
+	local label = Kit.box(dk, 0.8, 0.34, 0.03, 0, standH / 2 - 0.1, -w / 2 - 0.05, P.paper, M.smooth, nc())
 	Kit.text(label, Enum.NormalId.Front, "炊飯", { color = "#2B2320", font = JP_FONT, pps = 40 })
 	-- cooker body with side handles, lid, steam vent and control panel
 	local r = w - 0.35
 	local body = Kit.cyl(m, r, 1.0, 0, standH + 0.5, 0, pro and P.metal or P.white, pro and M.metal or M.smooth, { name = "Body", reflectance = pro and 0.12 or 0 })
 	Kit.cyl(m, r + 0.04, 0.08, 0, standH + 0.12, 0, P.charcoal, M.smooth, nc())
-	Kit.cyl(m, r + 0.04, 0.05, 0, standH + 0.98, 0, pro and P.steel or P.sakura_dark, M.smooth, nc())
+	Kit.cyl(dk, r + 0.04, 0.05, 0, standH + 0.98, 0, pro and P.steel or P.sakura_dark, M.smooth, nc())
 	for _, sx in ipairs({ -1, 1 }) do
-		Kit.box(m, 0.12, 0.1, 0.5, sx * (r / 2 + 0.04), standH + 0.85, 0, P.charcoal, M.smooth, nc())
+		Kit.box(dk, 0.12, 0.1, 0.5, sx * (r / 2 + 0.04), standH + 0.85, 0, P.charcoal, M.smooth, nc())
 	end
 	Kit.blob(m, r - 0.05, 0.35, r - 0.05, 0, standH + 1.05, 0, pro and P.steel or P.porcelain, M.smooth, nc())
 	Kit.box(m, 0.5, 0.12, 0.1, 0, standH + 1.25, -0.25, P.charcoal, M.smooth, nc())
@@ -5793,9 +5957,9 @@ local function riceCooker(m, item, pro)
 	local _ = panel
 	local _2 = led
 	-- rice paddle (shamoji) in its holder
-	Kit.cyl(m, 0.16, 0.4, r / 2 + 0.12, standH + 0.55, -0.2, P.white, M.smooth, nc())
-	Kit.box(m, 0.08, 0.6, 0.04, r / 2 + 0.12, standH + 0.8, -0.2, P.hinoki, M.wood, nc())
-	Kit.blob(m, 0.24, 0.3, 0.06, r / 2 + 0.12, standH + 1.15, -0.2, P.hinoki, M.wood, nc())
+	Kit.cyl(dk, 0.16, 0.4, r / 2 + 0.12, standH + 0.55, -0.2, P.white, M.smooth, nc())
+	Kit.box(dk, 0.08, 0.6, 0.04, r / 2 + 0.12, standH + 0.8, -0.2, P.hinoki, M.wood, nc())
+	Kit.blob(dk, 0.24, 0.3, 0.06, r / 2 + 0.12, standH + 1.15, -0.2, P.hinoki, M.wood, nc())
 	local vent = Kit.box(m, 0.2, 0.1, 0.2, 0, standH + 1.3, 0.15, P.white, M.smooth, { transparency = 1, collide = false, name = "Steam" })
 	Kit.particles(vent, "steam", { enabled = false })
 	local _3 = body
@@ -5807,7 +5971,8 @@ local function brothPot(m, item, large)
 	local w, h = item.size[1], item.size[2]
 	local stoveH = 1.5
 	cabinet(m, w, stoveH, w, P.steel_dark, P.steel)
-	plate(m, w / 2 - 0.75, stoveH - 0.45, -w / 2 - 0.12, "出汁")
+	local dk = Kit.detail(m, "kitchen")
+	plate(dk, w / 2 - 0.75, stoveH - 0.45, -w / 2 - 0.12, "出汁")
 	knobs(m, 2, -w / 2 + 0.45, stoveH - 0.45, -w / 2 - 0.08)
 	-- burner ring and cast iron grate
 	Kit.cyl(m, w * 0.6, 0.06, 0, stoveH + 0.03, 0, P.neon_blue, M.neon, { collide = false, name = "Flame" })
@@ -5819,7 +5984,7 @@ local function brothPot(m, item, large)
 	local d = w - 0.4
 	Kit.cyl(m, d, potH, 0, stoveH + potH / 2 + 0.15, 0, P.metal, M.metal, { reflectance = 0.15, name = "Body" })
 	for _, y in ipairs({ 0.35, potH - 0.45 }) do
-		Kit.cyl(m, d + 0.05, 0.06, 0, stoveH + 0.15 + y, 0, P.steel, M.metal, nc())
+		Kit.cyl(dk, d + 0.05, 0.06, 0, stoveH + 0.15 + y, 0, P.steel, M.metal, nc())
 	end
 	Kit.cyl(m, d + 0.1, 0.12, 0, stoveH + potH + 0.1, 0, P.steel, M.metal, { collide = false })
 	local broth = Kit.cyl(m, d - 0.15, 0.06, 0, stoveH + potH - 0.02, 0, P.wood, M.smooth, { collide = false, name = "Broth", transparency = 1 })
@@ -5830,8 +5995,8 @@ local function brothPot(m, item, large)
 		Kit.box(m, 0.12, 0.3, 0.12, x - (x > 0 and 0.08 or -0.08), stoveH + potH - 0.12, -0.22, P.steel_dark, M.metal, nc())
 	end
 	-- lid leaning against the back of the pot
-	Kit.cyl(m, d * 0.9, 0.08, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.25, P.metal, M.metal, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(80), 0, 0) })
-	Kit.box(m, 0.4, 0.1, 0.12, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.2, P.wood_dark, M.wood, nc())
+	Kit.cyl(dk, d * 0.9, 0.08, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.25, P.metal, M.metal, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(80), 0, 0) })
+	Kit.box(dk, 0.4, 0.1, 0.12, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.2, P.wood_dark, M.wood, nc())
 	-- long ladle (handle + bowl) resting in the pot
 	Kit.cyl(m, 0.08, 2.2, d / 4, stoveH + potH + 0.45, 0, P.metal, M.metal, { collide = false, rot = CFrame.Angles(0, 0, math.rad(25)) })
 	Kit.cyl(m, 0.1, 0.4, d / 4 - 0.5, stoveH + potH + 1.4, 0, P.wood_dark, M.wood, { collide = false, rot = CFrame.Angles(0, 0, math.rad(25)) })
@@ -5847,10 +6012,20 @@ local function station(m, item, deco, opts)
 	opts = opts or {}
 	local root = Kit.finish(m, size(item))
 	local w, h, d = item.size[1], item.size[2], item.size[3]
-	cabinet(m, w, h, d, opts.wood and P.hinoki or P.metal, opts.wood and P.wood_dark or P.metal, opts.wood)
-	backsplash(m, w, h, d, opts.tiles)
+	-- plain steel cabinet; the "chef gear" renovation (Detail_kitchen) adds the wooden sushi
+	-- counter front, backsplash, utensil rail, kanji plate and the small props of each station
+	local dk = Kit.detail(m, "kitchen")
+	cabinet(m, w, h, d, P.metal, P.metal, false)
+	if opts.wood then
+		Kit.box(dk, w + 0.1, h - 0.6, 0.06, 0, 0.35 + (h - 0.55) / 2, -d / 2 - 0.16, P.wood_dark, M.wood, nc())
+		for i = 0, math.floor(w / 0.45) do
+			Kit.box(dk, 0.1, h - 0.8, 0.06, -w / 2 + 0.2 + i * 0.45, 0.35 + (h - 0.55) / 2, -d / 2 - 0.21, P.wood, M.wood, nc())
+		end
+		Kit.box(dk, w + 0.1, 0.06, d + 0.12, 0, h + 0.03, 0.02, P.hinoki, M.wood, nc())
+	end
+	backsplash(dk, w, h, d, opts.tiles)
 	if opts.tools then
-		utensilRail(m, w, h, d, opts.tools)
+		utensilRail(dk, w, h, d, opts.tools)
 	end
 	if opts.hood then
 		hood(m, w, h, d)
@@ -5859,11 +6034,11 @@ local function station(m, item, deco, opts)
 		knobs(m, opts.knobs, -0.4 * (opts.knobs - 1) / 2, h - 0.45, -d / 2 - 0.08)
 	end
 	if opts.plate then
-		plate(m, w / 2 - 0.8, h - 0.75, -d / 2 - 0.12, opts.plate)
+		plate(dk, w / 2 - 0.8, h - 0.75, -d / 2 - 0.12, opts.plate)
 	end
 	local boardX = -w / 2 + 1.4
 	local plateX = w / 2 - 0.9
-	deco(m, w, h, d, boardX, plateX)
+	deco(m, w, h, d, boardX, plateX, dk)
 	point(root, "Board", boardX, h + 0.1, 0.05)
 	point(root, "Plate", plateX, h + 0.05, 0.1)
 	point(root, "Tool", boardX, h + 1.2, -0.1)
@@ -5909,46 +6084,46 @@ return function(Registry)
 	end)
 
 	Registry.register("sushi_station", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			-- hinoki board with a yanagiba knife and a wet cloth
 			Kit.box(model, 2.0, 0.18, 1.5, boardX, h + 0.09, 0.05, P.hinoki, M.wood)
 			Kit.box(model, 1.9, 0.02, 1.4, boardX, h + 0.185, 0.05, P.paper_warm, M.wood, nc())
-			Kit.box(model, 1.2, 0.02, 0.12, boardX + 0.2, h + 0.2, -0.62, P.metal, M.metal, { collide = false, shadow = false, reflectance = 0.3 })
-			Kit.box(model, 0.45, 0.06, 0.1, boardX - 0.6, h + 0.2, -0.62, P.wood_black, M.wood, nc())
+			Kit.box(extra, 1.2, 0.02, 0.12, boardX + 0.2, h + 0.2, -0.62, P.metal, M.metal, { collide = false, shadow = false, reflectance = 0.3 })
+			Kit.box(extra, 0.45, 0.06, 0.1, boardX - 0.6, h + 0.2, -0.62, P.wood_black, M.wood, nc())
 			-- hangiri rice tub with shamoji paddle
 			local tx, tz = boardX + 1.5, 0.72
-			Kit.cyl(model, 1.1, 0.36, tx, h + 0.18, tz, P.hinoki, M.wood, nc())
-			Kit.cyl(model, 1.14, 0.06, tx, h + 0.1, tz, P.copper, M.metal, nc())
-			Kit.cyl(model, 1.14, 0.06, tx, h + 0.3, tz, P.copper, M.metal, nc())
-			Kit.blob(model, 0.9, 0.25, 0.9, tx, h + 0.36, tz, P.rice, M.sand, nc())
-			Kit.box(model, 0.18, 0.04, 0.8, tx + 0.25, h + 0.48, tz - 0.1, P.wood_light, M.wood, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(-12), math.rad(25), 0) })
+			Kit.cyl(extra, 1.1, 0.36, tx, h + 0.18, tz, P.hinoki, M.wood, nc())
+			Kit.cyl(extra, 1.14, 0.06, tx, h + 0.1, tz, P.copper, M.metal, nc())
+			Kit.cyl(extra, 1.14, 0.06, tx, h + 0.3, tz, P.copper, M.metal, nc())
+			Kit.blob(extra, 0.9, 0.25, 0.9, tx, h + 0.36, tz, P.rice, M.sand, nc())
+			Kit.box(extra, 0.18, 0.04, 0.8, tx + 0.25, h + 0.48, tz - 0.1, P.wood_light, M.wood, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(-12), math.rad(25), 0) })
 			-- small dishes: wasabi and pickled ginger, water bowl (tezu)
-			Kit.cyl(model, 0.4, 0.06, plateX - 0.75, h + 0.03, -0.65, P.porcelain, M.smooth, nc())
-			Kit.blob(model, 0.2, 0.12, 0.2, plateX - 0.75, h + 0.1, -0.65, P.matcha, M.smooth, nc())
-			Kit.cyl(model, 0.4, 0.06, plateX - 0.3, h + 0.03, -0.65, P.porcelain, M.smooth, nc())
-			Kit.blob(model, 0.24, 0.1, 0.24, plateX - 0.3, h + 0.09, -0.65, P.sakura, M.smooth, nc())
-			Kit.cyl(model, 0.5, 0.25, boardX - 0.95, h + 0.13, 0.65, P.indigo, M.smooth, nc())
-			Kit.cyl(model, 0.44, 0.02, boardX - 0.95, h + 0.24, 0.65, P.water, M.glass, { collide = false, shadow = false, transparency = 0.3 })
+			Kit.cyl(extra, 0.4, 0.06, plateX - 0.75, h + 0.03, -0.65, P.porcelain, M.smooth, nc())
+			Kit.blob(extra, 0.2, 0.12, 0.2, plateX - 0.75, h + 0.1, -0.65, P.matcha, M.smooth, nc())
+			Kit.cyl(extra, 0.4, 0.06, plateX - 0.3, h + 0.03, -0.65, P.porcelain, M.smooth, nc())
+			Kit.blob(extra, 0.24, 0.1, 0.24, plateX - 0.3, h + 0.09, -0.65, P.sakura, M.smooth, nc())
+			Kit.cyl(extra, 0.5, 0.25, boardX - 0.95, h + 0.13, 0.65, P.indigo, M.smooth, nc())
+			Kit.cyl(extra, 0.44, 0.02, boardX - 0.95, h + 0.24, 0.65, P.water, M.glass, { collide = false, shadow = false, transparency = 0.3 })
 			-- geta plate for the finished dish and a stack of spare plates
 			Kit.box(model, 1.4, 0.12, 0.8, plateX, h + 0.06, 0.1, P.wood_light, M.wood, nc())
 			for _, sx in ipairs({ -0.55, 0.55 }) do
 				Kit.box(model, 0.12, 0.08, 0.8, plateX + sx, h + 0.0, 0.1, P.wood_light, M.wood, nc())
 			end
 			for i = 0, 3 do
-				Kit.box(model, 0.9, 0.06, 0.5, plateX + 0.15, h + 1.1 + i * 0.07, d / 2 - 0.2, P.wood_light, M.wood, nc())
+				Kit.box(extra, 0.9, 0.06, 0.5, plateX + 0.15, h + 1.1 + i * 0.07, d / 2 - 0.2, P.wood_light, M.wood, nc())
 			end
 			-- rolled makisu and bamboo leaves on the shelf
-			Kit.cylH(model, 0.22, 0.9, -0.9, h + 1.2, d / 2 - 0.2, P.bamboo, M.wood, nc())
+			Kit.cylH(extra, 0.22, 0.9, -0.9, h + 1.2, d / 2 - 0.2, P.bamboo, M.wood, nc())
 			for i = 0, 2 do
-				Kit.blob(model, 0.7, 0.03, 0.22, -2 + i * 0.25, h + 1.12, d / 2 - 0.22, P.leaf, M.leafy, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(i * 20), 0) })
+				Kit.blob(extra, 0.7, 0.03, 0.22, -2 + i * 0.25, h + 1.12, d / 2 - 0.22, P.leaf, M.leafy, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(i * 20), 0) })
 			end
-			Kit.cyl(model, 0.2, 0.45, 1.2, h + 1.3, d / 2 - 0.2, P.charcoal, M.smooth, nc())
-			Kit.cyl(model, 0.22, 0.06, 1.2, h + 1.55, d / 2 - 0.2, P.lacquer, M.smooth, nc())
+			Kit.cyl(extra, 0.2, 0.45, 1.2, h + 1.3, d / 2 - 0.2, P.charcoal, M.smooth, nc())
+			Kit.cyl(extra, 0.22, 0.06, 1.2, h + 1.55, d / 2 - 0.2, P.lacquer, M.smooth, nc())
 		end, { wood = true, plate = "寿司", tools = { "towel", "ladle" } })
 	end)
 
 	Registry.register("ramen_station", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			-- noodle boiler with four tebo baskets
 			local bx = boardX - 0.3
 			Kit.box(model, 1.9, 0.6, 1.5, bx, h + 0.3, 0.05, P.steel_dark, M.metal)
@@ -5963,58 +6138,58 @@ return function(Registry)
 			-- topping pans: scallion, naruto, chashu, corn, egg
 			local colors = { P.leaf_light, P.sakura, P.copper, P.neon_yellow }
 			for i, c in ipairs(colors) do
-				pan(model, -0.2 + (i - 1) * 0.44, -0.72, h, c)
+				pan(extra, -0.2 + (i - 1) * 0.44, -0.72, h, c)
 			end
 			-- tare pots and bowl stacks on the back shelf
 			for i = 0, 2 do
-				Kit.cyl(model, 0.38, 0.4, -1.8 + i * 0.5, h + 1.3, d / 2 - 0.2, P.metal, M.metal, nc())
-				Kit.cyl(model, 0.32, 0.03, -1.8 + i * 0.5, h + 1.51, d / 2 - 0.2, ({ P.wood, P.cream, P.copper })[i + 1], M.smooth, nc())
+				Kit.cyl(extra, 0.38, 0.4, -1.8 + i * 0.5, h + 1.3, d / 2 - 0.2, P.metal, M.metal, nc())
+				Kit.cyl(extra, 0.32, 0.03, -1.8 + i * 0.5, h + 1.51, d / 2 - 0.2, ({ P.wood, P.cream, P.copper })[i + 1], M.smooth, nc())
 			end
-			bowlStack(model, 0.6, d / 2 - 0.25, h + 1.08, 4, P.charcoal)
-			bowlStack(model, 1.4, d / 2 - 0.25, h + 1.08, 4, P.lacquer_dark)
+			bowlStack(extra, 0.6, d / 2 - 0.25, h + 1.08, 4, P.charcoal)
+			bowlStack(extra, 1.4, d / 2 - 0.25, h + 1.08, 4, P.lacquer_dark)
 		end, { hood = true, plate = "麺", tools = { "ladle", "ladle", "strainer", "towel" }, tiles = true, knobs = 3 })
 	end)
 
 	Registry.register("drink_station", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			-- tea urn with a tap
 			Kit.cyl(model, 0.9, 1.3, boardX - 0.3, h + 0.65, 0.35, P.metal, M.metal, { reflectance = 0.15 })
 			Kit.cyl(model, 0.95, 0.12, boardX - 0.3, h + 1.32, 0.35, P.steel_dark, M.metal, nc())
 			Kit.box(model, 0.18, 0.18, 0.35, boardX - 0.3, h + 0.35, -0.2, P.charcoal, M.smooth, nc())
 			-- ramune bottles in an ice bucket
-			Kit.cyl(model, 0.8, 0.5, boardX + 0.75, h + 0.25, 0.45, P.metal, M.metal, nc())
-			Kit.cyl(model, 0.7, 0.05, boardX + 0.75, h + 0.48, 0.45, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.2 })
+			Kit.cyl(extra, 0.8, 0.5, boardX + 0.75, h + 0.25, 0.45, P.metal, M.metal, nc())
+			Kit.cyl(extra, 0.7, 0.05, boardX + 0.75, h + 0.48, 0.45, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.2 })
 			for i = 0, 3 do
 				local a = i * math.pi / 2
-				Kit.cyl(model, 0.16, 0.5, boardX + 0.75 + math.cos(a) * 0.18, h + 0.6, 0.45 + math.sin(a) * 0.18, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.25 })
+				Kit.cyl(extra, 0.16, 0.5, boardX + 0.75 + math.cos(a) * 0.18, h + 0.6, 0.45 + math.sin(a) * 0.18, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.25 })
 			end
 			-- matcha bowl and whisk, cups
-			Kit.cyl(model, 0.5, 0.22, boardX + 0.2, h + 0.11, -0.55, P.stone_dark, M.smooth, nc())
-			Kit.cyl(model, 0.42, 0.02, boardX + 0.2, h + 0.21, -0.55, P.matcha, M.smooth, nc())
-			Kit.cyl(model, 0.2, 0.3, boardX + 0.75, h + 0.15, -0.55, P.bamboo, M.wood, nc())
+			Kit.cyl(extra, 0.5, 0.22, boardX + 0.2, h + 0.11, -0.55, P.stone_dark, M.smooth, nc())
+			Kit.cyl(extra, 0.42, 0.02, boardX + 0.2, h + 0.21, -0.55, P.matcha, M.smooth, nc())
+			Kit.cyl(extra, 0.2, 0.3, boardX + 0.75, h + 0.15, -0.55, P.bamboo, M.wood, nc())
 			for i = 0, 3 do
-				Kit.cyl(model, 0.3, 0.32, -0.2 + i * 0.36, h + 1.25, d / 2 - 0.2, P.porcelain, M.smooth, nc())
+				Kit.cyl(extra, 0.3, 0.32, -0.2 + i * 0.36, h + 1.25, d / 2 - 0.2, P.porcelain, M.smooth, nc())
 			end
 			Kit.box(model, 1.2, 0.08, 0.8, plateX, h + 0.04, 0.1, P.wood_dark, M.wood, nc())
 		end, { plate = "茶", tools = { "towel" } })
 	end)
 
 	Registry.register("griddle", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			Kit.box(model, 2.6, 0.12, 1.6, boardX + 0.1, h + 0.06, 0.05, P.charcoal, M.metal, { reflectance = 0.05 })
 			for _, e in ipairs({ { 0, 0.82, 2.6, 0.06 }, { -1.27, 0, 0.06, 1.6 }, { 1.27, 0, 0.06, 1.6 } }) do
 				Kit.box(model, e[3], 0.18, e[4], boardX + 0.1 + e[1], h + 0.15, 0.05 + e[2], P.steel_dark, M.metal, nc())
 			end
 			local heat = Kit.box(model, 2.4, 0.02, 1.4, boardX + 0.1, h + 0.13, 0.05, P.steel_dark, M.metal, { collide = false, name = "Heat" })
 			Kit.particles(heat, "smoke", { enabled = false })
-			Kit.cyl(model, 0.22, 0.6, plateX + 0.5, h + 0.3, 0.6, P.gold, M.glass, { collide = false, shadow = false, transparency = 0.2 })
-			Kit.box(model, 0.1, 0.05, 0.8, boardX + 1.5, h + 0.2, -0.5, P.metal, M.metal, nc())
+			Kit.cyl(extra, 0.22, 0.6, plateX + 0.5, h + 0.3, 0.6, P.gold, M.glass, { collide = false, shadow = false, transparency = 0.2 })
+			Kit.box(extra, 0.1, 0.05, 0.8, boardX + 1.5, h + 0.2, -0.5, P.metal, M.metal, nc())
 			Kit.box(model, 1, 0.08, 0.7, plateX + 0.1, h + 0.04, 0.1, P.wood_light, M.wood, nc())
 		end, { hood = true, plate = "餃子", tools = { "spatula", "spatula", "towel" }, tiles = true, knobs = 2 })
 	end)
 
 	Registry.register("fryer", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			Kit.box(model, 1.4, 0.5, 1.4, boardX - 0.1, h + 0.25, 0.05, P.steel_dark, M.metal)
 			local oil = Kit.box(model, 1.2, 0.04, 1.2, boardX - 0.1, h + 0.5, 0.05, P.gold, M.glass, { collide = false, transparency = 0.2, name = "Oil" })
 			Kit.particles(oil, "bubbles", { enabled = false })
@@ -6026,7 +6201,7 @@ return function(Registry)
 	end)
 
 	Registry.register("takoyaki_stove", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			Kit.box(model, 1.6, 0.25, 1.3, boardX - 0.1, h + 0.125, 0.05, P.charcoal, M.metal)
 			for i = 0, 3 do
 				for j = 0, 2 do
@@ -6041,17 +6216,17 @@ return function(Registry)
 	end)
 
 	Registry.register("dessert_station", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			Kit.box(model, 2, 0.12, 1.3, boardX, h + 0.06, 0.05, P.porcelain, M.marble)
 			for i, c in ipairs({ P.sakura, P.white, P.matcha }) do
-				Kit.ball(model, 0.35, boardX - 0.6 + i * 0.35, h + 0.3, -0.45, c, M.smooth, nc())
+				Kit.ball(extra, 0.35, boardX - 0.6 + i * 0.35, h + 0.3, -0.45, c, M.smooth, nc())
 			end
 			-- glass cloche over a tray of mochi
-			Kit.cyl(model, 0.9, 0.06, plateX - 0.2, h + 1.12, d / 2 - 0.25, P.wood_dark, M.wood, nc())
+			Kit.cyl(extra, 0.9, 0.06, plateX - 0.2, h + 1.12, d / 2 - 0.25, P.wood_dark, M.wood, nc())
 			for i = 0, 2 do
-				Kit.ball(model, 0.25, plateX - 0.45 + i * 0.25, h + 1.27, d / 2 - 0.25, ({ P.sakura, P.white, P.matcha })[i + 1], M.smooth, nc())
+				Kit.ball(extra, 0.25, plateX - 0.45 + i * 0.25, h + 1.27, d / 2 - 0.25, ({ P.sakura, P.white, P.matcha })[i + 1], M.smooth, nc())
 			end
-			Kit.ball(model, 0.85, plateX - 0.2, h + 1.32, d / 2 - 0.25, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.7 })
+			Kit.ball(extra, 0.85, plateX - 0.2, h + 1.32, d / 2 - 0.25, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.7 })
 			Kit.box(model, 1, 0.08, 0.7, plateX, h + 0.04, 0.1, P.lacquer, M.smooth, nc())
 		end, { plate = "甘味", tools = { "towel" } })
 	end)
@@ -6060,8 +6235,9 @@ return function(Registry)
 		local root = Kit.finish(m, size(item))
 		local w, h, d = item.size[1], item.size[2], item.size[3]
 		cabinet(m, w, h, d, P.metal, P.steel)
-		backsplash(m, w, h, d, true)
-		plate(m, w / 2 - 0.8, h - 0.75, -d / 2 - 0.12, "洗い場")
+		local dk = Kit.detail(m, "kitchen")
+		backsplash(dk, w, h, d, true)
+		plate(dk, w / 2 - 0.8, h - 0.75, -d / 2 - 0.12, "洗い場")
 		-- double basin (built from walls so it looks hollow), soapy water in the left one
 		local bw, bd = 1.25, d - 0.75
 		for i, bx in ipairs({ -1.1, 0.25 }) do
@@ -6073,7 +6249,7 @@ return function(Registry)
 			if i == 1 then
 				Kit.box(m, bw - 0.1, 0.05, bd - 0.1, bx, h - 0.45, 0, P.water, M.glass, { transparency = 0.35, collide = false, name = "Water" })
 				for k = 0, 4 do
-					Kit.ball(m, 0.18 + (k % 2) * 0.08, bx - 0.4 + k * 0.2, h - 0.4, -0.2 + (k % 3) * 0.15, P.white, M.smooth, { collide = false, shadow = false, transparency = 0.15 })
+					Kit.ball(dk, 0.18 + (k % 2) * 0.08, bx - 0.4 + k * 0.2, h - 0.4, -0.2 + (k % 3) * 0.15, P.white, M.smooth, { collide = false, shadow = false, transparency = 0.15 })
 				end
 			end
 		end
@@ -6085,27 +6261,27 @@ return function(Registry)
 		local spout = Kit.cyl(m, 0.1, 0.3, fx, h + 1.36, fz - 0.55, P.metal, M.metal, { collide = false, name = "Spout" })
 		Kit.particles(spout, "water", { enabled = false })
 		for _, sx in ipairs({ -0.3, 0.3 }) do
-			Kit.cylH(m, 0.12, 0.25, fx + sx, h + 0.35, fz, P.metal, M.metal, nc(), "x")
-			Kit.box(m, 0.05, 0.05, 0.25, fx + sx * 1.3, h + 0.35, fz - 0.1, sx < 0 and P.neon_red or P.neon_blue, M.smooth, nc())
+			Kit.cylH(dk, 0.12, 0.25, fx + sx, h + 0.35, fz, P.metal, M.metal, nc(), "x")
+			Kit.box(dk, 0.05, 0.05, 0.25, fx + sx * 1.3, h + 0.35, fz - 0.1, sx < 0 and P.neon_red or P.neon_blue, M.smooth, nc())
 		end
 		-- sponge, dish soap and a tenugui towel over the cabinet lip
-		Kit.box(m, 0.35, 0.14, 0.22, -1.75, h + 0.07, bd / 2, P.leaf_light, M.fabric, nc())
-		Kit.box(m, 0.35, 0.05, 0.22, -1.75, h + 0.165, bd / 2, P.neon_yellow, M.fabric, nc())
-		Kit.cyl(m, 0.24, 0.5, -1.75, h + 0.25, bd / 2 - 0.4, P.leaf, M.plastic, { collide = false, shadow = false, transparency = 0.2 })
-		Kit.cyl(m, 0.08, 0.12, -1.75, h + 0.56, bd / 2 - 0.4, P.white, M.plastic, nc())
-		Kit.box(m, 0.6, 0.9, 0.03, 0.3, h - 0.4, -d / 2 - 0.16, P.white, M.fabric, nc())
-		Kit.box(m, 0.6, 0.12, 0.035, 0.3, h - 0.6, -d / 2 - 0.165, P.indigo, M.fabric, nc())
+		Kit.box(dk, 0.35, 0.14, 0.22, -1.75, h + 0.07, bd / 2, P.leaf_light, M.fabric, nc())
+		Kit.box(dk, 0.35, 0.05, 0.22, -1.75, h + 0.165, bd / 2, P.neon_yellow, M.fabric, nc())
+		Kit.cyl(dk, 0.24, 0.5, -1.75, h + 0.25, bd / 2 - 0.4, P.leaf, M.plastic, { collide = false, shadow = false, transparency = 0.2 })
+		Kit.cyl(dk, 0.08, 0.12, -1.75, h + 0.56, bd / 2 - 0.4, P.white, M.plastic, nc())
+		Kit.box(dk, 0.6, 0.9, 0.03, 0.3, h - 0.4, -d / 2 - 0.16, P.white, M.fabric, nc())
+		Kit.box(dk, 0.6, 0.12, 0.035, 0.3, h - 0.6, -d / 2 - 0.165, P.indigo, M.fabric, nc())
 		-- wire drying rack with clean plates
 		local rx = w / 2 - 0.55
-		Kit.box(m, 0.9, 0.05, d - 0.5, rx, h + 0.05, 0, P.metal, M.metal, nc())
+		Kit.box(dk, 0.9, 0.05, d - 0.5, rx, h + 0.05, 0, P.metal, M.metal, nc())
 		for _, sx in ipairs({ -0.42, 0.42 }) do
 			for k = 0, 5 do
-				Kit.box(m, 0.03, 0.4, 0.03, rx + sx, h + 0.25, -0.75 + k * 0.3, P.metal, M.metal, nc())
+				Kit.box(dk, 0.03, 0.4, 0.03, rx + sx, h + 0.25, -0.75 + k * 0.3, P.metal, M.metal, nc())
 			end
 		end
 		for i = 0, 3 do
-			Kit.cyl(m, 0.7, 0.06, rx, h + 0.42, -0.45 + i * 0.3, P.porcelain, M.smooth, { collide = false, rot = CFrame.Angles(math.rad(90), 0, 0) })
-			Kit.cyl(m, 0.74, 0.03, rx, h + 0.42, -0.45 + i * 0.3, P.indigo, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(90), 0, 0) })
+			Kit.cyl(dk, 0.7, 0.06, rx, h + 0.42, -0.45 + i * 0.3, P.porcelain, M.smooth, { collide = false, rot = CFrame.Angles(math.rad(90), 0, 0) })
+			Kit.cyl(dk, 0.74, 0.03, rx, h + 0.42, -0.45 + i * 0.3, P.indigo, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(90), 0, 0) })
 		end
 		point(root, "Basin", -0.4, h, 0)
 		point(root, "Dirty", w / 2 - 0.55, h + 0.1, 0.45)
@@ -6886,6 +7062,19 @@ function Kit.attach(part, name, cf)
 end
 
 -- Adds the invisible Root (footprint box) and sets PrimaryPart. size = Vector3 (w, h, d)
+-- Optional detail group of a placeable model. Registry.build keeps it only when the matching
+-- renovation style is owned, so the same builder makes the plain and the detailed look.
+function Kit.detail(model, key)
+	local name = "Detail_" .. key
+	local d = model:FindFirstChild(name)
+	if not d then
+		d = Instance.new("Model")
+		d.Name = name
+		d.Parent = model
+	end
+	return d
+end
+
 function Kit.finish(model, size)
 	local root = Instance.new("Part")
 	root.Name = "Root"
@@ -7043,7 +7232,7 @@ local function fitOverride(model, size)
 end
 
 -- Builds the model of a placeable item; returns a Model whose Root is the footprint box,
--- bottom center at the origin, front facing -Z.
+-- bottom center at the origin, front facing -Z. opts.styles: owned renovation styles.
 function Registry.build(id, opts)
 	local item = Items.byId[id]
 	local size = item and Vector3.new(item.size[1], item.size[2], item.size[3]) or Vector3.new(2, 2, 2)
@@ -7066,6 +7255,16 @@ function Registry.build(id, opts)
 	end
 	if not m:FindFirstChild("Root") then
 		Kit.finish(m, size)
+	end
+	-- opts.styles = set of owned renovation styles; without it every detail is kept
+	local styles = opts and opts.styles
+	if styles then
+		for _, child in ipairs(m:GetChildren()) do
+			local key = string.match(child.Name, "^Detail_(.+)$")
+			if key and not styles[key] then
+				child:Destroy()
+			end
+		end
 	end
 	return m
 end
@@ -7204,6 +7403,9 @@ function Scene.shell(shell, geo, data)
 		topFloor = math.max(topFloor, f)
 	end
 	local deluxe = data.zones.facade_deluxe
+	-- renovations bought so far (the starting restaurant is plain)
+	local owned = data.zones
+	local trim = { wainscot = owned.reno_wainscot, beams = owned.reno_beams, tiles = owned.reno_kitchen_tiles, storage = owned.reno_storage }
 	local exterior = { color = deluxe and P.charcoal or P.cream, material = deluxe and P.M.wood or P.M.plaster }
 
 	for _, zone in ipairs(geo.zones) do
@@ -7264,11 +7466,13 @@ function Scene.shell(shell, geo, data)
 					B.tag(leg, "Roof")
 				end
 			end
-			-- exposed beams and soft ceiling lights
+			-- exposed beams (renovation) and soft ceiling lights
 			local r = zone.rect
-			for x = r[1] + 3, r[3] - 2, 6 do
-				local beam = Kit.box(shell, 0.6, 0.7, r[4] - r[2], x, fy + GameConfig.WallHeight - 0.35, (r[2] + r[4]) / 2, P.wood_black, P.M.wood, { collide = false })
-				B.tag(beam, "Roof")
+			if trim.beams then
+				for x = r[1] + 3, r[3] - 2, 6 do
+					local beam = Kit.box(shell, 0.6, 0.7, r[4] - r[2], x, fy + GameConfig.WallHeight - 0.35, (r[2] + r[4]) / 2, P.wood_black, P.M.wood, { collide = false })
+					B.tag(beam, "Roof")
+				end
 			end
 			for x = r[1] + 5, r[3] - 3, 10 do
 				for z = r[2] + 5, r[4] - 3, 10 do
@@ -7311,22 +7515,22 @@ function Scene.shell(shell, geo, data)
 			B.wall(shell, seg, fy, GameConfig.WallHeight, 0.8, wallStyle, outsideSign, exterior)
 			-- interior finishes on each indoor side
 			if sideA then
-				B.wallTrim(shell, seg, fy, -1, sideA.area, GameConfig.WallHeight)
+				B.wallTrim(shell, seg, fy, -1, sideA.area, GameConfig.WallHeight, trim)
 			end
 			if sideB then
-				B.wallTrim(shell, seg, fy, 1, sideB.area, GameConfig.WallHeight)
+				B.wallTrim(shell, seg, fy, 1, sideB.area, GameConfig.WallHeight, trim)
 			end
 			if outsideSign then
 				if seg.axis == "z" and outsideSign == -1 then
-					B.eave(shell, seg, fy + GameConfig.WallHeight - 1.2, -1, 3)
-					if zone and zone.area ~= "storage" then
+					B.eave(shell, seg, fy + GameConfig.WallHeight - 1.2, -1, 3, owned.reno_eaves)
+					if zone and zone.area ~= "storage" and (owned.reno_facade or owned.reno_bamboo) then
 						local avoid = {}
 						for _, o in ipairs(geo.openings) do
 							if o.axis == "z" and o.at == seg.line and o.floor == floor then
 								table.insert(avoid, { o.from - 4.4, o.to + 4.4 })
 							end
 						end
-						B.facadeDetail(shell, seg, fy, -1, avoid)
+						B.facadeDetail(shell, seg, fy, -1, avoid, { koshi = owned.reno_facade, bamboo = owned.reno_bamboo })
 					end
 					-- lattice windows facing the street (not over doors)
 					local len = seg.b - seg.a
@@ -7334,7 +7538,7 @@ function Scene.shell(shell, geo, data)
 					for i = 0, n - 1 do
 						local along = seg.a + len / n * (i + 0.5)
 						if math.abs(along) > 6 then
-							B.window(shell, along, fy + 6.6, seg, -1, 4, 3.4)
+							B.window(shell, along, fy + 6.6, seg, -1, 4, 3.4, owned.reno_windows)
 						end
 					end
 				end
@@ -7358,9 +7562,11 @@ function Scene.shell(shell, geo, data)
 		B.doorFrame(shell, o, fy, o.kind == "loading" and 10 or 9)
 		if o.kind == "entrance" then
 			B.entranceNoren(shell, o, fy)
-			B.entranceDetail(shell, o, fy)
+			if owned.reno_entrance then
+				B.entranceDetail(shell, o, fy)
+			end
 		elseif o.kind == "loading" then
-			B.shutter(shell, o, fy, 10)
+			B.shutter(shell, o, fy, 10, owned.reno_storage)
 		end
 	end
 	for _, s in ipairs(geo.stairs) do
@@ -10114,6 +10320,15 @@ local function run(player, cmd, arg)
 			d.zones[e.id] = true
 		end
 		S.Session.OwnerReady:Fire(owner, d)
+	elseif cmd == "renos" or cmd == "plain" then
+		-- all renovations on (detailed look) or off (plain starting look)
+		for _, e in ipairs(Expansions.list) do
+			if e.reno then
+				d.zones[e.id] = cmd == "renos" or nil
+			end
+		end
+		S.Data.changed(owner, "zones")
+		S.Session.OwnerReady:Fire(owner, d)
 	elseif cmd == "spawn" then
 		task.spawn(S.Customers.trySpawn, type(arg) == "string" and arg or nil)
 	elseif cmd == "time" then
@@ -10907,6 +11122,7 @@ local Quests = require(Shared.Config.Quests)
 local Achievements = require(Shared.Config.Achievements)
 local DailyRewards = require(Shared.Config.DailyRewards)
 local Upgrades = require(Shared.Config.Upgrades)
+local Expansions = require(Shared.Config.Expansions)
 local Formulas = require(Shared.Logic.Formulas)
 local TableUtil = require(Shared.Util.TableUtil)
 local Core = require(script.Parent.Parent.Core)
@@ -10945,6 +11161,15 @@ local function statValue(d, stat)
 		local n = 0
 		for id in pairs(d.zones) do
 			if string.sub(id, 1, 5) == "zone_" then
+				n += 1
+			end
+		end
+		return n
+	elseif stat == "renos" then
+		local n = 0
+		for id in pairs(d.zones) do
+			local e = Expansions.byId[id]
+			if e and e.reno then
 				n += 1
 			end
 		end
@@ -11834,7 +12059,8 @@ local function worldY(entry)
 end
 
 local function spawn(entry)
-	local model = Registry.build(entry.i)
+	local data = ownerData()
+	local model = Registry.build(entry.i, { styles = Expansions.styles(data and data.zones) })
 	Registry.place(model, entry.x, worldY(entry), entry.z, entry.r)
 	model:SetAttribute("FloorIndex", entry.f or 0)
 	model.Parent = Core.S.World.folders().items
@@ -12542,11 +12768,11 @@ local function buyExpansion(player, id)
 	Core.S.Data.changed(o, "zones")
 	Core.S.Data.changed(o, "placed")
 	Core.S.Data.changed(o, "inventory")
-	Net.notifyAll("msg.expansion_bought", { name = "zone." .. id }, "success")
+	Net.notifyAll(exp.reno and "msg.reno_bought" or "msg.expansion_bought", { name = "zone." .. id }, "success")
 	if moved > 0 then
 		Net.notify(o, "msg.items_to_inventory", { n = moved })
 	end
-	Core.S.Meta.event(o, "zones", 1)
+	Core.S.Meta.event(o, exp.reno and "renos" or "zones", 1)
 end
 
 local function setMenu(player, recipeId, on, priceMult)
@@ -12856,6 +13082,8 @@ return Seating
 -- Results go to the Output window and to a toast.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Ingredients = require(Shared.Config.Ingredients)
+local Expansions = require(Shared.Config.Expansions)
+local Registry = require(Shared.Models.Registry)
 local PlacementLogic = require(Shared.Logic.Placement)
 local Uid = require(Shared.Util.Uid)
 local Core = require(script.Parent.Parent.Core)
@@ -13044,6 +13272,21 @@ function SelfTest.run(player)
 		local sink = firstOf("sink")
 		local okWash, washMsg = S.Appliance.useSink(actor, sink, 4)
 		assert(okWash, "wash: " .. tostring(washMsg))
+	end)
+
+	check("plain and renovated models", function()
+		local plain = Registry.build("counter_straight", { styles = {} })
+		local full = Registry.build("counter_straight", { styles = Expansions.allStyles() })
+		assert(not plain:FindFirstChild("Detail_counter"), "the plain counter has renovation details")
+		assert(full:FindFirstChild("Detail_counter") and full:FindFirstChild("Detail_tableware"), "the renovated counter misses its details")
+		assert(#full:GetDescendants() > #plain:GetDescendants(), "the renovated counter is not more detailed")
+		plain:Destroy()
+		full:Destroy()
+		for _, e in ipairs(Expansions.list) do
+			if e.reno then
+				assert(e.cosmetic and not e.zones, e.id .. " must be cosmetic")
+			end
+		end
 	end)
 
 	check("placement rules", function()
@@ -15263,7 +15506,8 @@ end
 local function makeGhost(itemId)
 	clearGhost()
 	Registry.load()
-	ghost = Registry.build(itemId)
+	local world = Core.C.Data.world or {}
+	ghost = Registry.build(itemId, { styles = Expansions.styles(world.zones) })
 	for _, d in ipairs(ghost:GetDescendants()) do
 		if d:IsA("BasePart") then
 			d.CanCollide = false
@@ -17382,6 +17626,9 @@ local Icons = {
 	zone = {
 		zone_base = "🏠", zone_east = "🍽️", zone_storage2 = "📦", zone_west = "🍽️", zone_terrace = "🌤️", zone_garden = "🌿",
 		zone_tatami = "🎎", zone_kitchen_pro = "👨‍🍳", zone_floor2 = "🏢", sign_rooftop = "🪧", facade_deluxe = "✨", zone_rooftop = "🌃",
+		reno_storage = "🦺", reno_wainscot = "🪵", reno_kitchen_tiles = "🧱", reno_facade = "🏯", reno_entrance = "🎍",
+		reno_counter = "🍶", reno_eaves = "⛩️", reno_kitchen_gear = "🔪", reno_windows = "🪟", reno_beams = "🏛️",
+		reno_tableware = "🥢", reno_bamboo = "🎋", reno_furnish = "🛋️",
 	},
 }
 
@@ -18038,7 +18285,7 @@ local Base = require(script.Parent.Parent.Base)
 
 local CMDS = {
 	{ "💴 +10.000", "yen", 10000 }, { "💴 +1M", "yen", 1000000 }, { "🌸 +50", "sakura", 50 }, { "⬆️ +1 level", "level", nil },
-	{ "Level 25", "level", 25 }, { "Level 45", "level", 45 }, { "🎫 All licenses", "licenses" }, { "🏗️ All zones", "zones" },
+	{ "Level 25", "level", 25 }, { "Level 45", "level", 45 }, { "🎫 All licenses", "licenses" }, { "🏗️ All zones", "zones" }, { "🪚 All renovations", "renos" }, { "🧱 Plain look", "plain" },
 	{ "📦 Stock boxes", "stock" }, { "🧍 Spawn customer", "spawn" }, { "🕚 Close day", "time" }, { "⭐ 5-star reviews", "rating" },
 	{ "🧪 Self-test", "selftest" },
 	{ "♻️ Reset (Studio)", "reset" },
@@ -18053,6 +18300,8 @@ return Base.make("Dev", "ui.dev", UDim2.fromScale(0.5, 0.6), function(content)
 	end
 end)
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Expansions screen: new rooms and floors ("zones" tab) and renovations that turn the plain
+-- starting restaurant into the detailed one ("reno" tab, grouped by exterior/interior/furniture).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -18064,38 +18313,84 @@ local Icons = require(script.Parent.Parent.Icons)
 local Core = require(script.Parent.Parent.Parent.Core)
 
 local t = Locale.t
+local tab = "zones"
+local GROUPS = {
+	{ id = "exterior", key = "ui.reno_exterior" },
+	{ id = "interior", key = "ui.reno_interior" },
+	{ id = "furniture", key = "ui.reno_furniture" },
+}
 
-return Base.make("Expansions", "ui.expansions", UDim2.fromScale(0.66, 0.76), function(content)
+local function row(scroll, e, w, can, L, order)
+	local owned = w.zones and w.zones[e.id]
+	local req = t("ui.req_level", { level = e.lv })
+	local reqOk = true
+	for _, r in ipairs(e.requires) do
+		if r ~= "zone_base" then
+			req ..= "  ·  " .. t("zone." .. r)
+		end
+		if not (w.zones and w.zones[r]) then
+			reqOk = false
+		end
+	end
+	if e.ambience then
+		req ..= "  ·  " .. t("ui.reno_amb", { n = e.ambience })
+	end
+	local card, right = Kit.row(Icons.zone[e.id] or "🏗️", t("zone." .. e.id), t("zonedesc." .. e.id) .. "\n" .. req, 86)
+	card.Parent = scroll
+	card.LayoutOrder = order
+	if owned then
+		Kit.label("✅ " .. t("ui.owned"), { Parent = right, Size = UDim2.fromOffset(150, 26), TextXAlignment = Enum.TextXAlignment.Right, FontFace = Kit.Theme.bold, TextColor3 = Kit.Theme.green })
+	else
+		Kit.button(Format.yen(e.cost, L), { parent = right, size = UDim2.fromOffset(150, 40), style = "gold", disabled = not can or not reqOk or (w.level or 1) < e.lv, onClick = function()
+			NetDef.event("BuyExpansion"):FireServer(e.id)
+		end })
+	end
+end
+
+local screen
+screen = Base.make("Expansions", "ui.expansions", UDim2.fromScale(0.66, 0.76), function(content)
 	local w = Core.C.Data.world or {}
 	local L = Locale.get()
 	local can = Core.C.Data.canBuild()
-	local scroll = Kit.scroll({ Parent = content })
+	local done, total = 0, 0
 	for _, e in ipairs(Expansions.list) do
-		if e.id ~= "zone_base" then
-			local owned = w.zones and w.zones[e.id]
-			local req = t("ui.req_level", { level = e.lv })
-			local reqOk = true
-			for _, r in ipairs(e.requires) do
-				if r ~= "zone_base" then
-					req ..= "  ·  " .. t("zone." .. r)
-				end
-				if not (w.zones and w.zones[r]) then
-					reqOk = false
-				end
+		if e.reno then
+			total += 1
+			if w.zones and w.zones[e.id] then
+				done += 1
 			end
-			local card, right = Kit.row(Icons.zone[e.id] or "🏗️", t("zone." .. e.id), t("zonedesc." .. e.id) .. "\n" .. req, 86)
-			card.Parent = scroll
-			card.LayoutOrder = e.order
-			if owned then
-				Kit.label("✅ " .. t("ui.owned"), { Parent = right, Size = UDim2.fromOffset(150, 26), TextXAlignment = Enum.TextXAlignment.Right, FontFace = Kit.Theme.bold, TextColor3 = Kit.Theme.green })
-			else
-				Kit.button(Format.yen(e.cost, L), { parent = right, size = UDim2.fromOffset(150, 40), style = "gold", disabled = not can or not reqOk or (w.level or 1) < e.lv, onClick = function()
-					NetDef.event("BuyExpansion"):FireServer(e.id)
-				end })
+		end
+	end
+	Kit.tabs(content, {
+		{ id = "zones", label = t("ui.tab_zones"), width = 150 },
+		{ id = "reno", label = t("ui.tab_reno") .. " " .. done .. "/" .. total, width = 210 },
+	}, function(id)
+		tab = id
+		screen.refresh()
+	end, tab)
+	local scroll = Kit.scroll({ Position = UDim2.fromOffset(0, 46), Size = UDim2.new(1, 0, 1, -46), Parent = content })
+	if tab == "zones" then
+		for _, e in ipairs(Expansions.list) do
+			if e.id ~= "zone_base" and not e.reno then
+				row(scroll, e, w, can, L, e.order)
+			end
+		end
+		return
+	end
+	-- renovations: a short hint, then one block per group
+	Kit.label(t("ui.reno_hint"), { Parent = scroll, Size = UDim2.new(1, -8, 0, 40), TextWrapped = true, TextSize = 15, TextColor3 = Kit.Theme.muted, LayoutOrder = 0 })
+	for gi, g in ipairs(GROUPS) do
+		local base = gi * 1000
+		Kit.title(t(g.key), { Parent = scroll, Size = UDim2.new(1, -8, 0, 30), TextSize = 20, LayoutOrder = base })
+		for _, e in ipairs(Expansions.list) do
+			if e.reno == g.id then
+				row(scroll, e, w, can, L, base + e.order)
 			end
 		end
 	end
 end)
+
+return screen
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login calendar, leaderboards and franchise.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")

@@ -301,11 +301,11 @@ local function buyExpansion(player, id)
 	Core.S.Data.changed(o, "zones")
 	Core.S.Data.changed(o, "placed")
 	Core.S.Data.changed(o, "inventory")
-	Net.notifyAll("msg.expansion_bought", { name = "zone." .. id }, "success")
+	Net.notifyAll(exp.reno and "msg.reno_bought" or "msg.expansion_bought", { name = "zone." .. id }, "success")
 	if moved > 0 then
 		Net.notify(o, "msg.items_to_inventory", { n = moved })
 	end
-	Core.S.Meta.event(o, "zones", 1)
+	Core.S.Meta.event(o, exp.reno and "renos" or "zones", 1)
 end
 
 local function setMenu(player, recipeId, on, priceMult)

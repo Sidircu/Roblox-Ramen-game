@@ -126,13 +126,14 @@ local function shelfUnit(m, item)
 	local rows = math.ceil(slots / cols)
 	-- frame: dark posts on black feet, light hinoki back boards
 	Kit.box(m, w, h, 0.12, 0, h / 2, d / 2 - 0.06, P.wood_dark, M.planks)
-	Kit.box(m, w - 0.4, h - 0.3, 0.03, 0, h / 2, d / 2 - 0.135, P.hinoki, M.planks, nc())
+	local dk = Kit.detail(m, "kitchen")
+	Kit.box(dk, w - 0.4, h - 0.3, 0.03, 0, h / 2, d / 2 - 0.135, P.hinoki, M.planks, nc())
 	for _, x in ipairs({ -w / 2 + 0.1, w / 2 - 0.1 }) do
 		Kit.box(m, 0.2, h, d, x, h / 2, 0, P.wood_dark, M.wood)
-		Kit.box(m, 0.28, 0.12, d + 0.08, x, 0.06, 0, P.wood_black, M.wood, nc())
+		Kit.box(dk, 0.28, 0.12, d + 0.08, x, 0.06, 0, P.wood_black, M.wood, nc())
 		for _, y in ipairs({ 0.55, h - 0.55 }) do
-			Kit.box(m, 0.24, 0.3, 0.03, x, y, -d / 2 - 0.015, P.charcoal, M.metal, nc())
-			Kit.ball(m, 0.07, x, y, -d / 2 - 0.04, P.brass, M.metal, nc())
+			Kit.box(dk, 0.24, 0.3, 0.03, x, y, -d / 2 - 0.015, P.charcoal, M.metal, nc())
+			Kit.ball(dk, 0.07, x, y, -d / 2 - 0.04, P.brass, M.metal, nc())
 		end
 	end
 	if cols == 2 then
@@ -143,7 +144,7 @@ local function shelfUnit(m, item)
 	for r = 0, rows - 1 do
 		local y = 0.15 + r * rowH
 		Kit.box(m, w - 0.2, 0.12, d, 0, y, 0, P.wood_light, M.wood)
-		Kit.box(m, w - 0.3, 0.16, 0.05, 0, y + 0.02, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
+		Kit.box(dk, w - 0.3, 0.16, 0.05, 0, y + 0.02, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
 		for c = 0, cols - 1 do
 			idx += 1
 			if idx <= slots then
@@ -152,17 +153,17 @@ local function shelfUnit(m, item)
 				local s = slot(m, idx, cw - 0.1, rowH - 0.2, d - 0.1, x, y + 0.06 + (rowH - 0.2) / 2, 0)
 				s:SetAttribute("Width", cw - 0.2)
 				-- paper price tag on the shelf lip
-				Kit.box(m, 0.55, 0.13, 0.02, x, y + 0.02, -d / 2 - 0.055, P.paper, M.smooth, nc())
-				Kit.box(m, 0.12, 0.13, 0.025, x - 0.2, y + 0.02, -d / 2 - 0.058, P.lacquer, M.smooth, nc())
+				Kit.box(dk, 0.55, 0.13, 0.02, x, y + 0.02, -d / 2 - 0.055, P.paper, M.smooth, nc())
+				Kit.box(dk, 0.12, 0.13, 0.025, x - 0.2, y + 0.02, -d / 2 - 0.058, P.lacquer, M.smooth, nc())
 			end
 		end
 	end
 	-- crown with a kanji header board ("ingredients")
 	Kit.box(m, w + 0.2, 0.18, d + 0.15, 0, h - 0.06, -0.02, P.wood_black, M.wood)
-	Kit.box(m, w + 0.3, 0.06, d + 0.25, 0, h + 0.06, -0.02, P.wood_dark, M.wood, nc())
-	local sign = Kit.box(m, math.min(2.2, w - 0.8), 0.6, 0.08, 0, h + 0.4, -d / 2 + 0.2, P.hinoki, M.wood, nc())
+	Kit.box(dk, w + 0.3, 0.06, d + 0.25, 0, h + 0.06, -0.02, P.wood_dark, M.wood, nc())
+	local sign = Kit.box(dk, math.min(2.2, w - 0.8), 0.6, 0.08, 0, h + 0.4, -d / 2 + 0.2, P.hinoki, M.wood, nc())
 	Kit.text(sign, Enum.NormalId.Front, "食材", { color = "#2B2320", font = JP_FONT, pps = 40 })
-	Kit.box(m, math.min(2.2, w - 0.8) + 0.12, 0.08, 0.1, 0, h + 0.74, -d / 2 + 0.2, P.wood_dark, M.wood, nc())
+	Kit.box(dk, math.min(2.2, w - 0.8) + 0.12, 0.08, 0.1, 0, h + 0.74, -d / 2 + 0.2, P.wood_dark, M.wood, nc())
 end
 
 local function riceCooker(m, item, pro)
@@ -171,18 +172,19 @@ local function riceCooker(m, item, pro)
 	local standH = h - 1.4
 	-- wooden stand with a drawer and kanji label
 	Kit.box(m, w, standH, w, 0, standH / 2, 0, P.wood_dark, M.wood)
-	Kit.box(m, w + 0.1, 0.1, w + 0.1, 0, standH - 0.05, 0, P.wood_black, M.wood, nc())
-	Kit.box(m, w - 0.3, standH - 0.45, 0.04, 0, standH / 2 + 0.05, -w / 2 - 0.02, P.wood, M.wood, nc())
-	Kit.box(m, 0.4, 0.06, 0.06, 0, standH - 0.35, -w / 2 - 0.06, P.brass, M.metal, nc())
-	local label = Kit.box(m, 0.8, 0.34, 0.03, 0, standH / 2 - 0.1, -w / 2 - 0.05, P.paper, M.smooth, nc())
+	local dk = Kit.detail(m, "kitchen")
+	Kit.box(dk, w + 0.1, 0.1, w + 0.1, 0, standH - 0.05, 0, P.wood_black, M.wood, nc())
+	Kit.box(dk, w - 0.3, standH - 0.45, 0.04, 0, standH / 2 + 0.05, -w / 2 - 0.02, P.wood, M.wood, nc())
+	Kit.box(dk, 0.4, 0.06, 0.06, 0, standH - 0.35, -w / 2 - 0.06, P.brass, M.metal, nc())
+	local label = Kit.box(dk, 0.8, 0.34, 0.03, 0, standH / 2 - 0.1, -w / 2 - 0.05, P.paper, M.smooth, nc())
 	Kit.text(label, Enum.NormalId.Front, "炊飯", { color = "#2B2320", font = JP_FONT, pps = 40 })
 	-- cooker body with side handles, lid, steam vent and control panel
 	local r = w - 0.35
 	local body = Kit.cyl(m, r, 1.0, 0, standH + 0.5, 0, pro and P.metal or P.white, pro and M.metal or M.smooth, { name = "Body", reflectance = pro and 0.12 or 0 })
 	Kit.cyl(m, r + 0.04, 0.08, 0, standH + 0.12, 0, P.charcoal, M.smooth, nc())
-	Kit.cyl(m, r + 0.04, 0.05, 0, standH + 0.98, 0, pro and P.steel or P.sakura_dark, M.smooth, nc())
+	Kit.cyl(dk, r + 0.04, 0.05, 0, standH + 0.98, 0, pro and P.steel or P.sakura_dark, M.smooth, nc())
 	for _, sx in ipairs({ -1, 1 }) do
-		Kit.box(m, 0.12, 0.1, 0.5, sx * (r / 2 + 0.04), standH + 0.85, 0, P.charcoal, M.smooth, nc())
+		Kit.box(dk, 0.12, 0.1, 0.5, sx * (r / 2 + 0.04), standH + 0.85, 0, P.charcoal, M.smooth, nc())
 	end
 	Kit.blob(m, r - 0.05, 0.35, r - 0.05, 0, standH + 1.05, 0, pro and P.steel or P.porcelain, M.smooth, nc())
 	Kit.box(m, 0.5, 0.12, 0.1, 0, standH + 1.25, -0.25, P.charcoal, M.smooth, nc())
@@ -193,9 +195,9 @@ local function riceCooker(m, item, pro)
 	local _ = panel
 	local _2 = led
 	-- rice paddle (shamoji) in its holder
-	Kit.cyl(m, 0.16, 0.4, r / 2 + 0.12, standH + 0.55, -0.2, P.white, M.smooth, nc())
-	Kit.box(m, 0.08, 0.6, 0.04, r / 2 + 0.12, standH + 0.8, -0.2, P.hinoki, M.wood, nc())
-	Kit.blob(m, 0.24, 0.3, 0.06, r / 2 + 0.12, standH + 1.15, -0.2, P.hinoki, M.wood, nc())
+	Kit.cyl(dk, 0.16, 0.4, r / 2 + 0.12, standH + 0.55, -0.2, P.white, M.smooth, nc())
+	Kit.box(dk, 0.08, 0.6, 0.04, r / 2 + 0.12, standH + 0.8, -0.2, P.hinoki, M.wood, nc())
+	Kit.blob(dk, 0.24, 0.3, 0.06, r / 2 + 0.12, standH + 1.15, -0.2, P.hinoki, M.wood, nc())
 	local vent = Kit.box(m, 0.2, 0.1, 0.2, 0, standH + 1.3, 0.15, P.white, M.smooth, { transparency = 1, collide = false, name = "Steam" })
 	Kit.particles(vent, "steam", { enabled = false })
 	local _3 = body
@@ -207,7 +209,8 @@ local function brothPot(m, item, large)
 	local w, h = item.size[1], item.size[2]
 	local stoveH = 1.5
 	cabinet(m, w, stoveH, w, P.steel_dark, P.steel)
-	plate(m, w / 2 - 0.75, stoveH - 0.45, -w / 2 - 0.12, "出汁")
+	local dk = Kit.detail(m, "kitchen")
+	plate(dk, w / 2 - 0.75, stoveH - 0.45, -w / 2 - 0.12, "出汁")
 	knobs(m, 2, -w / 2 + 0.45, stoveH - 0.45, -w / 2 - 0.08)
 	-- burner ring and cast iron grate
 	Kit.cyl(m, w * 0.6, 0.06, 0, stoveH + 0.03, 0, P.neon_blue, M.neon, { collide = false, name = "Flame" })
@@ -219,7 +222,7 @@ local function brothPot(m, item, large)
 	local d = w - 0.4
 	Kit.cyl(m, d, potH, 0, stoveH + potH / 2 + 0.15, 0, P.metal, M.metal, { reflectance = 0.15, name = "Body" })
 	for _, y in ipairs({ 0.35, potH - 0.45 }) do
-		Kit.cyl(m, d + 0.05, 0.06, 0, stoveH + 0.15 + y, 0, P.steel, M.metal, nc())
+		Kit.cyl(dk, d + 0.05, 0.06, 0, stoveH + 0.15 + y, 0, P.steel, M.metal, nc())
 	end
 	Kit.cyl(m, d + 0.1, 0.12, 0, stoveH + potH + 0.1, 0, P.steel, M.metal, { collide = false })
 	local broth = Kit.cyl(m, d - 0.15, 0.06, 0, stoveH + potH - 0.02, 0, P.wood, M.smooth, { collide = false, name = "Broth", transparency = 1 })
@@ -230,8 +233,8 @@ local function brothPot(m, item, large)
 		Kit.box(m, 0.12, 0.3, 0.12, x - (x > 0 and 0.08 or -0.08), stoveH + potH - 0.12, -0.22, P.steel_dark, M.metal, nc())
 	end
 	-- lid leaning against the back of the pot
-	Kit.cyl(m, d * 0.9, 0.08, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.25, P.metal, M.metal, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(80), 0, 0) })
-	Kit.box(m, 0.4, 0.1, 0.12, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.2, P.wood_dark, M.wood, nc())
+	Kit.cyl(dk, d * 0.9, 0.08, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.25, P.metal, M.metal, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(80), 0, 0) })
+	Kit.box(dk, 0.4, 0.1, 0.12, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.2, P.wood_dark, M.wood, nc())
 	-- long ladle (handle + bowl) resting in the pot
 	Kit.cyl(m, 0.08, 2.2, d / 4, stoveH + potH + 0.45, 0, P.metal, M.metal, { collide = false, rot = CFrame.Angles(0, 0, math.rad(25)) })
 	Kit.cyl(m, 0.1, 0.4, d / 4 - 0.5, stoveH + potH + 1.4, 0, P.wood_dark, M.wood, { collide = false, rot = CFrame.Angles(0, 0, math.rad(25)) })
@@ -247,10 +250,20 @@ local function station(m, item, deco, opts)
 	opts = opts or {}
 	local root = Kit.finish(m, size(item))
 	local w, h, d = item.size[1], item.size[2], item.size[3]
-	cabinet(m, w, h, d, opts.wood and P.hinoki or P.metal, opts.wood and P.wood_dark or P.metal, opts.wood)
-	backsplash(m, w, h, d, opts.tiles)
+	-- plain steel cabinet; the "chef gear" renovation (Detail_kitchen) adds the wooden sushi
+	-- counter front, backsplash, utensil rail, kanji plate and the small props of each station
+	local dk = Kit.detail(m, "kitchen")
+	cabinet(m, w, h, d, P.metal, P.metal, false)
+	if opts.wood then
+		Kit.box(dk, w + 0.1, h - 0.6, 0.06, 0, 0.35 + (h - 0.55) / 2, -d / 2 - 0.16, P.wood_dark, M.wood, nc())
+		for i = 0, math.floor(w / 0.45) do
+			Kit.box(dk, 0.1, h - 0.8, 0.06, -w / 2 + 0.2 + i * 0.45, 0.35 + (h - 0.55) / 2, -d / 2 - 0.21, P.wood, M.wood, nc())
+		end
+		Kit.box(dk, w + 0.1, 0.06, d + 0.12, 0, h + 0.03, 0.02, P.hinoki, M.wood, nc())
+	end
+	backsplash(dk, w, h, d, opts.tiles)
 	if opts.tools then
-		utensilRail(m, w, h, d, opts.tools)
+		utensilRail(dk, w, h, d, opts.tools)
 	end
 	if opts.hood then
 		hood(m, w, h, d)
@@ -259,11 +272,11 @@ local function station(m, item, deco, opts)
 		knobs(m, opts.knobs, -0.4 * (opts.knobs - 1) / 2, h - 0.45, -d / 2 - 0.08)
 	end
 	if opts.plate then
-		plate(m, w / 2 - 0.8, h - 0.75, -d / 2 - 0.12, opts.plate)
+		plate(dk, w / 2 - 0.8, h - 0.75, -d / 2 - 0.12, opts.plate)
 	end
 	local boardX = -w / 2 + 1.4
 	local plateX = w / 2 - 0.9
-	deco(m, w, h, d, boardX, plateX)
+	deco(m, w, h, d, boardX, plateX, dk)
 	point(root, "Board", boardX, h + 0.1, 0.05)
 	point(root, "Plate", plateX, h + 0.05, 0.1)
 	point(root, "Tool", boardX, h + 1.2, -0.1)
@@ -309,46 +322,46 @@ return function(Registry)
 	end)
 
 	Registry.register("sushi_station", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			-- hinoki board with a yanagiba knife and a wet cloth
 			Kit.box(model, 2.0, 0.18, 1.5, boardX, h + 0.09, 0.05, P.hinoki, M.wood)
 			Kit.box(model, 1.9, 0.02, 1.4, boardX, h + 0.185, 0.05, P.paper_warm, M.wood, nc())
-			Kit.box(model, 1.2, 0.02, 0.12, boardX + 0.2, h + 0.2, -0.62, P.metal, M.metal, { collide = false, shadow = false, reflectance = 0.3 })
-			Kit.box(model, 0.45, 0.06, 0.1, boardX - 0.6, h + 0.2, -0.62, P.wood_black, M.wood, nc())
+			Kit.box(extra, 1.2, 0.02, 0.12, boardX + 0.2, h + 0.2, -0.62, P.metal, M.metal, { collide = false, shadow = false, reflectance = 0.3 })
+			Kit.box(extra, 0.45, 0.06, 0.1, boardX - 0.6, h + 0.2, -0.62, P.wood_black, M.wood, nc())
 			-- hangiri rice tub with shamoji paddle
 			local tx, tz = boardX + 1.5, 0.72
-			Kit.cyl(model, 1.1, 0.36, tx, h + 0.18, tz, P.hinoki, M.wood, nc())
-			Kit.cyl(model, 1.14, 0.06, tx, h + 0.1, tz, P.copper, M.metal, nc())
-			Kit.cyl(model, 1.14, 0.06, tx, h + 0.3, tz, P.copper, M.metal, nc())
-			Kit.blob(model, 0.9, 0.25, 0.9, tx, h + 0.36, tz, P.rice, M.sand, nc())
-			Kit.box(model, 0.18, 0.04, 0.8, tx + 0.25, h + 0.48, tz - 0.1, P.wood_light, M.wood, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(-12), math.rad(25), 0) })
+			Kit.cyl(extra, 1.1, 0.36, tx, h + 0.18, tz, P.hinoki, M.wood, nc())
+			Kit.cyl(extra, 1.14, 0.06, tx, h + 0.1, tz, P.copper, M.metal, nc())
+			Kit.cyl(extra, 1.14, 0.06, tx, h + 0.3, tz, P.copper, M.metal, nc())
+			Kit.blob(extra, 0.9, 0.25, 0.9, tx, h + 0.36, tz, P.rice, M.sand, nc())
+			Kit.box(extra, 0.18, 0.04, 0.8, tx + 0.25, h + 0.48, tz - 0.1, P.wood_light, M.wood, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(-12), math.rad(25), 0) })
 			-- small dishes: wasabi and pickled ginger, water bowl (tezu)
-			Kit.cyl(model, 0.4, 0.06, plateX - 0.75, h + 0.03, -0.65, P.porcelain, M.smooth, nc())
-			Kit.blob(model, 0.2, 0.12, 0.2, plateX - 0.75, h + 0.1, -0.65, P.matcha, M.smooth, nc())
-			Kit.cyl(model, 0.4, 0.06, plateX - 0.3, h + 0.03, -0.65, P.porcelain, M.smooth, nc())
-			Kit.blob(model, 0.24, 0.1, 0.24, plateX - 0.3, h + 0.09, -0.65, P.sakura, M.smooth, nc())
-			Kit.cyl(model, 0.5, 0.25, boardX - 0.95, h + 0.13, 0.65, P.indigo, M.smooth, nc())
-			Kit.cyl(model, 0.44, 0.02, boardX - 0.95, h + 0.24, 0.65, P.water, M.glass, { collide = false, shadow = false, transparency = 0.3 })
+			Kit.cyl(extra, 0.4, 0.06, plateX - 0.75, h + 0.03, -0.65, P.porcelain, M.smooth, nc())
+			Kit.blob(extra, 0.2, 0.12, 0.2, plateX - 0.75, h + 0.1, -0.65, P.matcha, M.smooth, nc())
+			Kit.cyl(extra, 0.4, 0.06, plateX - 0.3, h + 0.03, -0.65, P.porcelain, M.smooth, nc())
+			Kit.blob(extra, 0.24, 0.1, 0.24, plateX - 0.3, h + 0.09, -0.65, P.sakura, M.smooth, nc())
+			Kit.cyl(extra, 0.5, 0.25, boardX - 0.95, h + 0.13, 0.65, P.indigo, M.smooth, nc())
+			Kit.cyl(extra, 0.44, 0.02, boardX - 0.95, h + 0.24, 0.65, P.water, M.glass, { collide = false, shadow = false, transparency = 0.3 })
 			-- geta plate for the finished dish and a stack of spare plates
 			Kit.box(model, 1.4, 0.12, 0.8, plateX, h + 0.06, 0.1, P.wood_light, M.wood, nc())
 			for _, sx in ipairs({ -0.55, 0.55 }) do
 				Kit.box(model, 0.12, 0.08, 0.8, plateX + sx, h + 0.0, 0.1, P.wood_light, M.wood, nc())
 			end
 			for i = 0, 3 do
-				Kit.box(model, 0.9, 0.06, 0.5, plateX + 0.15, h + 1.1 + i * 0.07, d / 2 - 0.2, P.wood_light, M.wood, nc())
+				Kit.box(extra, 0.9, 0.06, 0.5, plateX + 0.15, h + 1.1 + i * 0.07, d / 2 - 0.2, P.wood_light, M.wood, nc())
 			end
 			-- rolled makisu and bamboo leaves on the shelf
-			Kit.cylH(model, 0.22, 0.9, -0.9, h + 1.2, d / 2 - 0.2, P.bamboo, M.wood, nc())
+			Kit.cylH(extra, 0.22, 0.9, -0.9, h + 1.2, d / 2 - 0.2, P.bamboo, M.wood, nc())
 			for i = 0, 2 do
-				Kit.blob(model, 0.7, 0.03, 0.22, -2 + i * 0.25, h + 1.12, d / 2 - 0.22, P.leaf, M.leafy, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(i * 20), 0) })
+				Kit.blob(extra, 0.7, 0.03, 0.22, -2 + i * 0.25, h + 1.12, d / 2 - 0.22, P.leaf, M.leafy, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(i * 20), 0) })
 			end
-			Kit.cyl(model, 0.2, 0.45, 1.2, h + 1.3, d / 2 - 0.2, P.charcoal, M.smooth, nc())
-			Kit.cyl(model, 0.22, 0.06, 1.2, h + 1.55, d / 2 - 0.2, P.lacquer, M.smooth, nc())
+			Kit.cyl(extra, 0.2, 0.45, 1.2, h + 1.3, d / 2 - 0.2, P.charcoal, M.smooth, nc())
+			Kit.cyl(extra, 0.22, 0.06, 1.2, h + 1.55, d / 2 - 0.2, P.lacquer, M.smooth, nc())
 		end, { wood = true, plate = "寿司", tools = { "towel", "ladle" } })
 	end)
 
 	Registry.register("ramen_station", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			-- noodle boiler with four tebo baskets
 			local bx = boardX - 0.3
 			Kit.box(model, 1.9, 0.6, 1.5, bx, h + 0.3, 0.05, P.steel_dark, M.metal)
@@ -363,58 +376,58 @@ return function(Registry)
 			-- topping pans: scallion, naruto, chashu, corn, egg
 			local colors = { P.leaf_light, P.sakura, P.copper, P.neon_yellow }
 			for i, c in ipairs(colors) do
-				pan(model, -0.2 + (i - 1) * 0.44, -0.72, h, c)
+				pan(extra, -0.2 + (i - 1) * 0.44, -0.72, h, c)
 			end
 			-- tare pots and bowl stacks on the back shelf
 			for i = 0, 2 do
-				Kit.cyl(model, 0.38, 0.4, -1.8 + i * 0.5, h + 1.3, d / 2 - 0.2, P.metal, M.metal, nc())
-				Kit.cyl(model, 0.32, 0.03, -1.8 + i * 0.5, h + 1.51, d / 2 - 0.2, ({ P.wood, P.cream, P.copper })[i + 1], M.smooth, nc())
+				Kit.cyl(extra, 0.38, 0.4, -1.8 + i * 0.5, h + 1.3, d / 2 - 0.2, P.metal, M.metal, nc())
+				Kit.cyl(extra, 0.32, 0.03, -1.8 + i * 0.5, h + 1.51, d / 2 - 0.2, ({ P.wood, P.cream, P.copper })[i + 1], M.smooth, nc())
 			end
-			bowlStack(model, 0.6, d / 2 - 0.25, h + 1.08, 4, P.charcoal)
-			bowlStack(model, 1.4, d / 2 - 0.25, h + 1.08, 4, P.lacquer_dark)
+			bowlStack(extra, 0.6, d / 2 - 0.25, h + 1.08, 4, P.charcoal)
+			bowlStack(extra, 1.4, d / 2 - 0.25, h + 1.08, 4, P.lacquer_dark)
 		end, { hood = true, plate = "麺", tools = { "ladle", "ladle", "strainer", "towel" }, tiles = true, knobs = 3 })
 	end)
 
 	Registry.register("drink_station", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			-- tea urn with a tap
 			Kit.cyl(model, 0.9, 1.3, boardX - 0.3, h + 0.65, 0.35, P.metal, M.metal, { reflectance = 0.15 })
 			Kit.cyl(model, 0.95, 0.12, boardX - 0.3, h + 1.32, 0.35, P.steel_dark, M.metal, nc())
 			Kit.box(model, 0.18, 0.18, 0.35, boardX - 0.3, h + 0.35, -0.2, P.charcoal, M.smooth, nc())
 			-- ramune bottles in an ice bucket
-			Kit.cyl(model, 0.8, 0.5, boardX + 0.75, h + 0.25, 0.45, P.metal, M.metal, nc())
-			Kit.cyl(model, 0.7, 0.05, boardX + 0.75, h + 0.48, 0.45, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.2 })
+			Kit.cyl(extra, 0.8, 0.5, boardX + 0.75, h + 0.25, 0.45, P.metal, M.metal, nc())
+			Kit.cyl(extra, 0.7, 0.05, boardX + 0.75, h + 0.48, 0.45, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.2 })
 			for i = 0, 3 do
 				local a = i * math.pi / 2
-				Kit.cyl(model, 0.16, 0.5, boardX + 0.75 + math.cos(a) * 0.18, h + 0.6, 0.45 + math.sin(a) * 0.18, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.25 })
+				Kit.cyl(extra, 0.16, 0.5, boardX + 0.75 + math.cos(a) * 0.18, h + 0.6, 0.45 + math.sin(a) * 0.18, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.25 })
 			end
 			-- matcha bowl and whisk, cups
-			Kit.cyl(model, 0.5, 0.22, boardX + 0.2, h + 0.11, -0.55, P.stone_dark, M.smooth, nc())
-			Kit.cyl(model, 0.42, 0.02, boardX + 0.2, h + 0.21, -0.55, P.matcha, M.smooth, nc())
-			Kit.cyl(model, 0.2, 0.3, boardX + 0.75, h + 0.15, -0.55, P.bamboo, M.wood, nc())
+			Kit.cyl(extra, 0.5, 0.22, boardX + 0.2, h + 0.11, -0.55, P.stone_dark, M.smooth, nc())
+			Kit.cyl(extra, 0.42, 0.02, boardX + 0.2, h + 0.21, -0.55, P.matcha, M.smooth, nc())
+			Kit.cyl(extra, 0.2, 0.3, boardX + 0.75, h + 0.15, -0.55, P.bamboo, M.wood, nc())
 			for i = 0, 3 do
-				Kit.cyl(model, 0.3, 0.32, -0.2 + i * 0.36, h + 1.25, d / 2 - 0.2, P.porcelain, M.smooth, nc())
+				Kit.cyl(extra, 0.3, 0.32, -0.2 + i * 0.36, h + 1.25, d / 2 - 0.2, P.porcelain, M.smooth, nc())
 			end
 			Kit.box(model, 1.2, 0.08, 0.8, plateX, h + 0.04, 0.1, P.wood_dark, M.wood, nc())
 		end, { plate = "茶", tools = { "towel" } })
 	end)
 
 	Registry.register("griddle", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			Kit.box(model, 2.6, 0.12, 1.6, boardX + 0.1, h + 0.06, 0.05, P.charcoal, M.metal, { reflectance = 0.05 })
 			for _, e in ipairs({ { 0, 0.82, 2.6, 0.06 }, { -1.27, 0, 0.06, 1.6 }, { 1.27, 0, 0.06, 1.6 } }) do
 				Kit.box(model, e[3], 0.18, e[4], boardX + 0.1 + e[1], h + 0.15, 0.05 + e[2], P.steel_dark, M.metal, nc())
 			end
 			local heat = Kit.box(model, 2.4, 0.02, 1.4, boardX + 0.1, h + 0.13, 0.05, P.steel_dark, M.metal, { collide = false, name = "Heat" })
 			Kit.particles(heat, "smoke", { enabled = false })
-			Kit.cyl(model, 0.22, 0.6, plateX + 0.5, h + 0.3, 0.6, P.gold, M.glass, { collide = false, shadow = false, transparency = 0.2 })
-			Kit.box(model, 0.1, 0.05, 0.8, boardX + 1.5, h + 0.2, -0.5, P.metal, M.metal, nc())
+			Kit.cyl(extra, 0.22, 0.6, plateX + 0.5, h + 0.3, 0.6, P.gold, M.glass, { collide = false, shadow = false, transparency = 0.2 })
+			Kit.box(extra, 0.1, 0.05, 0.8, boardX + 1.5, h + 0.2, -0.5, P.metal, M.metal, nc())
 			Kit.box(model, 1, 0.08, 0.7, plateX + 0.1, h + 0.04, 0.1, P.wood_light, M.wood, nc())
 		end, { hood = true, plate = "餃子", tools = { "spatula", "spatula", "towel" }, tiles = true, knobs = 2 })
 	end)
 
 	Registry.register("fryer", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			Kit.box(model, 1.4, 0.5, 1.4, boardX - 0.1, h + 0.25, 0.05, P.steel_dark, M.metal)
 			local oil = Kit.box(model, 1.2, 0.04, 1.2, boardX - 0.1, h + 0.5, 0.05, P.gold, M.glass, { collide = false, transparency = 0.2, name = "Oil" })
 			Kit.particles(oil, "bubbles", { enabled = false })
@@ -426,7 +439,7 @@ return function(Registry)
 	end)
 
 	Registry.register("takoyaki_stove", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			Kit.box(model, 1.6, 0.25, 1.3, boardX - 0.1, h + 0.125, 0.05, P.charcoal, M.metal)
 			for i = 0, 3 do
 				for j = 0, 2 do
@@ -441,17 +454,17 @@ return function(Registry)
 	end)
 
 	Registry.register("dessert_station", function(m, item)
-		station(m, item, function(model, w, h, d, boardX, plateX)
+		station(m, item, function(model, w, h, d, boardX, plateX, extra)
 			Kit.box(model, 2, 0.12, 1.3, boardX, h + 0.06, 0.05, P.porcelain, M.marble)
 			for i, c in ipairs({ P.sakura, P.white, P.matcha }) do
-				Kit.ball(model, 0.35, boardX - 0.6 + i * 0.35, h + 0.3, -0.45, c, M.smooth, nc())
+				Kit.ball(extra, 0.35, boardX - 0.6 + i * 0.35, h + 0.3, -0.45, c, M.smooth, nc())
 			end
 			-- glass cloche over a tray of mochi
-			Kit.cyl(model, 0.9, 0.06, plateX - 0.2, h + 1.12, d / 2 - 0.25, P.wood_dark, M.wood, nc())
+			Kit.cyl(extra, 0.9, 0.06, plateX - 0.2, h + 1.12, d / 2 - 0.25, P.wood_dark, M.wood, nc())
 			for i = 0, 2 do
-				Kit.ball(model, 0.25, plateX - 0.45 + i * 0.25, h + 1.27, d / 2 - 0.25, ({ P.sakura, P.white, P.matcha })[i + 1], M.smooth, nc())
+				Kit.ball(extra, 0.25, plateX - 0.45 + i * 0.25, h + 1.27, d / 2 - 0.25, ({ P.sakura, P.white, P.matcha })[i + 1], M.smooth, nc())
 			end
-			Kit.ball(model, 0.85, plateX - 0.2, h + 1.32, d / 2 - 0.25, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.7 })
+			Kit.ball(extra, 0.85, plateX - 0.2, h + 1.32, d / 2 - 0.25, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.7 })
 			Kit.box(model, 1, 0.08, 0.7, plateX, h + 0.04, 0.1, P.lacquer, M.smooth, nc())
 		end, { plate = "甘味", tools = { "towel" } })
 	end)
@@ -460,8 +473,9 @@ return function(Registry)
 		local root = Kit.finish(m, size(item))
 		local w, h, d = item.size[1], item.size[2], item.size[3]
 		cabinet(m, w, h, d, P.metal, P.steel)
-		backsplash(m, w, h, d, true)
-		plate(m, w / 2 - 0.8, h - 0.75, -d / 2 - 0.12, "洗い場")
+		local dk = Kit.detail(m, "kitchen")
+		backsplash(dk, w, h, d, true)
+		plate(dk, w / 2 - 0.8, h - 0.75, -d / 2 - 0.12, "洗い場")
 		-- double basin (built from walls so it looks hollow), soapy water in the left one
 		local bw, bd = 1.25, d - 0.75
 		for i, bx in ipairs({ -1.1, 0.25 }) do
@@ -473,7 +487,7 @@ return function(Registry)
 			if i == 1 then
 				Kit.box(m, bw - 0.1, 0.05, bd - 0.1, bx, h - 0.45, 0, P.water, M.glass, { transparency = 0.35, collide = false, name = "Water" })
 				for k = 0, 4 do
-					Kit.ball(m, 0.18 + (k % 2) * 0.08, bx - 0.4 + k * 0.2, h - 0.4, -0.2 + (k % 3) * 0.15, P.white, M.smooth, { collide = false, shadow = false, transparency = 0.15 })
+					Kit.ball(dk, 0.18 + (k % 2) * 0.08, bx - 0.4 + k * 0.2, h - 0.4, -0.2 + (k % 3) * 0.15, P.white, M.smooth, { collide = false, shadow = false, transparency = 0.15 })
 				end
 			end
 		end
@@ -485,27 +499,27 @@ return function(Registry)
 		local spout = Kit.cyl(m, 0.1, 0.3, fx, h + 1.36, fz - 0.55, P.metal, M.metal, { collide = false, name = "Spout" })
 		Kit.particles(spout, "water", { enabled = false })
 		for _, sx in ipairs({ -0.3, 0.3 }) do
-			Kit.cylH(m, 0.12, 0.25, fx + sx, h + 0.35, fz, P.metal, M.metal, nc(), "x")
-			Kit.box(m, 0.05, 0.05, 0.25, fx + sx * 1.3, h + 0.35, fz - 0.1, sx < 0 and P.neon_red or P.neon_blue, M.smooth, nc())
+			Kit.cylH(dk, 0.12, 0.25, fx + sx, h + 0.35, fz, P.metal, M.metal, nc(), "x")
+			Kit.box(dk, 0.05, 0.05, 0.25, fx + sx * 1.3, h + 0.35, fz - 0.1, sx < 0 and P.neon_red or P.neon_blue, M.smooth, nc())
 		end
 		-- sponge, dish soap and a tenugui towel over the cabinet lip
-		Kit.box(m, 0.35, 0.14, 0.22, -1.75, h + 0.07, bd / 2, P.leaf_light, M.fabric, nc())
-		Kit.box(m, 0.35, 0.05, 0.22, -1.75, h + 0.165, bd / 2, P.neon_yellow, M.fabric, nc())
-		Kit.cyl(m, 0.24, 0.5, -1.75, h + 0.25, bd / 2 - 0.4, P.leaf, M.plastic, { collide = false, shadow = false, transparency = 0.2 })
-		Kit.cyl(m, 0.08, 0.12, -1.75, h + 0.56, bd / 2 - 0.4, P.white, M.plastic, nc())
-		Kit.box(m, 0.6, 0.9, 0.03, 0.3, h - 0.4, -d / 2 - 0.16, P.white, M.fabric, nc())
-		Kit.box(m, 0.6, 0.12, 0.035, 0.3, h - 0.6, -d / 2 - 0.165, P.indigo, M.fabric, nc())
+		Kit.box(dk, 0.35, 0.14, 0.22, -1.75, h + 0.07, bd / 2, P.leaf_light, M.fabric, nc())
+		Kit.box(dk, 0.35, 0.05, 0.22, -1.75, h + 0.165, bd / 2, P.neon_yellow, M.fabric, nc())
+		Kit.cyl(dk, 0.24, 0.5, -1.75, h + 0.25, bd / 2 - 0.4, P.leaf, M.plastic, { collide = false, shadow = false, transparency = 0.2 })
+		Kit.cyl(dk, 0.08, 0.12, -1.75, h + 0.56, bd / 2 - 0.4, P.white, M.plastic, nc())
+		Kit.box(dk, 0.6, 0.9, 0.03, 0.3, h - 0.4, -d / 2 - 0.16, P.white, M.fabric, nc())
+		Kit.box(dk, 0.6, 0.12, 0.035, 0.3, h - 0.6, -d / 2 - 0.165, P.indigo, M.fabric, nc())
 		-- wire drying rack with clean plates
 		local rx = w / 2 - 0.55
-		Kit.box(m, 0.9, 0.05, d - 0.5, rx, h + 0.05, 0, P.metal, M.metal, nc())
+		Kit.box(dk, 0.9, 0.05, d - 0.5, rx, h + 0.05, 0, P.metal, M.metal, nc())
 		for _, sx in ipairs({ -0.42, 0.42 }) do
 			for k = 0, 5 do
-				Kit.box(m, 0.03, 0.4, 0.03, rx + sx, h + 0.25, -0.75 + k * 0.3, P.metal, M.metal, nc())
+				Kit.box(dk, 0.03, 0.4, 0.03, rx + sx, h + 0.25, -0.75 + k * 0.3, P.metal, M.metal, nc())
 			end
 		end
 		for i = 0, 3 do
-			Kit.cyl(m, 0.7, 0.06, rx, h + 0.42, -0.45 + i * 0.3, P.porcelain, M.smooth, { collide = false, rot = CFrame.Angles(math.rad(90), 0, 0) })
-			Kit.cyl(m, 0.74, 0.03, rx, h + 0.42, -0.45 + i * 0.3, P.indigo, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(90), 0, 0) })
+			Kit.cyl(dk, 0.7, 0.06, rx, h + 0.42, -0.45 + i * 0.3, P.porcelain, M.smooth, { collide = false, rot = CFrame.Angles(math.rad(90), 0, 0) })
+			Kit.cyl(dk, 0.74, 0.03, rx, h + 0.42, -0.45 + i * 0.3, P.indigo, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(90), 0, 0) })
 		end
 		point(root, "Basin", -0.4, h, 0)
 		point(root, "Dirty", w / 2 - 0.55, h + 0.1, 0.45)

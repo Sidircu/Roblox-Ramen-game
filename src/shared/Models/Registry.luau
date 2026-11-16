@@ -52,7 +52,7 @@ local function fitOverride(model, size)
 end
 
 -- Builds the model of a placeable item; returns a Model whose Root is the footprint box,
--- bottom center at the origin, front facing -Z.
+-- bottom center at the origin, front facing -Z. opts.styles: owned renovation styles.
 function Registry.build(id, opts)
 	local item = Items.byId[id]
 	local size = item and Vector3.new(item.size[1], item.size[2], item.size[3]) or Vector3.new(2, 2, 2)
@@ -75,6 +75,16 @@ function Registry.build(id, opts)
 	end
 	if not m:FindFirstChild("Root") then
 		Kit.finish(m, size)
+	end
+	-- opts.styles = set of owned renovation styles; without it every detail is kept
+	local styles = opts and opts.styles
+	if styles then
+		for _, child in ipairs(m:GetChildren()) do
+			local key = string.match(child.Name, "^Detail_(.+)$")
+			if key and not styles[key] then
+				child:Destroy()
+			end
+		end
 	end
 	return m
 end

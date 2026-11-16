@@ -1,5 +1,6 @@
 --!nonstrict
--- Objects placed in a brand-new restaurant (all can be moved later).
+-- Objects placed in a brand-new restaurant (all can be moved later). The start is plain on
+-- purpose: decorations and renovations (Config/Expansions) are bought over time.
 -- s: "f" floor, "w" wall (y = height of the object's center), "c" ceiling, "t" on top of item index p
 return {
 	items = {
@@ -22,13 +23,8 @@ return {
 		{ i = "broth_pot", x = -2, z = 26.1, r = 0, s = "f" },
 		{ i = "sink", x = 6, z = 26.35, r = 0, s = "f" },
 		{ i = "storage_rack", x = 24, z = 26.6, r = 0, s = "f" },
-		{ i = "chochin_red", x = -6, z = 6, r = 0, s = "c" },
-		{ i = "chochin_red", x = 6, z = 6, r = 0, s = "c" },
+		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
 		{ i = "chochin_white", x = 0, z = 9, r = 0, s = "c" },
-		{ i = "bamboo_pot", x = 16.5, z = 1.5, r = 0, s = "f" },
-		{ i = "bamboo_pot", x = -11.5, z = 1.5, r = 0, s = "f" },
-		{ i = "menu_plaques", x = 17.45, y = 6.5, z = 6, r = 90, s = "w" },
-		{ i = "maneki_neko", x = -11, z = 14.5, r = 0, s = "t", p = 1 },
 	},
 	boxes = {
 		{ g = "rice", n = 2 }, { g = "nori", n = 2 }, { g = "cucumber", n = 2 }, { g = "salmon", n = 2 },

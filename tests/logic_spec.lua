@@ -215,3 +215,27 @@ test("wall objects need an inside wall", function()
   ok = Placement.validate(ctx, { i = "kakejiku", x = 0, y = 6, z = 0.55, r = 0, f = 0, s = "w" })
   expect(not ok, "not over the entrance")
 end)
+
+test("renovations are cosmetic and map to detail styles", function()
+  local count = 0
+  for _, e in ipairs(Expansions.list) do
+    if e.reno then
+      count = count + 1
+      expect(e.cosmetic, e.id .. " must be cosmetic")
+      expect(not e.zones and not e.openings and not e.stairs, e.id .. " must not change the building")
+      expect(e.reno == "exterior" or e.reno == "interior" or e.reno == "furniture", e.id .. " group")
+      for _, r in ipairs(e.requires) do expect(Expansions.byId[r], e.id .. " requires " .. r) end
+    end
+  end
+  expect(count >= 13, "renovation list")
+  local none = Expansions.styles({ zone_base = true })
+  expect(next(none) == nil, "the starting restaurant has no detail styles")
+  local some = Expansions.styles({ zone_base = true, reno_counter = true, reno_tableware = true })
+  expect(some.counter and some.tableware and not some.kitchen, "owned styles only")
+  local all = Expansions.allStyles()
+  for _, k in ipairs({ "counter", "kitchen", "tableware", "furnish" }) do expect(all[k], "style " .. k) end
+  -- geometry is identical with or without renovations
+  local plain = Geometry.compute(Expansions.list, { zone_base = true }, Expansions.Supplier)
+  local reno = Geometry.compute(Expansions.list, { zone_base = true, reno_facade = true, reno_beams = true }, Expansions.Supplier)
+  expect(#plain.zones == #reno.zones and #plain.openings == #reno.openings, "renovations do not add rooms")
+end)

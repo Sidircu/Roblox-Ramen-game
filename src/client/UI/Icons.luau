@@ -28,6 +28,9 @@ local Icons = {
 	zone = {
 		zone_base = "🏠", zone_east = "🍽️", zone_storage2 = "📦", zone_west = "🍽️", zone_terrace = "🌤️", zone_garden = "🌿",
 		zone_tatami = "🎎", zone_kitchen_pro = "👨‍🍳", zone_floor2 = "🏢", sign_rooftop = "🪧", facade_deluxe = "✨", zone_rooftop = "🌃",
+		reno_storage = "🦺", reno_wainscot = "🪵", reno_kitchen_tiles = "🧱", reno_facade = "🏯", reno_entrance = "🎍",
+		reno_counter = "🍶", reno_eaves = "⛩️", reno_kitchen_gear = "🔪", reno_windows = "🪟", reno_beams = "🏛️",
+		reno_tableware = "🥢", reno_bamboo = "🎋", reno_furnish = "🛋️",
 	},
 }
 

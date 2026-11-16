@@ -78,7 +78,7 @@ Pianta indicativa (vista dall'alto):
                STRADA (clienti)
   ┌──────────────[ ingresso con noren ]─────────────┬───────────┐
   │                                                  │           │
-  │   SALA        [lavagna menu]   [lanterne]        │ MAGAZZINO │
+  │   SALA        [lavagna menu]   [lanterna]        │ MAGAZZINO │
   │                                                  │  scaffale │
   │   ( ) ( ) ( ) ( ) ( ) ( )     <- 6 sgabelli      │  scatole  │
   │  ═══════════ BANCONE ═══════════ [vetrina pesce] │           │
@@ -90,6 +90,7 @@ Pianta indicativa (vista dall'alto):
 
 - Il bancone separa la **sala clienti** dalla **zona di lavoro**. I clienti non entrano dietro il bancone.
 - Gli oggetti iniziali sono normali oggetti piazzabili: puoi spostarli tutti in modalità costruzione.
+- **Si parte da un locale base**: pareti lisce, tettoia in lamiera, finestre semplici, bancone e postazioni essenziali, una sola lanterna. Tutto il resto (decorazioni e dettagli tradizionali) si compra col tempo: decorazioni piazzabili (§9) e **ristrutturazioni** (§8.5).
 
 ---
 
@@ -292,6 +293,27 @@ Il locale cresce per **zone**. Ogni espansione aggiunge una zona: muri, paviment
 | 10 | Insegna gigante sul tetto | +clienti |
 | 11 | Facciata deluxe | aspetto esterno di lusso |
 
+#### Ristrutturazioni
+Nella stessa schermata, scheda **Ristrutturazioni**: lavori estetici che trasformano il locale base in quello tradizionale e dettagliato. Non cambiano la pianta; danno **atmosfera** (e alcuni un po' di popolarità), quindi più clienti e mance. Si comprano una volta sola e cambiano subito l'aspetto di tutto il locale, oggetti già piazzati compresi.
+
+| Gruppo | Ristrutturazione | Cosa aggiunge |
+|---|---|---|
+| Esterno | Facciata machiya | fasce in legno e grata koshi sulla facciata |
+| Esterno | Ingresso tradizionale | porte scorrevoli a grata, coni di sale, pini in vaso, gradino in pietra |
+| Esterno | Tettoia di tegole | tegole kawara, colmo, travetti, onigawara (al posto della lamiera) |
+| Esterno | Finestre a grata | grata kumiko, davanzali e fioriere |
+| Esterno | Recinzione inu-yarai | recinzione curva in bambù lungo la facciata |
+| Interno | Magazzino in ordine | zoccolo in cemento, linee gialle, portone di carico segnalato |
+| Interno | Boiserie koshi-ita | pannelli di legno scuro e corrimano in sala |
+| Interno | Piastrelle in cucina | piastrelle bianche e profilo in acciaio |
+| Interno | Travi e pilastri | travi a vista, nageshi e pilastri hashira |
+| Arredi | Bancone in hinoki | piano in hinoki, listelli, ganci in ottone, luce calda, nicchia dei piatti |
+| Arredi | Attrezzatura da chef | barre portautensili, targhe in kanji, attrezzi e accessori sulle postazioni |
+| Arredi | Servizio da tavola | condimenti, set da tè e da sakè, menù su bancone e tavoli |
+| Arredi | Rifiniture degli arredi | cuscini, finiture in ottone, grate kumiko sui box, telo rosso sulla panca |
+
+Anche *Insegna gigante* e *Facciata deluxe* compaiono in questa scheda. Prezzi e livelli in `03-BILANCIAMENTO.md` §8.
+
 ### 8.6 Personale (automazione)
 Il personale sono NPC che lavorano da soli. Si assumono, si pagano a giornata e si addestrano (livelli 1–5: più veloci e più precisi).
 
@@ -401,7 +423,7 @@ La prima giornata è guidata: frecce luminose a terra e fumetti spiegano passo p
 - **Scritte giapponesi** sulle insegne: ラーメン (ramen), 寿司 (sushi), 営業中 (aperto), 準備中 (in preparazione).
 - **Audio** (da scegliere nella libreria audio di Roblox): musica di sottofondo con shamisen e koto in versione lo-fi, ambiente della strada, sfrigolio, taglio, campanello d'ingresso, gong del livello.
 
-I modelli sono costruiti dal codice con parti Roblox, curati nelle proporzioni e nei colori. Ogni modello è **sostituibile**: se più avanti metti un modello 3D più dettagliato (da Blender o dal Creator Store) con lo stesso nome nella cartella apposita, il gioco usa quello al posto della versione generata.
+I modelli sono costruiti dal codice con parti Roblox, curati nelle proporzioni e nei colori. Il livello di dettaglio cresce con le ristrutturazioni (§8.5): lo stesso oggetto ha una versione base e una versione rifinita. Ogni modello è **sostituibile**: se più avanti metti un modello 3D più dettagliato (da Blender o dal Creator Store) con lo stesso nome nella cartella apposita, il gioco usa quello al posto della versione generata.
 
 ---
 

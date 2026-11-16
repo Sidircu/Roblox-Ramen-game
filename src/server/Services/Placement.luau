@@ -73,7 +73,8 @@ local function worldY(entry)
 end
 
 local function spawn(entry)
-	local model = Registry.build(entry.i)
+	local data = ownerData()
+	local model = Registry.build(entry.i, { styles = Expansions.styles(data and data.zones) })
 	Registry.place(model, entry.x, worldY(entry), entry.z, entry.r)
 	model:SetAttribute("FloorIndex", entry.f or 0)
 	model.Parent = Core.S.World.folders().items

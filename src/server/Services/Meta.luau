@@ -5,6 +5,7 @@ local Quests = require(Shared.Config.Quests)
 local Achievements = require(Shared.Config.Achievements)
 local DailyRewards = require(Shared.Config.DailyRewards)
 local Upgrades = require(Shared.Config.Upgrades)
+local Expansions = require(Shared.Config.Expansions)
 local Formulas = require(Shared.Logic.Formulas)
 local TableUtil = require(Shared.Util.TableUtil)
 local Core = require(script.Parent.Parent.Core)
@@ -43,6 +44,15 @@ local function statValue(d, stat)
 		local n = 0
 		for id in pairs(d.zones) do
 			if string.sub(id, 1, 5) == "zone_" then
+				n += 1
+			end
+		end
+		return n
+	elseif stat == "renos" then
+		local n = 0
+		for id in pairs(d.zones) do
+			local e = Expansions.byId[id]
+			if e and e.reno then
 				n += 1
 			end
 		end

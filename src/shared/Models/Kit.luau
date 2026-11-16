@@ -216,6 +216,19 @@ function Kit.attach(part, name, cf)
 end
 
 -- Adds the invisible Root (footprint box) and sets PrimaryPart. size = Vector3 (w, h, d)
+-- Optional detail group of a placeable model. Registry.build keeps it only when the matching
+-- renovation style is owned, so the same builder makes the plain and the detailed look.
+function Kit.detail(model, key)
+	local name = "Detail_" .. key
+	local d = model:FindFirstChild(name)
+	if not d then
+		d = Instance.new("Model")
+		d.Name = name
+		d.Parent = model
+	end
+	return d
+end
+
 function Kit.finish(model, size)
 	local root = Instance.new("Part")
 	root.Name = "Root"

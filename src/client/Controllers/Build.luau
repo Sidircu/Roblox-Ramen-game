@@ -98,7 +98,8 @@ end
 local function makeGhost(itemId)
 	clearGhost()
 	Registry.load()
-	ghost = Registry.build(itemId)
+	local world = Core.C.Data.world or {}
+	ghost = Registry.build(itemId, { styles = Expansions.styles(world.zones) })
 	for _, d in ipairs(ghost:GetDescendants()) do
 		if d:IsA("BasePart") then
 			d.CanCollide = false

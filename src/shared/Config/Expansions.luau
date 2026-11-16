@@ -38,13 +38,29 @@ local list = {
 		zones = { { id = "floor2", rect = { -18, 0, 18, 28 }, floor = 1, area = "dining", room = "f2" } },
 		stairs = { { floor = 0, rect = { -17.5, 1, -13.5, 15 } } },
 	},
-	{ id = "sign_rooftop", lv = 28, cost = 500000, requires = { "zone_base" }, popularity = 0.3, cosmetic = true },
-	{ id = "facade_deluxe", lv = 30, cost = 1000000, requires = { "zone_base" }, ambience = 60, cosmetic = true },
+	{ id = "sign_rooftop", lv = 28, cost = 500000, requires = { "zone_base" }, popularity = 0.3, cosmetic = true, reno = "exterior" },
+	{ id = "facade_deluxe", lv = 30, cost = 1000000, requires = { "zone_base" }, ambience = 60, cosmetic = true, reno = "exterior" },
 	{
 		id = "zone_rooftop", lv = 35, cost = 2000000, requires = { "zone_floor2" },
 		zones = { { id = "rooftop", rect = { -18, 0, 18, 28 }, floor = 2, area = "outdoor", outdoor = true } },
 		stairs = { { floor = 1, rect = { 13.5, 1, 17.5, 15 } } },
 	},
+	-- Renovations: the starting restaurant is plain; these add the detailed look piece by piece.
+	-- reno = tab group; the shell builder reads the owned ids, `style` keeps the matching
+	-- Detail_<style> group inside placeable models (see Registry.build).
+	{ id = "reno_storage", lv = 2, cost = 1500, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 2 },
+	{ id = "reno_wainscot", lv = 3, cost = 3500, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 5 },
+	{ id = "reno_kitchen_tiles", lv = 4, cost = 4000, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 3 },
+	{ id = "reno_facade", lv = 4, cost = 6000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 6, popularity = 0.03 },
+	{ id = "reno_entrance", lv = 5, cost = 8000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 8, popularity = 0.04 },
+	{ id = "reno_counter", lv = 6, cost = 10000, requires = { "zone_base" }, cosmetic = true, reno = "furniture", style = "counter", ambience = 10 },
+	{ id = "reno_eaves", lv = 7, cost = 14000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 10, popularity = 0.04 },
+	{ id = "reno_kitchen_gear", lv = 8, cost = 16000, requires = { "zone_base" }, cosmetic = true, reno = "furniture", style = "kitchen", ambience = 6 },
+	{ id = "reno_windows", lv = 9, cost = 18000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 10 },
+	{ id = "reno_beams", lv = 10, cost = 22000, requires = { "reno_wainscot" }, cosmetic = true, reno = "interior", ambience = 14 },
+	{ id = "reno_tableware", lv = 11, cost = 28000, requires = { "zone_base" }, cosmetic = true, reno = "furniture", style = "tableware", ambience = 16 },
+	{ id = "reno_bamboo", lv = 13, cost = 40000, requires = { "reno_facade" }, cosmetic = true, reno = "exterior", ambience = 18 },
+	{ id = "reno_furnish", lv = 15, cost = 60000, requires = { "zone_base" }, cosmetic = true, reno = "furniture", style = "furnish", ambience = 24 },
 }
 
 local byId = {}
@@ -53,9 +69,33 @@ for i, e in ipairs(list) do
 	byId[e.id] = e
 end
 
+-- Set of detail styles owned with these zones/renovations ({ counter = true, ... })
+local function styles(zones)
+	local out = {}
+	for _, e in ipairs(list) do
+		if e.style and zones and zones[e.id] then
+			out[e.style] = true
+		end
+	end
+	return out
+end
+
+-- Every style (used by previews and thumbnails that show the finished look)
+local function allStyles()
+	local out = {}
+	for _, e in ipairs(list) do
+		if e.style then
+			out[e.style] = true
+		end
+	end
+	return out
+end
+
 return {
 	list = list,
 	byId = byId,
+	styles = styles,
+	allStyles = allStyles,
 	-- Fixed points of the plot (relative to origin)
 	Entrance = { x = 0, z = -1.5 },
 	StreetWalkZ = -11.5,

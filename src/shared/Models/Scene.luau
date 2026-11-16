@@ -89,6 +89,9 @@ function Scene.shell(shell, geo, data)
 		topFloor = math.max(topFloor, f)
 	end
 	local deluxe = data.zones.facade_deluxe
+	-- renovations bought so far (the starting restaurant is plain)
+	local owned = data.zones
+	local trim = { wainscot = owned.reno_wainscot, beams = owned.reno_beams, tiles = owned.reno_kitchen_tiles, storage = owned.reno_storage }
 	local exterior = { color = deluxe and P.charcoal or P.cream, material = deluxe and P.M.wood or P.M.plaster }
 
 	for _, zone in ipairs(geo.zones) do
@@ -149,11 +152,13 @@ function Scene.shell(shell, geo, data)
 					B.tag(leg, "Roof")
 				end
 			end
-			-- exposed beams and soft ceiling lights
+			-- exposed beams (renovation) and soft ceiling lights
 			local r = zone.rect
-			for x = r[1] + 3, r[3] - 2, 6 do
-				local beam = Kit.box(shell, 0.6, 0.7, r[4] - r[2], x, fy + GameConfig.WallHeight - 0.35, (r[2] + r[4]) / 2, P.wood_black, P.M.wood, { collide = false })
-				B.tag(beam, "Roof")
+			if trim.beams then
+				for x = r[1] + 3, r[3] - 2, 6 do
+					local beam = Kit.box(shell, 0.6, 0.7, r[4] - r[2], x, fy + GameConfig.WallHeight - 0.35, (r[2] + r[4]) / 2, P.wood_black, P.M.wood, { collide = false })
+					B.tag(beam, "Roof")
+				end
 			end
 			for x = r[1] + 5, r[3] - 3, 10 do
 				for z = r[2] + 5, r[4] - 3, 10 do
@@ -196,22 +201,22 @@ function Scene.shell(shell, geo, data)
 			B.wall(shell, seg, fy, GameConfig.WallHeight, 0.8, wallStyle, outsideSign, exterior)
 			-- interior finishes on each indoor side
 			if sideA then
-				B.wallTrim(shell, seg, fy, -1, sideA.area, GameConfig.WallHeight)
+				B.wallTrim(shell, seg, fy, -1, sideA.area, GameConfig.WallHeight, trim)
 			end
 			if sideB then
-				B.wallTrim(shell, seg, fy, 1, sideB.area, GameConfig.WallHeight)
+				B.wallTrim(shell, seg, fy, 1, sideB.area, GameConfig.WallHeight, trim)
 			end
 			if outsideSign then
 				if seg.axis == "z" and outsideSign == -1 then
-					B.eave(shell, seg, fy + GameConfig.WallHeight - 1.2, -1, 3)
-					if zone and zone.area ~= "storage" then
+					B.eave(shell, seg, fy + GameConfig.WallHeight - 1.2, -1, 3, owned.reno_eaves)
+					if zone and zone.area ~= "storage" and (owned.reno_facade or owned.reno_bamboo) then
 						local avoid = {}
 						for _, o in ipairs(geo.openings) do
 							if o.axis == "z" and o.at == seg.line and o.floor == floor then
 								table.insert(avoid, { o.from - 4.4, o.to + 4.4 })
 							end
 						end
-						B.facadeDetail(shell, seg, fy, -1, avoid)
+						B.facadeDetail(shell, seg, fy, -1, avoid, { koshi = owned.reno_facade, bamboo = owned.reno_bamboo })
 					end
 					-- lattice windows facing the street (not over doors)
 					local len = seg.b - seg.a
@@ -219,7 +224,7 @@ function Scene.shell(shell, geo, data)
 					for i = 0, n - 1 do
 						local along = seg.a + len / n * (i + 0.5)
 						if math.abs(along) > 6 then
-							B.window(shell, along, fy + 6.6, seg, -1, 4, 3.4)
+							B.window(shell, along, fy + 6.6, seg, -1, 4, 3.4, owned.reno_windows)
 						end
 					end
 				end
@@ -243,9 +248,11 @@ function Scene.shell(shell, geo, data)
 		B.doorFrame(shell, o, fy, o.kind == "loading" and 10 or 9)
 		if o.kind == "entrance" then
 			B.entranceNoren(shell, o, fy)
-			B.entranceDetail(shell, o, fy)
+			if owned.reno_entrance then
+				B.entranceDetail(shell, o, fy)
+			end
 		elseif o.kind == "loading" then
-			B.shutter(shell, o, fy, 10)
+			B.shutter(shell, o, fy, 10, owned.reno_storage)
 		end
 	end
 	for _, s in ipairs(geo.stairs) do

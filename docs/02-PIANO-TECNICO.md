@@ -65,6 +65,8 @@ Roblox-Ramen-game/
 
 `ReplicatedStorage/AssetOverrides` (cartella vuota creata da Rojo): se ci metti un Model chiamato come un ID (es. `sakura_tree`), il gioco usa quello al posto del modello generato.
 
+**Versione base e versione rifinita.** I builder mettono i dettagli facoltativi in sotto-modelli `Detail_<stile>` (`Kit.detail(model, "counter")`). `Registry.build(id, { styles = Expansions.styles(data.zones) })` elimina i gruppi il cui stile non è ancora stato comprato con una ristrutturazione; senza `styles` (anteprime) tiene tutto. Il guscio dell'edificio legge direttamente gli ID `reno_*` posseduti in `Scene.shell`. Comprare una ristrutturazione ricostruisce guscio e oggetti come le altre espansioni. In Studio i comandi Dev *All renovations* / *Plain look* passano da un aspetto all'altro.
+
 ### Convenzioni
 - Ogni servizio/controller è un ModuleScript con `Init()` (preparazione, nessuna attesa) e `Start()` (avvio); l'avvio li chiama in ordine e segnala gli errori senza fermare gli altri.
 - Nessuna libreria esterna: le poche utilità (Signal, Trove, RateLimit, validazione tipi) sono scritte nel progetto.

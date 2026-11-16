@@ -180,15 +180,22 @@ end
 
 -- Tiled eave (hisashi) projecting from a street facing wall (axis "z" segment).
 -- outsideSign -1 means the street is at -Z. Tiles rows, round tile channels, rafter tails, end caps.
-function B.eave(parent, seg, y, outsideSign, depth)
+-- Street eave. tiled = renovation "tiled eaves" (kawara channels, ridge, rafters, onigawara);
+-- otherwise a plain sheet-metal canopy.
+function B.eave(parent, seg, y, outsideSign, depth, tiled)
 	depth = depth or 3
 	local len = seg.b - seg.a + 2
 	local cx = (seg.a + seg.b) / 2
 	local z = seg.line + outsideSign * (depth / 2 + 0.5)
 	local yaw = outsideSign < 0 and 0 or 180
-	local rise = 1.6
-	local roof = Kit.wedge(parent, len, rise, depth, CFrame.new(cx, y + rise / 2, z) * CFrame.Angles(0, math.rad(yaw), 0), P.tile, M.roof, { collide = false })
+	local rise = tiled and 1.6 or 0.8
+	local roof = Kit.wedge(parent, len, rise, depth, CFrame.new(cx, y + rise / 2, z) * CFrame.Angles(0, math.rad(yaw), 0), tiled and P.tile or P.steel, tiled and M.roof or M.metal, { collide = false })
 	tag(roof, "Roof")
+	if not tiled then
+		local edge = Kit.box(parent, len, 0.2, 0.12, cx, y - 0.05, seg.line + outsideSign * (depth + 0.45), P.steel_dark, M.metal, { collide = false })
+		tag(edge, "Roof")
+		return
+	end
 	-- round tile channels running down the slope
 	local slope = math.sqrt(depth * depth + rise * rise)
 	local n = math.floor(len / 0.7)
@@ -250,7 +257,10 @@ end
 
 -- Interior finishes on one side of a wall: koshi-ita wainscot, hashira posts and nageshi beam
 -- in dining rooms; white tiles in kitchens; plain concrete wainscot in storage rooms.
-function B.wallTrim(parent, seg, y0, side, area, height)
+-- reno = { wainscot, beams, tiles, storage } (owned renovations); the plain room only gets
+-- a skirting board.
+function B.wallTrim(parent, seg, y0, side, area, height, reno)
+	reno = reno or {}
 	local len = seg.b - seg.a
 	local mid = (seg.a + seg.b) / 2
 	local NC = { collide = false, shadow = false }
@@ -261,22 +271,32 @@ function B.wallTrim(parent, seg, y0, side, area, height)
 		table.insert(parts, p)
 		return p
 	end
+	local skirting = area == "kitchen" and P.steel or (area == "storage" and P.stone_dark or P.wood_dark)
+	add(faceBox(parent, seg, side, len, 0.35, 0.06, mid, y0 + 0.175, 0.43, skirting, area == "kitchen" and M.metal or M.wood, NC))
 	if area == "kitchen" then
-		add(faceBox(parent, seg, side, len, 6.4, 0.06, mid, y0 + 0.6 + 3.2, 0.43, P.white, M.tiles, NC))
-		add(faceBox(parent, seg, side, len, 0.12, 0.12, mid, y0 + 7.05, 0.46, P.metal, M.metal, NC))
+		if reno.tiles then
+			add(faceBox(parent, seg, side, len, 6.4, 0.06, mid, y0 + 0.6 + 3.2, 0.44, P.white, M.tiles, NC))
+			add(faceBox(parent, seg, side, len, 0.12, 0.12, mid, y0 + 7.05, 0.47, P.metal, M.metal, NC))
+		end
 	elseif area == "storage" then
-		add(faceBox(parent, seg, side, len, 3, 0.06, mid, y0 + 1.5, 0.43, P.concrete, M.concrete, NC))
-		add(faceBox(parent, seg, side, len, 0.15, 0.1, mid, y0 + 3.05, 0.45, P.neon_yellow, M.smooth, NC))
+		if reno.storage then
+			add(faceBox(parent, seg, side, len, 3, 0.06, mid, y0 + 1.5, 0.44, P.concrete, M.concrete, NC))
+			add(faceBox(parent, seg, side, len, 0.15, 0.1, mid, y0 + 3.05, 0.46, P.neon_yellow, M.smooth, NC))
+		end
 	else
-		local panel = area == "tatami" and P.hinoki or P.wood_dark
-		add(faceBox(parent, seg, side, len, 2.7, 0.08, mid, y0 + 1.35, 0.44, panel, M.planks, NC))
-		add(faceBox(parent, seg, side, len, 0.18, 0.16, mid, y0 + 2.75, 0.48, P.wood_light, M.wood, NC))
-		add(faceBox(parent, seg, side, len, 0.4, 0.2, mid, y0 + 10.2, 0.5, P.wood_dark, M.wood, NC))
-		local posts = math.max(1, math.floor(len / 6))
-		for i = 0, posts do
-			local along = seg.a + len * i / posts
-			along = math.clamp(along, seg.a + 0.25, seg.b - 0.25)
-			add(faceBox(parent, seg, side, 0.45, height - 0.2, 0.14, along, y0 + (height - 0.2) / 2, 0.47, P.wood_dark, M.wood, NC))
+		if reno.wainscot then
+			local panel = area == "tatami" and P.hinoki or P.wood_dark
+			add(faceBox(parent, seg, side, len, 2.7, 0.08, mid, y0 + 1.35, 0.45, panel, M.planks, NC))
+			add(faceBox(parent, seg, side, len, 0.18, 0.16, mid, y0 + 2.75, 0.49, P.wood_light, M.wood, NC))
+		end
+		if reno.beams then
+			add(faceBox(parent, seg, side, len, 0.4, 0.2, mid, y0 + 10.2, 0.5, P.wood_dark, M.wood, NC))
+			local posts = math.max(1, math.floor(len / 6))
+			for i = 0, posts do
+				local along = seg.a + len * i / posts
+				along = math.clamp(along, seg.a + 0.25, seg.b - 0.25)
+				add(faceBox(parent, seg, side, 0.45, height - 0.2, 0.14, along, y0 + (height - 0.2) / 2, 0.48, P.wood_dark, M.wood, NC))
+			end
 		end
 	end
 	return parts
@@ -284,7 +304,9 @@ end
 
 -- Kyoto machiya street front: koshi lattice band, timber frame and inu-yarai bamboo fence.
 -- avoid = list of {from, to} ranges along the wall to keep clear (doors).
-function B.facadeDetail(parent, seg, y0, side, avoid)
+-- opts = { koshi = bool (timber bands and lattice), bamboo = bool (inu-yarai fence) }
+function B.facadeDetail(parent, seg, y0, side, avoid, opts)
+	opts = opts or { koshi = true, bamboo = true }
 	local len = seg.b - seg.a
 	local mid = (seg.a + seg.b) / 2
 	local NC = { collide = false, shadow = false }
@@ -293,18 +315,23 @@ function B.facadeDetail(parent, seg, y0, side, avoid)
 		tag(p, "Roof")
 		return p
 	end
-	-- timber frame bands
-	add(faceBox(parent, seg, side, len, 0.35, 0.16, mid, y0 + 4.5, 0.68, P.wood_dark, M.wood, NC))
-	add(faceBox(parent, seg, side, len, 0.3, 0.16, mid, y0 + 9.6, 0.68, P.wood_dark, M.wood, NC))
-	-- koshi lattice (lower band)
-	add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 1.5, 0.72, P.wood_dark, M.wood, NC))
-	add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 4.15, 0.72, P.wood_dark, M.wood, NC))
-	local step = 0.42
-	for i = 0, math.floor(len / step) do
-		local along = seg.a + 0.2 + i * step
-		if along < seg.b - 0.2 and not inAvoid(along, avoid) then
-			add(faceBox(parent, seg, side, 0.13, 2.6, 0.12, along, y0 + 2.85, 0.76, P.wood, M.wood, NC))
-		end
+	if opts.koshi then
+		-- timber frame bands
+		add(faceBox(parent, seg, side, len, 0.35, 0.16, mid, y0 + 4.5, 0.68, P.wood_dark, M.wood, NC))
+		add(faceBox(parent, seg, side, len, 0.3, 0.16, mid, y0 + 9.6, 0.68, P.wood_dark, M.wood, NC))
+		-- koshi lattice (lower band)
+		add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 1.5, 0.72, P.wood_dark, M.wood, NC))
+		add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 4.15, 0.72, P.wood_dark, M.wood, NC))
+		local step = 0.42
+		for i = 0, math.floor(len / step) do
+			local along = seg.a + 0.2 + i * step
+			if along < seg.b - 0.2 and not inAvoid(along, avoid) then
+				add(faceBox(parent, seg, side, 0.13, 2.6, 0.12, along, y0 + 2.85, 0.76, P.wood, M.wood, NC))
+			end
+	end
+	end
+	if not opts.bamboo then
+		return
 	end
 	-- inu-yarai: curved bamboo fence leaning against the base of the wall
 	for i = 0, math.floor(len / 0.55) do
@@ -355,7 +382,8 @@ function B.entranceDetail(parent, o, y0)
 end
 
 -- Loading door: rolled-up shutter, hazard stripe and a small sign
-function B.shutter(parent, o, y0, height)
+-- marked = renovation "tidy storage" (hazard stripes and the loading sign)
+function B.shutter(parent, o, y0, height, marked)
 	local NC = { collide = false, shadow = false }
 	local len = o.to - o.from
 	local cx = (o.from + o.to) / 2
@@ -363,6 +391,9 @@ function B.shutter(parent, o, y0, height)
 	Kit.box(parent, len + 0.4, 1.1, 0.9, cx, y0 + height + 0.1, z - 0.2, P.steel, M.metal, NC)
 	for k = 0, 3 do
 		Kit.box(parent, len, 0.22, 0.06, cx, y0 + height - 0.4 - k * 0.3, z, P.metal, M.metal, NC)
+	end
+	if not marked then
+		return
 	end
 	for k = 0, math.floor(len / 0.6) do
 		local stripe = Kit.box(parent, 0.3, 0.02, 0.6, o.from + 0.3 + k * 0.6, y0 - 0.33, o.at - 1.2, k % 2 == 0 and P.neon_yellow or P.black, M.smooth, NC)
@@ -384,7 +415,8 @@ function B.parapet(parent, seg, y0)
 end
 
 -- Paper-lit lattice window on an exterior wall
-function B.window(parent, along, y, seg, outsideSign, w, h)
+-- fancy = renovation "lattice windows" (kumiko grid, sill and flower box); else a plain frame
+function B.window(parent, along, y, seg, outsideSign, w, h, fancy)
 	local off = outsideSign * 0.65
 	local x = seg.axis == "z" and along or seg.line + off
 	local z = seg.axis == "z" and seg.line + off or along
@@ -393,6 +425,9 @@ function B.window(parent, along, y, seg, outsideSign, w, h)
 	glow.Transparency = 0.15
 	tag(glow, "Roof")
 	local cols, rows = math.max(2, math.floor(w / 0.8)), math.max(2, math.floor(h / 0.8))
+	if not fancy then
+		cols, rows = 2, 1
+	end
 	for i = 0, cols do
 		local a = along - w / 2 + w * i / cols
 		local bx = seg.axis == "z" and a or x + outsideSign * 0.06
@@ -400,17 +435,19 @@ function B.window(parent, along, y, seg, outsideSign, w, h)
 		local bar = Kit.box(parent, seg.axis == "z" and 0.1 or 0.08, h, seg.axis == "z" and 0.08 or 0.1, bx, y, bz, P.wood_dark, M.wood, { collide = false, shadow = false })
 		tag(bar, "Roof")
 	end
-	-- sill with a flower box
-	local sillA = seg.axis == "z" and w + 0.6 or 0.5
-	local sillB = seg.axis == "z" and 0.5 or w + 0.6
-	local sill = Kit.box(parent, sillA, 0.18, sillB, x + (seg.axis == "x" and outsideSign * 0.2 or 0), y - h / 2 - 0.12, z + (seg.axis == "z" and outsideSign * 0.2 or 0), P.wood_dark, M.wood, { collide = false, shadow = false })
-	tag(sill, "Roof")
-	for k = 0, math.floor(w / 0.6) do
-		local fa = along - w / 2 + 0.3 + k * 0.6
-		local fx = seg.axis == "z" and fa or x + outsideSign * 0.3
-		local fz = seg.axis == "z" and z + outsideSign * 0.3 or fa
-		local leaf = Kit.blob(parent, 0.55, 0.4, 0.55, fx, y - h / 2 + 0.12, fz, k % 3 == 1 and P.sakura_dark or P.leaf, M.leafy, { collide = false, shadow = false })
-		tag(leaf, "Roof")
+	if fancy then
+		-- sill with a flower box
+		local sillA = seg.axis == "z" and w + 0.6 or 0.5
+		local sillB = seg.axis == "z" and 0.5 or w + 0.6
+		local sill = Kit.box(parent, sillA, 0.18, sillB, x + (seg.axis == "x" and outsideSign * 0.2 or 0), y - h / 2 - 0.12, z + (seg.axis == "z" and outsideSign * 0.2 or 0), P.wood_dark, M.wood, { collide = false, shadow = false })
+		tag(sill, "Roof")
+		for k = 0, math.floor(w / 0.6) do
+			local fa = along - w / 2 + 0.3 + k * 0.6
+			local fx = seg.axis == "z" and fa or x + outsideSign * 0.3
+			local fz = seg.axis == "z" and z + outsideSign * 0.3 or fa
+			local leaf = Kit.blob(parent, 0.55, 0.4, 0.55, fx, y - h / 2 + 0.12, fz, k % 3 == 1 and P.sakura_dark or P.leaf, M.leafy, { collide = false, shadow = false })
+			tag(leaf, "Roof")
+	end
 	end
 	for j = 0, rows do
 		local yy = y - h / 2 + h * j / rows
