@@ -211,6 +211,30 @@ function SelfTest.run(player)
 		end
 	end)
 
+	check("every dish and ingredient model builds", function()
+		local Recipes = require(Shared.Config.Recipes)
+		local bad = {}
+		for _, r in ipairs(Recipes.list) do
+			local ok, m = pcall(Registry.food, "dish", r.id)
+			if not ok or not m or not m.PrimaryPart or #m:GetChildren() < 4 then
+				table.insert(bad, r.id)
+			end
+			if ok and m then
+				m:Destroy()
+			end
+		end
+		for _, ing in ipairs(Ingredients.list) do
+			local ok, m = pcall(Registry.food, "ingredient", ing.id)
+			if not ok or not m or not m.PrimaryPart then
+				table.insert(bad, ing.id)
+			end
+			if ok and m then
+				m:Destroy()
+			end
+		end
+		assert(#bad == 0, "broken food models: " .. table.concat(bad, ", "))
+	end)
+
 	check("placement rules", function()
 		local ctx = S.World.ctx(d.placed)
 		local ok, reason = PlacementLogic.validate(ctx, { i = "bamboo_pot", x = 12, z = 4, r = 0, f = 0, s = "f" })

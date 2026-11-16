@@ -564,9 +564,9 @@
     "semantic_hash": ""
   },
   "src/shared/Models/Builders/Food.luau": {
-    "mtime": 1794776541.5756679,
-    "seen": 1794776610.4570193,
-    "ast_hash": "68cd59871199970b18f8f65583fb5004",
+    "mtime": 1794853096.2275882,
+    "seen": 1794853106.9123743,
+    "ast_hash": "3aac1f0ba0ca944e6be7a666aa9bc082",
     "semantic_hash": ""
   },
   "src/shared/Models/Builders/Furniture.luau": {
@@ -690,15 +690,15 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1794822003.1540473,
-    "seen": 1794822658.344213,
-    "ast_hash": "45fc98e3309206f3c28d093f6ea8cf6c",
+    "mtime": 1794852342.486673,
+    "seen": 1794853106.9124148,
+    "ast_hash": "2d70a26b1ced40dbf67364483c240739",
     "semantic_hash": ""
   },
   "docs/01-GAME-DESIGN.md": {
-    "mtime": 1794852330.7366614,
-    "seen": 1794852333.8770537,
-    "ast_hash": "97a8970f25fb5fa55155d7416be5160b",
+    "mtime": 1794853096.2311933,
+    "seen": 1794853106.912416,
+    "ast_hash": "8d32e2a97472da7f0a8246af8df90556",
     "semantic_hash": ""
   },
   "docs/02-PIANO-TECNICO.md": {
@@ -714,9 +714,9 @@
     "semantic_hash": ""
   },
   "src/server/Services/SelfTest.luau": {
-    "mtime": 1794822639.721167,
-    "seen": 1794822658.3440886,
-    "ast_hash": "a4ac387f55570d35f9822af7df27c980",
+    "mtime": 1794853104.3654974,
+    "seen": 1794853106.91232,
+    "ast_hash": "bbe09bde3056f1c7b7c2302b26e2fc3b",
     "semantic_hash": ""
   },
   "tools/check_roblox_api.py": {
@@ -756,9 +756,9 @@
     "semantic_hash": ""
   },
   "tools/preview.py": {
-    "mtime": 1794852290.007933,
-    "seen": 1794852333.8770483,
-    "ast_hash": "23ee078ec72f1aeab55c45a785a25e23",
+    "mtime": 1794853077.1569252,
+    "seen": 1794853106.9124098,
+    "ast_hash": "9e7f2885a768f860dfa8fd2e40348701",
     "semantic_hash": ""
   },
   "tools/preview/mock.lua": {

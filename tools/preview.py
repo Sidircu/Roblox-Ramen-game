@@ -134,13 +134,20 @@ function scene_items(ids)
 end
 
 function scene_dish(ids)
+  -- grid of dishes; "ing:<id>" ingredient, "box:<id>" supplier box, "dirty:bowl", "tool:knife", "stack:clean"
   local root = Instance.new("Model")
-  local x = 0
-  for _, id in ipairs(ids) do
-    local m = Registry.food("dish", id)
-    m:PivotTo(CFrame.new(x, 0.5, 0))
+  local cols = math.ceil(math.sqrt(#ids))
+  for i, id in ipairs(ids) do
+    local kind, rest = string.match(id, "^(%a+):(.+)$")
+    local m
+    if kind == "ing" then m = Registry.food("ingredient", rest)
+    elseif kind == "box" then m = Registry.food("box", rest, 12)
+    elseif kind == "stack" then m = Registry.food("stack", 4, rest)
+    elseif kind then m = Registry.food(kind, rest)
+    else m = Registry.food("dish", id) end
+    local c, r = (i - 1) % cols, math.floor((i - 1) / cols)
+    m:PivotTo(CFrame.new(c * 2.4, 0.5, r * 2.4))
     m.Parent = root
-    x = x + 2.2
   end
   return root
 end
