@@ -236,18 +236,49 @@ function Hands.Start()
 			publish(player)
 		end)
 	end)
+	-- Putting things down always says where they went: boxes stay on the floor in front of you
+	-- (or go on the rack when you are next to it), ingredients go back on a shelf, plates go to
+	-- the sink.
 	Core.S.Net.on("DropHands", function(player)
 		local s = Hands.get(player)
+		local Net = Core.S.Net
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		local pos = root and root.Position or Vector3.new()
+		local look = root and root.CFrame.LookVector or Vector3.new(0, 0, -1)
+		local floor = Core.S.World.floorOf(pos.Y)
 		if s.kind == "box" then
+			local where = "floor"
 			for _, b in ipairs(s.items) do
-				Core.S.Supply.returnBox(b)
+				where = Core.S.Supply.dropBox(b, pos, Vector3.new(look.X, 0, look.Z).Unit, floor)
 			end
+			Hands.clear(player)
+			Net.notify(player, where == "rack" and "msg.box_on_rack" or "msg.box_on_floor", nil, "info")
+			return
+		elseif s.kind == "ing" then
+			local back, lost = 0, 0
+			for _, it in ipairs(s.items) do
+				if Core.S.Supply.returnIngredient(it.g, pos) then
+					back += 1
+				else
+					lost += 1
+				end
+			end
+			Hands.clear(player)
+			if lost > 0 then
+				Net.notify(player, "msg.ing_discarded", { n = lost }, "error")
+			else
+				Net.notify(player, "msg.ing_returned", { n = back }, "info")
+			end
+			return
 		elseif s.kind == "dish" or s.kind == "dirty" then
 			-- plates are never lost: they go to the sink as dirty dishes
 			Core.S.Appliance.addDirtyToSink(#s.items)
+			Hands.clear(player)
+			Net.notify(player, "msg.dish_to_sink", nil, "info")
+			return
 		end
 		Hands.clear(player)
-		Core.S.Net.notify(player, "msg.hands_dropped")
+		Net.notify(player, "msg.hands_dropped")
 	end, 3)
 end
 

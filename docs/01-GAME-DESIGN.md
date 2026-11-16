@@ -90,6 +90,7 @@ Pianta indicativa (vista dall'alto):
 
 - Il bancone separa la **sala clienti** dalla **zona di lavoro**. I clienti non entrano dietro il bancone.
 - Gli oggetti iniziali sono normali oggetti piazzabili: puoi spostarli tutti in modalità costruzione.
+- **In scala con gli avatar**: il locale base misura 72 × 56 stud (sala 72 × 32, cucina 72 × 24, magazzino 24 × 32). In cucina il bancone, le postazioni subito dietro e, oltre un corridoio largo 6 stud, scaffali, cuociriso, pentolone e lavello.
 - **Si parte da un locale base**: pareti lisce, tettoia in lamiera, finestre semplici, bancone e postazioni essenziali, una sola lanterna. Tutto il resto (decorazioni e dettagli tradizionali) si compra col tempo: decorazioni piazzabili (§9) e **ristrutturazioni** (§8.5).
 
 ---
@@ -403,18 +404,29 @@ Stile: carta washi color crema, bordi in legno scuro, accenti rosso lacca e oro,
 
 | Elemento | Contenuto |
 |---|---|
-| In alto a sinistra | Yen, gettoni Sakura, livello con barra XP |
-| In alto al centro | Orologio della giornata, pulsante Apri/Chiudi, valutazione ★ |
-| In alto a destra | Notifiche (consegna arrivata, livello, recensioni) |
-| A destra | Barra degli ordini (biglietti) |
-| In basso | Pulsanti: Costruisci, Fornitore, Menu, Licenze, Miglioramenti, Personale, Espansioni, Missioni, Negozio, Invita, Impostazioni |
+| In alto a sinistra | Pillola compatta: yen, gettoni Sakura, livello con barra XP sottile |
+| In alto al centro | Barra sottile come in Pet Store Tycoon: orologio, giorno e un interruttore **CHIUSO / APERTO** (rosso/verde) da toccare |
+| In alto a destra | Una riga: ★ valutazione · ✨ atmosfera · 🍽️ piatti puliti / 🧽 da lavare |
+| A sinistra | Biglietti degli ordini; toccandone uno si apre la **guida dell'ordine** accanto |
+| In basso a sinistra | Solo 3 pulsanti: 🔨 Costruisci, 📦 Fornitore, 📱 **Telefono** |
+| Telefono | Tutte le altre funzioni come app, in ordine di utilità: Menu, Personale, Miglioramenti, Espansioni e ristrutturazioni, Licenze, Obiettivi, Come si gioca, Negozio, Invita, Impostazioni |
+| In basso al centro | Cosa tieni in mano, con **⬇ Posa** (tasto G) |
 | Sopra gli oggetti | Barre di cottura, porzioni rimaste, pazienza, nuvolette d'ordine |
 | Fine giornata | Resoconto con grafico degli incassi della giornata |
 
 Altre schermate: inventario decorazioni, ricettario, obiettivi, premio giornaliero, guadagni offline, impostazioni (lingua, griglia, rotazione, volume musica/effetti, qualità grafica ridotta per dispositivi deboli).
 
 ### Tutorial
-La prima giornata è guidata: frecce luminose a terra e fumetti spiegano passo passo (prendi la scatola → riempi la mensola → cuoci il riso → apri → servi il primo cliente → lava le stoviglie → compra il primo upgrade). Si può saltare e rivedere dalle impostazioni.
+La prima giornata è guidata da una scheda grande a destra e da una freccia luminosa gialla con un indicatore ⬇ sull'oggetto da cliccare: prendi la scatola → riempi lo scaffale → cuoci il riso → prepara il brodo → apri → prendi l'ordine → (si apre la guida dell'ordine) → prepara e servi → raccogli e lava le stoviglie → arreda. Si può saltare e rivedere dal telefono (❓ Come si gioca).
+
+### Guida dell'ordine
+Toccando un ordine a sinistra si apre una scheda con pochi passaggi brevi, ognuno con la spunta ✅ quando è fatto e il dito 👉 su quello da fare ora: riso o brodo pronti → ingredienti da prendere (con la spunta su quelli che hai in mano) → clicca la postazione per posarli → cliccala ancora per ogni passaggio (es. Unisci → Arrotola → Taglia, con il contatore) → prendi il piatto → servilo al cliente. Gli spazi degli scaffali con gli ingredienti giusti e la postazione da usare si illuminano, e una freccia verde va da te alla prossima cosa da cliccare (anche al cliente giusto quando hai il piatto in mano).
+
+### Oggetti in mano
+Un clic con una scatola su uno scaffale riempie **tutti** gli spazi liberi adatti, e un messaggio dice quante porzioni restano nella scatola. **Posa** (tasto G o ⬇) appoggia la scatola a terra davanti a te, visibile e da riprendere, oppure sulla scaffalatura se sei in magazzino. Gli ingredienti in mano tornano sullo scaffale più vicino, i piatti vanno al lavello. Un messaggio dice sempre dove è finito l'oggetto.
+
+### Telecamera
+Telecamera del gioco morbida e più lenta di quella standard: tasto destro tenuto premuto (o un dito sullo schermo) per girare, frecce ← → per ruotare, rotellina o due dita per lo zoom. Non finisce mai dietro i muri e, quando sale sopra il soffitto, il tetto sparisce e la cucina si vede dall'alto. Velocità (lenta, media, veloce) e telecamera classica di Roblox nelle impostazioni.
 
 ---
 

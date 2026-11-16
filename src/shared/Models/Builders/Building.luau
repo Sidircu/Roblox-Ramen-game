@@ -170,25 +170,106 @@ function B.railing(parent, seg, y0, color)
 end
 
 -- Stairs rising toward +Z inside rect, from y0 to y0 + rise
-function B.stairs(parent, rect, y0, rise)
-	local w = rect[3] - rect[1]
-	local len = rect[4] - rect[2]
-	local steps = math.floor(rise)
-	local depth = len / steps
-	local cx = (rect[1] + rect[3]) / 2
-	for k = 0, steps - 1 do
-		local stepTop = y0 + (k + 1) * rise / steps
-		local z = rect[2] + (k + 0.5) * depth
-		local s = Kit.box(parent, w, stepTop - y0, depth, cx, y0 + (stepTop - y0) / 2, z, P.wood, M.planks, { collide = true })
-		s.Name = "Step"
-		tag(s, "Floor", { FloorIndex = -1, Stairs = true })
-		Kit.box(parent, w, 0.1, 0.15, cx, stepTop + 0.02, z - depth / 2 + 0.08, P.wood_dark, M.wood, { collide = false, shadow = false })
+-- Staircase: flights of treads and risers on sloped stringers, a landing on a post, and wooden
+-- handrails with balusters on the open sides. s = normalised stairs (Logic/Geometry.stairs).
+function B.stairs(parent, s, y0, rise)
+	if s[1] then
+		s = { flights = { { rect = s, dir = "+z", from = 0, to = 1 } }, rects = { s } }
 	end
-	for _, x in ipairs({ rect[1] + 0.15, rect[3] - 0.15 }) do
-		local a = Vector3.new(x, y0 + 3.5, rect[2])
-		local b = Vector3.new(x, y0 + rise + 3.5, rect[4])
+	local NC = { collide = false, shadow = false }
+	local railColor, treadColor, riserColor = P.wood_dark, P.hinoki, P.wood
+
+	-- point on a flight: t = distance from the start edge, u = offset across the flight
+	local function at(f, t, u)
+		local r = f.rect
+		if f.dir == "+z" then
+			return (r[1] + r[3]) / 2 + u, r[2] + t
+		elseif f.dir == "+x" then
+			return r[1] + t, (r[2] + r[4]) / 2 + u
+		end
+		return r[3] - t, (r[2] + r[4]) / 2 + u
+	end
+	local function dims(f)
+		local r = f.rect
+		if f.dir == "+z" then
+			return r[4] - r[2], r[3] - r[1]
+		end
+		return r[3] - r[1], r[4] - r[2]
+	end
+	local function boxAlong(f, t, u, len, width, y, h, color, mat, props)
+		local x, z = at(f, t, u)
+		local sx, sz = width, len
+		if f.dir ~= "+z" then
+			sx, sz = len, width
+		end
+		return Kit.box(parent, sx, h, sz, x, y, z, color, mat, props)
+	end
+	local function beam(a, b, size, color, props)
 		local mid = (a + b) / 2
-		Kit.part(parent, Vector3.new(0.2, 0.2, (b - a).Magnitude), CFrame.lookAt(mid, b), P.lacquer, M.smooth, { collide = false })
+		return Kit.part(parent, Vector3.new(size.X, size.Y, (b - a).Magnitude), CFrame.lookAt(mid, b), color, M.wood, props)
+	end
+	-- handrail with balusters from p0 (height h0) to p1 (height h1)
+	local function rail(x0, z0, h0, x1, z1, h1)
+		local a = Vector3.new(x0, h0 + 3.2, z0)
+		local b = Vector3.new(x1, h1 + 3.2, z1)
+		beam(a, b, Vector3.new(0.3, 0.22, 0), railColor, NC)
+		local len = (Vector3.new(x1, 0, z1) - Vector3.new(x0, 0, z0)).Magnitude
+		local n = math.max(2, math.floor(len / 1.1))
+		for i = 0, n do
+			local t = i / n
+			local x, z = x0 + (x1 - x0) * t, z0 + (z1 - z0) * t
+			local h = h0 + (h1 - h0) * t
+			Kit.box(parent, 0.14, 3.1, 0.14, x, h + 1.6, z, (i == 0 or i == n) and railColor or P.wood_light, M.wood, NC)
+		end
+	end
+
+	for fi, f in ipairs(s.flights or {}) do
+		local along, width = dims(f)
+		local h0, h1 = y0 + f.from * rise, y0 + f.to * rise
+		local n = math.max(4, math.floor((h1 - h0) / 0.75 + 0.5))
+		local depth = along / n
+		local riser = (h1 - h0) / n
+		for k = 0, n - 1 do
+			local top = h0 + (k + 1) * riser
+			local tread = boxAlong(f, (k + 0.5) * depth, 0, depth + 0.08, width, top - 0.1, 0.2, treadColor, M.wood, { collide = true })
+			tread.Name = "Step"
+			tag(tread, "Floor", { FloorIndex = -1, Stairs = true })
+			local rs = boxAlong(f, k * depth + 0.04, 0, 0.08, width - 0.1, top - riser / 2 - 0.1, riser, riserColor, M.wood, { collide = true })
+			tag(rs, "Floor", { FloorIndex = -1, Stairs = true })
+			-- nosing line
+			boxAlong(f, k * depth + 0.02, 0, 0.06, width, top + 0.01, 0.06, P.wood_dark, M.wood, NC)
+		end
+		-- sloped stringers on both sides and an underside board
+		for _, u in ipairs({ -width / 2 + 0.12, width / 2 - 0.12 }) do
+			local ax, az = at(f, 0, u)
+			local bx, bz = at(f, along, u)
+			beam(Vector3.new(ax, h0 + 0.05, az), Vector3.new(bx, h1 - riser + 0.05, bz), Vector3.new(0.24, 0.7, 0), railColor, NC)
+		end
+		local ax, az = at(f, 0, 0)
+		local bx, bz = at(f, along, 0)
+		beam(Vector3.new(ax, h0 - 0.45, az), Vector3.new(bx, h1 - riser - 0.45, bz), Vector3.new(width - 0.3, 0.15, 0), P.wood, NC)
+		-- handrails on the open sides (s.railSides lists them; default: both)
+		local sides = (s.railSides and s.railSides[fi]) or { -1, 1 }
+		for _, side in ipairs(sides) do
+			local u = side * (width / 2 - 0.12)
+			local x0, z0 = at(f, 0.2, u)
+			local x1, z1 = at(f, along, u)
+			rail(x0, z0, h0, x1, z1, h1 - riser)
+		end
+	end
+	-- landing on a corner post, with a rail along its open side
+	if s.landing then
+		local r = s.landing
+		local hy = y0 + rise * 0.5
+		local land = Kit.box(parent, r[3] - r[1], 0.4, r[4] - r[2], (r[1] + r[3]) / 2, hy - 0.2, (r[2] + r[4]) / 2, treadColor, M.wood, { collide = true })
+		tag(land, "Floor", { FloorIndex = -1, Stairs = true })
+		Kit.box(parent, r[3] - r[1] + 0.1, 0.25, r[4] - r[2] + 0.1, (r[1] + r[3]) / 2, hy - 0.5, (r[2] + r[4]) / 2, P.wood_dark, M.wood, NC)
+		for _, c in ipairs(s.landingPosts or { { r[3] - 0.3, r[4] - 0.3 } }) do
+			Kit.box(parent, 0.5, hy - y0, 0.5, c[1], y0 + (hy - y0) / 2, c[2], P.wood_dark, M.wood, { collide = true })
+		end
+		for _, seg in ipairs(s.landingRails or {}) do
+			rail(seg[1], seg[2], hy, seg[3], seg[4], hy)
+		end
 	end
 end
 

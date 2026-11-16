@@ -52,7 +52,7 @@ local function holesFor(geo, floor)
 	local holes = {}
 	for _, s in ipairs(geo.stairs) do
 		if s.floor == floor - 1 then
-			table.insert(holes, s.rect)
+			table.insert(holes, s.hole or s.rect)
 		end
 	end
 	return holes
@@ -118,7 +118,7 @@ function Scene.shell(shell, geo, data)
 			local holes = {}
 			for _, s in ipairs(geo.stairs) do
 				if s.floor == zone.floor then
-					table.insert(holes, s.rect)
+					table.insert(holes, s.hole or s.rect)
 				end
 			end
 			local covered = false
@@ -128,7 +128,9 @@ function Scene.shell(shell, geo, data)
 				end
 			end
 			for _, r in ipairs(subtractAll(zone.rect, holes)) do
-				local c = B.slab(shell, r, fy + GameConfig.WallHeight, 1, P.wood_dark, P.M.wood, "Ceiling")
+				-- under another floor the slab stops just below that floor's boards (no z-fighting)
+				local thick = covered and (GameConfig.FloorHeight - GameConfig.WallHeight - 0.2) or 1
+				local c = B.slab(shell, r, fy + GameConfig.WallHeight, thick, P.wood_dark, P.M.wood, "Ceiling")
 				B.tag(c, "Ceiling", { FloorIndex = zone.floor })
 				B.tag(c, "Roof")
 				if not covered then
@@ -155,13 +157,13 @@ function Scene.shell(shell, geo, data)
 			-- exposed beams (renovation) and soft ceiling lights
 			local r = zone.rect
 			if trim.beams then
-				for x = r[1] + 3, r[3] - 2, 6 do
+				for x = r[1] + 4, r[3] - 2, 8 do
 					local beam = Kit.box(shell, 0.6, 0.7, r[4] - r[2], x, fy + GameConfig.WallHeight - 0.35, (r[2] + r[4]) / 2, P.wood_black, P.M.wood, { collide = false })
 					B.tag(beam, "Roof")
 				end
 			end
-			for x = r[1] + 5, r[3] - 3, 10 do
-				for z = r[2] + 5, r[4] - 3, 10 do
+			for x = r[1] + 7, r[3] - 3, 14 do
+				for z = r[2] + 7, r[4] - 3, 14 do
 					local fixture = Kit.box(shell, 1.2, 0.2, 1.2, x, fy + GameConfig.WallHeight - 0.8, z, P.paper_warm, P.M.neon, { collide = false, shadow = false })
 					fixture.CanQuery = false
 					Kit.light(fixture, "Point", P.lamp, 22, 0.55, { night = false })
@@ -198,7 +200,14 @@ function Scene.shell(shell, geo, data)
 			elseif not sideB then
 				outsideSign = 1
 			end
-			B.wall(shell, seg, fy, GameConfig.WallHeight, 0.8, wallStyle, outsideSign, exterior)
+			-- walls under another floor go up to it, so there is no gap between the storeys
+			local above = false
+			for _, z in ipairs(geo.zones) do
+				if z.floor == floor + 1 and Footprint.pointInRect(seg.axis == "z" and mid or seg.line, seg.axis == "z" and seg.line or mid, z.rect, 0.5) then
+					above = true
+				end
+			end
+			B.wall(shell, seg, fy, above and GameConfig.FloorHeight or GameConfig.WallHeight, 0.8, wallStyle, outsideSign, exterior)
 			-- interior finishes on each indoor side
 			if sideA then
 				B.wallTrim(shell, seg, fy, -1, sideA.area, GameConfig.WallHeight, trim)
@@ -228,19 +237,13 @@ function Scene.shell(shell, geo, data)
 						end
 					end
 				end
-				local above = false
-				for _, z in ipairs(geo.zones) do
-					if z.floor == floor + 1 and Footprint.pointInRect(seg.axis == "z" and mid or seg.line, seg.axis == "z" and seg.line or mid, z.rect, 0.5) then
-						above = true
-					end
-				end
 				if not above then
 					B.parapet(shell, seg, fy + GameConfig.WallHeight + 1)
 				end
 			end
 		end
 		for _, seg in ipairs(fw.rails) do
-			B.railing(shell, seg, fy, floor == 0 and P.wood_dark or P.lacquer)
+			B.railing(shell, seg, fy, P.wood_dark)
 		end
 	end
 	for _, o in ipairs(geo.openings) do
@@ -256,14 +259,14 @@ function Scene.shell(shell, geo, data)
 		end
 	end
 	for _, s in ipairs(geo.stairs) do
-		B.stairs(shell, s.rect, floorY(s.floor), GameConfig.FloorHeight)
+		B.stairs(shell, s, floorY(s.floor), GameConfig.FloorHeight)
 	end
 
 	-- Facade: big sign, entrance lanterns, open plate
 	local signText = "らーめん ・ 寿司"
-	local face = B.sign(shell, 0, 11.6, -0.9, 14, signText, deluxe)
+	local face = B.sign(shell, 0, 11.6, -0.9, 18, signText, deluxe)
 	B.tag(face, "Roof")
-	for _, x in ipairs({ -4.4, 4.4 }) do
+	for _, x in ipairs({ -6.4, 6.4 }) do
 		local l = Kit.blob(shell, 1.3, 1.8, 1.3, x, 8.2, -1.6, P.lacquer, P.M.smooth, { collide = false })
 		Kit.cyl(shell, 0.8, 0.2, x, 9.2, -1.6, P.black, P.M.smooth, { collide = false })
 		Kit.cyl(shell, 0.8, 0.2, x, 7.2, -1.6, P.black, P.M.smooth, { collide = false })
@@ -271,7 +274,7 @@ function Scene.shell(shell, geo, data)
 		l:SetAttribute("Animate", "sway")
 		l.CanQuery = false
 	end
-	local label = B.openSign(shell, 4.6, 5.2, -0.55)
+	local label = B.openSign(shell, 6.4, 5.2, -0.55)
 	if data.zones.sign_rooftop then
 		local topY = floorY(topFloor) + GameConfig.WallHeight + 2
 		local board = Kit.box(shell, 20, 5, 0.6, 0, topY + 3.5, 2, P.black, P.M.smooth, { collide = false })
@@ -283,11 +286,11 @@ function Scene.shell(shell, geo, data)
 		B.tag(board, "Roof")
 	end
 	if deluxe then
-		for _, x in ipairs({ -18.2, 18.2 }) do
+		for _, x in ipairs({ -36.2, 36.2 }) do
 			local post = Kit.box(shell, 0.4, 13, 0.4, x, 6.5, -0.6, P.gold, P.M.foil, { collide = false })
 			B.tag(post, "Roof")
 		end
-		local glow = Kit.box(shell, 36.4, 0.2, 0.2, 0, 13.6, -0.7, P.neon_yellow, P.M.neon, { collide = false })
+		local glow = Kit.box(shell, 72.4, 0.2, 0.2, 0, 13.6, -0.7, P.neon_yellow, P.M.neon, { collide = false })
 		B.tag(glow, "Roof")
 	end
 	-- Fixed interactables: supplier tablet and menu board
@@ -375,20 +378,22 @@ function Scene.street(street, cityId)
 	end
 	-- plot lot and loading bay
 	local pb = Expansions.PlotBounds
-	Kit.box(street, pb[3] - pb[1], 1, 52 - 0, (pb[1] + pb[3]) / 2, -0.9, 26, P.stone_dark, M.pavement)
-	Kit.box(street, 12, 0.1, 12, 24, -0.38, 6, P.concrete, M.concrete, { collide = false })
-	for _, x in ipairs({ 18.3, 29.7 }) do
-		Kit.box(street, 0.25, 0.05, 12, x, -0.33, 6, P.neon_yellow, M.smooth, { collide = false, shadow = false })
+	Kit.box(street, pb[3] - pb[1], 1, pb[4], (pb[1] + pb[3]) / 2, -0.9, pb[4] / 2, P.stone_dark, M.pavement)
+	local bay = Expansions.LoadingBay
+	Kit.box(street, 12, 0.1, 18, bay.x, -0.38, bay.z, P.concrete, M.concrete, { collide = false })
+	for _, x in ipairs({ bay.x - 5.7, bay.x + 5.7 }) do
+		Kit.box(street, 0.25, 0.05, 18, x, -0.33, bay.z, P.neon_yellow, M.smooth, { collide = false, shadow = false })
 	end
+	local reach = 260
 	-- opposite row
-	local x = -180
-	while x < 180 do
+	local x = -reach
+	while x < reach do
 		local w = r:NextInteger(10, 18)
 		S.building(street, x, x + w - 0.5, -36, 18, r:NextInteger(16, 34), -1, facadeColor(pal, r), r)
 		x += w
 	end
 	-- neighbours on our side
-	x = -180
+	x = -reach
 	while x < pb[1] - 2 do
 		local w = math.min(r:NextInteger(10, 16), pb[1] - 2 - x)
 		if w >= 6 then
@@ -397,28 +402,28 @@ function Scene.street(street, cityId)
 		x += math.max(w, 6)
 	end
 	x = pb[3] + 2
-	while x < 180 do
+	while x < reach do
 		local w = r:NextInteger(10, 16)
 		S.building(street, x, x + w - 0.5, 0, 30, r:NextInteger(16, 30), 1, facadeColor(pal, r), r)
 		x += w
 	end
 	-- back fence and trees
-	for fx = pb[1], pb[3] - 2, 2 do
-		Kit.box(street, 0.3, 5, 0.3, fx, 2.1, 52, P.bamboo, M.wood)
+	for fx = pb[1], pb[3] - 2, 3 do
+		Kit.box(street, 0.3, 5, 0.3, fx, 2.1, pb[4], P.bamboo, M.wood)
 	end
-	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 4.2, 52, P.bamboo, M.wood, { collide = false })
-	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 1.5, 52, P.bamboo, M.wood, { collide = false })
-	for _, tx in ipairs({ -50, -30, -5, 20, 40 }) do
-		S.planterTree(street, tx, 58, (tx % 20 == 0) and P.sakura or P.leaf)
+	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 4.2, pb[4], P.bamboo, M.wood, { collide = false })
+	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 1.5, pb[4], P.bamboo, M.wood, { collide = false })
+	for _, tx in ipairs({ -100, -60, -20, 20, 60 }) do
+		S.planterTree(street, tx, pb[4] + 6, (tx % 40 == 0) and P.sakura or P.leaf)
 	end
 	-- sidewalk lamps, poles, trees
-	for lx = -170, 170, 30 do
+	for lx = -reach + 10, reach - 10, 30 do
 		if math.abs(lx) > 8 then
 			S.lamp(street, lx, -13, -1)
 		end
 	end
 	local prev = nil
-	for px = -180, 180, 40 do
+	for px = -reach, reach, 40 do
 		S.pole(street, px, -34.5)
 		local top = Vector3.new(px, 14.5, -34.5)
 		if prev then
@@ -427,14 +432,14 @@ function Scene.street(street, cityId)
 		end
 		prev = top
 	end
-	for _, tx in ipairs({ -150, -110, -80, 70, 100, 140 }) do
+	for _, tx in ipairs({ -230, -190, -150, 130, 170, 210 }) do
 		S.planterTree(street, tx, -10, (tx % 20 == 0) and P.sakura or P.leaf_light)
 	end
-	for _, tx in ipairs({ -130, -60, 10, 80, 150 }) do
+	for _, tx in ipairs({ -210, -130, -60, 10, 80, 150, 220 }) do
 		S.planterTree(street, tx, -33, P.sakura)
 	end
-	-- a few street vending machines
-	for _, vx in ipairs({ -60, 52, -100 }) do
+	-- a few street vending machines next to the neighbours
+	for _, vx in ipairs({ pb[1] - 6, pb[3] + 6, pb[1] - 40 }) do
 		local vm = Registry.build("vending_machine")
 		Registry.place(vm, vx, -0.4, -1.4, 180)
 		vm.Parent = street

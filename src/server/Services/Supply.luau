@@ -45,6 +45,8 @@ end
 
 ------------------------------------------------------------------ storage layout
 
+local chooseSlot, shelfState
+
 local function rackSlots()
 	local slots = {}
 	local racks = Core.S.Entities.ofKind("rack")
@@ -123,8 +125,14 @@ function Supply.layout()
 	local keep = {}
 	for _, entry in ipairs(d.storage) do
 		if not entry.h then
-			idx += 1
-			local cf = slots[idx] or CFrame.new(24, 0.65 + idx * 0.05, 20)
+			local cf
+			if entry.px then
+				-- box put down on the floor by a player: it stays exactly there
+				cf = CFrame.new(entry.px, Core.S.World.floorY(entry.pf or 0) + 0.65, entry.pz) * CFrame.Angles(0, math.rad(entry.pr or 0), 0)
+			else
+				idx += 1
+				cf = slots[idx] or CFrame.new(Expansions.LoadingBay.x, 0.65 + idx * 0.05, Expansions.LoadingBay.z)
+			end
 			local e = boxModels[entry.u]
 			if not e then
 				local m = boxModel(entry)
@@ -195,9 +203,87 @@ function Supply.takeBox(actor, e)
 	end
 	local entry = e.box
 	entry.h = true
+	entry.px, entry.pz, entry.pf, entry.pr = nil, nil, nil, nil
 	Hands.set(actor, "box", { entry })
 	Supply.layout()
 	return true
+end
+
+-- Puts a held box down: on a free rack slot when a rack is close, otherwise on the floor in front
+-- of the actor. Returns "rack" or "floor".
+function Supply.dropBox(entry, pos, look, floor)
+	entry.h = nil
+	if entry.n <= 0 then
+		Supply.returnBox(entry)
+		return "gone"
+	end
+	local d = data()
+	local nearRack = false
+	for _, r in ipairs(Core.S.Entities.ofKind("rack")) do
+		if r.model and r.model.PrimaryPart and (r.model.PrimaryPart.Position - pos).Magnitude < 9 then
+			nearRack = true
+		end
+	end
+	local onRacks = 0
+	for _, b in ipairs(d.storage) do
+		if not b.h and not b.px and b ~= entry then
+			onRacks += 1
+		end
+	end
+	if nearRack and onRacks < #rackSlots() then
+		entry.px, entry.pz, entry.pf, entry.pr = nil, nil, nil, nil
+		Supply.layout()
+		Core.S.Data.changed(Core.S.Session.owner, "storage")
+		return "rack"
+	end
+	local target = pos + look * 3
+	local World = Core.S.World
+	if not World.zoneAt(target.X, target.Z, floor or 0) then
+		target = pos
+	end
+	entry.px, entry.pz, entry.pf = math.floor(target.X * 10) / 10, math.floor(target.Z * 10) / 10, floor or 0
+	entry.pr = math.floor(math.deg(math.atan2(-look.X, -look.Z)))
+	Supply.layout()
+	Core.S.Data.changed(Core.S.Session.owner, "storage")
+	return "floor"
+end
+
+-- Puts one ingredient back on the nearest shelf that can take it. Returns the shelf or nil.
+function Supply.returnIngredient(g, pos)
+	local ing = Ingredients.byId[g]
+	if not ing then
+		return nil
+	end
+	local best, bestSlot, bestD = nil, nil, math.huge
+	for _, e in ipairs(Core.S.Entities.ofKind("shelf")) do
+		if not (e.item.fn.fishOnly and ing.storage ~= "fish") and e.model and e.model.PrimaryPart then
+			local slot = chooseSlot(e, g, nil)
+			if slot then
+				local dist = (e.model.PrimaryPart.Position - pos).Magnitude
+				-- prefer a slot that already holds this ingredient
+				local st = shelfState(e.uid)[tostring(slot)]
+				if st and st.g == g then
+					dist -= 1000
+				end
+				if dist < bestD then
+					best, bestSlot, bestD = e, slot, dist
+				end
+			end
+		end
+	end
+	if not best then
+		return nil
+	end
+	local st = shelfState(best.uid)
+	local s = st[tostring(bestSlot)]
+	if not s or s.n == 0 then
+		s = { g = g, n = 0 }
+		st[tostring(bestSlot)] = s
+	end
+	s.n += 1
+	Supply.refreshShelf(best)
+	Core.S.Data.changed(Core.S.Session.owner, "shelves")
+	return best
 end
 
 function Supply.findBox(g)
@@ -224,7 +310,7 @@ end
 
 ------------------------------------------------------------------ shelves
 
-local function shelfState(uid)
+function shelfState(uid)
 	local d = data()
 	d.shelves[uid] = d.shelves[uid] or {}
 	return d.shelves[uid]
@@ -300,7 +386,7 @@ function Supply.findShelfWith(g, pos)
 	return best, bestSlot
 end
 
-local function chooseSlot(e, g, requested)
+function chooseSlot(e, g, requested)
 	local st = shelfState(e.uid)
 	local cap = Supply.shelfCap(e)
 	local slots = e.item.fn.slots
@@ -339,24 +425,35 @@ function Supply.useShelf(actor, e, slot)
 		if e.item.fn.fishOnly and ing.storage ~= "fish" then
 			return false, "msg.fish_only"
 		end
+		local cap = Supply.shelfCap(e)
+		local placed = 0
 		local target = chooseSlot(e, entry.g, slot)
 		if not target then
 			return false, "msg.shelf_full"
 		end
-		local cap = Supply.shelfCap(e)
-		local s = st[tostring(target)]
-		if not s or s.n == 0 then
-			s = { g = entry.g, n = 0 }
-			st[tostring(target)] = s
+		-- fill the clicked slot first, then every other slot that can take this ingredient
+		while target and entry.n > 0 do
+			local s = st[tostring(target)]
+			if not s or s.n == 0 then
+				s = { g = entry.g, n = 0 }
+				st[tostring(target)] = s
+			end
+			local amount = math.min(entry.n, cap - s.n)
+			s.n += amount
+			entry.n -= amount
+			placed += amount
+			target = entry.n > 0 and chooseSlot(e, entry.g, nil) or nil
 		end
-		local amount = math.min(entry.n, cap - s.n)
-		s.n += amount
-		entry.n -= amount
+		local left = entry.n
 		if entry.n <= 0 then
 			Supply.removeBox(entry)
 			Hands.clear(actor)
 		else
 			Hands.refresh(actor)
+			updateBoxLabel(entry)
+		end
+		if typeof(actor) == "Instance" then
+			Core.S.Net.notify(actor, left > 0 and "msg.restocked_left" or "msg.restocked", { n = placed, name = "ing." .. entry.g, left = left }, "success")
 		end
 		Supply.refreshShelf(e)
 		Core.S.Data.changed(Core.S.Session.owner, "shelves")

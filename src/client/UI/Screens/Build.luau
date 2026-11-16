@@ -60,41 +60,34 @@ local function zoneHere()
 	return nil
 end
 
+-- Compact layout: a short catalog drawer at the bottom while browsing; while an object is being
+-- placed or is selected the drawer hides and a small action bar takes its place.
 function Screen.create(root)
-	local frame = Kit.panel({ Name = "BuildPanel", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -96), Size = UDim2.new(0.96, 0, 0, 250), Visible = false, Parent = root })
+	local frame = Kit.panel({ Name = "BuildPanel", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -8), Size = UDim2.new(0.94, 0, 0, 178), Visible = false, Parent = root })
 	refs.frame = frame
-	refs.tabs = Kit.new("ScrollingFrame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 6), Size = UDim2.new(1, -330, 0, 44), ScrollingDirection = Enum.ScrollingDirection.X, AutomaticCanvasSize = Enum.AutomaticSize.X, CanvasSize = UDim2.new(), ScrollBarThickness = 3, Parent = frame }, { Kit.list(Enum.FillDirection.Horizontal, 4) })
-	refs.items = Kit.new("ScrollingFrame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 54), Size = UDim2.new(1, -330, 1, -60), ScrollingDirection = Enum.ScrollingDirection.X, AutomaticCanvasSize = Enum.AutomaticSize.X, CanvasSize = UDim2.new(), ScrollBarThickness = 6, Parent = frame }, { Kit.list(Enum.FillDirection.Horizontal, 8) })
-	local tools = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -8, 0, 6), Size = UDim2.fromOffset(310, 238), Parent = frame })
+	refs.tabs = Kit.new("ScrollingFrame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 6), Size = UDim2.new(1, -16, 0, 36), ScrollingDirection = Enum.ScrollingDirection.X, AutomaticCanvasSize = Enum.AutomaticSize.X, CanvasSize = UDim2.new(), ScrollBarThickness = 3, Parent = frame }, { Kit.list(Enum.FillDirection.Horizontal, 4) })
+	refs.items = Kit.new("ScrollingFrame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(8, 46), Size = UDim2.new(1, -16, 1, -52), ScrollingDirection = Enum.ScrollingDirection.X, AutomaticCanvasSize = Enum.AutomaticSize.X, CanvasSize = UDim2.new(), ScrollBarThickness = 5, Parent = frame }, { Kit.list(Enum.FillDirection.Horizontal, 6) })
+	-- floating toolbar (right): grid, top view, exit
+	local tools = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -10, 1, -196), Size = UDim2.fromOffset(150, 132), Visible = false, Parent = root }, { Kit.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Right) })
 	refs.tools = tools
-	refs.status = Kit.label("", { Parent = tools, Size = UDim2.new(1, 0, 0, 40), TextSize = 15, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Top })
-	local gridRow = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 42), Size = UDim2.new(1, 0, 0, 36), Parent = tools }, { Kit.list(Enum.FillDirection.Horizontal, 4) })
-	refs.gridLabel = Kit.label("", { Parent = gridRow, Size = UDim2.fromOffset(70, 34), TextSize = 15, FontFace = T.bold, LayoutOrder = 0 })
-	refs.gridButtons = {}
-	for i, g in ipairs(GameConfig.GridSizes) do
-		refs.gridButtons[g] = Kit.button(tostring(g), { parent = gridRow, size = UDim2.fromOffset(48, 34), style = "plain", order = i, onClick = function()
-			Core.C.Build.setGrid(g)
-		end })
-	end
-	Kit.button("🔄", { parent = gridRow, size = UDim2.fromOffset(48, 34), style = "dark", order = 5, onClick = function()
-		Core.C.Build.rotate()
+	refs.gridButton = Kit.button("", { parent = tools, size = UDim2.fromOffset(150, 38), style = "plain", order = 1, textSize = 14, radius = 19, onClick = function()
+		Core.C.Build.cycleGrid()
 	end })
-	local actRow = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 82), Size = UDim2.new(1, 0, 0, 80), Parent = tools }, { Kit.grid(150, 36, 6) })
-	refs.actions = actRow
-	local bottom = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.new(0, 0, 1, -40), Size = UDim2.new(1, 0, 0, 38), Parent = tools }, { Kit.list(Enum.FillDirection.Horizontal, 6) })
-	refs.topView = Kit.button("", { parent = bottom, size = UDim2.fromOffset(150, 36), style = "plain", order = 1, textSize = 15, onClick = function()
+	refs.topView = Kit.button("", { parent = tools, size = UDim2.fromOffset(150, 38), style = "plain", order = 2, textSize = 14, radius = 19, onClick = function()
 		Core.C.Camera.toggleTop()
-		Screen.refresh()
+		Screen.refreshTools()
 	end })
-	refs.exit = Kit.button("", { parent = bottom, size = UDim2.fromOffset(150, 36), style = "primary", order = 2, onClick = function()
+	refs.exit = Kit.button("", { parent = tools, size = UDim2.fromOffset(150, 38), style = "primary", order = 3, textSize = 14, radius = 19, onClick = function()
 		Core.C.Build.exit()
 	end })
-	refs.confirm = Kit.button("✓", { parent = root, size = UDim2.fromOffset(120, 60), position = UDim2.new(1, -140, 1, -420), style = "green", textSize = 30, onClick = function()
-		Core.C.Build.place()
-	end })
-	refs.confirm.Visible = false
+	-- action bar (bottom-centre) used while placing or with a selected object
+	local bar = Kit.panel({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -12), Size = UDim2.fromOffset(560, 92), Visible = false, Parent = root })
+	refs.bar = bar
+	refs.status = Kit.label("", { Parent = bar, Position = UDim2.fromOffset(14, 6), Size = UDim2.new(1, -28, 0, 22), TextSize = 16, FontFace = T.bold, TextTruncate = Enum.TextTruncate.AtEnd })
+	refs.howto = Kit.label("", { Parent = bar, Position = UDim2.fromOffset(14, 28), Size = UDim2.new(1, -28, 0, 18), TextSize = 13, TextColor3 = T.muted, TextTruncate = Enum.TextTruncate.AtEnd })
+	refs.actions = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 50), Size = UDim2.new(1, -20, 0, 36), Parent = bar }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Center) })
 	Core.C.Build.Changed:Connect(function()
-		if refs.frame.Visible then
+		if refs.frame.Visible or refs.bar.Visible then
 			Screen.refreshTools()
 		end
 	end)
@@ -107,9 +100,9 @@ local function itemCard(item, order, opts)
 	if opts.inventory then
 		locked = false
 	end
-	local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(132, 178), BackgroundColor3 = locked and T.paperDark or Color3.fromRGB(251, 245, 234), LayoutOrder = order, Parent = refs.items }, { Kit.corner(10), Kit.stroke(T.woodLight, 2) })
-	Kit.label(Icons.forItem(item), { Parent = card, Size = UDim2.new(1, 0, 0, 56), Position = UDim2.fromOffset(0, 6), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
-	Kit.label(t("item." .. item.id), { Parent = card, Position = UDim2.fromOffset(6, 64), Size = UDim2.new(1, -12, 0, 40), TextSize = 15, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Top })
+	local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(104, 118), BackgroundColor3 = locked and T.paperDark or Color3.fromRGB(251, 245, 234), LayoutOrder = order, Parent = refs.items }, { Kit.corner(10), Kit.stroke(T.woodLight, 2) })
+	Kit.label(Icons.forItem(item), { Parent = card, Size = UDim2.new(1, 0, 0, 36), Position = UDim2.fromOffset(0, 4), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
+	Kit.label(t("item." .. item.id), { Parent = card, Position = UDim2.fromOffset(4, 42), Size = UDim2.new(1, -8, 0, 30), TextSize = 12, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true })
 	local price
 	if opts.inventory then
 		price = "×" .. opts.count
@@ -118,9 +111,9 @@ local function itemCard(item, order, opts)
 	else
 		price = Format.yen(item.price, L)
 	end
-	Kit.label(price, { Parent = card, Position = UDim2.fromOffset(6, 106), Size = UDim2.new(1, -12, 0, 22), TextSize = 16, FontFace = T.title, TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = T.wood })
+	Kit.label(price, { Parent = card, Position = UDim2.fromOffset(4, 74), Size = UDim2.new(1, -8, 0, 18), TextSize = 14, FontFace = T.title, TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = T.wood })
 	local info = locked and why or ((item.amb or 0) > 0 and ("✨ " .. item.amb) or (item.fn and item.fn.comfort and ("🪑 " .. item.fn.comfort) or ""))
-	Kit.label(info or "", { Parent = card, Position = UDim2.fromOffset(6, 130), Size = UDim2.new(1, -12, 0, 40), TextSize = 13, TextColor3 = T.muted, TextXAlignment = Enum.TextXAlignment.Center })
+	Kit.label(info or "", { Parent = card, Position = UDim2.fromOffset(4, 94), Size = UDim2.new(1, -8, 0, 18), TextSize = 11, TextColor3 = T.muted, TextXAlignment = Enum.TextXAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
 	card.MouseButton1Click:Connect(function()
 		if locked then
 			Core.C.UI.toast(why or "", "error")
@@ -154,17 +147,17 @@ local function renderItems()
 			Kit.label(t("ui.stand_in_zone"), { Parent = refs.items, Size = UDim2.fromOffset(420, 60), TextSize = 17 })
 			return
 		end
-		Kit.label("📍 " .. t("ui.room", { name = "zone." .. zone.id }), { Parent = refs.items, Size = UDim2.fromOffset(150, 178), TextSize = 17, FontFace = T.bold, LayoutOrder = 0 })
+		Kit.label("📍 " .. t("ui.room", { name = "zone." .. zone.id }), { Parent = refs.items, Size = UDim2.fromOffset(120, 118), TextSize = 14, FontFace = T.bold, LayoutOrder = 0, TextWrapped = true })
 		local current = (w.surfaces and w.surfaces[zone.id]) or {}
 		for _, s in ipairs(Surfaces.list) do
 			local active = current[s.kind] == s.id or (not current[s.kind] and (s.id == (s.kind == "floor" and (zone.floorStyle or Surfaces.DefaultFloor) or (zone.wallStyle or Surfaces.DefaultWall))))
 			local locked = (w.level or 1) < s.lv
-			local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(132, 178), BackgroundColor3 = T.paper, LayoutOrder = s.order, Parent = refs.items }, { Kit.corner(10), Kit.stroke(active and T.gold or T.woodLight, active and 4 or 2) })
-			local swatch = Kit.new("Frame", { BackgroundColor3 = require(Shared.Util.Color).hex(s.color), Size = UDim2.new(1, -20, 0, 56), Position = UDim2.fromOffset(10, 10), Parent = card }, { Kit.corner(8) })
+			local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(104, 118), BackgroundColor3 = T.paper, LayoutOrder = s.order, Parent = refs.items }, { Kit.corner(10), Kit.stroke(active and T.gold or T.woodLight, active and 4 or 2) })
+			local swatch = Kit.new("Frame", { BackgroundColor3 = require(Shared.Util.Color).hex(s.color), Size = UDim2.new(1, -16, 0, 34), Position = UDim2.fromOffset(8, 6), Parent = card }, { Kit.corner(8) })
 			local _ = swatch
-			Kit.label((s.kind == "floor" and "⬜ " or "🧱 ") .. t("surf." .. s.id), { Parent = card, Position = UDim2.fromOffset(6, 70), Size = UDim2.new(1, -12, 0, 40), TextSize = 14, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center })
-			Kit.label(s.price > 0 and Format.yen(s.price, L) or t("ui.free"), { Parent = card, Position = UDim2.fromOffset(6, 112), Size = UDim2.new(1, -12, 0, 22), TextSize = 16, FontFace = T.title, TextXAlignment = Enum.TextXAlignment.Center })
-			Kit.label(locked and t("ui.req_level", { level = s.lv }) or ("✨ " .. math.floor(s.amb)), { Parent = card, Position = UDim2.fromOffset(6, 136), Size = UDim2.new(1, -12, 0, 30), TextSize = 13, TextColor3 = T.muted, TextXAlignment = Enum.TextXAlignment.Center })
+			Kit.label((s.kind == "floor" and "⬜ " or "🧱 ") .. t("surf." .. s.id), { Parent = card, Position = UDim2.fromOffset(4, 42), Size = UDim2.new(1, -8, 0, 30), TextSize = 12, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = true })
+			Kit.label(s.price > 0 and Format.yen(s.price, L) or t("ui.free"), { Parent = card, Position = UDim2.fromOffset(4, 74), Size = UDim2.new(1, -8, 0, 18), TextSize = 14, FontFace = T.title, TextXAlignment = Enum.TextXAlignment.Center })
+			Kit.label(locked and t("ui.req_level", { level = s.lv }) or ("✨ " .. math.floor(s.amb)), { Parent = card, Position = UDim2.fromOffset(4, 94), Size = UDim2.new(1, -8, 0, 18), TextSize = 11, TextColor3 = T.muted, TextXAlignment = Enum.TextXAlignment.Center })
 			card.MouseButton1Click:Connect(function()
 				if not locked then
 					NetDef.event("PaintSurface"):FireServer(zone.id, s.kind, s.id)
@@ -191,7 +184,7 @@ local function renderTabs()
 	table.insert(tabs, { id = "surfaces", label = "🎨 " .. t("ui.surfaces") })
 	table.insert(tabs, { id = "inventory", label = "🎒 " .. t("ui.inventory") })
 	for i, tb in ipairs(tabs) do
-		local b = Kit.button(tb.label, { parent = refs.tabs, size = UDim2.fromOffset(128, 38), style = tb.id == category and "primary" or "plain", order = i, textSize = 14, onClick = function()
+		local b = Kit.button(tb.label, { parent = refs.tabs, size = UDim2.fromOffset(118, 32), style = tb.id == category and "primary" or "plain", order = i, textSize = 13, radius = 16, onClick = function()
 			category = tb.id
 			Screen.refresh()
 		end })
@@ -199,65 +192,71 @@ local function renderTabs()
 	end
 end
 
+local function selectedEntry()
+	local Build = Core.C.Build
+	for _, e in ipairs(Core.C.Data.w("placed") or {}) do
+		if e.u == Build.selected then
+			return e
+		end
+	end
+	return nil
+end
+
 function Screen.refreshTools()
 	local Build = Core.C.Build
 	local L = Locale.get()
-	refs.gridLabel.Text = t("ui.grid")
-	for g, b in pairs(refs.gridButtons) do
-		b.BackgroundColor3 = (Build.grid == g) and T.red or T.paperDark
-		b.TextColor3 = (Build.grid == g) and T.white or T.ink
-	end
+	local touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+	refs.gridButton.Text = "▦ " .. t("ui.grid") .. " " .. tostring(Build.grid)
 	refs.topView.Text = Core.C.Camera.top and ("🎥 " .. t("ui.normal_view")) or ("🗺️ " .. t("ui.top_view"))
 	refs.exit.Text = "✕ " .. t("ui.exit_build")
-	if Build.itemId then
-		local status = Build.valid and ("✅ " .. t("ui.can_place")) or ("❌ " .. t(Build.reason or "msg.place_invalid"))
-		refs.status.Text = t("item." .. Build.itemId) .. "\n" .. status
-		refs.status.TextColor3 = Build.valid and T.green or T.red
-	elseif Build.selected then
-		local entry = nil
-		for _, e in ipairs(Core.C.Data.w("placed") or {}) do
-			if e.u == Build.selected then
-				entry = e
-			end
-		end
-		refs.status.Text = entry and t("item." .. entry.i) or ""
-		refs.status.TextColor3 = T.ink
-	else
-		refs.status.Text = t("ui.build_hint")
-		refs.status.TextColor3 = T.muted
-	end
+	local placing = Build.itemId ~= nil
+	local entry = (not placing) and Build.selected and selectedEntry() or nil
+	-- the catalog hides while something is being placed or is selected
+	local active = refs.frame.Visible or refs.bar.Visible
+	refs.frame.Visible = active and not placing and entry == nil
+	refs.bar.Visible = active and (placing or entry ~= nil)
+	refs.tools.Visible = active
 	Kit.clear(refs.actions)
-	if Build.selected and not Build.itemId then
-		local entry = nil
-		for _, e in ipairs(Core.C.Data.w("placed") or {}) do
-			if e.u == Build.selected then
-				entry = e
-			end
-		end
-		local item = entry and Items.byId[entry.i]
-		Kit.button("✋ " .. t("ui.move"), { parent = refs.actions, style = "dark", order = 1, textSize = 15, onClick = function()
-			Build.startMove(Build.selected)
-		end })
-		Kit.button("🔄 " .. t("ui.rotate"), { parent = refs.actions, style = "dark", order = 2, textSize = 15, onClick = function()
+	if placing then
+		local status = Build.valid and ("✅ " .. t("ui.can_place")) or ("❌ " .. t(Build.reason or "msg.place_invalid"))
+		refs.status.Text = t("item." .. Build.itemId) .. "   " .. status
+		refs.status.TextColor3 = Build.valid and T.green or T.red
+		refs.howto.Text = touch and t("ui.place_howto_touch") or t("ui.place_howto_pc")
+		Kit.button("🔄 " .. t("ui.rotate"), { parent = refs.actions, size = UDim2.fromOffset(130, 34), style = "dark", order = 1, textSize = 14, radius = 17, onClick = function()
 			Build.rotate()
 		end })
-		Kit.button("🎒 " .. t("ui.store"), { parent = refs.actions, style = "plain", order = 3, textSize = 15, onClick = function()
+		Kit.button("✔ " .. t("ui.place"), { parent = refs.actions, size = UDim2.fromOffset(150, 34), style = Build.valid and "green" or "plain", order = 2, textSize = 15, radius = 17, onClick = function()
+			Build.place()
+		end })
+		Kit.button("✕ " .. t("ui.cancel"), { parent = refs.actions, size = UDim2.fromOffset(130, 34), style = "plain", order = 3, textSize = 14, radius = 17, onClick = function()
+			Build.cancel()
+		end })
+	elseif entry then
+		local item = Items.byId[entry.i]
+		refs.status.Text = t("item." .. entry.i)
+		refs.status.TextColor3 = T.ink
+		refs.howto.Text = t("ui.selected_howto")
+		Kit.button("✋ " .. t("ui.move"), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "dark", order = 1, textSize = 14, radius = 17, onClick = function()
+			Build.startMove(Build.selected)
+		end })
+		Kit.button("🔄 " .. t("ui.rotate"), { parent = refs.actions, size = UDim2.fromOffset(100, 34), style = "dark", order = 2, textSize = 14, radius = 17, onClick = function()
+			Build.rotate()
+		end })
+		Kit.button("🎒 " .. t("ui.store"), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "plain", order = 3, textSize = 14, radius = 17, onClick = function()
 			Build.removeSelected("store")
 		end })
 		local refund = item and math.floor((entry.paid or item.price) * GameConfig.SellRefund) or 0
-		Kit.button("💴 " .. t("ui.sell") .. " " .. Format.yen(refund, L), { parent = refs.actions, style = "primary", order = 4, textSize = 14, onClick = function()
+		Kit.button("💴 " .. Format.yen(refund, L), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "primary", order = 4, textSize = 14, radius = 17, onClick = function()
 			Build.removeSelected("sell")
 		end })
-	elseif Build.itemId then
-		Kit.button("✕ " .. t("ui.cancel"), { parent = refs.actions, style = "plain", order = 1, textSize = 15, onClick = function()
-			Build.cancel()
+		Kit.button("✕", { parent = refs.actions, size = UDim2.fromOffset(44, 34), style = "plain", order = 5, textSize = 14, radius = 17, onClick = function()
+			Build.select(nil)
 		end })
 	end
-	refs.confirm.Visible = Build.itemId ~= nil and UserInputService.TouchEnabled
 end
 
 function Screen.refresh()
-	if not refs.frame or not refs.frame.Visible then
+	if not refs.frame or not (refs.frame.Visible or refs.bar.Visible) then
 		return
 	end
 	renderTabs()
@@ -266,17 +265,27 @@ function Screen.refresh()
 end
 
 function Screen.visible()
-	return refs.frame and refs.frame.Visible
+	return refs.frame and (refs.frame.Visible or refs.bar.Visible)
 end
 
 function Screen.open()
 	refs.frame.Visible = true
+	refs.tools.Visible = true
 	Screen.refresh()
+	local hud = Core.C.UI.screens.HUD
+	if hud and hud.setBuilding then
+		hud.setBuilding(true)
+	end
 end
 
 function Screen.close()
 	refs.frame.Visible = false
-	refs.confirm.Visible = false
+	refs.bar.Visible = false
+	refs.tools.Visible = false
+	local hud = Core.C.UI.screens.HUD
+	if hud and hud.setBuilding then
+		hud.setBuilding(false)
+	end
 end
 
 return Screen

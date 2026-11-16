@@ -39,6 +39,7 @@ local geo, geoKey = nil, nil
 local lastReq, lastValidate = nil, 0
 local gridParts = {}
 local touchPos = nil
+local worldTouch = nil
 local lastResolved = nil
 
 local function itemsFolder()
@@ -53,7 +54,7 @@ local function geometry()
 		key ..= id .. ";"
 	end
 	if key ~= geoKey then
-		geo = Geometry.compute(Expansions.list, zones, Expansions.Supplier)
+		geo = Geometry.compute(Expansions.list, zones, Expansions)
 		geoKey = key
 	end
 	return geo
@@ -168,6 +169,25 @@ local function cursor()
 	return UserInputService:GetMouseLocation()
 end
 
+local function cursorRay()
+	local cam = workspace.CurrentCamera
+	local pos = cursor()
+	return cam:ViewportPointToRay(pos.X, pos.Y)
+end
+
+-- Where the pointer meets the horizontal plane at height y (nil when looking away from it)
+local function planeHit(y)
+	local ray = cursorRay()
+	if math.abs(ray.Direction.Y) < 1e-4 then
+		return nil
+	end
+	local d = (y - ray.Origin.Y) / ray.Direction.Y
+	if d <= 0 or d > 600 then
+		return nil
+	end
+	return ray.Origin + ray.Direction * d
+end
+
 local function cast(includeParts)
 	local cam = workspace.CurrentCamera
 	local pos = cursor()
@@ -209,16 +229,34 @@ local function buildRequest()
 	local code = PlacementLogic.PlaceCode[item.place]
 	local w, h, d = item.size[1], item.size[2], item.size[3]
 	local g = Build.grid
-	if code == "f" or code == "c" then
-		local hit = cast(onFloor("Floor"))
-		if not hit then
+	if code == "c" then
+		-- ceiling objects hang in the air: aim at their own height, so they sit under the pointer
+		local f = Core.C.Camera.floor or 0
+		local p = planeHit(floorY(f) + GameConfig.WallHeight - h / 2)
+		if not p then
 			return nil
 		end
-		local f = hit.Instance:GetAttribute("FloorIndex") or 0
+		local x, z = Grid.snapFloor(p.X, p.Z, w, d, Build.rot, g)
+		return { i = item.id, x = x, z = z, r = Build.rot, f = f, s = code }
+	elseif code == "f" then
+		local hit = cast(onFloor("Floor"))
+		local f, px, pz
+		if hit then
+			f = hit.Instance:GetAttribute("FloorIndex") or 0
+			px, pz = hit.Position.X, hit.Position.Z
+		else
+			-- pointer over a wall or the sky: use the floor plane of the current storey
+			f = Core.C.Camera.floor or 0
+			local p = planeHit(floorY(f))
+			if not p then
+				return nil
+			end
+			px, pz = p.X, p.Z
+		end
 		if f < 0 then
 			return nil
 		end
-		local x, z = Grid.snapFloor(hit.Position.X, hit.Position.Z, w, d, Build.rot, g)
+		local x, z = Grid.snapFloor(px, pz, w, d, Build.rot, g)
 		return { i = item.id, x = x, z = z, r = Build.rot, f = f, s = code }
 	elseif code == "w" then
 		local hit = cast(onFloor("Wall"))
@@ -496,6 +534,11 @@ function Build.Start()
 			return
 		end
 		if input.UserInputType == Enum.UserInputType.Touch then
+			if processed then
+				-- joystick, buttons and panels never move the object being placed
+				return
+			end
+			worldTouch = input
 			touchPos = Vector2.new(input.Position.X, input.Position.Y + GuiService:GetGuiInset().Y)
 		end
 		if processed then
@@ -544,8 +587,13 @@ function Build.Start()
 	UserInputService.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement then
 			touchPos = nil
-		elseif input.UserInputType == Enum.UserInputType.Touch and Build.active then
+		elseif input.UserInputType == Enum.UserInputType.Touch and Build.active and input == worldTouch then
 			touchPos = Vector2.new(input.Position.X, input.Position.Y + GuiService:GetGuiInset().Y)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input == worldTouch then
+			worldTouch = nil
 		end
 	end)
 	Core.C.Data.Changed:Connect(function(_, key)

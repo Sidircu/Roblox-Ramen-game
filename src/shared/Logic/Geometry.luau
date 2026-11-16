@@ -5,8 +5,32 @@ local Walls = require(script.Parent.Walls)
 
 local Geometry = {}
 
+-- Normalised stairs: every staircase gets rects (lower floor footprint), hole (opening in the
+-- floor above), entry / exit points and their clearance rects. Old single-rect stairs rise
+-- towards +Z.
+function Geometry.stairs(s)
+	if s.hole then
+		return s
+	end
+	local r = s.rect
+	local cx = (r[1] + r[3]) / 2
+	return {
+		floor = s.floor,
+		rect = r,
+		rects = { r },
+		hole = r,
+		flights = { { rect = r, dir = "+z", from = 0, to = 1 } },
+		entry = { x = cx, z = r[2] - 0.5 },
+		exit = { x = cx, z = r[4] + 1 },
+		exitSide = "z+",
+		entryRect = { r[1], r[2] - 2.5, r[3], r[2] },
+		exitRect = { r[1], r[4], r[3], r[4] + 2.5 },
+	}
+end
+
 -- expansions: Config.Expansions.list ; unlocked: { [expansionId] = true }
-function Geometry.compute(expansions, unlocked, supplier)
+-- points: the Config.Expansions module (Supplier, MenuBoard, FacadeBand) or just the supplier
+function Geometry.compute(expansions, unlocked, points)
 	local zones, openings, stairs, exps = {}, {}, {}, {}
 	for _, e in ipairs(expansions) do
 		if unlocked[e.id] then
@@ -18,7 +42,7 @@ function Geometry.compute(expansions, unlocked, supplier)
 				table.insert(openings, o)
 			end
 			for _, s in ipairs(e.stairs or {}) do
-				table.insert(stairs, s)
+				table.insert(stairs, Geometry.stairs(s))
 			end
 		end
 	end
@@ -31,13 +55,17 @@ function Geometry.compute(expansions, unlocked, supplier)
 		end
 	end
 	for _, s in ipairs(stairs) do
-		local r = s.rect
-		table.insert(fixed, { floor = s.floor, rect = { r[1], r[2] - 2.5, r[3], r[2] } })
-		table.insert(fixed, { floor = s.floor + 1, rect = { r[1], r[4], r[3], r[4] + 2.5 } })
+		table.insert(fixed, { floor = s.floor, rect = s.entryRect })
+		table.insert(fixed, { floor = s.floor + 1, rect = s.exitRect })
 	end
-	-- machiya facade details (lattice, bamboo fence, pines, menu board) in front of the street wall
-	table.insert(fixed, { floor = 0, rect = { -60, -1.6, 50, 0 } })
-	table.insert(fixed, { floor = 0, rect = { -10.2, -3.6, -7, -1.6 } })
+	points = points or {}
+	local supplier = points.Supplier or (points.x and points) or nil
+	-- machiya facade details (lattice, bamboo fence, pines) in front of the street wall
+	table.insert(fixed, { floor = 0, rect = points.FacadeBand or { -60, -1.6, 50, 0 } })
+	local mb = points.MenuBoard
+	if mb then
+		table.insert(fixed, { floor = 0, rect = { mb.x - 1.6, mb.z - 1, mb.x + 1.6, mb.z + 1 } })
+	end
 	if supplier then
 		table.insert(fixed, { floor = 0, rect = { supplier.x - 1.2, supplier.z - 1.5, supplier.x + 0.3, supplier.z + 1.5 } })
 	end

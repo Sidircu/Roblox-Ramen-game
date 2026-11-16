@@ -146,10 +146,20 @@ function Walls.compute(zones, openings, stairs)
 		-- railing around stair holes on this floor (stairs that start on floor - 1)
 		for _, s in ipairs(stairs) do
 			if s.floor == floor - 1 then
-				local r = s.rect
-				table.insert(rails, { axis = "x", line = r[1], a = r[2], b = r[4], floor = floor, kind = "rail" })
-				table.insert(rails, { axis = "x", line = r[3], a = r[2], b = r[4], floor = floor, kind = "rail" })
-				table.insert(rails, { axis = "z", line = r[2], a = r[1], b = r[3], floor = floor, kind = "rail" })
+				local r = s.hole or s.rect
+				local open = s.exitSide or "z+"
+				if open ~= "x-" then
+					table.insert(rails, { axis = "x", line = r[1], a = r[2], b = r[4], floor = floor, kind = "rail" })
+				end
+				if open ~= "x+" then
+					table.insert(rails, { axis = "x", line = r[3], a = r[2], b = r[4], floor = floor, kind = "rail" })
+				end
+				if open ~= "z-" then
+					table.insert(rails, { axis = "z", line = r[2], a = r[1], b = r[3], floor = floor, kind = "rail" })
+				end
+				if open ~= "z+" then
+					table.insert(rails, { axis = "z", line = r[4], a = r[1], b = r[3], floor = floor, kind = "rail" })
+				end
 			end
 		end
 		local _ = below

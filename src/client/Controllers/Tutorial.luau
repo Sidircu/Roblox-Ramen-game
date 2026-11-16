@@ -107,6 +107,14 @@ local function advance()
 		local s = Core.C.Data.w("stats")
 		Tutorial.dishesAtStart = s and s.dishes or 0
 	end
+	-- the first order opens its guide by itself (steps, ticks and the green arrow)
+	if STEPS[index].key == "tut.ingredients" then
+		local tk = (Core.C.Data.tickets or {})[1]
+		local guide = Core.C.UI.screens.Guide
+		if tk and guide and not guide.visible() then
+			guide.show(tk.recipe)
+		end
+	end
 	save()
 	show()
 end
@@ -132,7 +140,13 @@ end
 
 function Tutorial.Init()
 	local gui = Core.C.UI.root()
-	panel = Kit.panel({ AnchorPoint = Vector2.new(0, 0), Position = UDim2.fromOffset(12, 112), Size = UDim2.fromOffset(330, 150), Visible = false, Parent = gui })
+	-- big card on the right (the left side holds the orders and their guide)
+	panel = Kit.panel({ AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 52), Size = UDim2.fromOffset(340, 168), Visible = false, Parent = gui })
+	local stroke = panel:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		stroke.Color = T.gold
+		stroke.Thickness = 4
+	end
 	Kit.padding(12, 10).Parent = panel
 	stepLabel = Kit.label("", { Parent = panel, Size = UDim2.new(1, 0, 0, 20), TextSize = 14, TextColor3 = T.muted, FontFace = T.bold })
 	text = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(0, 22), Size = UDim2.new(1, 0, 1, -62), TextSize = 17, TextYAlignment = Enum.TextYAlignment.Top })
@@ -210,7 +224,11 @@ function Tutorial.Start()
 			if root and a0.Parent ~= root then
 				a0.Parent = root
 			end
+			local guide = Core.C.UI.screens.Guide
 			local target = st.target and findTarget(st.target)
+			if guide and guide.visible() then
+				target = nil
+			end
 			if target then
 				holder.Position = target:GetPivot().Position + Vector3.new(0, 2, 0)
 				marker.Adornee = holder

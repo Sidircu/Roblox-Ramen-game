@@ -1,5 +1,7 @@
 --!nonstrict
--- Always-visible HUD: wallet, level, clock/day controls, rating, tickets, hands and menu bar.
+-- Always-visible HUD, kept small: wallet and level (top-left), day bar with an open / closed
+-- switch (top-centre), rating line (top-right), order tickets (left), what you hold (bottom),
+-- build / supplier / phone (bottom-left).
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 
@@ -19,19 +21,12 @@ local t = Locale.t
 local refs = {}
 local player = Players.LocalPlayer
 
+-- Always on screen: the two most used actions and the phone (bottom-left). Everything else is an
+-- app on the phone, ordered by how often it is needed (see Screens/Phone).
 local BUTTONS = {
 	{ id = "Build", icon = "🔨", key = "ui.build", build = true },
 	{ id = "Supplier", icon = "📦", key = "ui.supplier", build = true },
-	{ id = "Menu", icon = "📜", key = "ui.menu" },
-	{ id = "Licenses", icon = "🎫", key = "ui.licenses" },
-	{ id = "Upgrades", icon = "⬆️", key = "ui.upgrades" },
-	{ id = "Staff", icon = "👥", key = "ui.staff" },
-	{ id = "Expansions", icon = "🏗️", key = "ui.expansions" },
-	{ id = "Goals", icon = "🎯", key = "ui.goals" },
-	{ id = "Shop", icon = "🛒", key = "ui.shop" },
-	{ id = "Invite", icon = "👋", key = "ui.invite" },
-	{ id = "Settings", icon = "⚙️", key = "ui.settings" },
-	{ id = "Dev", icon = "🛠️", key = "ui.dev", dev = true },
+	{ id = "Phone", icon = "📱", key = "ui.phone" },
 }
 
 local function lang()
@@ -47,24 +42,30 @@ local function open(id)
 	UIc.toggle(id)
 end
 
+-- Small rounded pill used by the compact top bar
+local function pill(props)
+	local f = Kit.new("Frame", props, { Kit.corner(18), Kit.stroke(T.wood, 2, 0.2), Kit.sheen(0.9) })
+	f.BackgroundColor3 = props.BackgroundColor3 or T.paper
+	return f
+end
+
 function HUD.create(root)
 	local top = Kit.new("Frame", { Name = "HUD", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Parent = root })
 	HUD.frame = top
-	-- wallet & level (top-left)
-	local wallet = Kit.panel({ Size = UDim2.fromOffset(250, 92), Position = UDim2.fromOffset(12, 10), Parent = top })
-	Kit.padding(10, 8).Parent = wallet
-	refs.yen = Kit.label("¥0", { Parent = wallet, Size = UDim2.new(1, 0, 0, 28), TextSize = 26, FontFace = T.title, TextColor3 = T.wood })
-	refs.sakura = Kit.label("🌸0", { Parent = wallet, Position = UDim2.fromOffset(150, 2), Size = UDim2.fromOffset(80, 24), TextSize = 18, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Right })
-	refs.level = Kit.label("", { Parent = wallet, Position = UDim2.fromOffset(0, 32), Size = UDim2.new(1, 0, 0, 20), TextSize = 16, FontFace = T.bold })
-	local bar, fill = Kit.bar(0, T.gold, { Parent = wallet, Position = UDim2.fromOffset(0, 56), Size = UDim2.new(1, 0, 0, 12) })
+	-- wallet & level (top-left, compact)
+	local wallet = pill({ Size = UDim2.fromOffset(236, 54), Position = UDim2.fromOffset(10, 8), Parent = top })
+	refs.yen = Kit.label("¥0", { Parent = wallet, Position = UDim2.fromOffset(14, 3), Size = UDim2.fromOffset(140, 26), TextSize = 22, FontFace = T.title, TextColor3 = T.wood })
+	refs.sakura = Kit.label("🌸0", { Parent = wallet, Position = UDim2.new(1, -86, 0, 5), Size = UDim2.fromOffset(74, 22), TextSize = 16, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Right })
+	refs.level = Kit.label("", { Parent = wallet, Position = UDim2.fromOffset(14, 30), Size = UDim2.fromOffset(70, 18), TextSize = 13, FontFace = T.bold, TextColor3 = T.muted })
+	local bar, fill = Kit.bar(0, T.gold, { Parent = wallet, Position = UDim2.fromOffset(84, 35), Size = UDim2.new(1, -100, 0, 8) })
 	refs.xpFill = fill
 	local _ = bar
-	-- day / clock (top-center)
-	local day = Kit.panel({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10), Size = UDim2.fromOffset(330, 70), Parent = top })
-	refs.clock = Kit.label("", { Parent = day, Position = UDim2.fromOffset(12, 6), Size = UDim2.fromOffset(160, 26), TextSize = 22, FontFace = T.title, TextColor3 = T.wood })
-	refs.dayInfo = Kit.label("", { Parent = day, Position = UDim2.fromOffset(12, 36), Size = UDim2.fromOffset(170, 24), TextSize = 16 })
+	-- day bar (top-centre): clock, day and a small open / closed switch
+	local day = pill({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8), Size = UDim2.fromOffset(300, 36), Parent = top })
+	refs.clock = Kit.label("", { Parent = day, Position = UDim2.fromOffset(14, 0), Size = UDim2.fromOffset(76, 36), TextSize = 17, FontFace = T.title, TextColor3 = T.wood, TextYAlignment = Enum.TextYAlignment.Center })
+	refs.dayInfo = Kit.label("", { Parent = day, Position = UDim2.fromOffset(92, 0), Size = UDim2.fromOffset(96, 36), TextSize = 14, TextColor3 = T.muted, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
 	refs.dayButton = Kit.button("", {
-		size = UDim2.fromOffset(140, 50), position = UDim2.new(1, -150, 0, 10), style = "green", textSize = 16,
+		size = UDim2.fromOffset(104, 26), position = UDim2.new(1, -110, 0, 5), style = "green", textSize = 13, radius = 13,
 		onClick = function()
 			local phase = Core.C.Data.day.phase
 			if phase == "prep" then
@@ -77,34 +78,29 @@ function HUD.create(root)
 		end,
 	})
 	refs.dayButton.Parent = day
-	-- rating & ambience (top-right)
-	local info = Kit.panel({ AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 10), Size = UDim2.fromOffset(230, 70), Parent = top })
-	refs.rating = Kit.label("", { Parent = info, Position = UDim2.fromOffset(12, 6), Size = UDim2.new(1, -24, 0, 24), TextSize = 20, FontFace = T.bold })
-	refs.ambience = Kit.label("", { Parent = info, Position = UDim2.fromOffset(12, 36), Size = UDim2.new(1, -24, 0, 22), TextSize = 15, TextColor3 = T.muted })
-	-- tickets (right)
-	refs.tickets = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 90), Size = UDim2.fromOffset(200, 460), Parent = top }, { Kit.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Right) })
-	-- hands (bottom-center, above the bar)
-	refs.hands = Kit.panel({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -96), Size = UDim2.fromOffset(380, 46), Visible = false, Parent = top })
-	refs.handsLabel = Kit.label("", { Parent = refs.hands, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -120, 1, 0), TextSize = 17, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center })
-	Kit.button("🗑️ " .. t("ui.drop"), {
-		parent = refs.hands, size = UDim2.fromOffset(100, 34), position = UDim2.new(1, -106, 0, 6), style = "plain", textSize = 15,
+	-- rating, ambience and plates (top-right, one line)
+	local info = pill({ AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 8), Size = UDim2.fromOffset(268, 36), Parent = top })
+	refs.rating = Kit.label("", { Parent = info, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -24, 1, 0), TextSize = 14, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
+	refs.ambience = refs.rating
+	refs.dishes = refs.rating
+	-- order tickets (left, under the wallet): click one to see how to make it
+	refs.tickets = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 70), Size = UDim2.fromOffset(196, 420), Parent = top }, { Kit.list(Enum.FillDirection.Vertical, 5) })
+	-- what you are holding (bottom-centre) with a put-down button
+	refs.hands = pill({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Size = UDim2.fromOffset(360, 40), Visible = false, Parent = top })
+	refs.handsLabel = Kit.label("", { Parent = refs.hands, Position = UDim2.fromOffset(14, 0), Size = UDim2.new(1, -130, 1, 0), TextSize = 15, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
+	Kit.button("⬇ " .. t("ui.drop"), {
+		parent = refs.hands, size = UDim2.fromOffset(110, 28), position = UDim2.new(1, -116, 0, 6), style = "plain", textSize = 13, radius = 14,
 		onClick = function()
 			NetDef.event("DropHands"):FireServer()
 		end,
 	})
-	-- dishes + hint (bottom-left)
-	refs.dishes = Kit.label("", { Parent = top, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 14, 1, -96), Size = UDim2.fromOffset(240, 24), TextSize = 17, FontFace = T.bold, TextStrokeTransparency = 0.6, TextColor3 = T.white })
-	-- bottom bar
-	local barFrame = Kit.panel({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -10), Size = UDim2.new(0.96, 0, 0, 78), BackgroundColor3 = T.wood, Parent = top })
-	local scroll = Kit.new("ScrollingFrame", {
-		BackgroundTransparency = 1, Size = UDim2.new(1, -12, 1, -8), Position = UDim2.fromOffset(6, 4), ScrollingDirection = Enum.ScrollingDirection.X,
-		ScrollBarThickness = 4, AutomaticCanvasSize = Enum.AutomaticSize.X, CanvasSize = UDim2.new(0, 0, 0, 0), Parent = barFrame,
-	}, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Center) })
+	-- main actions (bottom-left): build, order supplies, phone
+	local dock = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 10, 1, -10), Size = UDim2.fromOffset(222, 70), Parent = top }, { Kit.list(Enum.FillDirection.Horizontal, 8, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Bottom) })
 	refs.buttons = {}
 	for i, b in ipairs(BUTTONS) do
-		local btn = Kit.new("TextButton", { Size = UDim2.fromOffset(78, 66), BackgroundColor3 = T.paper, Text = "", LayoutOrder = i, Parent = scroll }, { Kit.corner(10) })
-		Kit.label(b.icon, { Parent = btn, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromOffset(0, 4), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
-		local lbl = Kit.label("", { Parent = btn, Size = UDim2.new(1, -4, 0, 22), Position = UDim2.fromOffset(2, 40), TextSize = 13, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
+		local btn = Kit.new("TextButton", { Size = UDim2.fromOffset(66, 66), BackgroundColor3 = T.paper, Text = "", LayoutOrder = i, Parent = dock }, { Kit.corner(16), Kit.stroke(T.wood, 2, 0.1), Kit.sheen(0.88) })
+		Kit.label(b.icon, { Parent = btn, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromOffset(0, 5), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
+		local lbl = Kit.label("", { Parent = btn, Size = UDim2.new(1, -4, 0, 18), Position = UDim2.fromOffset(2, 43), TextSize = 12, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
 		btn.MouseButton1Click:Connect(function()
 			if Core.C.Audio then
 				Core.C.Audio.play("ui")
@@ -115,6 +111,12 @@ function HUD.create(root)
 	end
 	player:GetAttributeChangedSignal("Hands"):Connect(HUD.refreshHands)
 	player:GetAttributeChangedSignal("HandsKind"):Connect(HUD.refreshHands)
+	-- G puts down what you hold (keyboard)
+	game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+		if not processed and input.KeyCode == Enum.KeyCode.G and refs.hands.Visible then
+			NetDef.event("DropHands"):FireServer()
+		end
+	end)
 	task.spawn(function()
 		while true do
 			task.wait(1)
@@ -151,34 +153,38 @@ end
 function HUD.day(state)
 	local phase = state.phase
 	refs.clock.Text = "🕒 " .. Format.clock(state.clock or 9.5)
-	refs.dayInfo.Text = t("ui.day_n", { n = state.day or 1 }) .. " · " .. t("day." .. phase)
+	refs.dayInfo.Text = t("ui.day_n", { n = state.day or 1 })
 	local b = refs.dayButton
 	if phase == "prep" then
-		b.Text = t("ui.open_restaurant")
-		b.BackgroundColor3 = T.green
-	elseif phase == "open" then
-		b.Text = t("ui.close_early")
+		b.Text = "● " .. t("ui.closed_tap")
 		b.BackgroundColor3 = T.red
+	elseif phase == "open" then
+		b.Text = "● " .. t("ui.open_tap")
+		b.BackgroundColor3 = T.green
 	elseif phase == "closing" then
 		b.Text = t("ui.closing")
 		b.BackgroundColor3 = T.locked
 	else
-		b.Text = t("ui.see_report")
+		b.Text = "📊 " .. t("ui.report_short")
 		b.BackgroundColor3 = T.gold
 	end
-	b.Visible = Core.C.Data.canBuild() or phase == "report"
+	b.Active = Core.C.Data.canBuild() or phase == "report"
+	b.AutoButtonColor = b.Active
 end
 
 function HUD.refreshInfo()
 	local rating = workspace:GetAttribute("Rating") or 3
-	local stars = string.rep("★", math.floor(rating + 0.5)) .. string.rep("☆", 5 - math.floor(rating + 0.5))
-	refs.rating.Text = stars .. "  " .. Format.decimal(rating, 1, lang())
 	local tier = workspace:GetAttribute("AmbienceTier") or 0
-	refs.ambience.Text = t("ui.ambience") .. ": " .. t("amb.tier" .. tier) .. " (" .. (workspace:GetAttribute("Ambience") or 0) .. ")"
+	local text = "★ " .. Format.decimal(rating, 1, lang()) .. "   ✨ " .. t("amb.tier" .. tier)
 	local d = Core.C.Data.w("dishes")
 	if d then
-		refs.dishes.Text = "🍽️ " .. t("ui.dishes_clean", { clean = d.clean, total = d.total }) .. "   🧽 " .. (workspace:GetAttribute("SinkPile") or 0)
+		text ..= "   🍽️ " .. d.clean .. "/" .. d.total
+		local pile = workspace:GetAttribute("SinkPile") or 0
+		if pile > 0 then
+			text ..= "  🧽" .. pile
+		end
 	end
+	refs.rating.Text = text
 	local day = Core.C.Data.day
 	if day and day.phase == "open" then
 		refs.clock.Text = "🕒 " .. Format.clock(game:GetService("Lighting").ClockTime)
@@ -192,16 +198,26 @@ function HUD.refreshTickets()
 	end
 	Kit.clear(holder)
 	local now = workspace:GetServerTimeNow()
+	local guide = Core.C.UI.screens.Guide
+	local selected = guide and guide.recipe
 	for i, tk in ipairs(Core.C.Data.tickets or {}) do
+		if i > 6 then
+			break
+		end
 		local r = Recipes.byId[tk.recipe]
 		local age = now - (tk.created or now)
 		local col = age < 30 and T.paper or (age < 60 and Kit.Theme.gold or Kit.Theme.red)
-		local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(200, 52), BackgroundColor3 = col, LayoutOrder = i, Parent = holder }, { Kit.corner(8), Kit.stroke(T.wood, 2) })
-		Kit.label((r and r.icon or "🍽️"), { Parent = card, Size = UDim2.fromOffset(40, 40), Position = UDim2.fromOffset(6, 6), TextScaled = true })
-		Kit.label(t("rec." .. tk.recipe), { Parent = card, Position = UDim2.fromOffset(50, 4), Size = UDim2.new(1, -56, 0, 24), TextSize = 16, FontFace = T.bold, TextTruncate = Enum.TextTruncate.AtEnd })
-		Kit.label("⏱ " .. Format.duration(age) .. (tk.claimed and "  👨‍🍳" or ""), { Parent = card, Position = UDim2.fromOffset(50, 26), Size = UDim2.new(1, -56, 0, 20), TextSize = 14, TextColor3 = T.muted })
+		local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(196, 44), BackgroundColor3 = col, LayoutOrder = i, Parent = holder }, { Kit.corner(10), Kit.stroke(selected == tk.recipe and T.red or T.wood, selected == tk.recipe and 3 or 2) })
+		Kit.label((r and r.icon or "🍽️"), { Parent = card, Size = UDim2.fromOffset(32, 32), Position = UDim2.fromOffset(6, 6), TextScaled = true })
+		Kit.label(t("rec." .. tk.recipe), { Parent = card, Position = UDim2.fromOffset(44, 3), Size = UDim2.new(1, -50, 0, 20), TextSize = 14, FontFace = T.bold, TextTruncate = Enum.TextTruncate.AtEnd })
+		Kit.label("⏱ " .. Format.duration(age) .. (tk.claimed and "  👨‍🍳" or "") .. "   " .. t("ui.tap_for_steps"), { Parent = card, Position = UDim2.fromOffset(44, 22), Size = UDim2.new(1, -50, 0, 18), TextSize = 12, TextColor3 = T.muted, TextTruncate = Enum.TextTruncate.AtEnd })
 		card.MouseButton1Click:Connect(function()
-			Core.C.Interaction.highlightRecipe(tk.recipe)
+			if Core.C.UI.screens.Guide then
+				Core.C.UI.screens.Guide.show(tk.recipe)
+			else
+				Core.C.Interaction.highlightRecipe(tk.recipe)
+			end
+			HUD.refreshTickets()
 		end)
 	end
 end
@@ -229,6 +245,24 @@ function HUD.refresh()
 	HUD.day(Data.day)
 	HUD.refreshHands()
 	HUD.refreshInfo()
+end
+
+-- While building, the dock, tickets and hands bar step aside for the catalog
+function HUD.setBuilding(on)
+	if not HUD.frame then
+		return
+	end
+	for _, b in pairs(refs.buttons or {}) do
+		b.button.Parent.Visible = not on
+	end
+	if refs.tickets then
+		refs.tickets.Visible = not on
+	end
+	if on and refs.hands then
+		refs.hands.Visible = false
+	elseif refs.hands then
+		HUD.refreshHands()
+	end
 end
 
 function HUD.open() end

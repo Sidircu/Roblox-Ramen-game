@@ -32,7 +32,7 @@ local function starterPlaced()
 end
 
 local function ctxFor(zones, placed)
-  local geo = Geometry.compute(Expansions.list, zones, Expansions.Supplier)
+  local geo = Geometry.compute(Expansions.list, zones, Expansions)
   return Geometry.ctx(geo, Items.byId, placed, GameConfig), geo
 end
 
@@ -96,7 +96,7 @@ test("walls of the base restaurant", function()
   end
   local kitchenDining = false
   for _, w in ipairs(walls) do
-    if w.axis == "z" and w.line == 16 and w.a < 10 and w.b > -10 then kitchenDining = true end
+    if w.axis == "z" and w.line == 32 and w.a < 10 and w.b > -10 then kitchenDining = true end
   end
   expect(not kitchenDining, "no wall between dining and kitchen")
 end)
@@ -122,23 +122,22 @@ test("placing new objects", function()
   local ctx = ctxFor({ zone_base = true }, placed)
   local ok, reason = Placement.validate(ctx, { i = "bamboo_pot", x = 12, z = 4, r = 0, f = 0, s = "f" })
   expect(ok, "decor in the dining room: " .. tostring(reason))
-  ok = Placement.validate(ctx, { i = "stool_wood", x = 0, z = 22, r = 0, f = 0, s = "f" })
+  ok = Placement.validate(ctx, { i = "stool_wood", x = 0, z = 47, r = 0, f = 0, s = "f" })
   expect(not ok, "stools are not allowed in the kitchen")
   ok = Placement.validate(ctx, { i = "bamboo_pot", x = 0, z = 1, r = 0, f = 0, s = "f" })
   expect(not ok, "the entrance must stay free")
-  ok = Placement.validate(ctx, { i = "bamboo_pot", x = -9, z = 11.9, r = 0, f = 0, s = "f" })
+  ok = Placement.validate(ctx, { i = "bamboo_pot", x = -9, z = 27.8, r = 0, f = 0, s = "f" })
   expect(not ok, "overlap with a stool")
-  ok, reason = Placement.validate(ctx, { i = "kakejiku", x = -17.4, y = 6, z = 6, r = 0, f = 0, s = "w" })
+  ok, reason = Placement.validate(ctx, { i = "kakejiku", x = -35.4, y = 6, z = 6, r = 0, f = 0, s = "w" })
   expect(ok, "scroll on the west wall: " .. tostring(reason))
   ok, reason = Placement.validate(ctx, { i = "chochin_red", x = 10, z = 8, r = 0, f = 0, s = "c" })
   expect(ok, "ceiling lantern: " .. tostring(reason))
-  ok, reason = Placement.validate(ctx, { i = "daruma", x = -4, z = 14.5, r = 0, f = 0, s = "t", p = "p3" })
+  ok, reason = Placement.validate(ctx, { i = "daruma", x = -6, z = 30.4, r = 0, f = 0, s = "t", p = "p3" })
   expect(ok, "daruma on the counter: " .. tostring(reason))
   -- wall of counters closing the dining room off from the kitchen must be refused
   local blockers = table.clone(placed)
-  for k = 0, 6 do table.insert(blockers, { u = "b" .. k, i = "counter_straight", x = 6 + k * 4 >= 18 and 16 or 6 + k * 4, z = 14.5, r = 0, f = 0, s = "f" }) end
   local _ = blockers
-  ok = Placement.validate(ctx, { i = "counter_straight", x = 6.5, z = 14.5, r = 0, f = 0, s = "f" })
+  ok = Placement.validate(ctx, { i = "counter_straight", x = 4.5, z = 30.4, r = 0, f = 0, s = "f" })
   expect(ok, "a counter next to the others is fine")
 end)
 
@@ -150,9 +149,9 @@ test("full restaurant geometry", function()
   expect(ok, "path with every zone: " .. tostring(reason))
   ok, reason = Placement.validate(ctx, { i = "table_4", x = 0, z = 8, r = 0, f = 1, s = "f" })
   expect(ok, "table on the second floor: " .. tostring(reason))
-  ok, reason = Placement.validate(ctx, { i = "sakura_tree", x = -6, z = 38, r = 0, f = 0, s = "f" })
+  ok, reason = Placement.validate(ctx, { i = "sakura_tree", x = -12, z = 74, r = 0, f = 0, s = "f" })
   expect(ok, "tree in the garden: " .. tostring(reason))
-  ok, reason = Placement.validate(ctx, { i = "zashiki_table", x = -42, z = 37, r = 0, f = 0, s = "f" })
+  ok, reason = Placement.validate(ctx, { i = "zashiki_table", x = -84, z = 72, r = 0, f = 0, s = "f" })
   expect(ok, "VIP table in the tatami room: " .. tostring(reason))
 end)
 
@@ -190,14 +189,15 @@ test("blocking the way to the kitchen is refused", function()
   local placed = starterPlaced()
   local ctx = ctxFor({ zone_base = true }, placed)
   local layout = table.clone(placed)
-  -- close both gaps beside the counter (x -18..-12 and 4..18)
+  -- close both gaps beside the counter (x -36..-14 and 2..36)
   local function add(i, x)
-    table.insert(layout, { u = "blk" .. #layout, i = i, x = x, z = 14.5, r = 0, f = 0, s = "f" })
+    table.insert(layout, { u = "blk" .. #layout, i = i, x = x, z = 30.4, r = 0, f = 0, s = "f" })
   end
-  add("counter_straight", -15.6)
-  add("counter_end", -12.8)
-  for x = 6, 14, 4 do add("counter_straight", x) end
-  add("counter_end", 16.6)
+  for x = -34, -18, 4 do add("counter_straight", x) end
+  add("counter_end", -15)
+  for x = 4, 28, 4 do add("counter_straight", x) end
+  add("counter_straight", 32)
+  add("counter_end", 35)
   local ok = Placement.pathOk(ctx, layout)
   expect(not ok, "a closed counter must block the kitchen")
   -- a 1.6 stud gap is too narrow, a wide opening keeps the kitchen reachable
@@ -210,7 +210,7 @@ end)
 
 test("wall objects need an inside wall", function()
   local ctx = ctxFor({ zone_base = true }, starterPlaced())
-  local ok = Placement.validate(ctx, { i = "kakejiku", x = -18.6, y = 6, z = 6, r = 0, f = 0, s = "w" })
+  local ok = Placement.validate(ctx, { i = "kakejiku", x = -36.6, y = 6, z = 6, r = 0, f = 0, s = "w" })
   expect(not ok, "the outside of the building is not a valid wall")
   ok = Placement.validate(ctx, { i = "kakejiku", x = 0, y = 6, z = 0.55, r = 0, f = 0, s = "w" })
   expect(not ok, "not over the entrance")
@@ -235,7 +235,7 @@ test("renovations are cosmetic and map to detail styles", function()
   local all = Expansions.allStyles()
   for _, k in ipairs({ "counter", "kitchen", "tableware", "furnish" }) do expect(all[k], "style " .. k) end
   -- geometry is identical with or without renovations
-  local plain = Geometry.compute(Expansions.list, { zone_base = true }, Expansions.Supplier)
-  local reno = Geometry.compute(Expansions.list, { zone_base = true, reno_facade = true, reno_beams = true }, Expansions.Supplier)
+  local plain = Geometry.compute(Expansions.list, { zone_base = true }, Expansions)
+  local reno = Geometry.compute(Expansions.list, { zone_base = true, reno_facade = true, reno_beams = true }, Expansions)
   expect(#plain.zones == #reno.zones and #plain.openings == #reno.openings, "renovations do not add rooms")
 end)

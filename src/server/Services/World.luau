@@ -53,10 +53,15 @@ end
 
 -- Recomputes the unlocked geometry from the owner's data
 function World.recompute(data)
-	local geo = Geometry.compute(Expansions.list, data.zones, Expansions.Supplier)
+	local geo = Geometry.compute(Expansions.list, data.zones, Expansions)
 	World.zones, World.openings, World.stairs, World.expansions = geo.zones, geo.openings, geo.stairs, geo.expansions
 	World.walls = geo.walls
 	World.fixed = geo.fixed
+end
+
+-- Floor index for a world height (players and NPCs standing on that floor)
+function World.floorOf(y)
+	return math.max(0, math.floor((y + 2) / GameConfig.FloorHeight))
 end
 
 function World.zoneAt(x, z, f)

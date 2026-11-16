@@ -62,8 +62,14 @@ function Pathgrid.check(ctx, obstacles, targets, clearance)
 			end)
 		end
 		for _, s in ipairs(ctx.stairs or {}) do
+			local h = s.hole or s.rect
 			if s.floor == floor - 1 then
-				clearBox(s.rect[1], s.rect[2], s.rect[3], s.rect[4])
+				clearBox(h[1], h[2], h[3], h[4])
+			elseif s.floor == floor then
+				-- the stairs themselves are not floor you can walk across
+				for _, r in ipairs(s.rects or { s.rect }) do
+					clearBox(r[1], r[2], r[3], r[4])
+				end
 			end
 		end
 		for _, list in ipairs({ floorWalls.walls, floorWalls.rails }) do
@@ -172,8 +178,10 @@ function Pathgrid.check(ctx, obstacles, targets, clearance)
 	for _, s in ipairs(stairs) do
 		local r = s.rect
 		local cx = (r[1] + r[3]) / 2
-		if isReached(s.floor, cx, r[2] - 0.5, 1.6) then
-			flood(s.floor + 1, cx, r[4] + 1)
+		local entry = s.entry or { x = cx, z = r[2] - 0.5 }
+		local exit = s.exit or { x = cx, z = r[4] + 1 }
+		if isReached(s.floor, entry.x, entry.z, 1.6) then
+			flood(s.floor + 1, exit.x, exit.z)
 		end
 	end
 	local function isReachedRect(floor, rect)

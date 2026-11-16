@@ -110,14 +110,14 @@ HINT = [
 ]
 TUT = [
 ("tut.step","Tutorial {i}/{n}","Tutorial {i}/{n}"),
-("tut.welcome","Welcome to your ramen-ya! Move with WASD or the joystick and click (or tap) things that are close to you.","Benvenuto nel tuo ramen-ya! Muoviti con WASD o con il joystick e clicca (o tocca) le cose vicine a te."),
-("tut.take_box","Go to the storage room and click a box to pick it up.","Vai in magazzino e clicca una scatola per prenderla."),
-("tut.fill_shelf","Bring the box to a shelf behind the counter and click the shelf to restock it.","Porta la scatola a una mensola dietro il bancone e cliccala per rifornirla."),
+("tut.welcome","Welcome to your ramen-ya! Walk with WASD or the joystick, hold the right mouse button (or drag a finger) to turn the camera, and click things close to you.","Benvenuto nel tuo ramen-ya! Cammina con WASD o il joystick, tieni premuto il tasto destro (o trascina un dito) per girare la telecamera e clicca le cose vicine a te."),
+("tut.take_box","Follow the yellow arrow to the storage room and click a box to pick it up.","Segui la freccia gialla fino al magazzino e clicca una scatola per prenderla."),
+("tut.fill_shelf","Carry the box to a shelf in the kitchen and click the shelf: the box fills every free spot. G (or ⬇) puts a box down.","Porta la scatola a uno scaffale della cucina e clicca lo scaffale: la scatola riempie tutti gli spazi liberi. G (o ⬇) appoggia la scatola a terra."),
 ("tut.rice","Take a box of rice and click the rice cooker: the rice cooks by itself.","Prendi una scatola di riso e clicca il rice cooker: il riso cuoce da solo."),
 ("tut.broth","Take a box of shoyu broth and click the broth pot.","Prendi una scatola di brodo shoyu e clicca il pentolone."),
-("tut.open","Click 'Open restaurant' at the top to let customers in.","Clicca 'Apri il ristorante' in alto per far entrare i clienti."),
-("tut.order","A customer has a ❗: click them to take the order. The ticket appears on the right.","Un cliente ha un ❗: cliccalo per prendere l'ordine. Il biglietto compare a destra."),
-("tut.ingredients","Click the ticket to see the ingredients, then take them from the shelves (click a shelf slot).","Clicca il biglietto per vedere gli ingredienti, poi prendili dalle mensole (clicca uno slot)."),
+("tut.open","Tap the red CLOSED switch at the top: it turns green (OPEN) and customers arrive.","Tocca l'interruttore rosso CHIUSO in alto: diventa verde (APERTO) e arrivano i clienti."),
+("tut.order","A customer has a ❗: click them to take the order. The order appears on the left.","Un cliente ha un ❗: cliccalo per prendere l'ordine. L'ordine compare a sinistra."),
+("tut.ingredients","Tap the order on the left: the guide shows each step and the green arrow shows where to go. Take the highlighted ingredients from the shelves.","Tocca l'ordine a sinistra: la guida mostra ogni passaggio e la freccia verde ti dice dove andare. Prendi dagli scaffali gli ingredienti evidenziati."),
 ("tut.cook","Click the right station to put the ingredients down, then click again for each step: the knife cuts, the ingredients combine!","Clicca la postazione giusta per posare gli ingredienti, poi clicca di nuovo per ogni passaggio: il coltello taglia, gli ingredienti si uniscono!"),
 ("tut.serve","Click the dish to pick it up and click the customer to serve it.","Clicca il piatto per prenderlo e clicca il cliente per servirlo."),
 ("tut.collect","When they leave, click the dirty dishes to collect them.","Quando se ne va, clicca le stoviglie sporche per raccoglierle."),
@@ -165,4 +165,47 @@ MSG += [
 ("zonedesc.reno_bamboo","Curved bamboo fence along the street front","Recinzione curva in bambù lungo la facciata"),
 ("zone.reno_furnish","Fine furnishing","Rifiniture degli arredi"),
 ("zonedesc.reno_furnish","Cushions, brass trims, kumiko screens on booths and a red felt runner","Cuscini, finiture in ottone, grate kumiko sui box e telo rosso sulla panca"),
+]
+# Boxes and products: always say where things went
+MSG += [
+("msg.restocked","📦 +{n} {name} on the shelf. Box empty!","📦 +{n} {name} sullo scaffale. Scatola finita!"),
+("msg.restocked_left","📦 +{n} {name} on the shelf. {left} left in the box: fill another shelf.","📦 +{n} {name} sullo scaffale. Nella scatola ne restano {left}: riempi un altro scaffale."),
+("msg.box_on_floor","📦 Box put down in front of you. Click it to pick it up again.","📦 Scatola appoggiata a terra davanti a te. Cliccala per riprenderla."),
+("msg.box_on_rack","📦 Box put back on the storage rack.","📦 Scatola rimessa sulla scaffalatura del magazzino."),
+("msg.ing_returned","↩️ Put back on the shelf ({n}).","↩️ Rimesso sullo scaffale ({n})."),
+("msg.ing_discarded","🗑️ No room on the shelves: {n} thrown away.","🗑️ Niente posto sugli scaffali: {n} buttati via."),
+("msg.dish_to_sink","🍽️ The plate went to the sink.","🍽️ Il piatto è andato al lavello."),
+]
+# Compact HUD and phone
+UI += [
+("ui.phone","Phone","Telefono"),("ui.howto","How to play","Come si gioca"),
+("ui.closed_tap","CLOSED","CHIUSO"),("ui.open_tap","OPEN","APERTO"),("ui.report_short","Report","Resoconto"),
+("ui.tap_for_steps","tap: steps","tocca: passaggi"),
+]
+# Compact build mode
+UI += [
+("ui.place","Place","Piazza"),
+("ui.place_howto_pc","Point at the floor · Left click: place · R: rotate · Right click / Q: cancel","Punta il pavimento · Clic sinistro: piazza · R: ruota · Clic destro / Q: annulla"),
+("ui.place_howto_touch","Tap where you want it, then press ✔ Place","Tocca dove vuoi metterlo, poi premi ✔ Piazza"),
+("ui.selected_howto","Move it, rotate it, put it in the inventory or sell it","Puoi spostarlo, ruotarlo, riporlo nell'inventario o venderlo"),
+]
+# Camera settings
+UI += [
+("ui.camera","Camera","Telecamera"),("ui.cam_game","Smooth","Morbida"),("ui.cam_speed","Camera speed","Velocità telecamera"),
+("ui.slow","Slow","Lenta"),("ui.medium","Medium","Media"),("ui.fast","Fast","Veloce"),
+]
+# Order guide (left, opened from an order ticket)
+UI += [
+("guide.rice","Rice ready in the rice cooker","Riso pronto nel cuociriso"),
+("guide.rice_how","Bring a box of rice to the rice cooker and click it","Porta una scatola di riso al cuociriso e cliccalo"),
+("guide.broth","{name} in the broth pot","{name} nel pentolone"),
+("guide.broth_how","Bring a box of that broth to the pot and click it","Porta una scatola di quel brodo al pentolone e cliccalo"),
+("guide.take","Take from the shelves:","Prendi dagli scaffali:"),
+("guide.no_stock","No {name} on the shelves","Niente {name} sugli scaffali"),
+("guide.no_stock_how","Fill a shelf from a box in storage (or order with 📦)","Riempi uno scaffale da una scatola del magazzino (o ordina con 📦)"),
+("guide.put","Click the {station} to put them down","Clicca la {station} per posarli"),
+("guide.click_steps","Click it {n} more times","Cliccala ancora {n} volte"),
+("guide.no_station","Buy this station in 🔨 Build","Compra questa postazione in 🔨 Costruisci"),
+("guide.pick","Take the dish from the station","Prendi il piatto dalla postazione"),
+("guide.serve","Click the customer to serve it","Clicca il cliente per servirlo"),
 ]

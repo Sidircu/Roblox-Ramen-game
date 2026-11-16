@@ -353,18 +353,18 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 
 | ID | Espansione | Liv. | Costo | Dimensioni (stud) | Note |
 |---|---|---|---|---|---|
-| `zone_base` | Locale base | 1 | — | sala+cucina 36×28, magazzino 12×12 | bancone 6 posti |
-| `zone_east` | Sala Est | 3 | ¥5.000 | +16×28 | sblocca i tavoli |
-| `zone_storage2` | Magazzino ampliato | 5 | ¥8.000 | +12×12 | |
-| `zone_west` | Sala Ovest | 8 | ¥25.000 | +16×28 | |
-| `zone_terrace` | Terrazza esterna | 12 | ¥60.000 | 36×12 sulla strada | esterno |
-| `zone_garden` | Giardino zen | 15 | ¥100.000 | 24×18 sul retro | esterno |
-| `zone_tatami` | Sala tatami privata | 18 | ¥180.000 | 16×16 | clienti VIP |
-| `zone_kitchen_pro` | Cucina professionale | 20 | ¥250.000 | +12×28 di cucina | +3 posti personale |
-| `zone_floor2` | Secondo piano | 25 | ¥600.000 | 52×28 + scala | +3 posti personale |
+| `zone_base` | Locale base | 1 | — | sala 72×32 + cucina 72×24, magazzino 24×32 | bancone 6 posti |
+| `zone_east` | Sala Est | 3 | ¥5.000 | +32×32 | sblocca i tavoli |
+| `zone_storage2` | Magazzino ampliato | 5 | ¥8.000 | +24×32 | |
+| `zone_west` | Sala Ovest | 8 | ¥25.000 | +32×56 | |
+| `zone_terrace` | Terrazza esterna | 12 | ¥60.000 | 72×10 sulla strada | esterno |
+| `zone_garden` | Giardino zen | 15 | ¥100.000 | 48×36 sul retro | esterno |
+| `zone_tatami` | Sala tatami privata | 18 | ¥180.000 | 32×32 | clienti VIP |
+| `zone_kitchen_pro` | Cucina professionale | 20 | ¥250.000 | +32×24 di cucina | +3 posti personale |
+| `zone_floor2` | Secondo piano | 25 | ¥600.000 | 72×56 + scala ad angolo larga 6 | +3 posti personale |
 | `sign_rooftop` | Insegna gigante | 28 | ¥500.000 | — | +0,3 popolarità |
 | `facade_deluxe` | Facciata deluxe | 30 | ¥1.000.000 | — | +60 ambiente |
-| `zone_rooftop` | Terrazza sul tetto | 35 | ¥2.000.000 | 52×28 esterno | vista, fuochi d'artificio |
+| `zone_rooftop` | Terrazza sul tetto | 35 | ¥2.000.000 | 72×56 esterno + scala ad angolo | vista, fuochi d'artificio |
 
 ### 8.1 Ristrutturazioni (estetiche, `reno` in `Config/Expansions.luau`)
 Il locale iniziale è spoglio. Ogni ristrutturazione si compra una volta; l'atmosfera si somma come quella delle decorazioni. Le voci con *stile* aggiungono il gruppo `Detail_<stile>` ai modelli piazzati.

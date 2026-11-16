@@ -264,7 +264,7 @@ function SelfTest.run(player)
 		local ctx = S.World.ctx(d.placed)
 		local ok, reason = PlacementLogic.validate(ctx, { i = "bamboo_pot", x = 12, z = 4, r = 0, f = 0, s = "f" })
 		assert(ok, "valid spot refused: " .. tostring(reason))
-		ok = PlacementLogic.validate(ctx, { i = "stool_wood", x = 0, z = 22, r = 0, f = 0, s = "f" })
+		ok = PlacementLogic.validate(ctx, { i = "stool_wood", x = 0, z = 47, r = 0, f = 0, s = "f" })
 		assert(not ok, "stool in the kitchen accepted")
 	end)
 

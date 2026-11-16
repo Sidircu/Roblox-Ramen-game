@@ -254,6 +254,12 @@ function Meta.Init()
 		autoDay = function(v)
 			return type(v) == "boolean"
 		end,
+		cam = function(v)
+			return v == "game" or v == "roblox"
+		end,
+		camSpeed = function(v)
+			return type(v) == "number" and v >= 0.3 and v <= 2
+		end,
 	}
 	Net.on("SetSetting", function(player, key, value)
 		local d = Core.S.Data.get(player)

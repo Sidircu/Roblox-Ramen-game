@@ -19,7 +19,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 1
+local VERSION = 2
 local profiles = {} -- [player] = { data, key, loaded, saving }
 local store = nil
 local storeOk = false
@@ -62,7 +62,7 @@ function Data.newProfile()
 		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0 },
 		franchise = { stars = 0, city = "tokyo" },
 		perms = {},
-		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, autoDay = false },
+		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, autoDay = false, cam = "game", camSpeed = 1 },
 		passes = {},
 		receipts = {},
 		created = os.time(),
@@ -101,7 +101,37 @@ end
 
 local function migrate(d)
 	d.v = d.v or 1
-	-- future migrations: if d.v < 2 then ... d.v = 2 end
+	if d.v < 2 then
+		-- v2: the restaurant is twice as big. Bought objects go to the inventory, the starter
+		-- layout is rebuilt at the new size, shelf stock goes back into boxes.
+		d.inventory = d.inventory or {}
+		d.storage = d.storage or {}
+		local starter = {}
+		for _, s in ipairs(StarterLayout.items) do
+			starter[s.i] = (starter[s.i] or 0) + 1
+		end
+		for _, e in ipairs(d.placed or {}) do
+			if (starter[e.i] or 0) > 0 then
+				starter[e.i] -= 1
+			else
+				d.inventory[e.i] = (d.inventory[e.i] or 0) + 1
+			end
+		end
+		for _, slots in pairs(d.shelves or {}) do
+			for _, slot in pairs(slots) do
+				if slot.g and (slot.n or 0) > 0 then
+					table.insert(d.storage, { u = Uid.new("b"), g = slot.g, n = slot.n })
+				end
+			end
+		end
+		for _, b in ipairs(d.storage) do
+			b.px, b.pz, b.pf, b.pr, b.h = nil, nil, nil, nil, nil
+		end
+		d.placed = Data.newProfile().placed
+		d.shelves = {}
+		d.appliances = {}
+		d.v = 2
+	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION
 	return d

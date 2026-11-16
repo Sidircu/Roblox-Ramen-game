@@ -90,7 +90,8 @@ function Placement.pathTargets(ctx, placed)
 	end
 	for _, s in ipairs(ctx.stairs or {}) do
 		local r = s.rect
-		table.insert(targets, { floor = s.floor, x = (r[1] + r[3]) / 2, z = r[2] - 0.5, radius = 1.6, label = "msg.place_blocks_stairs" })
+		local entry = s.entry or { x = (r[1] + r[3]) / 2, z = r[2] - 0.5 }
+		table.insert(targets, { floor = s.floor, x = entry.x, z = entry.z, radius = 1.6, label = "msg.place_blocks_stairs" })
 	end
 	for _, t in ipairs(ctx.extraTargets or {}) do
 		table.insert(targets, t)
@@ -146,7 +147,17 @@ function Placement.validate(ctx, req, skipPath)
 			end
 		end
 		for _, s in ipairs(ctx.stairs or {}) do
-			if (s.floor == f or s.floor == f - 1) and Footprint.overlaps(fp, Footprint.rectToFp(s.rect), 0.02) then
+			local blocked = false
+			if s.floor == f then
+				for _, r in ipairs(s.rects or { s.rect }) do
+					if Footprint.overlaps(fp, Footprint.rectToFp(r), 0.02) then
+						blocked = true
+					end
+				end
+			elseif s.floor == f - 1 and Footprint.overlaps(fp, Footprint.rectToFp(s.hole or s.rect), 0.02) then
+				blocked = true
+			end
+			if blocked then
 				return false, "msg.place_stairs"
 			end
 		end
