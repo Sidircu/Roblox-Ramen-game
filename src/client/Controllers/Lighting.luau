@@ -13,7 +13,8 @@ local lights = {}
 
 local DAY = { ambient = Color.hex("#8C8478"), outdoor = Color.hex("#9C9488"), top = Color.hex("#FFF3E0"), bright = 2.4, atm = Color.hex("#C9D9E8"), decay = Color.hex("#8FA8C0"), tint = Color.hex("#FFF6EC") }
 local SUNSET = { ambient = Color.hex("#8A6A5A"), outdoor = Color.hex("#A0786A"), top = Color.hex("#FFB070"), bright = 1.6, atm = Color.hex("#F0B08A"), decay = Color.hex("#A06A6A"), tint = Color.hex("#FFE2C8") }
-local NIGHT = { ambient = Color.hex("#3A3A58"), outdoor = Color.hex("#2E3450"), top = Color.hex("#6A78B0"), bright = 0.5, atm = Color.hex("#2A3050"), decay = Color.hex("#1A1E38"), tint = Color.hex("#D8DCFF") }
+-- night: blue sky outside, but a warm, cosy grade so lanterns and pendants glow amber
+local NIGHT = { ambient = Color.hex("#4A4050"), outdoor = Color.hex("#2E3450"), top = Color.hex("#6A78B0"), bright = 0.5, atm = Color.hex("#2A3050"), decay = Color.hex("#1A1E38"), tint = Color.hex("#FFE9D4") }
 
 local function blend(a, b, k)
 	return {

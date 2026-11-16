@@ -336,7 +336,8 @@ Con la **Cassaforte** il ristorante produce una parte del guadagno anche quando 
 - **Missioni giornaliere** (3 al giorno): "Servi 20 ramen", "Servi 10 piatti a clienti ancora sereni", "Guadagna ¥5.000 di mance".
 - **Obiettivi permanenti** (traguardi): con ricompense in gettoni e titoli.
 - **Ricettario**: collezione di tutti i piatti con il livello di maestria.
-- **Set di decorazioni**: piazzare tutti i pezzi di un set (es. "Matsuri", "Giardino zen", "Samurai") dà un bonus permanente.
+- **Set di decorazioni**: piazzare tutti i pezzi di un set (es. "Matsuri", "Giardino zen", "Samurai", "Ramen-ya") dà un bonus permanente.
+- **Pacchetto Ramen-ya** (dalle foto di riferimento di un vero bancone da ramen): sgabelli rossi su palo nero, lampade a sospensione industriali, tettoia in legno sopra il bancone con striscione rosso e lampade, poster del menù colorati, mensola menù da bancone, brocche d'acqua e portacondimenti, poster retrò, insegna verticale, tavola del brodo, tavolo con panche. La categoria **Sul tavolo** raccoglie gli oggetti da appoggiare su banconi e tavoli.
 - **Premio di accesso giornaliero** con serie (7 giorni, poi ricomincia con premi migliori).
 
 ### 8.9 Franchise (rinascita / prestigio)
@@ -415,7 +416,8 @@ La prima giornata è guidata: frecce luminose a terra e fumetti spiegano passo p
 
 ## 11. Grafica e atmosfera
 
-- **Illuminazione**: tecnologia *Future* di Roblox, atmosfera leggera, bloom, correzione colore calda. Luce del giorno morbida, tramonto arancione, sera blu con lanterne e neon che illuminano davvero l'ambiente.
+- **Illuminazione**: tecnologia *Future* di Roblox, atmosfera leggera, bloom, correzione colore calda. Luce del giorno morbida, tramonto arancione, cielo blu di sera ma interni caldi e accoglienti (lanterne, lampade a sospensione e neon che illuminano davvero l'ambiente).
+- **Palette** (dalla moodboard): arancione, legno scuro, crema, rosso lacca e blu indaco; il noren d'ingresso blu ha la ciotola di ramen bianca.
 - **Materiali**: legno a doghe, legno chiaro, tessuto (noren, cuscini), ardesia, metallo spazzolato (pentole), vetro (vetrina), neon (insegne).
 - **Cibo curato nel dettaglio**: nigiri con fetta di salmone a strisce chiare, maki con anello di alga e cuore colorato, ciotole di ramen con brodo del colore giusto per tipo, noodles, uovo tagliato a metà, chashu, cipollotto, naruto con la spirale.
 - **Effetti**: vapore dalle ciotole e dai pentoloni, bolle nel brodo, scintille dorate quando un piatto è pronto, petali di ciliegio, monete che volano alla cassa, coriandoli al livello.

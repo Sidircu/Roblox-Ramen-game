@@ -26,6 +26,8 @@ local list = {
 	{ id = "chair_lacquer", cat = "seating", price = 700, lv = 14, place = "floor", areas = SEAT, size = { 1.6, 3.5, 1.6 }, amb = 2, fn = { type = "seat", comfort = 3, height = 1.8 } },
 	{ id = "chabudai", cat = "seating", price = 1800, lv = 10, place = "floor", areas = SEAT, size = { 4, 1.2, 4 }, amb = 3, fn = { type = "table" } },
 	{ id = "zabuton", cat = "seating", price = 200, lv = 10, place = "floor", areas = SEAT, size = { 1.8, 0.4, 1.8 }, amb = 1, fn = { type = "seat", comfort = 2, height = 0.4, symmetric = true } },
+	{ id = "stool_red", cat = "seating", price = 220, lv = 2, place = "floor", areas = SEAT, size = { 1.6, 2.8, 1.6 }, amb = 1, set = "ramenya", fn = { type = "seat", comfort = 2, height = 2.8, symmetric = true } },
+	{ id = "bench_table", cat = "seating", price = 2400, lv = 7, place = "floor", areas = SEAT, size = { 5, 2.7, 5 }, amb = 3, fn = { type = "booth", comfort = 2, seats = 4 } },
 	{ id = "booth", cat = "seating", price = 5000, lv = 15, place = "floor", areas = SEAT, size = { 6, 4, 5 }, amb = 6, fn = { type = "booth", comfort = 4, seats = 4 } },
 	{ id = "zashiki_table", cat = "seating", price = 30000, lv = 18, place = "floor", areas = { "tatami" }, size = { 6, 1.3, 6 }, amb = 12, fn = { type = "booth", comfort = 5, seats = 4, vip = true } },
 	{ id = "waiting_bench", cat = "seating", price = 500, lv = 2, place = "floor", areas = { "dining", "outdoor" }, size = { 5, 2, 1.5 }, amb = 1, fn = { type = "bench", queue = 3 } },
@@ -59,6 +61,9 @@ local list = {
 	{ id = "andon_lamp", cat = "lighting", price = 600, lv = 3, place = "floor", areas = DECOR, size = { 1.4, 3, 1.4 }, amb = 5 },
 	{ id = "paper_pendant", cat = "lighting", price = 900, lv = 5, place = "ceiling", areas = INDOOR, size = { 1.8, 2.6, 1.8 }, amb = 6 },
 	{ id = "toro_stone", cat = "lighting", price = 1200, lv = 6, place = "floor", areas = DECOR, size = { 1.8, 4.5, 1.8 }, amb = 8 },
+	{ id = "pendant_lamp", cat = "lighting", price = 350, lv = 2, place = "ceiling", areas = INDOOR, size = { 1.2, 3.2, 1.2 }, amb = 3 },
+	{ id = "chochin_orange", cat = "lighting", price = 200, lv = 2, place = "ceiling", areas = INDOOR, size = { 1.4, 2.4, 1.4 }, amb = 2 },
+	{ id = "ramenya_canopy", cat = "lighting", price = 4500, lv = 9, place = "ceiling", areas = INDOOR, size = { 8, 4.2, 2.6 }, amb = 18, set = "ramenya" },
 	{ id = "neon_ramen", cat = "lighting", price = 3500, lv = 8, place = "wall", areas = INDOOR, size = { 6, 2, 0.4 }, amb = 15, set = "neon" },
 	{ id = "neon_sushi", cat = "lighting", price = 3500, lv = 10, place = "wall", areas = INDOOR, size = { 4, 2.2, 0.4 }, amb = 15, set = "neon" },
 	{ id = "lantern_string", cat = "lighting", price = 2000, lv = 12, place = "ceiling", areas = INDOOR, size = { 8, 1.8, 0.6 }, amb = 10, set = "matsuri" },
@@ -75,6 +80,11 @@ local list = {
 	-- Art & walls --------------------------------------------------------------------------------
 	{ id = "noren_red", cat = "art", price = 250, lv = 1, place = "wall", areas = INDOOR, size = { 4, 3, 0.3 }, amb = 3 },
 	{ id = "menu_plaques", cat = "art", price = 300, lv = 1, place = "wall", areas = INDOOR, size = { 4, 2.5, 0.3 }, amb = 3 },
+	{ id = "menu_posters", cat = "art", price = 450, lv = 3, place = "wall", areas = INDOOR, size = { 6, 2.2, 0.2 }, amb = 4, set = "ramenya" },
+	{ id = "noren_banner", cat = "art", price = 700, lv = 4, place = "ceiling", areas = INDOOR, size = { 8, 1.8, 0.3 }, amb = 5, set = "ramenya" },
+	{ id = "ramen_poster", cat = "art", price = 600, lv = 5, place = "wall", areas = INDOOR, size = { 2.4, 3.2, 0.2 }, amb = 5 },
+	{ id = "ramen_sign_vertical", cat = "art", price = 900, lv = 6, place = "wall", areas = INDOOR, size = { 1.6, 5, 0.9 }, amb = 6 },
+	{ id = "soup_sign", cat = "art", price = 1600, lv = 8, place = "wall", areas = INDOOR, size = { 6, 2.6, 0.9 }, amb = 9 },
 	{ id = "fan_wall", cat = "art", price = 350, lv = 2, place = "wall", areas = INDOOR, size = { 3, 1.8, 0.3 }, amb = 3 },
 	{ id = "kakejiku", cat = "art", price = 700, lv = 3, place = "wall", areas = INDOOR, size = { 1.8, 4.5, 0.3 }, amb = 5, set = "samurai" },
 	{ id = "noren_indigo", cat = "art", price = 400, lv = 5, place = "wall", areas = INDOOR, size = { 4, 3, 0.3 }, amb = 4 },
@@ -84,6 +94,9 @@ local list = {
 	{ id = "kimono_display", cat = "art", price = 4000, lv = 18, place = "floor", areas = DECOR, size = { 4, 6, 1 }, amb = 18 },
 
 	-- Statues & objects --------------------------------------------------------------------------
+	{ id = "water_pitcher", cat = "tabletop", price = 120, lv = 1, place = "top", areas = DECOR, size = { 1.0, 1.3, 1.1 }, amb = 1, set = "ramenya" },
+	{ id = "condiment_caddy", cat = "tabletop", price = 180, lv = 1, place = "top", areas = DECOR, size = { 1.6, 1.1, 0.7 }, amb = 2 },
+	{ id = "counter_posters", cat = "tabletop", price = 650, lv = 4, place = "top", areas = DECOR, size = { 3.8, 1.4, 0.5 }, amb = 5 },
 	{ id = "maneki_neko", cat = "statues", price = 500, lv = 2, place = "top", areas = DECOR, size = { 0.9, 1.3, 0.8 }, amb = 6, tipBonus = 0.01, tipMax = 3 },
 	{ id = "daruma", cat = "statues", price = 350, lv = 3, place = "top", areas = DECOR, size = { 1, 1.1, 1 }, amb = 3, set = "samurai" },
 	{ id = "soy_barrel", cat = "statues", price = 450, lv = 4, place = "floor", areas = DECOR, size = { 2.2, 2.6, 2.2 }, amb = 4 },
@@ -139,5 +152,5 @@ end
 return {
 	list = list,
 	byId = byId,
-	Categories = { "seating", "kitchen", "storage", "lighting", "plants", "art", "statues", "garden", "festival" },
+	Categories = { "seating", "tabletop", "kitchen", "storage", "lighting", "plants", "art", "statues", "garden", "festival" },
 }

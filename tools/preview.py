@@ -11,6 +11,7 @@ It runs the real builder modules (src/shared/Models) on a small Roblox API mock
   python3 tools/preview.py interior out.png      (roof removed, starter layout)
   python3 tools/preview.py street out.png   [--focus=xmin,xmax,zmin,zmax] frames an area
   --basic   plain starting look (no renovations / detail styles); default is the finished look
+  --swap=stool_wood:stool_red   --place=id@x,z,r,s[,y];...   --surfaces=zone=floor_id/wall_id
 Requires: pip install lupa matplotlib numpy
 """
 import math
@@ -168,15 +169,30 @@ function scene_restaurant(withItems)
   local root = Instance.new("Model")
   local shell = Instance.new("Folder")
   shell.Parent = root
-  Scene.shell(shell, geo, { zones = zones, surfaces = {}, franchise = { city = "tokyo" } })
+  local surfaces = {}
+  for zid, f, w in string.gmatch(__surfaces or "", "([%w_]+)=([%w_]+)/([%w_]+)") do surfaces[zid] = { floor = f, wall = w } end
+  Scene.shell(shell, geo, { zones = zones, surfaces = surfaces, franchise = { city = "tokyo" } })
   if withItems then
+    -- --swap=a:b replaces starter items, --place=id@x,z,r,s[,y];... adds more
+    local swap = {}
+    for a, b in string.gmatch(__swap or "", "([%w_]+):([%w_]+)") do swap[a] = b end
+    local list = {}
     for _, s in ipairs(StarterLayout.items) do
+      table.insert(list, { i = swap[s.i] or s.i, x = s.x, z = s.z, r = s.r, s = s.s, y = s.y, p = s.p })
+    end
+    for spec in string.gmatch(__place or "", "[^;]+") do
+      local id, rest = string.match(spec, "([%w_]+)@(.+)")
+      local v = {}
+      for n in string.gmatch(rest, "[^,]+") do table.insert(v, n) end
+      table.insert(list, { i = id, x = tonumber(v[1]), z = tonumber(v[2]), r = tonumber(v[3]) or 0, s = v[4] or "f", y = tonumber(v[5]) })
+    end
+    for _, s in ipairs(list) do
       local item = Items.byId[s.i]
       local m = Registry.build(s.i, { styles = styles })
       local y = 0
       if s.s == "c" then y = 14 - item.size[2]
       elseif s.s == "w" then y = s.y - item.size[2] / 2
-      elseif s.s == "t" then y = Items.byId[StarterLayout.items[s.p].i].size[2] end
+      elseif s.s == "t" then y = s.y or Items.byId[StarterLayout.items[s.p].i].size[2] end
       Registry.place(m, s.x, y, s.z, s.r or 0)
       m.Parent = root
     end
@@ -394,6 +410,9 @@ def main():
             g.__zones = a.split("=", 1)[1]
         if a == "--basic":
             g.__basic = True
+        for key in ("place", "swap", "surfaces"):
+            if a.startswith("--" + key + "="):
+                g["__" + key] = a.split("=", 1)[1]
         if a.startswith("--view="):
             vals = [float(v) for v in a.split("=", 1)[1].split(",")]
             opts = {"elev": vals[0], "azim": vals[1]}
@@ -428,13 +447,18 @@ def main():
         print(__doc__)
         return 1
     raw = lua.eval("collect")(root, skip_roof, bounds)
-    parts = [dict(raw[i + 1]) for i in range(len(raw))]
+    for a in sys.argv[2:]:
+        if a.startswith("--clip="):
+            # keep only parts whose centre lies in xmin,xmax,zmin,zmax (e.g. drop the near wall)
+            bounds = lua.table_from([float(v) for v in a.split("=", 1)[1].split(",")])
+            raw = lua.eval("collect")(root, skip_roof, bounds)
     focus = None
     for a in sys.argv[2:]:
         if a.startswith("--focus="):
             focus = [float(v) for v in a.split("=", 1)[1].split(",")]
     if focus is None and bounds is not None:
         focus = [bounds[1], bounds[2], bounds[3], bounds[4]]
+    parts = [dict(raw[i + 1]) for i in range(len(raw))]
     render(parts, out, night=night, focus=focus, **opts)
     return 0
 

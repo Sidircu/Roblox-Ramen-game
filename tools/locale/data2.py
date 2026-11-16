@@ -91,3 +91,16 @@ DYN += [
 ("zone.kitchen_pro","Pro kitchen","Cucina professionale"),("zone.floor2","Second floor","Secondo piano"),("zone.rooftop","Rooftop","Tetto"),
 ("ui.room","Room: {name}","Stanza: {name}"),
 ]
+# Ramen-ya decoration pack (inspired by real ramen counters)
+ITEMS += [
+("stool_red","Red ramen-ya stool","Sgabello rosso da ramen-ya"),("bench_table","Table with benches","Tavolo con panche"),
+("pendant_lamp","Pendant lamp","Lampada a sospensione"),("chochin_orange","Orange lantern","Lanterna arancione"),
+("ramenya_canopy","Ramen-ya canopy","Tettoia del ramen-ya"),("menu_posters","Menu posters","Poster del menù"),
+("noren_banner","Red banner","Striscione rosso"),("ramen_poster","Retro ramen poster","Poster retrò del ramen"),
+("ramen_sign_vertical","Vertical ramen sign","Insegna verticale ラーメン"),("soup_sign","Secret soup signboard","Tavola del brodo segreto"),
+("water_pitcher","Water pitcher","Brocca d'acqua"),("condiment_caddy","Condiment caddy","Portacondimenti"),
+("counter_posters","Menu shelf for the counter","Mensola menù da bancone"),
+]
+DYN += [
+("cat.tabletop","On the table","Sul tavolo"),("set.ramenya","Ramen-ya set","Set Ramen-ya"),
+]

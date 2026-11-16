@@ -46,7 +46,9 @@ local function setRoofs(hidden, floor)
 			local above = hidden and floor and (m:GetAttribute("FloorIndex") or 0) > floor
 			for _, d in ipairs(m:GetDescendants()) do
 				if d:IsA("BasePart") then
-					d.LocalTransparencyModifier = above and 1 or 0
+					-- parts tagged Roof (canopies, cords right under the ceiling) hide like the roof
+					local roofLike = hidden and CollectionService:HasTag(d, "Roof")
+					d.LocalTransparencyModifier = (above or roofLike) and 1 or 0
 				end
 			end
 		end

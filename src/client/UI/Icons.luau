@@ -3,9 +3,12 @@
 local Icons = {
 	cat = {
 		seating = "🪑", kitchen = "🍳", storage = "📦", lighting = "🏮", plants = "🎍", art = "🖼️",
-		statues = "🐱", garden = "⛩️", festival = "🎏",
+		statues = "🐱", garden = "⛩️", festival = "🎏", tabletop = "🥢",
 	},
 	item = {
+		stool_red = "🔴", bench_table = "🍽️", pendant_lamp = "💡", chochin_orange = "🏮", ramenya_canopy = "🏮",
+		menu_posters = "📋", noren_banner = "🎌", ramen_poster = "🍜", ramen_sign_vertical = "🪧", soup_sign = "🥣",
+		water_pitcher = "🫗", condiment_caddy = "🧂", counter_posters = "📋",
 		counter_straight = "🍶", counter_corner = "🍶", counter_end = "🍶", stool_wood = "🪑", stool_cushion = "🪑",
 		stool_swivel = "🪑", table_2 = "🍽️", table_4 = "🍽️", chair_wood = "🪑", chair_lacquer = "🪑", chabudai = "🍵",
 		zabuton = "🟥", booth = "🛋️", zashiki_table = "🎎", waiting_bench = "🪵", shelf_small = "🗄️", shelf_large = "🗄️",

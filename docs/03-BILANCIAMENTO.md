@@ -173,12 +173,14 @@ Colonne: prezzo, punti ambiente (Amb.), livello di sblocco, tipo di piazzamento,
 | `stool_wood` | Sgabello in legno | ¥80 | 1 | 1 | pavimento | 1,6×1,6×2,8 |
 | `stool_cushion` | Sgabello imbottito | ¥300 | 2 | 4 | pavimento | 1,6×1,6×2,8 |
 | `stool_swivel` | Sgabello girevole laccato | ¥900 | 3 | 12 | pavimento | 1,8×1,8×2,8 |
+| `stool_red` | Sgabello rosso da ramen-ya | ¥220 | 2 | 2 | pavimento | 1,6×1,6×2,8 |
 | `table_2` | Tavolo da 2 | ¥600 | — | 3 | pavimento | 3×3×2,6 |
 | `table_4` | Tavolo da 4 | ¥1.400 | — | 6 | pavimento | 5×3×2,6 |
 | `chair_wood` | Sedia in legno | ¥150 | 1 | 3 | pavimento | 1,6×1,6×3,5 |
 | `chair_lacquer` | Sedia laccata rossa | ¥700 | 3 | 14 | pavimento | 1,6×1,6×3,5 |
 | `chabudai` | Tavolino basso chabudai | ¥1.800 | — | 10 | pavimento | 4×4×1,2 |
 | `zabuton` | Cuscino zabuton | ¥200 | 2 | 10 | pavimento | 1,8×1,8×0,4 |
+| `bench_table` | Tavolo con panche (4 posti) | ¥2.400 | 2 | 7 | pavimento | 5×5×2,7 |
 | `booth` | Separé imbottito (4 posti) | ¥5.000 | 4 | 15 | pavimento | 6×5×4 |
 | `zashiki_table` | Tavolo VIP zashiki | ¥30.000 | 5 | 18 | pavimento (sala tatami) | 6×4×1,3 |
 | `waiting_bench` | Panchina d'attesa (+3 in coda) | ¥500 | — | 2 | esterno | 5×1,5×2 |
@@ -224,6 +226,23 @@ Stoviglie iniziali: 12. Il set di stoviglie si compra dal Fornitore (non si piaz
 | `kakejiku` | Rotolo kakejiku | Arte & pareti | ¥700 | 5 | 3 | parete |
 | `daruma` | Daruma | Statue | ¥350 | 3 | 3 | appoggio/pavimento |
 | `bonsai_pine` | Bonsai di pino | Piante | ¥900 | 7 | 4 | appoggio/pavimento |
+
+#### Pacchetto Ramen-ya (ispirato ai banconi dei ramen-ya veri)
+| ID | Nome | Categoria | Prezzo | Amb. | Liv. | Piazzamento |
+|---|---|---|---|---|---|---|
+| `water_pitcher` | Brocca d'acqua (con bicchieri) | Sul tavolo | ¥120 | 1 | 1 | appoggio |
+| `condiment_caddy` | Portacondimenti (bacchette, aglio, peperoncino, pepe, fazzoletti) | Sul tavolo | ¥180 | 2 | 1 | appoggio |
+| `pendant_lamp` | Lampada a sospensione | Illuminazione | ¥350 | 3 | 2 | soffitto |
+| `chochin_orange` | Lanterna arancione ラーメン | Illuminazione | ¥200 | 2 | 2 | soffitto |
+| `menu_posters` | Poster del menù (5 piatti con prezzo) | Arte & pareti | ¥450 | 4 | 3 | parete |
+| `counter_posters` | Mensola menù da bancone | Sul tavolo | ¥650 | 5 | 4 | appoggio (bancone) |
+| `noren_banner` | Striscione rosso ラーメン・餃子・炒飯 | Arte & pareti | ¥700 | 5 | 4 | soffitto |
+| `ramen_poster` | Poster retrò del ramen | Arte & pareti | ¥600 | 5 | 5 | parete |
+| `ramen_sign_vertical` | Insegna verticale ラーメン con faretto | Arte & pareti | ¥900 | 6 | 6 | parete |
+| `soup_sign` | Tavola del brodo segreto 秘伝スープ | Arte & pareti | ¥1.600 | 9 | 8 | parete |
+| `ramenya_canopy` | Tettoia del ramen-ya (striscione + 3 lampade) | Illuminazione | ¥4.500 | 18 | 9 | soffitto |
+
+Le parti alte della tettoia si nascondono in modalità costruzione, come il tetto.
 | `nobori` | Stendardo nobori | Festival | ¥450 | 4 | 4 | pavimento/esterno |
 | `soy_barrel` | Botte di salsa di soia | Statue | ¥450 | 4 | 4 | pavimento |
 | `noren_indigo` | Noren indaco con onde | Arte & pareti | ¥400 | 4 | 5 | parete/porta |
@@ -408,7 +427,7 @@ Oggetti iniziali: bancone (3 moduli + 2 terminali), 6 sgabelli, postazioni sushi
 | Accesso giornaliero | giorni 1–7: ¥500, ¥1.000, 🌸3, ¥2.500, 🌸5, ¥5.000, 🌸15 + decorazione esclusiva; scala con il livello |
 | Critico 5 ★ | 🌸3 |
 | Obiettivi | traguardi a livelli (piatti, clienti, yen, decorazioni, personale, maestrie, licenze, zone, ristrutturazioni…) con 🌸3–100 |
-| Set di decorazioni | Matsuri, Giardino zen, Samurai, Neon di Tokyo, Ciliegi: +5% mance o +0,1 popolarità ciascuno |
+| Set di decorazioni | Matsuri, Giardino zen, Samurai, Neon di Tokyo, Ciliegi: +5% mance o +0,1 popolarità ciascuno; Ramen-ya (tettoia, striscione, poster del menù, sgabello rosso, brocca): +4% mance e +0,06 popolarità |
 | Franchise | ogni stella: +25% yen, +10% XP; ¥2.000 iniziali nella nuova città |
 
 ---

@@ -110,7 +110,7 @@ if workspace:GetAttribute("SessionMode") ~= "lobby" then
 	spin:Disconnect()
 	gui:Destroy()
 end
-]]></ProtectedString></Properties></Item></Item><Item class="ReplicatedStorage" referent="RBX000060"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000058"><Properties><string name="Name">Shared</string></Properties><Item class="Folder" referent="RBX000024"><Properties><string name="Name">Config</string></Properties><Item class="ModuleScript" referent="RBX000003"><Properties><string name="Name">Achievements</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ReplicatedStorage" referent="RBX000061"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000059"><Properties><string name="Name">Shared</string></Properties><Item class="Folder" referent="RBX000024"><Properties><string name="Name">Config</string></Properties><Item class="ModuleScript" referent="RBX000003"><Properties><string name="Name">Achievements</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Achievements are generated from tiered templates. Name key: "ach.<stat>" with {n}.
 local templates = {
 	{ stat = "dishes", tiers = { 10, 100, 1000, 10000, 100000 }, sakura = { 5, 10, 20, 35, 50 } },
@@ -565,6 +565,8 @@ local list = {
 	{ id = "chair_lacquer", cat = "seating", price = 700, lv = 14, place = "floor", areas = SEAT, size = { 1.6, 3.5, 1.6 }, amb = 2, fn = { type = "seat", comfort = 3, height = 1.8 } },
 	{ id = "chabudai", cat = "seating", price = 1800, lv = 10, place = "floor", areas = SEAT, size = { 4, 1.2, 4 }, amb = 3, fn = { type = "table" } },
 	{ id = "zabuton", cat = "seating", price = 200, lv = 10, place = "floor", areas = SEAT, size = { 1.8, 0.4, 1.8 }, amb = 1, fn = { type = "seat", comfort = 2, height = 0.4, symmetric = true } },
+	{ id = "stool_red", cat = "seating", price = 220, lv = 2, place = "floor", areas = SEAT, size = { 1.6, 2.8, 1.6 }, amb = 1, set = "ramenya", fn = { type = "seat", comfort = 2, height = 2.8, symmetric = true } },
+	{ id = "bench_table", cat = "seating", price = 2400, lv = 7, place = "floor", areas = SEAT, size = { 5, 2.7, 5 }, amb = 3, fn = { type = "booth", comfort = 2, seats = 4 } },
 	{ id = "booth", cat = "seating", price = 5000, lv = 15, place = "floor", areas = SEAT, size = { 6, 4, 5 }, amb = 6, fn = { type = "booth", comfort = 4, seats = 4 } },
 	{ id = "zashiki_table", cat = "seating", price = 30000, lv = 18, place = "floor", areas = { "tatami" }, size = { 6, 1.3, 6 }, amb = 12, fn = { type = "booth", comfort = 5, seats = 4, vip = true } },
 	{ id = "waiting_bench", cat = "seating", price = 500, lv = 2, place = "floor", areas = { "dining", "outdoor" }, size = { 5, 2, 1.5 }, amb = 1, fn = { type = "bench", queue = 3 } },
@@ -598,6 +600,9 @@ local list = {
 	{ id = "andon_lamp", cat = "lighting", price = 600, lv = 3, place = "floor", areas = DECOR, size = { 1.4, 3, 1.4 }, amb = 5 },
 	{ id = "paper_pendant", cat = "lighting", price = 900, lv = 5, place = "ceiling", areas = INDOOR, size = { 1.8, 2.6, 1.8 }, amb = 6 },
 	{ id = "toro_stone", cat = "lighting", price = 1200, lv = 6, place = "floor", areas = DECOR, size = { 1.8, 4.5, 1.8 }, amb = 8 },
+	{ id = "pendant_lamp", cat = "lighting", price = 350, lv = 2, place = "ceiling", areas = INDOOR, size = { 1.2, 3.2, 1.2 }, amb = 3 },
+	{ id = "chochin_orange", cat = "lighting", price = 200, lv = 2, place = "ceiling", areas = INDOOR, size = { 1.4, 2.4, 1.4 }, amb = 2 },
+	{ id = "ramenya_canopy", cat = "lighting", price = 4500, lv = 9, place = "ceiling", areas = INDOOR, size = { 8, 4.2, 2.6 }, amb = 18, set = "ramenya" },
 	{ id = "neon_ramen", cat = "lighting", price = 3500, lv = 8, place = "wall", areas = INDOOR, size = { 6, 2, 0.4 }, amb = 15, set = "neon" },
 	{ id = "neon_sushi", cat = "lighting", price = 3500, lv = 10, place = "wall", areas = INDOOR, size = { 4, 2.2, 0.4 }, amb = 15, set = "neon" },
 	{ id = "lantern_string", cat = "lighting", price = 2000, lv = 12, place = "ceiling", areas = INDOOR, size = { 8, 1.8, 0.6 }, amb = 10, set = "matsuri" },
@@ -614,6 +619,11 @@ local list = {
 	-- Art & walls --------------------------------------------------------------------------------
 	{ id = "noren_red", cat = "art", price = 250, lv = 1, place = "wall", areas = INDOOR, size = { 4, 3, 0.3 }, amb = 3 },
 	{ id = "menu_plaques", cat = "art", price = 300, lv = 1, place = "wall", areas = INDOOR, size = { 4, 2.5, 0.3 }, amb = 3 },
+	{ id = "menu_posters", cat = "art", price = 450, lv = 3, place = "wall", areas = INDOOR, size = { 6, 2.2, 0.2 }, amb = 4, set = "ramenya" },
+	{ id = "noren_banner", cat = "art", price = 700, lv = 4, place = "ceiling", areas = INDOOR, size = { 8, 1.8, 0.3 }, amb = 5, set = "ramenya" },
+	{ id = "ramen_poster", cat = "art", price = 600, lv = 5, place = "wall", areas = INDOOR, size = { 2.4, 3.2, 0.2 }, amb = 5 },
+	{ id = "ramen_sign_vertical", cat = "art", price = 900, lv = 6, place = "wall", areas = INDOOR, size = { 1.6, 5, 0.9 }, amb = 6 },
+	{ id = "soup_sign", cat = "art", price = 1600, lv = 8, place = "wall", areas = INDOOR, size = { 6, 2.6, 0.9 }, amb = 9 },
 	{ id = "fan_wall", cat = "art", price = 350, lv = 2, place = "wall", areas = INDOOR, size = { 3, 1.8, 0.3 }, amb = 3 },
 	{ id = "kakejiku", cat = "art", price = 700, lv = 3, place = "wall", areas = INDOOR, size = { 1.8, 4.5, 0.3 }, amb = 5, set = "samurai" },
 	{ id = "noren_indigo", cat = "art", price = 400, lv = 5, place = "wall", areas = INDOOR, size = { 4, 3, 0.3 }, amb = 4 },
@@ -623,6 +633,9 @@ local list = {
 	{ id = "kimono_display", cat = "art", price = 4000, lv = 18, place = "floor", areas = DECOR, size = { 4, 6, 1 }, amb = 18 },
 
 	-- Statues & objects --------------------------------------------------------------------------
+	{ id = "water_pitcher", cat = "tabletop", price = 120, lv = 1, place = "top", areas = DECOR, size = { 1.0, 1.3, 1.1 }, amb = 1, set = "ramenya" },
+	{ id = "condiment_caddy", cat = "tabletop", price = 180, lv = 1, place = "top", areas = DECOR, size = { 1.6, 1.1, 0.7 }, amb = 2 },
+	{ id = "counter_posters", cat = "tabletop", price = 650, lv = 4, place = "top", areas = DECOR, size = { 3.8, 1.4, 0.5 }, amb = 5 },
 	{ id = "maneki_neko", cat = "statues", price = 500, lv = 2, place = "top", areas = DECOR, size = { 0.9, 1.3, 0.8 }, amb = 6, tipBonus = 0.01, tipMax = 3 },
 	{ id = "daruma", cat = "statues", price = 350, lv = 3, place = "top", areas = DECOR, size = { 1, 1.1, 1 }, amb = 3, set = "samurai" },
 	{ id = "soy_barrel", cat = "statues", price = 450, lv = 4, place = "floor", areas = DECOR, size = { 2.2, 2.6, 2.2 }, amb = 4 },
@@ -678,7 +691,7 @@ end
 return {
 	list = list,
 	byId = byId,
-	Categories = { "seating", "kitchen", "storage", "lighting", "plants", "art", "statues", "garden", "festival" },
+	Categories = { "seating", "tabletop", "kitchen", "storage", "lighting", "plants", "art", "statues", "garden", "festival" },
 }
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000014"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- License tree. Buying a license unlocks its recipes and station items.
@@ -875,6 +888,7 @@ local list = {
 	{ id = "samurai", items = { "samurai_armor", "kakejiku", "byobu", "daruma", "wave_painting" }, bonus = { tip = 0.05 } },
 	{ id = "neon", items = { "neon_ramen", "neon_sushi", "vending_machine", "gashapon", "chochin_red" }, bonus = { popularity = 0.10 } },
 	{ id = "sakura", items = { "sakura_tree", "koi_pond", "red_bridge", "torii_small", "wagasa" }, bonus = { tip = 0.05, popularity = 0.05 } },
+	{ id = "ramenya", items = { "ramenya_canopy", "noren_banner", "menu_posters", "stool_red", "water_pitcher" }, bonus = { tip = 0.04, popularity = 0.06 } },
 }
 local byId = {}
 for i, s in ipairs(list) do
@@ -1132,6 +1146,7 @@ return {
 	["cat.seating"] = "Seats & tables",
 	["cat.statues"] = "Statues",
 	["cat.storage"] = "Storage",
+	["cat.tabletop"] = "On the table",
 	["city.fukuoka"] = "Fukuoka",
 	["city.kyoto"] = "Kyoto",
 	["city.okinawa"] = "Okinawa",
@@ -1266,6 +1281,7 @@ return {
 	["item.andon_lamp"] = "Andon lamp",
 	["item.aquarium"] = "Aquarium",
 	["item.bamboo_pot"] = "Potted bamboo",
+	["item.bench_table"] = "Table with benches",
 	["item.bonsai_ancient"] = "Ancient bonsai",
 	["item.bonsai_pine"] = "Pine bonsai",
 	["item.booth"] = "Booth (4 seats)",
@@ -1275,10 +1291,13 @@ return {
 	["item.chabudai"] = "Chabudai low table",
 	["item.chair_lacquer"] = "Red lacquer chair",
 	["item.chair_wood"] = "Wooden chair",
+	["item.chochin_orange"] = "Orange lantern",
 	["item.chochin_red"] = "Red chochin lantern",
 	["item.chochin_white"] = "White chochin lantern",
+	["item.condiment_caddy"] = "Condiment caddy",
 	["item.counter_corner"] = "Corner counter",
 	["item.counter_end"] = "Counter end",
+	["item.counter_posters"] = "Menu shelf for the counter",
 	["item.counter_straight"] = "Straight counter (2 seats)",
 	["item.daruma"] = "Daruma",
 	["item.dessert_station"] = "Dessert station",
@@ -1306,17 +1325,23 @@ return {
 	["item.maneki_neko"] = "Maneki-neko",
 	["item.maple_tree"] = "Japanese maple",
 	["item.menu_plaques"] = "Wooden menu plaques",
+	["item.menu_posters"] = "Menu posters",
 	["item.moon_rabbit"] = "Moon rabbit",
 	["item.moss_garden"] = "Moss garden",
 	["item.neon_ramen"] = "Neon sign ラーメン",
 	["item.neon_sushi"] = "Neon sign 寿司",
 	["item.neta_case"] = "Fish display case",
 	["item.nobori"] = "Nobori banner",
+	["item.noren_banner"] = "Red banner",
 	["item.noren_indigo"] = "Indigo noren",
 	["item.noren_red"] = "Red noren",
 	["item.osaka_octopus_sign"] = "Osaka takoyaki sign",
 	["item.paper_pendant"] = "Paper pendant lamp",
+	["item.pendant_lamp"] = "Pendant lamp",
+	["item.ramen_poster"] = "Retro ramen poster",
+	["item.ramen_sign_vertical"] = "Vertical ramen sign",
 	["item.ramen_station"] = "Ramen station",
+	["item.ramenya_canopy"] = "Ramen-ya canopy",
 	["item.red_bridge"] = "Little red bridge",
 	["item.rice_cooker"] = "Rice cooker",
 	["item.rice_cooker_pro"] = "Pro rice cooker",
@@ -1329,9 +1354,11 @@ return {
 	["item.shishi_odoshi"] = "Shishi-odoshi fountain",
 	["item.sink"] = "Sink",
 	["item.snow_lantern"] = "Snow lantern",
+	["item.soup_sign"] = "Secret soup signboard",
 	["item.soy_barrel"] = "Soy sauce barrel",
 	["item.stone_path"] = "Stepping stone",
 	["item.stool_cushion"] = "Cushioned stool",
+	["item.stool_red"] = "Red ramen-ya stool",
 	["item.stool_swivel"] = "Lacquered swivel stool",
 	["item.stool_wood"] = "Wooden stool",
 	["item.storage_rack"] = "Storage rack",
@@ -1350,6 +1377,7 @@ return {
 	["item.vending_machine"] = "Vending machine",
 	["item.wagasa"] = "Wagasa umbrella",
 	["item.waiting_bench"] = "Waiting bench",
+	["item.water_pitcher"] = "Water pitcher",
 	["item.waterfall"] = "Rock waterfall",
 	["item.wave_painting"] = "Wave painting",
 	["item.yatai"] = "Yatai food cart",
@@ -1528,6 +1556,7 @@ return {
 	["role.owner"] = "Owner",
 	["set.matsuri"] = "Matsuri set",
 	["set.neon"] = "Tokyo neon set",
+	["set.ramenya"] = "Ramen-ya set",
 	["set.sakura"] = "Cherry blossom set",
 	["set.samurai"] = "Samurai set",
 	["set.zen"] = "Zen garden set",
@@ -1833,6 +1862,7 @@ return {
 	["cat.seating"] = "Sedute e tavoli",
 	["cat.statues"] = "Statue",
 	["cat.storage"] = "Magazzino",
+	["cat.tabletop"] = "Sul tavolo",
 	["city.fukuoka"] = "Fukuoka",
 	["city.kyoto"] = "Kyoto",
 	["city.okinawa"] = "Okinawa",
@@ -1967,6 +1997,7 @@ return {
 	["item.andon_lamp"] = "Lampada andon",
 	["item.aquarium"] = "Acquario",
 	["item.bamboo_pot"] = "Bambù in vaso",
+	["item.bench_table"] = "Tavolo con panche",
 	["item.bonsai_ancient"] = "Bonsai secolare",
 	["item.bonsai_pine"] = "Bonsai di pino",
 	["item.booth"] = "Separé imbottito (4 posti)",
@@ -1976,10 +2007,13 @@ return {
 	["item.chabudai"] = "Tavolino basso chabudai",
 	["item.chair_lacquer"] = "Sedia laccata rossa",
 	["item.chair_wood"] = "Sedia in legno",
+	["item.chochin_orange"] = "Lanterna arancione",
 	["item.chochin_red"] = "Lanterna chochin rossa",
 	["item.chochin_white"] = "Lanterna chochin bianca",
+	["item.condiment_caddy"] = "Portacondimenti",
 	["item.counter_corner"] = "Bancone ad angolo",
 	["item.counter_end"] = "Bancone terminale",
+	["item.counter_posters"] = "Mensola menù da bancone",
 	["item.counter_straight"] = "Bancone dritto (2 posti)",
 	["item.daruma"] = "Daruma",
 	["item.dessert_station"] = "Postazione dolci",
@@ -2007,17 +2041,23 @@ return {
 	["item.maneki_neko"] = "Maneki-neko",
 	["item.maple_tree"] = "Acero giapponese",
 	["item.menu_plaques"] = "Tavolette menu in legno",
+	["item.menu_posters"] = "Poster del menù",
 	["item.moon_rabbit"] = "Coniglio della luna",
 	["item.moss_garden"] = "Aiuola di muschio",
 	["item.neon_ramen"] = "Insegna neon ラーメン",
 	["item.neon_sushi"] = "Insegna neon 寿司",
 	["item.neta_case"] = "Vetrina refrigerata del pesce",
 	["item.nobori"] = "Stendardo nobori",
+	["item.noren_banner"] = "Striscione rosso",
 	["item.noren_indigo"] = "Noren indaco",
 	["item.noren_red"] = "Noren rosso",
 	["item.osaka_octopus_sign"] = "Insegna takoyaki di Osaka",
 	["item.paper_pendant"] = "Lampada a sospensione in carta",
+	["item.pendant_lamp"] = "Lampada a sospensione",
+	["item.ramen_poster"] = "Poster retrò del ramen",
+	["item.ramen_sign_vertical"] = "Insegna verticale ラーメン",
 	["item.ramen_station"] = "Postazione ramen",
+	["item.ramenya_canopy"] = "Tettoia del ramen-ya",
 	["item.red_bridge"] = "Ponticello rosso",
 	["item.rice_cooker"] = "Rice cooker",
 	["item.rice_cooker_pro"] = "Rice cooker professionale",
@@ -2030,9 +2070,11 @@ return {
 	["item.shishi_odoshi"] = "Fontana shishi-odoshi",
 	["item.sink"] = "Lavello",
 	["item.snow_lantern"] = "Lanterna della neve",
+	["item.soup_sign"] = "Tavola del brodo segreto",
 	["item.soy_barrel"] = "Botte di salsa di soia",
 	["item.stone_path"] = "Pietra da sentiero",
 	["item.stool_cushion"] = "Sgabello imbottito",
+	["item.stool_red"] = "Sgabello rosso da ramen-ya",
 	["item.stool_swivel"] = "Sgabello girevole laccato",
 	["item.stool_wood"] = "Sgabello in legno",
 	["item.storage_rack"] = "Scaffale magazzino",
@@ -2051,6 +2093,7 @@ return {
 	["item.vending_machine"] = "Distributore automatico",
 	["item.wagasa"] = "Ombrello wagasa",
 	["item.waiting_bench"] = "Panchina d'attesa",
+	["item.water_pitcher"] = "Brocca d'acqua",
 	["item.waterfall"] = "Cascata di roccia",
 	["item.wave_painting"] = "Quadro dell'onda",
 	["item.yatai"] = "Carretto yatai",
@@ -2229,6 +2272,7 @@ return {
 	["role.owner"] = "Proprietario",
 	["set.matsuri"] = "Set Matsuri",
 	["set.neon"] = "Set Neon di Tokyo",
+	["set.ramenya"] = "Set Ramen-ya",
 	["set.sakura"] = "Set Ciliegi",
 	["set.samurai"] = "Set Samurai",
 	["set.zen"] = "Set Giardino zen",
@@ -3666,7 +3710,7 @@ function Walls.along(seg, x, z)
 end
 
 return Walls
-]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000049"><Properties><string name="Name">Models</string></Properties><Item class="Folder" referent="RBX000044"><Properties><string name="Name">Builders</string></Properties><Item class="ModuleScript" referent="RBX000037"><Properties><string name="Name">Building</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000050"><Properties><string name="Name">Models</string></Properties><Item class="Folder" referent="RBX000045"><Properties><string name="Name">Builders</string></Properties><Item class="ModuleScript" referent="RBX000037"><Properties><string name="Name">Building</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Building shell pieces used by the server WorldService (floors, walls, roof, stairs, facade).
 -- All coordinates are world coordinates (the plot origin is the world origin).
 local CollectionService = game:GetService("CollectionService")
@@ -3798,9 +3842,23 @@ function B.entranceNoren(parent, o, y0)
 		cloth.CanQuery = false
 		cloth:SetAttribute("Animate", "sway")
 	end
-	local label = Kit.box(parent, len - 0.3, 2.2, 0.02, cx, y0 + 7.2, z - 0.05, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
+	local label = Kit.box(parent, len - 0.3, 1.1, 0.02, cx, y0 + 7.95, z - 0.05, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
 	label.CanQuery = false
 	Kit.text(label, Enum.NormalId.Front, "ら ー め ん", { color = "#FFFFFF", font = JP_FONT, pps = 30 })
+	-- white ramen bowl crest: bowl, rim cut-out, noodles and chopsticks
+	local NC = { collide = false, shadow = false }
+	local function icon(p)
+		p.CanQuery = false
+		return p
+	end
+	icon(Kit.blob(parent, 1.7, 0.95, 0.04, cx, y0 + 6.25, z - 0.06, P.white, M.fabric, NC))
+	icon(Kit.blob(parent, 1.55, 0.36, 0.04, cx, y0 + 6.62, z - 0.08, P.indigo, M.fabric, NC))
+	for k = -1, 1 do
+		icon(Kit.box(parent, 0.08, 0.55, 0.03, cx + k * 0.22, y0 + 6.95, z - 0.08, P.white, M.fabric, NC))
+	end
+	for k = 0, 1 do
+		icon(Kit.part(parent, Vector3.new(0.07, 1.0, 0.03), CFrame.new(cx + 0.35 + k * 0.16, y0 + 7.1, z - 0.08) * CFrame.Angles(0, 0, math.rad(-30)), P.white, M.fabric, NC))
+	end
 end
 
 function B.railing(parent, seg, y0, color)
@@ -6458,7 +6516,383 @@ end
 return function(Registry)
 	Registry.People = People
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000043"><Properties><string name="Name">Street</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000043"><Properties><string name="Name">RamenYa</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- "Ramen-ya" decoration pack, modelled on real ramen counters: industrial pendant lamps, a red
+-- banner with white lettering, rows of menu posters, a retro ramen poster, a vertical sign, a
+-- framed soup signboard, a wooden canopy over the counter, water pitchers, condiment caddies,
+-- red vinyl stools and a wooden table with benches.
+-- Conventions: front faces -Z; wall items have their back at +Z; ceiling items hang from y = h.
+local CollectionService = game:GetService("CollectionService")
+
+local Kit = require(script.Parent.Parent.Kit)
+local P = require(script.Parent.Parent.Palette)
+local Color = require(script.Parent.Parent.Parent.Util.Color)
+local M = P.M
+
+local JP_FONT = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Bold)
+
+local function size(item)
+	return Vector3.new(item.size[1], item.size[2], item.size[3])
+end
+
+local function nc()
+	return { collide = false, shadow = false }
+end
+
+local function point(root, name, x, y, z, yaw)
+	local h = root.Size.Y
+	return Kit.attach(root, name, CFrame.new(x, y - h / 2, z) * CFrame.Angles(0, math.rad(yaw or 0), 0))
+end
+
+-- Invisible panel carrying a text label. faces: nil = front (-Z), "back" = +Z, "both"
+local function label(m, w, h, x, y, z, text, color, faces)
+	local p = Kit.box(m, w, h, 0.02, x, y, z, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
+	p.CanQuery = false
+	if faces ~= "back" then
+		Kit.text(p, Enum.NormalId.Front, text, { color = color, font = JP_FONT, pps = 40 })
+	end
+	if faces == "back" or faces == "both" then
+		Kit.text(p, Enum.NormalId.Back, text, { color = color, font = JP_FONT, pps = 40 })
+	end
+	return p
+end
+
+-- Parts high under the ceiling hide in build view like the roof (see Camera.setRoofs)
+local function high(p)
+	CollectionService:AddTag(p, "Roof")
+	return p
+end
+
+-- Industrial pendant: cord, black metal shade with a brass rim and a glowing glass globe
+local function pendant(m, x, top, z, drop)
+	high(Kit.cyl(m, 0.05, drop, x, top - drop / 2, z, P.black, M.fabric, nc()))
+	local y = top - drop
+	Kit.cyl(m, 0.18, 0.2, x, y - 0.05, z, P.charcoal, M.metal, nc())
+	Kit.cyl(m, 0.72, 0.55, x, y - 0.4, z, P.charcoal, M.metal, { collide = false, shadow = false, reflectance = 0.1 })
+	Kit.cyl(m, 0.76, 0.06, x, y - 0.68, z, P.brass, M.metal, nc())
+	local bulb = Kit.ball(m, 0.62, x, y - 0.95, z, P.lamp, M.neon, { collide = false, shadow = false })
+	bulb.Transparency = 0.1
+	Kit.light(bulb, "Point", P.lamp_warm, 14, 1.2)
+	return bulb
+end
+
+-- Hanging banner made of split cloth panels with lettering readable from both sides
+local function banner(m, w, top, bottom, z, text, color)
+	local n = math.max(2, math.floor(w / 1))
+	local pw = w / n
+	for i = 0, n - 1 do
+		local x = -w / 2 + pw * (i + 0.5)
+		local cloth = Kit.box(m, pw - 0.06, top - bottom, 0.04, x, (top + bottom) / 2, z, color, M.fabric, nc())
+		cloth:SetAttribute("Animate", "sway")
+		Kit.box(m, pw - 0.06, 0.1, 0.05, x, bottom + 0.12, z, P.lacquer_dark, M.fabric, nc())
+	end
+	Kit.box(m, w, 0.06, 0.05, 0, top - 0.12, z, P.white, M.fabric, nc())
+	label(m, w - 0.4, (top - bottom) * 0.62, 0, (top + bottom) / 2 + 0.02, z - 0.04, text, "#FFFFFF", "both")
+end
+
+-- Bowl drawn flat (ellipses facing -Z): navy bowl, broth, noodles, egg, naruto and nori
+local function bowlArt(m, x, y, z, s, broth)
+	Kit.blob(m, 1.6 * s, 1.0 * s, 0.04, x, y, z, P.navy, M.smooth, nc())
+	Kit.blob(m, 1.5 * s, 0.42 * s, 0.04, x, y + 0.27 * s, z - 0.02, broth or Color.hex("#D9A55A"), M.smooth, nc())
+	for k = -2, 2 do
+		Kit.box(m, 0.05 * s, 0.22 * s, 0.03, x + k * 0.12 * s, y + 0.3 * s, z - 0.04, P.neon_yellow, M.smooth, nc())
+	end
+	Kit.blob(m, 0.32 * s, 0.24 * s, 0.03, x - 0.4 * s, y + 0.3 * s, z - 0.05, P.white, M.smooth, nc())
+	Kit.blob(m, 0.16 * s, 0.12 * s, 0.03, x - 0.4 * s, y + 0.3 * s, z - 0.06, P.koi_orange, M.smooth, nc())
+	Kit.blob(m, 0.24 * s, 0.18 * s, 0.03, x + 0.42 * s, y + 0.3 * s, z - 0.05, P.white, M.smooth, nc())
+	Kit.blob(m, 0.1 * s, 0.08 * s, 0.03, x + 0.42 * s, y + 0.3 * s, z - 0.06, P.sakura_dark, M.smooth, nc())
+	Kit.box(m, 0.3 * s, 0.4 * s, 0.03, x + 0.62 * s, y + 0.5 * s, z - 0.03, P.nori, M.smooth, nc())
+	-- chopsticks lifting noodles
+	for k = 0, 1 do
+		local cf = CFrame.new(x + (0.2 + k * 0.1) * s, y + 0.75 * s, z - 0.07) * CFrame.Angles(0, 0, math.rad(-28 - k * 6))
+		Kit.part(m, Vector3.new(0.05 * s, 0.9 * s, 0.03), cf, P.wood_light, M.wood, nc())
+	end
+end
+
+-- Row of colourful menu posters on a plane facing -Z (front face at z)
+local POSTERS = {
+	{ bg = "#FFD23B", text = "醤油", price = "¥780", broth = "#8A5A2E" },
+	{ bg = "#F27A2E", text = "味噌", price = "¥850", broth = "#C88A3A" },
+	{ bg = "#F7F5F0", text = "豚骨", price = "¥900", broth = "#EDE0C8" },
+	{ bg = "#C0261E", text = "餃子", price = "¥450", broth = "#E3B070" },
+	{ bg = "#FFD23B", text = "塩", price = "¥750", broth = "#EBD49A" },
+	{ bg = "#F7F5F0", text = "炒飯", price = "¥600", broth = "#E8C25A" },
+}
+
+local function posterRow(m, x0, x1, y0, y1, z, count)
+	local n = count or 5
+	local pw = (x1 - x0) / n
+	local ph = y1 - y0
+	for i = 0, n - 1 do
+		local info = POSTERS[i % #POSTERS + 1]
+		local x = x0 + pw * (i + 0.5)
+		local cy = (y0 + y1) / 2
+		local bg = Color.hex(info.bg)
+		Kit.box(m, pw - 0.08, ph, 0.03, x, cy, z + 0.015, bg, M.smooth, nc())
+		-- photo of the dish
+		Kit.box(m, pw - 0.3, ph * 0.42, 0.02, x, cy - ph * 0.02, z - 0.005, P.charcoal, M.smooth, nc())
+		bowlArt(m, x, cy - ph * 0.06, z - 0.02, math.min(pw - 0.3, ph * 0.42) * 0.42, Color.hex(info.broth))
+		local dark = info.bg == "#C0261E" or info.bg == "#F27A2E"
+		label(m, pw - 0.2, ph * 0.26, x, y1 - ph * 0.16, z - 0.02, info.text, dark and "#FFFFFF" or "#C0261E")
+		local tag = Kit.box(m, (pw - 0.08) * 0.62, ph * 0.16, 0.02, x, y0 + ph * 0.12, z - 0.01, dark and P.white or P.lacquer, M.smooth, nc())
+		Kit.text(tag, Enum.NormalId.Front, info.price, { color = dark and "#C0261E" or "#FFFFFF", font = JP_FONT, pps = 40 })
+		-- bits of tape on the top corners
+		for _, sx in ipairs({ -1, 1 }) do
+			Kit.box(m, 0.22, 0.08, 0.01, x + sx * (pw / 2 - 0.12), y1 - 0.04, z - 0.01, P.paper_warm, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(0, 0, math.rad(sx * 35)), transparency = 0.2 })
+		end
+	end
+end
+
+-- Small stainless water pitcher with a lid and a handle; bottom center at (x, y0, z)
+local function pitcher(m, x, y0, z, s)
+	s = s or 1
+	Kit.cyl(m, 0.58 * s, 0.95 * s, x, y0 + 0.5 * s, z, P.metal, M.metal, { collide = false, reflectance = 0.25 })
+	Kit.cyl(m, 0.62 * s, 0.06 * s, x, y0 + 0.04 * s, z, P.steel, M.metal, nc())
+	Kit.cyl(m, 0.6 * s, 0.1 * s, x, y0 + 1.02 * s, z, P.steel, M.metal, nc())
+	Kit.ball(m, 0.14 * s, x, y0 + 1.12 * s, z, P.charcoal, M.smooth, nc())
+	Kit.wedge(m, 0.16 * s, 0.22 * s, 0.24 * s, CFrame.new(x, y0 + 0.92 * s, z - 0.36 * s), P.metal, M.metal, nc())
+	for _, hy in ipairs({ 0.85, 0.3 }) do
+		Kit.box(m, 0.08 * s, 0.07 * s, 0.26 * s, x, y0 + hy * s, z + 0.4 * s, P.metal, M.metal, nc())
+	end
+	Kit.box(m, 0.08 * s, 0.62 * s, 0.07 * s, x, y0 + 0.575 * s, z + 0.5 * s, P.metal, M.metal, nc())
+end
+
+return function(Registry)
+	-- Lighting ------------------------------------------------------------------------------------
+	Registry.register("pendant_lamp", function(m, item)
+		Kit.finish(m, size(item))
+		local h = item.size[2]
+		pendant(m, 0, h, 0, h - 1.7)
+		high(Kit.cyl(m, 0.4, 0.08, 0, h - 0.04, 0, P.charcoal, M.metal, nc()))
+	end)
+
+	Registry.register("chochin_orange", function(m, item)
+		Kit.finish(m, size(item))
+		local h = item.size[2]
+		local bodyH, bodyD = 1.5, 1.15
+		local cy = h - 0.6 - bodyH / 2
+		high(Kit.cyl(m, 0.05, 0.6, 0, h - 0.3, 0, P.black, M.fabric, nc()))
+		Kit.cyl(m, 0.7, 0.18, 0, cy + bodyH / 2 + 0.05, 0, P.black, M.smooth, nc())
+		Kit.cyl(m, 0.7, 0.18, 0, cy - bodyH / 2 - 0.05, 0, P.black, M.smooth, nc())
+		local body = Kit.blob(m, bodyD, bodyH, bodyD, 0, cy, 0, P.koi_orange, M.smooth, nc())
+		for i = -2, 2 do
+			local ring = 1 - (i * 0.18) ^ 2 * 1.2
+			Kit.cyl(m, bodyD * ring + 0.02, 0.03, 0, cy + i * bodyH * 0.18, 0, P.vermilion, M.smooth, nc())
+		end
+		label(m, bodyD * 0.55, bodyH * 0.8, 0, cy, -bodyD / 2 - 0.01, "ラーメン", "#141414")
+		label(m, bodyD * 0.55, bodyH * 0.8, 0, cy, bodyD / 2 + 0.01, "らーめん", "#141414", "back")
+		Kit.light(body, "Point", P.lamp_warm, 12, 1.2)
+		body:SetAttribute("Animate", "sway")
+	end)
+
+	-- Wooden canopy over the counter: hanging rods, frame, ribbed metal roof, red banner and
+	-- three pendant lamps (the centrepiece of the ramen-ya look)
+	Registry.register("ramenya_canopy", function(m, item)
+		Kit.finish(m, size(item))
+		local w, h, d = item.size[1], item.size[2], item.size[3]
+		local frameY = h - 2.0
+		for _, c in ipairs({ { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } }) do
+			high(Kit.box(m, 0.1, 2.0, 0.1, c[1] * (w / 2 - 0.3), h - 1.0, c[2] * (d / 2 - 0.3), P.black, M.metal, nc()))
+		end
+		-- ribbed roof sheet sloping towards the customers
+		local roof = Kit.box(m, w, 0.08, d, 0, frameY + 0.32, 0, P.steel, M.metal, { collide = false, rot = CFrame.Angles(math.rad(-6), 0, 0) })
+		high(roof)
+		for x = -w / 2 + 0.25, w / 2 - 0.2, 0.5 do
+			high(Kit.box(m, 0.1, 0.08, d, x, frameY + 0.38, 0, P.metal, M.metal, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(-6), 0, 0) }))
+		end
+		-- timber frame
+		for _, z in ipairs({ -d / 2 + 0.15, d / 2 - 0.15 }) do
+			high(Kit.box(m, w, 0.4, 0.3, 0, frameY, z, P.wood_dark, M.wood, nc()))
+		end
+		for _, x in ipairs({ -w / 2 + 0.15, 0, w / 2 - 0.15 }) do
+			high(Kit.box(m, 0.25, 0.3, d - 0.3, x, frameY + 0.05, 0, P.wood_dark, M.wood, nc()))
+		end
+		Kit.box(m, w + 0.1, 0.12, 0.08, 0, frameY - 0.25, -d / 2 + 0.02, P.wood_black, M.wood, nc())
+		-- red banner along the customer side and three pendant lamps
+		banner(m, w - 0.2, frameY - 0.3, frameY - 1.3, -d / 2 + 0.1, "ラーメン ・ 餃子 ・ 炒飯", P.lacquer)
+		for _, x in ipairs({ -w / 3, 0, w / 3 }) do
+			pendant(m, x, frameY - 0.2, 0.35, 0.7)
+		end
+	end)
+
+	-- Art & walls ---------------------------------------------------------------------------------
+	Registry.register("noren_banner", function(m, item)
+		Kit.finish(m, size(item))
+		local w, h = item.size[1], item.size[2]
+		high(Kit.cylH(m, 0.12, w + 0.2, 0, h - 0.12, 0, P.wood_dark, M.wood, nc()))
+		for _, x in ipairs({ -w / 2 + 0.4, w / 2 - 0.4 }) do
+			high(Kit.box(m, 0.06, 0.12, 0.06, x, h - 0.03, 0, P.black, M.metal, nc()))
+		end
+		banner(m, w, h - 0.18, 0.05, 0, "ラーメン ・ 餃子 ・ 炒飯", P.lacquer)
+		-- round shop crest in the middle
+		Kit.cylH(m, 0.9, 0.06, 0, h * 0.5, -0.06, P.white, M.fabric, nc(), "z")
+		label(m, 0.7, 0.7, 0, h * 0.5, -0.1, "麺", "#B3262E")
+	end)
+
+	Registry.register("menu_posters", function(m, item)
+		Kit.finish(m, size(item))
+		local w, h, d = item.size[1], item.size[2], item.size[3]
+		posterRow(m, -w / 2 + 0.1, w / 2 - 0.1, 0.1, h - 0.1, d / 2 - 0.06, 5)
+	end)
+
+	Registry.register("ramen_poster", function(m, item)
+		Kit.finish(m, size(item))
+		local w, h, d = item.size[1], item.size[2], item.size[3]
+		local z = d / 2 - 0.04
+		Kit.box(m, w, h, 0.05, 0, h / 2, z, P.cream, M.smooth, nc())
+		Kit.box(m, w - 0.3, h - 0.3, 0.03, 0, h / 2, z - 0.04, P.lacquer, M.smooth, nc())
+		label(m, w - 0.5, 0.7, 0, h - 0.6, z - 0.07, "ラーメン", "#FFF3E0")
+		bowlArt(m, 0, h * 0.42, z - 0.07, 0.85)
+		-- steam
+		for k = -1, 1 do
+			for j = 0, 2 do
+				Kit.box(m, 0.05, 0.22, 0.02, k * 0.3 + (j % 2) * 0.06, h * 0.42 + 0.75 + j * 0.2, z - 0.07, P.white, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(0, 0, math.rad((j % 2 == 0) and 20 or -20)), transparency = 0.2 })
+			end
+		end
+		Kit.cylH(m, 0.7, 0.03, w / 2 - 0.55, 0.6, z - 0.07, P.white, M.smooth, nc(), "z")
+		label(m, 0.5, 0.5, w / 2 - 0.55, 0.6, z - 0.1, "開店", "#C0261E")
+		label(m, w - 1.4, 0.35, -0.35, 0.55, z - 0.07, "since 1987", "#FFF3E0")
+	end)
+
+	Registry.register("ramen_sign_vertical", function(m, item)
+		Kit.finish(m, size(item))
+		local w, h, d = item.size[1], item.size[2], item.size[3]
+		local z = d / 2 - 0.08
+		Kit.box(m, w, h - 0.5, 0.15, 0, (h - 0.5) / 2, z, P.lacquer, M.smooth, nc())
+		for _, x in ipairs({ -w / 2 + 0.12, w / 2 - 0.12 }) do
+			Kit.box(m, 0.06, h - 0.8, 0.02, x, (h - 0.5) / 2, z - 0.085, P.cream, M.smooth, nc())
+		end
+		label(m, w - 0.4, h - 1.2, 0, (h - 0.5) / 2, z - 0.09, "ラ\nー\nメ\nン", "#FFFFFF")
+		-- little tiled cap and a lamp arm lighting the sign
+		Kit.wedge(m, w + 0.3, 0.35, 0.4, CFrame.new(0, h - 0.33, z - 0.05), P.tile, M.roof, nc())
+		Kit.box(m, 0.08, 0.08, 0.6, 0, h - 0.1, z - 0.35, P.black, M.metal, nc())
+		local head = Kit.box(m, 0.4, 0.2, 0.25, 0, h - 0.18, z - 0.65, P.charcoal, M.metal, nc())
+		Kit.light(head, "Spot", P.lamp_warm, 8, 1.4, { face = Enum.NormalId.Bottom, angle = 70 })
+	end)
+
+	Registry.register("soup_sign", function(m, item)
+		Kit.finish(m, size(item))
+		local w, h, d = item.size[1], item.size[2], item.size[3]
+		local z = d / 2 - 0.1
+		Kit.box(m, w, h, 0.2, 0, h / 2, z, P.wood_dark, M.wood, nc())
+		Kit.box(m, w - 0.4, h - 0.4, 0.04, 0, h / 2, z - 0.12, P.paper_warm, M.smooth, nc())
+		label(m, w * 0.55, h * 0.55, w * 0.12, h * 0.48, z - 0.15, "秘伝スープ", "#C0261E")
+		label(m, w * 0.22, h * 0.7, -w / 2 + w * 0.15, h / 2, z - 0.15, "当店\n自慢", "#2B2320")
+		Kit.cylH(m, 0.8, 0.03, w / 2 - 0.65, h - 0.6, z - 0.15, P.lacquer, M.smooth, nc(), "z")
+		label(m, 0.6, 0.6, w / 2 - 0.65, h - 0.6, z - 0.18, "極", "#FFFFFF")
+		label(m, w * 0.5, h * 0.18, w * 0.12, 0.45, z - 0.15, "豚骨 ・ 鶏ガラ ・ 魚介", "#2B2320")
+		-- two small spotlights above
+		for _, x in ipairs({ -w / 4, w / 4 }) do
+			Kit.box(m, 0.08, 0.08, 0.5, x, h - 0.05, z - 0.3, P.black, M.metal, nc())
+			local head = Kit.cyl(m, 0.3, 0.3, x, h - 0.1, z - 0.55, P.charcoal, M.metal, nc())
+			Kit.light(head, "Spot", P.lamp_warm, 8, 1.2, { face = Enum.NormalId.Bottom, angle = 80 })
+		end
+	end)
+
+	-- On the table (top items) ------------------------------------------------------------------------
+	Registry.register("water_pitcher", function(m, item)
+		Kit.finish(m, size(item))
+		pitcher(m, 0, 0, 0, 1)
+		-- two stacked glasses beside it
+		for k = 0, 1 do
+			Kit.cyl(m, 0.26, 0.3, 0.3, 0.15 + k * 0.08, -0.25, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.35 })
+		end
+	end)
+
+	Registry.register("condiment_caddy", function(m, item)
+		Kit.finish(m, size(item))
+		Kit.box(m, 1.5, 0.08, 0.6, 0, 0.04, 0, P.steel, M.metal, { reflectance = 0.1 })
+		-- chopstick holder with a bundle of waribashi
+		Kit.cyl(m, 0.36, 0.6, -0.5, 0.38, 0, P.koi_orange, M.smooth, nc())
+		for k = 0, 5 do
+			local a = k * math.pi / 3
+			Kit.box(m, 0.04, 0.9, 0.04, -0.5 + math.cos(a) * 0.08, 0.6, math.sin(a) * 0.08, P.hinoki, M.wood, { collide = false, shadow = false, rot = CFrame.Angles(math.sin(a) * 0.06, 0, -math.cos(a) * 0.06) })
+		end
+		-- jars with red lids: garlic, chili oil
+		for i, c in ipairs({ P.cream, P.vermilion }) do
+			local x = -0.1 + (i - 1) * 0.32
+			Kit.cyl(m, 0.28, 0.32, x, 0.24, 0.08, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.3 })
+			Kit.cyl(m, 0.24, 0.2, x, 0.19, 0.08, c, M.sand, nc())
+			Kit.cyl(m, 0.3, 0.08, x, 0.44, 0.08, P.red, M.smooth, nc())
+		end
+		-- pepper can and tissue box
+		Kit.cyl(m, 0.22, 0.45, 0.58, 0.31, 0.12, P.navy, M.metal, nc())
+		Kit.cyl(m, 0.23, 0.05, 0.58, 0.55, 0.12, P.metal, M.metal, nc())
+		Kit.box(m, 0.36, 0.28, 0.26, 0.5, 0.22, -0.16, P.white, M.smooth, nc())
+		Kit.box(m, 0.14, 0.1, 0.12, 0.5, 0.4, -0.16, P.white, M.fabric, nc())
+	end)
+
+	Registry.register("counter_posters", function(m, item)
+		Kit.finish(m, size(item))
+		local w, h, d = item.size[1], item.size[2], item.size[3]
+		-- stainless pass shelf: front panel with menu posters, top shelf with pitchers
+		Kit.box(m, w, h - 0.1, 0.06, 0, (h - 0.1) / 2, -d / 2 + 0.03, P.steel_dark, M.metal)
+		Kit.box(m, w, 0.08, d, 0, h - 0.04, 0, P.metal, M.metal, { reflectance = 0.2 })
+		for _, x in ipairs({ -w / 2 + 0.05, w / 2 - 0.05 }) do
+			Kit.box(m, 0.08, h - 0.1, d - 0.06, x, (h - 0.1) / 2, 0.03, P.steel, M.metal, nc())
+		end
+		posterRow(m, -w / 2 + 0.1, w / 2 - 0.1, 0.12, h - 0.18, -d / 2 - 0.01, 5)
+		pitcher(m, -w / 2 + 0.6, h, 0, 0.7)
+		pitcher(m, w / 2 - 0.6, h, 0, 0.7)
+	end)
+
+	-- Seating -------------------------------------------------------------------------------------
+	Registry.register("stool_red", function(m, item)
+		local root = Kit.finish(m, size(item))
+		local h = item.size[2]
+		Kit.cyl(m, 1.3, 0.1, 0, 0.05, 0, P.black, M.metal)
+		Kit.cyl(m, 0.24, h - 0.5, 0, (h - 0.5) / 2 + 0.05, 0, P.black, M.metal, { reflectance = 0.1 })
+		Kit.cyl(m, 1.0, 0.06, 0, 0.95, 0, P.black, M.metal, nc())
+		Kit.cyl(m, 1.1, 0.1, 0, h - 0.5, 0, P.charcoal, M.metal, nc())
+		Kit.cyl(m, 1.55, 0.4, 0, h - 0.22, 0, P.lacquer, M.smooth, { reflectance = 0.08 })
+		Kit.blob(m, 1.5, 0.22, 1.5, 0, h - 0.02, 0, P.lacquer, M.smooth, { collide = false, reflectance = 0.08 })
+		Kit.cyl(m, 1.58, 0.05, 0, h - 0.4, 0, P.lacquer_dark, M.smooth, nc())
+		point(root, "SitPoint", 0, h, 0, 0)
+	end)
+
+	-- Wooden table with two benches (works like a booth: four seats with their own dish spots)
+	Registry.register("bench_table", function(m, item)
+		local root = Kit.finish(m, size(item))
+		local w = item.size[1]
+		-- trestle table
+		Kit.box(m, w - 0.6, 0.2, 2, 0, 2.6, 0, P.wood, M.wood)
+		Kit.box(m, w - 0.5, 0.06, 2.1, 0, 2.48, 0, P.wood_dark, M.wood, nc())
+		for _, x in ipairs({ -w / 2 + 0.9, w / 2 - 0.9 }) do
+			Kit.box(m, 0.3, 2.4, 0.3, x, 1.3, 0, P.wood_dark, M.wood)
+			Kit.box(m, 0.3, 0.2, 1.6, x, 0.1, 0, P.wood_dark, M.wood)
+			Kit.box(m, 0.25, 0.2, 1.6, x, 2.38, 0, P.wood_dark, M.wood, nc())
+		end
+		Kit.box(m, w - 1.8, 0.2, 0.2, 0, 0.9, 0, P.wood_dark, M.wood, nc())
+		-- benches
+		local df = Kit.detail(m, "furnish")
+		for side = -1, 1, 2 do
+			local z = side * 1.85
+			Kit.box(m, w - 0.4, 0.2, 1.0, 0, 1.8, z, P.wood, M.wood)
+			for _, x in ipairs({ -w / 2 + 0.6, w / 2 - 0.6 }) do
+				Kit.box(m, 0.25, 1.7, 0.8, x, 0.85, z, P.wood_dark, M.wood)
+			end
+			Kit.box(m, w - 1.4, 0.15, 0.15, 0, 0.6, z, P.wood_dark, M.wood, nc())
+			for _, x in ipairs({ -1.2, 1.2 }) do
+				Kit.box(df, 1.3, 0.12, 0.85, x, 1.96, z, side < 0 and P.indigo or P.lacquer, M.fabric, nc())
+			end
+		end
+		local dt = Kit.detail(m, "tableware")
+		pitcher(dt, -0.4, 2.7, 0, 0.6)
+		Kit.box(dt, 0.8, 0.06, 0.4, 0.4, 2.73, 0, P.steel, M.metal, nc())
+		Kit.cyl(dt, 0.24, 0.45, 0.2, 2.95, 0, P.koi_orange, M.smooth, nc())
+		Kit.cyl(dt, 0.2, 0.3, 0.55, 2.9, 0, P.red, M.smooth, nc())
+		local i = 0
+		for side = -1, 1, 2 do
+			for _, x in ipairs({ -1.2, 1.2 }) do
+				i += 1
+				point(root, "Seat" .. i, x, 1.9, side * 1.85, side < 0 and 180 or 0)
+				point(root, "Dish" .. i, x, 2.7, side * 0.55, 0)
+			end
+		end
+		root:SetAttribute("TopY", 2.7)
+	end)
+end
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000044"><Properties><string name="Name">Street</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Street scenery: road, sidewalks, neighbour buildings, lamps, poles, trees, viaduct, truck, train.
 local Kit = require(script.Parent.Parent.Kit)
 local P = require(script.Parent.Parent.Palette)
@@ -6844,7 +7278,7 @@ return function(Registry)
 	Registry.Street = S
 	local _ = Color
 end
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000045"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000046"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Primitive helpers for procedural models. Coordinates are relative to the model's bottom center.
 local Color = require(script.Parent.Parent.Util.Color)
 
@@ -7106,7 +7540,7 @@ function Kit.slats(parent, count, sx, sy, sz, x0, x1, y, z, color, material, pro
 end
 
 return Kit
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000046"><Properties><string name="Name">Palette</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000047"><Properties><string name="Name">Palette</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Theme colors and materials used by every procedural model.
 local Color = require(script.Parent.Parent.Util.Color)
 
@@ -7178,7 +7612,7 @@ end
 Palette.hex = Color.hex
 
 return Palette
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000047"><Properties><string name="Name">Registry</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000048"><Properties><string name="Name">Registry</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Model registry: id -> builder. Models in ReplicatedStorage.AssetOverrides with the same name
 -- replace the procedural version (they are scaled to fit the configured size).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -7312,7 +7746,7 @@ function Registry.place(model, x, y, z, r)
 end
 
 return Registry
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000048"><Properties><string name="Name">Scene</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000049"><Properties><string name="Name">Scene</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Builds the restaurant shell (floors, walls, roof, facade, stairs) and the street scenery.
 -- Shared so the server world builder and the preview renderer use the same code.
 local CollectionService = game:GetService("CollectionService")
@@ -7771,7 +8205,7 @@ end
 
 
 return Scene
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000050"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000051"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Remote definitions shared by server and client.
 -- The server creates the instances; the client waits for them.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -7864,7 +8298,7 @@ function Net.func(name)
 end
 
 return Net
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000057"><Properties><string name="Name">Util</string></Properties><Item class="ModuleScript" referent="RBX000051"><Properties><string name="Name">Color</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000058"><Properties><string name="Name">Util</string></Properties><Item class="ModuleScript" referent="RBX000052"><Properties><string name="Name">Color</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Color = {}
 
 local cache = {}
@@ -7903,7 +8337,7 @@ function Color.lighten(c, amount)
 end
 
 return Color
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000052"><Properties><string name="Name">Format</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000053"><Properties><string name="Name">Format</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Format = {}
 
 local function group(n, sep)
@@ -7973,7 +8407,7 @@ function Format.duration(seconds)
 end
 
 return Format
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000053"><Properties><string name="Name">RateLimit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000054"><Properties><string name="Name">RateLimit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Token bucket rate limiter keyed by any value (player, player..remote, ...).
 local RateLimit = {}
 RateLimit.__index = RateLimit
@@ -8003,7 +8437,7 @@ function RateLimit:clear(key)
 end
 
 return RateLimit
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000054"><Properties><string name="Name">Signal</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000055"><Properties><string name="Name">Signal</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Minimal signal implementation (connect / once / fire / wait).
 local Signal = {}
 Signal.__index = Signal
@@ -8057,7 +8491,7 @@ function Signal:DisconnectAll()
 end
 
 return Signal
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000055"><Properties><string name="Name">TableUtil</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000056"><Properties><string name="Name">TableUtil</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local TableUtil = {}
 
 function TableUtil.deepCopy(value)
@@ -8154,7 +8588,7 @@ function TableUtil.weightedPick(list, weightFn, rng)
 end
 
 return TableUtil
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000056"><Properties><string name="Name">Uid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000057"><Properties><string name="Name">Uid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Short unique ids for placed items, boxes, entities.
 local Uid = {}
 
@@ -8173,14 +8607,14 @@ function Uid.new(prefix)
 end
 
 return Uid
-]]></ProtectedString></Properties></Item></Item></Item><Item class="Folder" referent="RBX000059"><Properties><string name="Name">AssetOverrides</string></Properties></Item></Item><Item class="ServerScriptService" referent="RBX000090"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX000089"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX000061"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item><Item class="Folder" referent="RBX000060"><Properties><string name="Name">AssetOverrides</string></Properties></Item></Item><Item class="ServerScriptService" referent="RBX000091"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX000090"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX000062"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of server services (avoids circular requires).
 local Core = {
 	S = {},
 	Started = false,
 }
 return Core
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000062"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000063"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Server entry point: loads every service, then calls Init() and Start() in order.
 local Core = require(script.Parent.Core)
 local Services = script.Parent.Services
@@ -8228,7 +8662,7 @@ for _, name in ipairs(ORDER) do
 end
 
 Core.Started = true
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000088"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX000063"><Properties><string name="Name">Appliance</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000089"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX000064"><Properties><string name="Name">Appliance</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Rice cookers, broth pots, sink, dishwasher, fridges and the clean/dirty dish pool.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Ingredients = require(Shared.Config.Ingredients)
@@ -8579,7 +9013,7 @@ function Appliance.Start()
 end
 
 return Appliance
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000064"><Properties><string name="Name">Cooking</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000065"><Properties><string name="Name">Cooking</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Stations: ingredients go on the board, each click runs the next step (cut, combine, roll,
 -- boil, pour, top, fry...), then the dish waits on the plate. Also the order tickets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -9031,7 +9465,7 @@ function Cooking.Init()
 end
 
 return Cooking
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000065"><Properties><string name="Name">Customers</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000066"><Properties><string name="Name">Customers</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Customers: arrive from the street, take a seat, order, wait (patience), eat, pay, review, leave.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -9711,7 +10145,7 @@ function Service.Start()
 end
 
 return Service
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000066"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000067"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Player profiles: loading, session locking, autosave, migrations and replication to clients.
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
@@ -10063,7 +10497,7 @@ end
 
 local _ = { RunService, HttpService }
 return Data
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000067"><Properties><string name="Name">Day</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000068"><Properties><string name="Name">Day</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Day cycle: prep -> open (11:00-23:00, 1 game hour = 1 minute) -> closing -> report -> prep.
 local Lighting = game:GetService("Lighting")
 
@@ -10267,7 +10701,7 @@ function Day.Start()
 end
 
 return Day
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000068"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000069"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Developer tools: available in Studio or to the experience creator.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -10381,7 +10815,7 @@ function Dev.Start()
 end
 
 return Dev
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000069"><Properties><string name="Name">Economy</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000070"><Properties><string name="Name">Economy</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Yen and sakura tokens, income multipliers, boosts and the per-day ledger.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Franchise = require(Shared.Config.Franchise)
@@ -10515,7 +10949,7 @@ function Economy.Init()
 end
 
 return Economy
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000070"><Properties><string name="Name">Entities</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000071"><Properties><string name="Name">Entities</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Registry of interactable things in the world (placed items, boxes, customers, fixed props).
 local CollectionService = game:GetService("CollectionService")
 
@@ -10572,7 +11006,7 @@ function Entities.position(e)
 end
 
 return Entities
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000071"><Properties><string name="Name">Franchise</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000072"><Properties><string name="Name">Franchise</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Franchise (prestige): open a restaurant in the next city with permanent bonuses.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Franchise = require(Shared.Config.Franchise)
@@ -10661,7 +11095,7 @@ function Service.Init()
 end
 
 return Service
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000072"><Properties><string name="Name">Hands</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000073"><Properties><string name="Name">Hands</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- What every actor (player or staff NPC) is carrying, with visuals welded in front of the body.
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -10915,7 +11349,7 @@ function Hands.Start()
 end
 
 return Hands
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000073"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000074"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Receives clicks/taps from players, checks distance and permissions, dispatches to services.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -11030,7 +11464,7 @@ function Interaction.Init()
 end
 
 return Interaction
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000074"><Properties><string name="Name">Leaderboard</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000075"><Properties><string name="Name">Leaderboard</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Global leaderboards (dishes served, yen earned) with a small cache.
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
@@ -11115,7 +11549,7 @@ function Leaderboard.Start()
 end
 
 return Leaderboard
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000075"><Properties><string name="Name">Meta</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000076"><Properties><string name="Name">Meta</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login streak, offline earnings and tutorial progress.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Quests = require(Shared.Config.Quests)
@@ -11400,7 +11834,7 @@ function Meta.Start()
 end
 
 return Meta
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000076"><Properties><string name="Name">Monetization</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000077"><Properties><string name="Name">Monetization</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Game passes and developer products (IDs in Shared.Config.Monetization; 0 = disabled).
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -11575,7 +12009,7 @@ function Monetization.Start()
 end
 
 return Monetization
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000077"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000078"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Server networking helpers: rate-limited handlers and broadcast helpers.
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -11657,7 +12091,7 @@ end
 
 local _ = Core
 return Net
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000078"><Properties><string name="Name">Npc</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000079"><Properties><string name="Name">Npc</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- NPC characters (customers and staff): creation, pooling, animations, walking with pathfinding,
 -- sitting and simple emotes.
 local Players = game:GetService("Players")
@@ -11984,7 +12418,7 @@ function Npc.Start()
 end
 
 return Npc
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000079"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000080"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Placed objects: spawning models from the owner's data, building remotes, inventory, painting,
 -- ambience. Functional services subscribe to ItemAdded / ItemRemoved / ItemMoved.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -12465,7 +12899,7 @@ function Placement.Start()
 end
 
 return Placement
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000080"><Properties><string name="Name">Progression</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000081"><Properties><string name="Name">Progression</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Restaurant level, licenses, upgrades, ads, expansions, menu, mastery, rating and popularity.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -12829,7 +13263,7 @@ function Progression.Start()
 end
 
 return Progression
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000081"><Properties><string name="Name">Seating</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000082"><Properties><string name="Name">Seating</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Works out which seats are usable (stool in front of a counter, chair next to a table,
 -- booths), where the dish goes, and keeps reservations / dirty dishes per seat.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -13076,7 +13510,7 @@ function Seating.Init()
 end
 
 return Seating
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000082"><Properties><string name="Name">SelfTest</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000083"><Properties><string name="Name">SelfTest</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- End-to-end self test of the core loop, started from the dev panel. It drives the real services
 -- with an invisible worker: restock, rice, cook a kappa maki, serve a customer, get paid, wash.
 -- Results go to the Output window and to a toast.
@@ -13313,7 +13747,7 @@ function SelfTest.run(player)
 end
 
 return SelfTest
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000083"><Properties><string name="Name">Session</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000084"><Properties><string name="Name">Session</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Personal worlds: public servers act as an entrance that teleports every player to their
 -- own reserved server; friends can join through invites. In Studio the server is a world directly.
 local Players = game:GetService("Players")
@@ -13659,7 +14093,7 @@ function Session.Start()
 end
 
 return Session
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000084"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000085"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Staff: hiring, training, salaries and the AI that automates the restaurant.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -14213,7 +14647,7 @@ function Staff.Start()
 end
 
 return Staff
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000085"><Properties><string name="Name">Supply</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000086"><Properties><string name="Name">Supply</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier orders, the delivery truck, boxes in the storage room and shelf slots.
 local TweenService = game:GetService("TweenService")
 
@@ -14849,7 +15283,7 @@ end
 
 Supply.updateBoxLabel = updateBoxLabel
 return Supply
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000086"><Properties><string name="Name">Tasks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000087"><Properties><string name="Name">Tasks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Task board helpers for staff: finds work, claims targets so two workers never do the same job.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Recipes = require(Shared.Config.Recipes)
@@ -15042,7 +15476,7 @@ function Tasks.findRefill(kinds)
 end
 
 return Tasks
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000087"><Properties><string name="Name">World</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000088"><Properties><string name="Name">World</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Builds the street and the restaurant shell from the unlocked zones; exposes the geometry
 -- (zones, walls, stairs, openings) used by placement, seating and NPC services.
 local CollectionService = game:GetService("CollectionService")
@@ -15232,7 +15666,7 @@ function World.Start()
 end
 
 return World
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000127"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000126"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000125"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000102"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000091"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000128"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000127"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000126"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000103"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000092"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client-only animations: swaying lanterns and noren, maneki-neko paws, koi, shishi-odoshi,
 -- streamers, and the evening train on the viaduct.
 local RunService = game:GetService("RunService")
@@ -15326,7 +15760,7 @@ function Ambient.Start()
 end
 
 return Ambient
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000092"><Properties><string name="Name">Audio</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000093"><Properties><string name="Name">Audio</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Sound effects (2D or positional) and background music.
 local SoundService = game:GetService("SoundService")
 
@@ -15406,7 +15840,7 @@ function Audio.Start()
 end
 
 return Audio
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000093"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build mode: ghost preview on a 1/5/10 stud grid, rotation, local validation (same rules as the
 -- server), placing, moving, storing and selling objects.
 local Players = game:GetService("Players")
@@ -15964,7 +16398,7 @@ function Build.Start()
 end
 
 return Build
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build-mode camera (top view) and hiding roofs/ceilings while building.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -16012,7 +16446,9 @@ local function setRoofs(hidden, floor)
 			local above = hidden and floor and (m:GetAttribute("FloorIndex") or 0) > floor
 			for _, d in ipairs(m:GetDescendants()) do
 				if d:IsA("BasePart") then
-					d.LocalTransparencyModifier = above and 1 or 0
+					-- parts tagged Roof (canopies, cords right under the ceiling) hide like the roof
+					local roofLike = hidden and CollectionService:HasTag(d, "Roof")
+					d.LocalTransparencyModifier = (above or roofLike) and 1 or 0
 				end
 			end
 		end
@@ -16085,7 +16521,7 @@ function Camera.Start()
 end
 
 return Camera
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000096"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Local copy of the player's profile ("me"), the restaurant owner's data ("world"),
 -- session info, day state and tickets.
 local Players = game:GetService("Players")
@@ -16210,7 +16646,7 @@ function Data.Start()
 end
 
 return Data
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000096"><Properties><string name="Name">Effects</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000097"><Properties><string name="Name">Effects</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Visual feedback for server events: money popups, review stars, level up confetti,
 -- dish ready sparkles, construction dust, sounds.
 local Players = game:GetService("Players")
@@ -16330,7 +16766,7 @@ function Effects.Init()
 end
 
 return Effects
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000097"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000098"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Hover highlight + action label on nearby interactables; click / tap / E sends Interact.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -16678,7 +17114,7 @@ function Interaction.Start()
 end
 
 return Interaction
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000098"><Properties><string name="Name">Lighting</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000099"><Properties><string name="Name">Lighting</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Time-of-day look (sky colors, atmosphere, bloom, color grading) and night lights.
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
@@ -16693,7 +17129,8 @@ local lights = {}
 
 local DAY = { ambient = Color.hex("#8C8478"), outdoor = Color.hex("#9C9488"), top = Color.hex("#FFF3E0"), bright = 2.4, atm = Color.hex("#C9D9E8"), decay = Color.hex("#8FA8C0"), tint = Color.hex("#FFF6EC") }
 local SUNSET = { ambient = Color.hex("#8A6A5A"), outdoor = Color.hex("#A0786A"), top = Color.hex("#FFB070"), bright = 1.6, atm = Color.hex("#F0B08A"), decay = Color.hex("#A06A6A"), tint = Color.hex("#FFE2C8") }
-local NIGHT = { ambient = Color.hex("#3A3A58"), outdoor = Color.hex("#2E3450"), top = Color.hex("#6A78B0"), bright = 0.5, atm = Color.hex("#2A3050"), decay = Color.hex("#1A1E38"), tint = Color.hex("#D8DCFF") }
+-- night: blue sky outside, but a warm, cosy grade so lanterns and pendants glow amber
+local NIGHT = { ambient = Color.hex("#4A4050"), outdoor = Color.hex("#2E3450"), top = Color.hex("#6A78B0"), bright = 0.5, atm = Color.hex("#2A3050"), decay = Color.hex("#1A1E38"), tint = Color.hex("#FFE9D4") }
 
 local function blend(a, b, k)
 	return {
@@ -16782,7 +17219,7 @@ function LightingC.Start()
 end
 
 return LightingC
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000099"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000100"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Guided first day: step panel, arrow beam to the target and a floating marker.
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
@@ -17015,7 +17452,7 @@ function Tutorial.Start()
 end
 
 return Tutorial
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000100"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Screen manager, toasts and shared UI helpers.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -17215,7 +17652,7 @@ function UI.Start()
 end
 
 return UI
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000102"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Localized billboards over customers (order + patience), stations (board / next step),
 -- rice cookers & pots, shelf slots, dirty dishes and staff name tags.
 local Players = game:GetService("Players")
@@ -17499,13 +17936,13 @@ function WorldUI.Start()
 end
 
 return WorldUI
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000103"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of client controllers and UI screens.
 return {
 	C = {},
 	Screens = {},
 }
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000104"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000105"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client entry point.
 if not game:IsLoaded() then
 	game.Loaded:Wait()
@@ -17551,7 +17988,7 @@ for _, name in ipairs(ORDER) do
 		end)
 	end
 end
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000124"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000125"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Helper to build standard modal screens: Base.make(name, titleKey, size, render)
 -- render(content, screen) rebuilds the content each refresh.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -17596,14 +18033,17 @@ function Base.make(name, titleKey, size, render)
 end
 
 return Base
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Emoji icons for catalog cards (no image assets needed).
 local Icons = {
 	cat = {
 		seating = "🪑", kitchen = "🍳", storage = "📦", lighting = "🏮", plants = "🎍", art = "🖼️",
-		statues = "🐱", garden = "⛩️", festival = "🎏",
+		statues = "🐱", garden = "⛩️", festival = "🎏", tabletop = "🥢",
 	},
 	item = {
+		stool_red = "🔴", bench_table = "🍽️", pendant_lamp = "💡", chochin_orange = "🏮", ramenya_canopy = "🏮",
+		menu_posters = "📋", noren_banner = "🎌", ramen_poster = "🍜", ramen_sign_vertical = "🪧", soup_sign = "🥣",
+		water_pitcher = "🫗", condiment_caddy = "🧂", counter_posters = "📋",
 		counter_straight = "🍶", counter_corner = "🍶", counter_end = "🍶", stool_wood = "🪑", stool_cushion = "🪑",
 		stool_swivel = "🪑", table_2 = "🍽️", table_4 = "🍽️", chair_wood = "🪑", chair_lacquer = "🪑", chabudai = "🍵",
 		zabuton = "🟥", booth = "🛋️", zashiki_table = "🎎", waiting_bench = "🪵", shelf_small = "🗄️", shelf_large = "🗄️",
@@ -17637,7 +18077,7 @@ function Icons.forItem(item)
 end
 
 return Icons
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000108"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Tiny declarative UI toolkit + the visual theme (washi paper, dark wood, lacquer red, gold).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Color = require(Shared.Util.Color)
@@ -17947,7 +18387,7 @@ function Kit.row(icon, titleText, subtitle, height)
 end
 
 return Kit
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000123"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000108"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000124"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build panel: catalog by category, inventory, floor/wall styles, grid & rotation tools,
 -- selection actions (move / rotate / store / sell).
 local Players = game:GetService("Players")
@@ -18229,7 +18669,7 @@ function Screen.close()
 end
 
 return Screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -18277,7 +18717,7 @@ screen = Base.make("DayReport", "ui.report", UDim2.fromScale(0.42, 0.74), functi
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Kit = require(script.Parent.Parent.Kit)
@@ -18299,7 +18739,7 @@ return Base.make("Dev", "ui.dev", UDim2.fromScale(0.5, 0.6), function(content)
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Expansions screen: new rooms and floors ("zones" tab) and renovations that turn the plain
 -- starting restaurant into the detailed one ("reno" tab, grouped by exterior/interior/furniture).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -18391,7 +18831,7 @@ screen = Base.make("Expansions", "ui.expansions", UDim2.fromScale(0.66, 0.76), f
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login calendar, leaderboards and franchise.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -18553,7 +18993,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Always-visible HUD: wallet, level, clock/day controls, rating, tickets, hands and menu bar.
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
@@ -18790,7 +19230,7 @@ function HUD.open() end
 function HUD.close() end
 
 return HUD
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Invite friends to the personal world and set their permissions.
 local Players = game:GetService("Players")
 local SocialService = game:GetService("SocialService")
@@ -18837,7 +19277,7 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.66), function(con
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -18889,7 +19329,7 @@ return Base.make("Licenses", "ui.licenses", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Menu board: enable dishes, set prices (-30%..+30%), recipe book with mastery.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -18982,7 +19422,7 @@ screen = Base.make("Menu", "ui.menu", UDim2.fromScale(0.66, 0.76), function(cont
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -19003,7 +19443,7 @@ return Base.make("Offline", "ui.offline", UDim2.fromScale(0.36, 0.4), function(c
 		Core.C.UI.close("Offline")
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -19054,7 +19494,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 		end
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -19095,7 +19535,7 @@ return Base.make("Shop", "ui.shop", UDim2.fromScale(0.6, 0.72), function(content
 		Kit.label("🛒 " .. t("ui.shop_soon"), { Parent = scroll, Size = UDim2.new(1, 0, 0, 80), TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -19161,7 +19601,7 @@ return Base.make("Staff", "ui.staff", UDim2.fromScale(0.66, 0.78), function(cont
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier tablet: order boxes of ingredients and dish sets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -19267,7 +19707,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000123"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -19339,4 +19779,4 @@ return Base.make("Upgrades", "ui.upgrades", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000128"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000129"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000130"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000129"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000130"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000131"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

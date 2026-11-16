@@ -52,5 +52,8 @@ python3 tools/preview.py category seating out.png
 python3 tools/preview.py facade out.png            # facciata del ristorante
 python3 tools/preview.py interior out.png --zones=dining,kitchen
 python3 tools/preview.py street out.png --focus=-60,20,-40,0
+python3 tools/preview.py interior out.png --basic          # locale iniziale, senza ristrutturazioni
+python3 tools/preview.py interior out.png --swap=stool_wood:stool_red \
+  "--place=ramenya_canopy@-6,15.6,0,c;water_pitcher@-7.5,14.6,0,t,3.5" --clip=-19,19,0.8,30 --view=14,72,2.4
 ```
 Il testo delle insegne e le luci non vengono disegnati: l'aspetto finale va sempre verificato in Studio.

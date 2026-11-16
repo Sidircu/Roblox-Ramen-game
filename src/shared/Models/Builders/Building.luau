@@ -130,9 +130,23 @@ function B.entranceNoren(parent, o, y0)
 		cloth.CanQuery = false
 		cloth:SetAttribute("Animate", "sway")
 	end
-	local label = Kit.box(parent, len - 0.3, 2.2, 0.02, cx, y0 + 7.2, z - 0.05, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
+	local label = Kit.box(parent, len - 0.3, 1.1, 0.02, cx, y0 + 7.95, z - 0.05, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
 	label.CanQuery = false
 	Kit.text(label, Enum.NormalId.Front, "ら ー め ん", { color = "#FFFFFF", font = JP_FONT, pps = 30 })
+	-- white ramen bowl crest: bowl, rim cut-out, noodles and chopsticks
+	local NC = { collide = false, shadow = false }
+	local function icon(p)
+		p.CanQuery = false
+		return p
+	end
+	icon(Kit.blob(parent, 1.7, 0.95, 0.04, cx, y0 + 6.25, z - 0.06, P.white, M.fabric, NC))
+	icon(Kit.blob(parent, 1.55, 0.36, 0.04, cx, y0 + 6.62, z - 0.08, P.indigo, M.fabric, NC))
+	for k = -1, 1 do
+		icon(Kit.box(parent, 0.08, 0.55, 0.03, cx + k * 0.22, y0 + 6.95, z - 0.08, P.white, M.fabric, NC))
+	end
+	for k = 0, 1 do
+		icon(Kit.part(parent, Vector3.new(0.07, 1.0, 0.03), CFrame.new(cx + 0.35 + k * 0.16, y0 + 7.1, z - 0.08) * CFrame.Angles(0, 0, math.rad(-30)), P.white, M.fabric, NC))
+	end
 end
 
 function B.railing(parent, seg, y0, color)

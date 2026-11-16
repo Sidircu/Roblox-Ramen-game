@@ -6,6 +6,7 @@ local list = {
 	{ id = "samurai", items = { "samurai_armor", "kakejiku", "byobu", "daruma", "wave_painting" }, bonus = { tip = 0.05 } },
 	{ id = "neon", items = { "neon_ramen", "neon_sushi", "vending_machine", "gashapon", "chochin_red" }, bonus = { popularity = 0.10 } },
 	{ id = "sakura", items = { "sakura_tree", "koi_pond", "red_bridge", "torii_small", "wagasa" }, bonus = { tip = 0.05, popularity = 0.05 } },
+	{ id = "ramenya", items = { "ramenya_canopy", "noren_banner", "menu_posters", "stool_red", "water_pitcher" }, bonus = { tip = 0.04, popularity = 0.06 } },
 }
 local byId = {}
 for i, s in ipairs(list) do
