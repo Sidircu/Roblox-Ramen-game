@@ -10,6 +10,7 @@ It runs the real builder modules (src/shared/Models) on a small Roblox API mock
   python3 tools/preview.py facade out.png        (street view of the restaurant)
   python3 tools/preview.py interior out.png      (roof removed, starter layout)
   python3 tools/preview.py street out.png   [--focus=xmin,xmax,zmin,zmax] frames an area
+  python3 tools/preview.py people casual suit tourist elder trendy vip child:casual staff:staff_waiter casual@angry out.png
   --basic   plain starting look (no renovations / detail styles); default is the finished look
   --swap=stool_wood:stool_red   --place=id@x,z,r,s[,y];...   --surfaces=zone=floor_id/wall_id
 Requires: pip install lupa matplotlib numpy
@@ -147,6 +148,59 @@ function scene_dish(ids)
     else m = Registry.food("dish", id) end
     local c, r = (i - 1) % cols, math.floor((i - 1) / cols)
     m:PivotTo(CFrame.new(c * 2.4, 0.5, r * 2.4))
+    m.Parent = root
+  end
+  return root
+end
+
+-- Blocky R15 rig like the one Players:CreateHumanoidModelFromDescription builds
+local function rig(x, z, scale)
+  local m = Instance.new("Model")
+  local k = scale or 1
+  local function part(name, sx, sy, sz, px, py)
+    local p = Instance.new("Part")
+    p.Name = name
+    p.Size = Vector3.new(sx * k, sy * k, sz * k)
+    p.CFrame = CFrame.new(x + px * k, py * k, z)
+    p.Color = Color3.fromRGB(160, 160, 160)
+    p.Parent = m
+    return p
+  end
+  local headK = scale and scale < 1 and 1.12 or 1
+  local h = part("Head", 1.2 * headK, 1.2 * headK, 1.2 * headK, 0, 5.3 + (headK - 1) * 0.6)
+  part("UpperTorso", 2, 1.6, 1, 0, 3.9)
+  part("LowerTorso", 2, 0.4, 1, 0, 2.9)
+  for _, s in ipairs({ { "Left", -1 }, { "Right", 1 } }) do
+    part(s[1] .. "UpperArm", 1, 1.2, 1, s[2] * 1.5, 4.1)
+    part(s[1] .. "LowerArm", 1, 1.1, 1, s[2] * 1.5, 2.95)
+    part(s[1] .. "Hand", 1, 0.3, 1, s[2] * 1.5, 2.25)
+    part(s[1] .. "UpperLeg", 1, 1.2, 1, s[2] * 0.5, 2.1)
+    part(s[1] .. "LowerLeg", 1, 1.2, 1, s[2] * 0.5, 0.9)
+    part(s[1] .. "Foot", 1, 0.3, 1, s[2] * 0.5, 0.15)
+  end
+  local _ = h
+  return m
+end
+
+-- specs: "casual", "child:casual", "staff:staff_waiter", optional "@mood" suffix
+function scene_people(specs)
+  local People = Registry.People
+  local NpcLooks = require(Shared.Config.NpcLooks)
+  local root = Instance.new("Model")
+  for i, spec in ipairs(specs) do
+    local body, mood = string.match(spec, "^([^@]+)@?(.*)$")
+    local kind, rest = string.match(body, "^(%a+):(.+)$")
+    local x = (i - 1) * 3.4
+    local m = rig(x, 0, kind == "child" and 0.72 or 1)
+    local r = Random.new(i * 7 + 3)
+    if kind == "staff" then
+      People.staff(m, rest, NpcLooks, r)
+    elseif kind == "child" then
+      People.dress(m, rest, NpcLooks, r, { child = true })
+    else
+      People.dress(m, body, NpcLooks, r)
+    end
+    if mood and mood ~= "" then People.setMood(m, mood) end
     m.Parent = root
   end
   return root
@@ -435,6 +489,10 @@ def main():
         root = lua.eval("scene_category")(args[0])
         out = args[1]
         opts = {"elev": 14, "azim": 75, "zoom": 1.6}
+    elif kind == "people":
+        root = lua.eval("scene_people")(lua.table_from(args[:-1]))
+        out = args[-1]
+        opts = {"elev": 6, "azim": 90, "zoom": 1.5} if "--view=" not in " ".join(sys.argv) else opts
     elif kind == "facade":
         root = lua.eval("scene_restaurant")(True)
         out = args[0]

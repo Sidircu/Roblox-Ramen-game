@@ -389,8 +389,8 @@ local function spawnActor(record, index)
 	if not cfg then
 		return
 	end
-	local hat = (record.role == "staff_sushi_chef" or record.role == "staff_ramen_chef") and "chef" or (record.role == "staff_manager" and "cap" or "hachimaki")
-	local npc = Core.S.Npc.create({ look = "casual", shirt = cfg.shirt, staff = record.role, hat = hat, apron = record.role == "staff_manager" and "#14141A" or "#2E3A5C", speed = GameConfig.StaffWalkSpeed })
+	-- the uniform (chef jacket, happi coat, rubber apron...) comes from People.staff by role
+	local npc = Core.S.Npc.create({ look = "casual", shirt = cfg.shirt, staff = record.role, speed = GameConfig.StaffWalkSpeed })
 	if not npc then
 		return
 	end

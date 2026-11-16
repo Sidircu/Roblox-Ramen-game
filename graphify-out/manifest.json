@@ -228,9 +228,9 @@
     "semantic_hash": ""
   },
   "src/server/Services/Customers.luau": {
-    "mtime": 1794776541.5760577,
-    "seen": 1794776610.456959,
-    "ast_hash": "d20d296c4c82faa13c359a0f6be33be7",
+    "mtime": 1794853688.0419369,
+    "seen": 1794853835.5237687,
+    "ast_hash": "e2903bf79b3f49e963480894fe65ed14",
     "semantic_hash": ""
   },
   "src/server/Services/Data.luau": {
@@ -306,9 +306,9 @@
     "semantic_hash": ""
   },
   "src/server/Services/Npc.luau": {
-    "mtime": 1794820455.879059,
-    "seen": 1794820600.6683936,
-    "ast_hash": "3c608c322897c2523ee95a1e43d3d968",
+    "mtime": 1794853808.3340116,
+    "seen": 1794853835.5237846,
+    "ast_hash": "8fa795ca774be718f9b6f6a8a5362a52",
     "semantic_hash": ""
   },
   "src/server/Services/Placement.luau": {
@@ -336,9 +336,9 @@
     "semantic_hash": ""
   },
   "src/server/Services/Staff.luau": {
-    "mtime": 1794760587.1797233,
-    "seen": 1794776610.4569793,
-    "ast_hash": "8ffe5d836f9aea44dfce92f6807b0209",
+    "mtime": 1794853688.0423024,
+    "seen": 1794853835.5237913,
+    "ast_hash": "2a77d0c544879003a99f715d50d62d46",
     "semantic_hash": ""
   },
   "src/server/Services/Supply.luau": {
@@ -582,9 +582,9 @@
     "semantic_hash": ""
   },
   "src/shared/Models/Builders/People.luau": {
-    "mtime": 1794759741.0567234,
-    "seen": 1794776610.457022,
-    "ast_hash": "b37685457e72480ea45e4340e7b693a4",
+    "mtime": 1794853783.7348032,
+    "seen": 1794853835.5238354,
+    "ast_hash": "0227e161fec57ac26791ee8431ecde41",
     "semantic_hash": ""
   },
   "src/shared/Models/Builders/Street.luau": {
@@ -696,9 +696,9 @@
     "semantic_hash": ""
   },
   "docs/01-GAME-DESIGN.md": {
-    "mtime": 1794853096.2311933,
-    "seen": 1794853106.912416,
-    "ast_hash": "8d32e2a97472da7f0a8246af8df90556",
+    "mtime": 1794853833.8703265,
+    "seen": 1794853835.5238671,
+    "ast_hash": "19cfbee5bcb575e3647001f5a5461dbc",
     "semantic_hash": ""
   },
   "docs/02-PIANO-TECNICO.md": {
@@ -714,9 +714,9 @@
     "semantic_hash": ""
   },
   "src/server/Services/SelfTest.luau": {
-    "mtime": 1794853104.3654974,
-    "seen": 1794853106.91232,
-    "ast_hash": "bbe09bde3056f1c7b7c2302b26e2fc3b",
+    "mtime": 1794853817.464137,
+    "seen": 1794853835.5237894,
+    "ast_hash": "96ca5d1f21e2078caa4f0f4dc2b6008b",
     "semantic_hash": ""
   },
   "tools/check_roblox_api.py": {
@@ -756,9 +756,9 @@
     "semantic_hash": ""
   },
   "tools/preview.py": {
-    "mtime": 1794853077.1569252,
-    "seen": 1794853106.9124098,
-    "ast_hash": "9e7f2885a768f860dfa8fd2e40348701",
+    "mtime": 1794853716.7062025,
+    "seen": 1794853835.5238616,
+    "ast_hash": "4c1790c849c018a5bf4205cd94737ced",
     "semantic_hash": ""
   },
   "tools/preview/mock.lua": {

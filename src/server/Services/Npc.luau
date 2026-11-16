@@ -89,8 +89,17 @@ local function setupAnimator(npc)
 	play("idle")
 end
 
-local function describe(look, shirtColor)
+local function describe(look, shirtColor, child)
 	local desc = Instance.new("HumanoidDescription")
+	-- body proportions vary a little inside the ranges Roblox allows (children are scaled after)
+	if not child then
+		desc.HeightScale = (look == "elder" and 0.9 or 0.93) + rng:NextNumber() * 0.12
+		desc.WidthScale = 0.8 + rng:NextNumber() * 0.2
+		desc.DepthScale = 0.9 + rng:NextNumber() * 0.1
+		desc.HeadScale = 0.95 + rng:NextNumber() * 0.05
+	end
+	desc.BodyTypeScale = 0
+	desc.ProportionScale = 0
 	local skin = Color.hex(NpcLooks.skin[rng:NextInteger(1, #NpcLooks.skin)])
 	local shirts = NpcLooks.shirts[look] or NpcLooks.shirts.casual
 	local shirt = shirtColor and Color.hex(shirtColor) or Color.hex(shirts[rng:NextInteger(1, #shirts)])
@@ -107,11 +116,29 @@ local function describe(look, shirtColor)
 	return desc
 end
 
--- Creates a new NPC. opts: { look = "casual", shirt = "#hex", staff = role }
+-- Expression from the customer's state and patience (see People.setMood)
+local function moodFor(model)
+	local state = model:GetAttribute("State")
+	local p = model:GetAttribute("Patience") or 1
+	if state == "served" or state == "eating" or state == "paying" then
+		return "happy"
+	elseif state == "leaving" then
+		return p <= 0.01 and "angry" or nil
+	elseif state == "order" or state == "waiting" or state == "queue" or state == "reading" then
+		if p < 0.3 then
+			return "angry"
+		elseif p < 0.55 then
+			return "worried"
+		end
+	end
+	return "calm"
+end
+
+-- Creates a new NPC. opts: { look = "casual", shirt = "#hex", staff = role, child = bool }
 function Npc.create(opts)
 	opts = opts or {}
 	local model
-	local desc = describe(opts.look or "casual", opts.shirt)
+	local desc = describe(opts.look or "casual", opts.shirt, opts.child)
 	local ok, err = pcall(function()
 		model = Players:CreateHumanoidModelFromDescriptionAsync(desc, Enum.HumanoidRigType.R15)
 	end)
@@ -126,6 +153,12 @@ function Npc.create(opts)
 		return nil
 	end
 	model.Name = opts.staff and "Staff" or "Customer"
+	if opts.child then
+		-- a child is the same rig scaled down (clothes are fitted afterwards, so they follow)
+		pcall(function()
+			model:ScaleTo(0.72)
+		end)
+	end
 	local hum = model:FindFirstChildOfClass("Humanoid")
 	hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	hum.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
@@ -149,11 +182,17 @@ function Npc.create(opts)
 	end
 	local People = Registry.People
 	if opts.staff then
-		People.hair(model, Color.hex(NpcLooks.hair[rng:NextInteger(1, #NpcLooks.hair)]), rng:NextInteger(1, 3))
-		People.hat(model, opts.hat or "hachimaki")
-		People.apron(model, Color.hex(opts.apron or "#2E3A5C"))
+		People.staff(model, opts.staff, NpcLooks, rng)
 	else
-		People.dress(model, opts.look or "casual", NpcLooks, rng)
+		People.dress(model, opts.look or "casual", NpcLooks, rng, { child = opts.child })
+		local function refresh()
+			local mood = moodFor(model)
+			if mood then
+				People.setMood(model, mood)
+			end
+		end
+		model:GetAttributeChangedSignal("State"):Connect(refresh)
+		model:GetAttributeChangedSignal("Patience"):Connect(refresh)
 	end
 	local npc = { model = model, humanoid = hum, root = model:FindFirstChild("HumanoidRootPart"), sitting = false }
 	return npc
@@ -173,17 +212,18 @@ function Npc.spawn(npc, cf)
 	active += 1
 end
 
-function Npc.acquireCustomer(look)
+function Npc.acquireCustomer(look, child)
 	-- reuse a pooled body when available (looks are re-randomized only for new ones)
+	local key = child and (look .. ":child") or look
 	for i, npc in ipairs(pool) do
-		if npc.look == look then
+		if npc.look == key then
 			table.remove(pool, i)
 			return npc
 		end
 	end
-	local npc = Npc.create({ look = look })
+	local npc = Npc.create({ look = look, child = child })
 	if npc then
-		npc.look = look
+		npc.look = key
 	end
 	return npc
 end
@@ -195,6 +235,9 @@ function Npc.release(npc)
 	Npc.stand(npc)
 	npc.model.Parent = nil
 	npc.model:SetAttribute("Uid", nil)
+	npc.model:SetAttribute("State", nil)
+	npc.model:SetAttribute("Patience", 1)
+	Registry.People.setMood(npc.model, "calm")
 	active = math.max(0, active - 1)
 	if #pool < 16 and not npc.isStaff then
 		table.insert(pool, npc)

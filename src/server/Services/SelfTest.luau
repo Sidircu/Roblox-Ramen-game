@@ -235,6 +235,31 @@ function SelfTest.run(player)
 		assert(#bad == 0, "broken food models: " .. table.concat(bad, ", "))
 	end)
 
+	check("detailed customers and staff", function()
+		local Npc = S.Npc
+		local made = {
+			Npc.create({ look = "tourist" }),
+			Npc.create({ look = "casual", child = true }),
+			Npc.create({ look = "casual", staff = "staff_sushi_chef" }),
+		}
+		for i, npc in ipairs(made) do
+			assert(npc and npc.model, "npc " .. i .. " was not created")
+			local parts = 0
+			for _, d in ipairs(npc.model:GetDescendants()) do
+				if d:IsA("BasePart") then
+					parts += 1
+				end
+			end
+			assert(parts > 35, "npc " .. i .. " has only " .. parts .. " parts")
+			assert(npc.model:FindFirstChild("Face"), "npc " .. i .. " has no face")
+		end
+		Registry.People.setMood(made[1].model, "angry")
+		assert(made[1].model:GetAttribute("Mood") == "angry", "mood did not change")
+		for _, npc in ipairs(made) do
+			npc.model:Destroy()
+		end
+	end)
+
 	check("placement rules", function()
 		local ctx = S.World.ctx(d.placed)
 		local ok, reason = PlacementLogic.validate(ctx, { i = "bamboo_pot", x = 12, z = 4, r = 0, f = 0, s = "f" })

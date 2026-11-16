@@ -232,7 +232,11 @@ Non esistono errori né tempismo: ogni piatto riesce sempre. Il guadagno dipende
 | Ospite VIP | 18 | 2–4 | alta | molto alta | solo nella sala tatami, ordina menu completi |
 | Celebrità | 30 | 1 | media | enorme | evento raro, porta una folla di fan per 2 minuti |
 
-I clienti sono personaggi R15 con aspetto vario (carnagione, capelli, abiti, accessori come cartella, zaino, macchina fotografica, occhiali).
+I clienti sono personaggi R15 dettagliati, con corporatura leggermente diversa l'uno dall'altro:
+- **Viso** con occhi lucidi, sopracciglia, guance rosate e bocca. L'**espressione segue l'umore**: sereno all'arrivo, preoccupato quando la pazienza scende sotto metà, arrabbiato (sopracciglia aggrottate, bocca all'ingiù) sotto il 30%, sorriso aperto quando viene servito e mentre mangia.
+- **Capelli** voluminosi a più ciocche (corti, caschetto, lunghi, coda, chignon, a punta, stempiati) con frangia.
+- **Abiti per tipo**: studente con maglietta stampata o felpa col cappuccio, jeans o gonna, sneakers, cappellino o zaino; impiegato in giacca e cravatta con camicia bianca, cintura, scarpe lucide, valigetta e orologio; turista con camicia hawaiana a fiori, pantaloncini, cappello, macchina fotografica a tracolla; anziano con cardigan abbottonato, coppola, occhiali dorati e bastone; influencer con giacca aperta, occhiali da sole, telefono in mano, orecchini e borsa a tracolla; VIP e celebrità con cappotto lungo, sciarpa e orologio d'oro, occhiali da sole e fedora.
+- **Famiglie** con bambini più piccoli: maglietta, pantaloncini o gonna, a volte la cartella *randoseru* e il cappellino giallo della scuola.
 
 ### 6.3 Valutazione del ristorante
 - Ogni recensione da 1 a 5 ★ dipende da: attesa, qualità del piatto, ambiente (decorazioni), comfort della seduta, pulizia (stoviglie sporche vicine).
@@ -315,7 +319,7 @@ Nella stessa schermata, scheda **Ristrutturazioni**: lavori estetici che trasfor
 Anche *Insegna gigante* e *Facciata deluxe* compaiono in questa scheda. Prezzi e livelli in `03-BILANCIAMENTO.md` §8.
 
 ### 8.6 Personale (automazione)
-Il personale sono NPC che lavorano da soli. Si assumono, si pagano a giornata e si addestrano (livelli 1–5: più veloci e più precisi).
+Il personale sono NPC che lavorano da soli. Si assumono, si pagano a giornata e si addestrano (livelli 1–5: più veloci e più precisi). Ogni ruolo ha la sua divisa: i cuochi la giacca bianca *kappogi* con grembiule lungo e asciugamano (il sushi chef con hachimaki e geta, il cuoco del ramen con il cappello da chef); il cameriere la giacca *happi* indaco col colletto bianco, grembiule corto, bandana e blocchetto degli ordini; il lavapiatti il grembiule di gomma con pettorina, guanti gialli e stivali; il magazziniere la giacca da lavoro con banda riflettente, cappellino e guanti; il direttore il completo scuro con cravatta dorata, spilla col nome e cartellina.
 
 | Ruolo | Cosa fa |
 |---|---|

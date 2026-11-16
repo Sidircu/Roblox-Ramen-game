@@ -388,7 +388,9 @@ local function run(c)
 end
 
 local function spawnCustomer(cfg, side, seat, group)
-	local npc = Core.S.Npc.acquireCustomer(cfg.look)
+	-- in a family the third and fourth members are children
+	local child = cfg.id == "cust_family" and group ~= nil and #group.members >= 2
+	local npc = Core.S.Npc.acquireCustomer(cfg.look, child)
 	if not npc then
 		return nil
 	end
