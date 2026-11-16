@@ -110,7 +110,7 @@ if workspace:GetAttribute("SessionMode") ~= "lobby" then
 	spin:Disconnect()
 	gui:Destroy()
 end
-]]></ProtectedString></Properties></Item></Item><Item class="ReplicatedStorage" referent="RBX000059"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000057"><Properties><string name="Name">Shared</string></Properties><Item class="Folder" referent="RBX000024"><Properties><string name="Name">Config</string></Properties><Item class="ModuleScript" referent="RBX000003"><Properties><string name="Name">Achievements</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ReplicatedStorage" referent="RBX000060"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000058"><Properties><string name="Name">Shared</string></Properties><Item class="Folder" referent="RBX000024"><Properties><string name="Name">Config</string></Properties><Item class="ModuleScript" referent="RBX000003"><Properties><string name="Name">Achievements</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Achievements are generated from tiered templates. Name key: "ach.<stat>" with {n}.
 local templates = {
 	{ stat = "dishes", tiers = { 10, 100, 1000, 10000, 100000 }, sakura = { 5, 10, 20, 35, 50 } },
@@ -311,7 +311,7 @@ return {
 	StreetEnds = { -110, 110 },
 	LoadingBay = { x = 24, z = 5 },
 	Supplier = { x = 17.7, y = 5, z = 17.5 },
-	MenuBoard = { x = -6.5, z = -1.8 },
+	MenuBoard = { x = -8.6, z = -2.6 },
 	PlotBounds = { -60, -14, 52, 52 },
 }
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000010"><Properties><string name="Name">Franchise</string><ProtectedString name="Source"><![CDATA[--!nonstrict
@@ -2814,6 +2814,9 @@ function Geometry.compute(expansions, unlocked, supplier)
 		table.insert(fixed, { floor = s.floor, rect = { r[1], r[2] - 2.5, r[3], r[2] } })
 		table.insert(fixed, { floor = s.floor + 1, rect = { r[1], r[4], r[3], r[4] + 2.5 } })
 	end
+	-- machiya facade details (lattice, bamboo fence, pines, menu board) in front of the street wall
+	table.insert(fixed, { floor = 0, rect = { -60, -1.6, 50, 0 } })
+	table.insert(fixed, { floor = 0, rect = { -10.2, -3.6, -7, -1.6 } })
 	if supplier then
 		table.insert(fixed, { floor = 0, rect = { supplier.x - 1.2, supplier.z - 1.5, supplier.x + 0.3, supplier.z + 1.5 } })
 	end
@@ -3556,7 +3559,7 @@ function Walls.along(seg, x, z)
 end
 
 return Walls
-]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000048"><Properties><string name="Name">Models</string></Properties><Item class="Folder" referent="RBX000044"><Properties><string name="Name">Builders</string></Properties><Item class="ModuleScript" referent="RBX000037"><Properties><string name="Name">Building</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000049"><Properties><string name="Name">Models</string></Properties><Item class="Folder" referent="RBX000044"><Properties><string name="Name">Builders</string></Properties><Item class="ModuleScript" referent="RBX000037"><Properties><string name="Name">Building</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Building shell pieces used by the server WorldService (floors, walls, roof, stairs, facade).
 -- All coordinates are world coordinates (the plot origin is the world origin).
 local CollectionService = game:GetService("CollectionService")
@@ -3736,31 +3739,208 @@ function B.stairs(parent, rect, y0, rise)
 	end
 end
 
--- Tiled eave projecting from a street facing wall (axis "z" segment), outsideSign -1 means street at -Z
+-- Tiled eave (hisashi) projecting from a street facing wall (axis "z" segment).
+-- outsideSign -1 means the street is at -Z. Tiles rows, round tile channels, rafter tails, end caps.
 function B.eave(parent, seg, y, outsideSign, depth)
 	depth = depth or 3
 	local len = seg.b - seg.a + 2
 	local cx = (seg.a + seg.b) / 2
 	local z = seg.line + outsideSign * (depth / 2 + 0.5)
 	local yaw = outsideSign < 0 and 0 or 180
-	local roof = Kit.wedge(parent, len, 1.6, depth, CFrame.new(cx, y + 0.8, z) * CFrame.Angles(0, math.rad(yaw), 0), P.tile, M.roof, { collide = false })
+	local rise = 1.6
+	local roof = Kit.wedge(parent, len, rise, depth, CFrame.new(cx, y + rise / 2, z) * CFrame.Angles(0, math.rad(yaw), 0), P.tile, M.roof, { collide = false })
 	tag(roof, "Roof")
-	local ridge = Kit.box(parent, len, 0.5, 0.6, cx, y + 1.7, seg.line + outsideSign * 0.6, P.charcoal, M.roof, { collide = false })
-	tag(ridge, "Roof")
-	local edge = Kit.box(parent, len, 0.25, 0.4, cx, y + 0.1, seg.line + outsideSign * (depth + 0.4), P.charcoal, M.smooth, { collide = false })
-	tag(edge, "Roof")
-	for _, sx in ipairs({ seg.a - 1, seg.b + 1 }) do
-		local cap = Kit.box(parent, 0.5, 0.6, 0.5, sx, y + 0.3, seg.line + outsideSign * (depth + 0.3), P.charcoal, M.roof, { collide = false })
+	-- round tile channels running down the slope
+	local slope = math.sqrt(depth * depth + rise * rise)
+	local n = math.floor(len / 0.7)
+	for i = 0, n do
+		local x = seg.a - 1 + len * i / n
+		local top = Vector3.new(x, y + rise + 0.08, seg.line + outsideSign * 0.5)
+		local bottom = Vector3.new(x, y + 0.08, seg.line + outsideSign * (depth + 0.5))
+		local mid = (top + bottom) / 2
+		local cf = CFrame.lookAt(mid, bottom) * CFrame.Angles(0, math.rad(90), 0)
+		local ch = Kit.part(parent, Vector3.new(slope, 0.22, 0.22), cf, P.charcoal, M.roof, { collide = false, shadow = false, shape = Enum.PartType.Cylinder })
+		ch.CanQuery = false
+		tag(ch, "Roof")
+		-- round end tile (tomoe) facing the street
+		local cap = Kit.cylH(parent, 0.34, 0.12, x, y + 0.1, seg.line + outsideSign * (depth + 0.56), P.charcoal, M.roof, { collide = false, shadow = false }, "z")
+		cap.CanQuery = false
 		tag(cap, "Roof")
 	end
+	-- ridge, fascia board and rafter tails
+	local ridge = Kit.box(parent, len, 0.55, 0.7, cx, y + rise + 0.2, seg.line + outsideSign * 0.65, P.charcoal, M.roof, { collide = false })
+	tag(ridge, "Roof")
+	local ridgeTop = Kit.cylH(parent, 0.4, len, cx, y + rise + 0.5, seg.line + outsideSign * 0.65, P.tile, M.roof, { collide = false, shadow = false })
+	tag(ridgeTop, "Roof")
+	local fascia = Kit.box(parent, len, 0.32, 0.18, cx, y - 0.05, seg.line + outsideSign * (depth + 0.42), P.wood_dark, M.wood, { collide = false })
+	tag(fascia, "Roof")
+	for i = 0, math.floor(len / 1.1) do
+		local x = seg.a - 1 + 0.55 + i * 1.1
+		if x < seg.b + 1 then
+			local tail = Kit.box(parent, 0.22, 0.22, depth - 0.3, x, y - 0.3, seg.line + outsideSign * (depth / 2 + 0.35), P.wood_dark, M.wood, { collide = false, shadow = false })
+			tail.CanQuery = false
+			tag(tail, "Roof")
+		end
+	end
+	for _, sx in ipairs({ seg.a - 1.05, seg.b + 1.05 }) do
+		local cap = Kit.box(parent, 0.5, 0.9, 0.6, sx, y + 0.5, seg.line + outsideSign * (depth + 0.2), P.charcoal, M.roof, { collide = false })
+		tag(cap, "Roof")
+		local oni = Kit.box(parent, 0.55, 0.9, 0.7, sx, y + rise + 0.45, seg.line + outsideSign * 0.65, P.charcoal, M.roof, { collide = false })
+		tag(oni, "Roof")
+	end
+end
+
+-- Coordinates on the face of a wall segment: along the wall, height, distance from the wall
+-- line towards `side` (+1 / -1). Returns the created part.
+local function faceBox(parent, seg, side, sa, sy, so, along, y, out, color, mat, props)
+	if seg.axis == "z" then
+		return Kit.box(parent, sa, sy, so, along, y, seg.line + side * out, color, mat, props)
+	end
+	return Kit.box(parent, so, sy, sa, seg.line + side * out, y, along, color, mat, props)
+end
+B.faceBox = faceBox
+
+local function inAvoid(along, avoid)
+	for _, r in ipairs(avoid or {}) do
+		if along > r[1] and along < r[2] then
+			return true
+		end
+	end
+	return false
+end
+
+-- Interior finishes on one side of a wall: koshi-ita wainscot, hashira posts and nageshi beam
+-- in dining rooms; white tiles in kitchens; plain concrete wainscot in storage rooms.
+function B.wallTrim(parent, seg, y0, side, area, height)
+	local len = seg.b - seg.a
+	local mid = (seg.a + seg.b) / 2
+	local NC = { collide = false, shadow = false }
+	local parts = {}
+	local function add(p)
+		p.CanQuery = true
+		tag(p, "Wall", { FloorIndex = seg.floor })
+		table.insert(parts, p)
+		return p
+	end
+	if area == "kitchen" then
+		add(faceBox(parent, seg, side, len, 6.4, 0.06, mid, y0 + 0.6 + 3.2, 0.43, P.white, M.tiles, NC))
+		add(faceBox(parent, seg, side, len, 0.12, 0.12, mid, y0 + 7.05, 0.46, P.metal, M.metal, NC))
+	elseif area == "storage" then
+		add(faceBox(parent, seg, side, len, 3, 0.06, mid, y0 + 1.5, 0.43, P.concrete, M.concrete, NC))
+		add(faceBox(parent, seg, side, len, 0.15, 0.1, mid, y0 + 3.05, 0.45, P.neon_yellow, M.smooth, NC))
+	else
+		local panel = area == "tatami" and P.hinoki or P.wood_dark
+		add(faceBox(parent, seg, side, len, 2.7, 0.08, mid, y0 + 1.35, 0.44, panel, M.planks, NC))
+		add(faceBox(parent, seg, side, len, 0.18, 0.16, mid, y0 + 2.75, 0.48, P.wood_light, M.wood, NC))
+		add(faceBox(parent, seg, side, len, 0.4, 0.2, mid, y0 + 10.2, 0.5, P.wood_dark, M.wood, NC))
+		local posts = math.max(1, math.floor(len / 6))
+		for i = 0, posts do
+			local along = seg.a + len * i / posts
+			along = math.clamp(along, seg.a + 0.25, seg.b - 0.25)
+			add(faceBox(parent, seg, side, 0.45, height - 0.2, 0.14, along, y0 + (height - 0.2) / 2, 0.47, P.wood_dark, M.wood, NC))
+		end
+	end
+	return parts
+end
+
+-- Kyoto machiya street front: koshi lattice band, timber frame and inu-yarai bamboo fence.
+-- avoid = list of {from, to} ranges along the wall to keep clear (doors).
+function B.facadeDetail(parent, seg, y0, side, avoid)
+	local len = seg.b - seg.a
+	local mid = (seg.a + seg.b) / 2
+	local NC = { collide = false, shadow = false }
+	local function add(p)
+		p.CanQuery = false
+		tag(p, "Roof")
+		return p
+	end
+	-- timber frame bands
+	add(faceBox(parent, seg, side, len, 0.35, 0.16, mid, y0 + 4.5, 0.68, P.wood_dark, M.wood, NC))
+	add(faceBox(parent, seg, side, len, 0.3, 0.16, mid, y0 + 9.6, 0.68, P.wood_dark, M.wood, NC))
+	-- koshi lattice (lower band)
+	add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 1.5, 0.72, P.wood_dark, M.wood, NC))
+	add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 4.15, 0.72, P.wood_dark, M.wood, NC))
+	local step = 0.42
+	for i = 0, math.floor(len / step) do
+		local along = seg.a + 0.2 + i * step
+		if along < seg.b - 0.2 and not inAvoid(along, avoid) then
+			add(faceBox(parent, seg, side, 0.13, 2.6, 0.12, along, y0 + 2.85, 0.76, P.wood, M.wood, NC))
+		end
+	end
+	-- inu-yarai: curved bamboo fence leaning against the base of the wall
+	for i = 0, math.floor(len / 0.55) do
+		local along = seg.a + 0.3 + i * 0.55
+		if along < seg.b - 0.3 and not inAvoid(along, avoid) then
+			local a = (seg.axis == "z") and Vector3.new(along, y0 + 0.02, seg.line + side * 1.45) or Vector3.new(seg.line + side * 1.45, y0 + 0.02, along)
+			local b = (seg.axis == "z") and Vector3.new(along, y0 + 1.25, seg.line + side * 0.8) or Vector3.new(seg.line + side * 0.8, y0 + 1.25, along)
+			local midp = (a + b) / 2
+			local rod = Kit.part(parent, Vector3.new((b - a).Magnitude, 0.14, 0.14), CFrame.lookAt(midp, b) * CFrame.Angles(0, math.rad(90), 0), P.bamboo, M.wood, { collide = false, shadow = false, shape = Enum.PartType.Cylinder })
+			add(rod)
+		end
+	end
+	for _, h in ipairs({ 0.45, 0.95 }) do
+		local out = 1.45 - (h / 1.25) * 0.65
+		add(faceBox(parent, seg, side, len, 0.08, 0.08, mid, y0 + h, out + 0.04, P.bamboo_green, M.wood, NC))
+	end
+end
+
+-- Details around the main entrance: parked sliding lattice doors, stone step, salt cones, pines
+function B.entranceDetail(parent, o, y0)
+	local NC = { collide = false, shadow = false }
+	local z = o.at - 0.75
+	for _, sgn in ipairs({ -1, 1 }) do
+		local edge = sgn < 0 and o.from or o.to
+		local cx = edge + sgn * 1.45
+		-- sliding koshi-do door pushed aside
+		Kit.box(parent, 2.8, 8.4, 0.12, cx, y0 + 4.3, z, P.wood_dark, M.wood, NC)
+		Kit.box(parent, 2.4, 3.6, 0.04, cx, y0 + 6.3, z - 0.08, P.paper_warm, M.fabric, NC)
+		for k = 0, 5 do
+			Kit.box(parent, 0.1, 7.8, 0.08, cx - 1.1 + k * 0.44, y0 + 4.3, z - 0.11, P.wood, M.wood, NC)
+		end
+		Kit.box(parent, 2.8, 0.12, 0.1, cx, y0 + 4.3, z - 0.12, P.wood, M.wood, NC)
+		-- morishio: salt cone on a small dish
+		local sx = edge - sgn * 0.45
+		Kit.cyl(parent, 0.6, 0.06, sx, y0 + 0.03, o.at - 1.0, P.porcelain, M.smooth, NC)
+		for k = 0, 3 do
+			Kit.cyl(parent, 0.42 - k * 0.1, 0.12, sx, y0 + 0.12 + k * 0.11, o.at - 1.0, P.white, M.sand, NC)
+		end
+		-- potted pine
+		local px = edge + sgn * 3.6
+		Kit.cyl(parent, 1.1, 0.9, px, y0 - 0.4 + 0.45, o.at - 1.25, P.indigo, M.smooth, NC)
+		Kit.cyl(parent, 0.18, 1.3, px, y0 + 1.1, o.at - 1.25, P.wood_dark, M.wood, NC)
+		Kit.blob(parent, 1.4, 0.5, 1.1, px - 0.2, y0 + 1.75, o.at - 1.25, P.leaf_dark, M.leafy, NC)
+		Kit.blob(parent, 1.0, 0.4, 0.9, px + 0.25, y0 + 2.15, o.at - 1.25, P.leaf_dark, M.leafy, NC)
+	end
+	-- stone step
+	Kit.box(parent, o.to - o.from - 0.6, 0.3, 1.2, (o.from + o.to) / 2, -0.25, o.at - 1.0, P.stone, M.granite, { collide = true })
+end
+
+-- Loading door: rolled-up shutter, hazard stripe and a small sign
+function B.shutter(parent, o, y0, height)
+	local NC = { collide = false, shadow = false }
+	local len = o.to - o.from
+	local cx = (o.from + o.to) / 2
+	local z = o.at - 0.5
+	Kit.box(parent, len + 0.4, 1.1, 0.9, cx, y0 + height + 0.1, z - 0.2, P.steel, M.metal, NC)
+	for k = 0, 3 do
+		Kit.box(parent, len, 0.22, 0.06, cx, y0 + height - 0.4 - k * 0.3, z, P.metal, M.metal, NC)
+	end
+	for k = 0, math.floor(len / 0.6) do
+		local stripe = Kit.box(parent, 0.3, 0.02, 0.6, o.from + 0.3 + k * 0.6, y0 - 0.33, o.at - 1.2, k % 2 == 0 and P.neon_yellow or P.black, M.smooth, NC)
+		stripe.CanQuery = false
+	end
+	local plate = Kit.box(parent, 2.2, 0.7, 0.06, o.to + 1.6, y0 + 7, z, P.white, M.smooth, NC)
+	Kit.text(plate, Enum.NormalId.Front, "搬入口", { color = "#2B2320", font = JP_FONT })
 end
 
 function B.parapet(parent, seg, y0)
 	local len = seg.b - seg.a
 	local cx = seg.axis == "z" and (seg.a + seg.b) / 2 or seg.line
 	local cz = seg.axis == "z" and seg.line or (seg.a + seg.b) / 2
-	local p = Kit.box(parent, seg.axis == "z" and len + 0.8 or 0.8, 1.2, seg.axis == "z" and 0.8 or len + 0.8, cx, y0 + 0.6, cz, P.charcoal, M.roof, { collide = true })
+	local p = Kit.box(parent, seg.axis == "z" and len + 0.8 or 0.7, 0.8, seg.axis == "z" and 0.7 or len + 0.8, cx, y0 + 0.4, cz, P.cream, M.plaster, { collide = true })
 	tag(p, "Roof")
+	local cap = Kit.box(parent, seg.axis == "z" and len + 1 or 1, 0.22, seg.axis == "z" and 1 or len + 1, cx, y0 + 0.9, cz, P.tile, M.roof, { collide = false, shadow = false })
+	tag(cap, "Roof")
 	return p
 end
 
@@ -3780,6 +3960,18 @@ function B.window(parent, along, y, seg, outsideSign, w, h)
 		local bz = seg.axis == "z" and z + outsideSign * 0.06 or a
 		local bar = Kit.box(parent, seg.axis == "z" and 0.1 or 0.08, h, seg.axis == "z" and 0.08 or 0.1, bx, y, bz, P.wood_dark, M.wood, { collide = false, shadow = false })
 		tag(bar, "Roof")
+	end
+	-- sill with a flower box
+	local sillA = seg.axis == "z" and w + 0.6 or 0.5
+	local sillB = seg.axis == "z" and 0.5 or w + 0.6
+	local sill = Kit.box(parent, sillA, 0.18, sillB, x + (seg.axis == "x" and outsideSign * 0.2 or 0), y - h / 2 - 0.12, z + (seg.axis == "z" and outsideSign * 0.2 or 0), P.wood_dark, M.wood, { collide = false, shadow = false })
+	tag(sill, "Roof")
+	for k = 0, math.floor(w / 0.6) do
+		local fa = along - w / 2 + 0.3 + k * 0.6
+		local fx = seg.axis == "z" and fa or x + outsideSign * 0.3
+		local fz = seg.axis == "z" and z + outsideSign * 0.3 or fa
+		local leaf = Kit.blob(parent, 0.55, 0.4, 0.55, fx, y - h / 2 + 0.12, fz, k % 3 == 1 and P.sakura_dark or P.leaf, M.leafy, { collide = false, shadow = false })
+		tag(leaf, "Roof")
 	end
 	for j = 0, rows do
 		local yy = y - h / 2 + h * j / rows
@@ -5079,6 +5271,32 @@ local function point(root, name, x, y, z, yaw)
 	return Kit.attach(root, name, CFrame.new(x, y - h / 2, z) * CFrame.Angles(0, math.rad(yaw or 0), 0))
 end
 
+local function nc()
+	return { collide = false, shadow = false }
+end
+
+-- Condiment set: soy dispenser, shichimi tin, chopstick box and toothpick holder
+local function condiments(m, x, y, z, rotY)
+	local base = CFrame.new(x, y, z) * CFrame.Angles(0, math.rad(rotY or 0), 0)
+	local function at(dx, dz)
+		local p = base * CFrame.new(dx, 0, dz)
+		return p.X, p.Z
+	end
+	local sx, sz = at(-0.45, 0)
+	Kit.cyl(m, 0.24, 0.42, sx, y + 0.21, sz, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.25 })
+	Kit.cyl(m, 0.2, 0.26, sx, y + 0.14, sz, P.wood_black, M.smooth, nc())
+	Kit.cyl(m, 0.26, 0.1, sx, y + 0.47, sz, P.lacquer, M.smooth, nc())
+	local tx, tz = at(-0.12, 0.05)
+	Kit.cyl(m, 0.2, 0.3, tx, y + 0.15, tz, P.vermilion, M.metal, nc())
+	Kit.cyl(m, 0.21, 0.05, tx, y + 0.32, tz, P.gold, M.metal, nc())
+	local bx, bz = at(0.35, 0)
+	Kit.box(m, 0.6, 0.28, 0.3, bx, y + 0.14, bz, P.wood_black, M.wood, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(rotY or 0), 0) })
+	Kit.box(m, 0.56, 0.04, 0.26, bx, y + 0.29, bz, P.lacquer_dark, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(rotY or 0), 0) })
+	local px, pz = at(0.8, 0.02)
+	Kit.cyl(m, 0.16, 0.24, px, y + 0.12, pz, P.bamboo, M.wood, nc())
+	Kit.cyl(m, 0.1, 0.12, px, y + 0.3, pz, P.hinoki, M.wood, nc())
+end
+
 local function stool(m, item, seatColor, seatMat, legColor, swivel)
 	local root = Kit.finish(m, size(item))
 	local h = item.size[2]
@@ -5096,8 +5314,15 @@ local function stool(m, item, seatColor, seatMat, legColor, swivel)
 			Kit.box(m, r[3], 0.1, r[4], r[1], 0.8, r[2], legColor, M.wood, { collide = false })
 		end
 		Kit.cyl(m, 1.55, 0.28, 0, h - 0.16, 0, P.wood_light, M.wood)
+		Kit.cyl(m, 1.6, 0.06, 0, h - 0.29, 0, P.wood_dark, M.wood, nc())
 		if seatMat == M.fabric then
 			Kit.cyl(m, 1.45, 0.2, 0, h + 0.02, 0, seatColor, M.fabric, { collide = false })
+			Kit.cyl(m, 1.47, 0.04, 0, h - 0.07, 0, P.gold, M.fabric, nc())
+			Kit.ball(m, 0.14, 0, h + 0.13, 0, P.gold, M.fabric, nc())
+		else
+			-- wood grain rings on the bare seat
+			Kit.cyl(m, 1.0, 0.02, 0, h, 0, P.wood, M.wood, nc())
+			Kit.cyl(m, 0.5, 0.025, 0, h + 0.005, 0, P.wood_light, M.wood, nc())
 		end
 	end
 	point(root, "SitPoint", 0, h, 0, 0)
@@ -5108,23 +5333,51 @@ local function counter(m, item, kind)
 	local w, h, d = item.size[1], item.size[2], item.size[3]
 	-- cabinet (customer side faces -Z)
 	Kit.box(m, w, h - 0.25, d - 0.6, 0, (h - 0.25) / 2, 0.3, P.wood_dark, M.wood)
-	-- vertical slats on the customer side
+	-- vertical slats on the customer side with a dark rail above and below
 	local n = math.max(2, math.floor(w / 0.5))
 	for i = 0, n - 1 do
 		local x = -w / 2 + 0.25 + (w - 0.5) * i / math.max(1, n - 1)
-		Kit.box(m, 0.12, h - 0.75, 0.08, x, (h - 0.25) / 2 + 0.1, -d / 2 + 0.58, P.wood, M.wood, { collide = false })
+		Kit.box(m, 0.12, h - 0.75, 0.08, x, (h - 0.25) / 2 + 0.1, -d / 2 + 0.58, P.wood, M.wood, nc())
 	end
-	-- kick plate and foot rail
-	Kit.box(m, w, 0.35, 0.1, 0, 0.175, -d / 2 + 0.62, P.black, M.smooth, { collide = false })
+	Kit.box(m, w, 0.12, 0.12, 0, h - 0.5, -d / 2 + 0.56, P.wood_black, M.wood, nc())
+	Kit.box(m, w, 0.12, 0.12, 0, 0.42, -d / 2 + 0.56, P.wood_black, M.wood, nc())
+	-- brass bag hooks under the overhang
+	for x = -w / 2 + 0.7, w / 2 - 0.4, 1.4 do
+		Kit.box(m, 0.08, 0.2, 0.08, x, h - 0.7, -d / 2 + 0.5, P.brass, M.metal, nc())
+		Kit.box(m, 0.08, 0.06, 0.2, x, h - 0.82, -d / 2 + 0.42, P.brass, M.metal, nc())
+	end
+	-- warm light strip hidden under the overhang
+	Kit.box(m, w - 0.1, 0.05, 0.08, 0, h - 0.27, -d / 2 + 0.66, P.lamp_warm, M.neon, nc())
+	-- kick plate and foot rail on brass brackets
+	Kit.box(m, w, 0.35, 0.1, 0, 0.175, -d / 2 + 0.62, P.black, M.smooth, nc())
 	Kit.cylH(m, 0.12, w, 0, 0.7, -d / 2 + 0.25, P.brass, M.metal, { collide = false, reflectance = 0.15 })
-	-- hinoki counter top with front overhang
+	for x = -w / 2 + 0.5, w / 2 - 0.3, 2 do
+		Kit.box(m, 0.08, 0.08, 0.36, x, 0.7, -d / 2 + 0.43, P.brass, M.metal, nc())
+	end
+	-- hinoki counter top with front overhang and a dark edge band
 	Kit.box(m, w, 0.22, d, 0, h - 0.11, 0, P.hinoki, M.wood)
+	Kit.box(m, w, 0.1, 0.06, 0, h - 0.17, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
 	-- raised chef ledge (tsukedai) on the kitchen side
-	Kit.box(m, w, 0.35, 0.5, 0, h + 0.15, d / 2 - 0.25, P.wood_light, M.wood, { collide = false })
+	Kit.box(m, w, 0.35, 0.5, 0, h + 0.15, d / 2 - 0.25, P.wood_light, M.wood, nc())
+	Kit.box(m, w, 0.06, 0.56, 0, h + 0.35, d / 2 - 0.25, P.hinoki, M.wood, nc())
+	-- kitchen side: open niche with stacked plates and bowls
+	Kit.box(m, w - 0.4, 1.2, 0.08, 0, h - 1.05, d / 2 + 0.01, P.wood_black, M.wood, nc())
+	Kit.box(m, w - 0.4, 0.06, 0.4, 0, h - 1.05, d / 2 - 0.2, P.wood, M.wood, nc())
+	for x = -w / 2 + 0.6, w / 2 - 0.5, 1 do
+		for k = 0, 2 do
+			Kit.cyl(m, 0.6, 0.07, x, h - 0.98 + k * 0.08, d / 2 - 0.2, k == 2 and P.indigo or P.porcelain, M.smooth, nc())
+		end
+	end
 	if kind == "corner" then
-		Kit.box(m, 0.5, 0.35, d - 0.5, w / 2 - 0.25, h + 0.15, -0.25, P.wood_light, M.wood, { collide = false })
+		Kit.box(m, 0.5, 0.35, d - 0.5, w / 2 - 0.25, h + 0.15, -0.25, P.wood_light, M.wood, nc())
+		Kit.box(m, 0.56, 0.06, d - 0.5, w / 2 - 0.25, h + 0.35, -0.25, P.hinoki, M.wood, nc())
 	elseif kind == "end" then
-		Kit.box(m, 0.15, h - 0.4, d - 0.4, w / 2 - 0.075, (h - 0.4) / 2 + 0.1, 0, P.wood_black, M.wood, { collide = false })
+		Kit.box(m, 0.15, h - 0.4, d - 0.4, w / 2 - 0.075, (h - 0.4) / 2 + 0.1, 0, P.wood_black, M.wood, nc())
+		Kit.box(m, 0.2, 0.12, d, w / 2 - 0.1, h - 0.06, 0, P.wood_black, M.wood, nc())
+	end
+	-- condiments on the ledge (one set per straight/corner segment)
+	if kind ~= "end" then
+		condiments(m, kind == "corner" and -0.3 or 0, h + 0.38, d / 2 - 0.25, 0)
 	end
 	root:SetAttribute("TopY", h)
 end
@@ -5132,26 +5385,44 @@ end
 local function tableTop(m, item, topColor, legColor, low)
 	local root = Kit.finish(m, size(item))
 	local w, h, d = item.size[1], item.size[2], item.size[3]
-	Kit.box(m, w, 0.2, d, 0, h - 0.1, 0, topColor, M.wood)
-	Kit.box(m, w - 0.1, 0.06, d - 0.1, 0, h + 0.005, 0, Color3.new(1, 1, 1):Lerp(topColor, 0.85), M.wood, { collide = false })
 	if low then
+		-- round chabudai with an inlaid rim and four folding legs
+		local r = math.min(w, d) - 0.2
+		Kit.cyl(m, r, 0.2, 0, h - 0.1, 0, topColor, M.wood)
+		Kit.cyl(m, r - 0.3, 0.04, 0, h + 0.005, 0, Color3.new(1, 1, 1):Lerp(topColor, 0.85), M.wood, nc())
+		Kit.cyl(m, r + 0.04, 0.06, 0, h - 0.18, 0, P.wood_black, M.wood, nc())
 		for _, c in ipairs({ { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } }) do
-			Kit.box(m, 0.35, h - 0.2, 0.35, c[1] * (w / 2 - 0.4), (h - 0.2) / 2, c[2] * (d / 2 - 0.4), legColor, M.wood)
+			Kit.box(m, 0.3, h - 0.2, 0.3, c[1] * r * 0.3, (h - 0.2) / 2, c[2] * r * 0.3, legColor, M.wood)
 		end
-		Kit.box(m, w - 0.6, 0.12, d - 0.6, 0, h - 0.26, 0, legColor, M.wood, { collide = false })
+		Kit.box(m, r * 0.7, 0.1, 0.2, 0, h - 0.27, 0, legColor, M.wood, nc())
+		Kit.box(m, 0.2, 0.1, r * 0.7, 0, h - 0.27, 0, legColor, M.wood, nc())
+		-- tea set: kyusu teapot and cups on a small tray
+		Kit.cyl(m, 1.1, 0.05, 0.6, h + 0.03, -0.5, P.bamboo, M.wood, nc())
+		Kit.blob(m, 0.45, 0.4, 0.45, 0.45, h + 0.25, -0.5, P.matcha, M.smooth, nc())
+		Kit.cylH(m, 0.08, 0.3, 0.75, h + 0.3, -0.5, P.matcha, M.smooth, nc())
+		Kit.cyl(m, 0.12, 0.06, 0.45, h + 0.47, -0.5, P.wood_dark, M.smooth, nc())
+		for _, cx in ipairs({ 0.85, 1.0 }) do
+			Kit.cyl(m, 0.2, 0.2, cx, h + 0.15, -0.25, P.porcelain, M.smooth, nc())
+		end
 	else
+		Kit.box(m, w, 0.2, d, 0, h - 0.1, 0, topColor, M.wood)
+		Kit.box(m, w - 0.1, 0.06, d - 0.1, 0, h + 0.005, 0, Color3.new(1, 1, 1):Lerp(topColor, 0.85), M.wood, nc())
+		Kit.box(m, w + 0.04, 0.08, d + 0.04, 0, h - 0.18, 0, legColor, M.wood, nc())
 		Kit.box(m, 0.4, h - 0.5, 0.4, 0, (h - 0.5) / 2 + 0.2, 0, legColor, M.wood)
 		Kit.box(m, math.min(w, 2.2), 0.2, 0.4, 0, 0.1, 0, legColor, M.wood)
 		Kit.box(m, 0.4, 0.2, math.min(d, 2.2), 0, 0.1, 0, legColor, M.wood)
-		Kit.box(m, w - 0.6, 0.15, 0.3, 0, h - 0.28, 0, legColor, M.wood, { collide = false })
+		Kit.box(m, w - 0.6, 0.15, 0.3, 0, h - 0.28, 0, legColor, M.wood, nc())
+		-- brass caps on the cross feet
+		for _, c in ipairs({ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) do
+			Kit.box(m, 0.44, 0.22, 0.44, c[1] * (math.min(w, 2.2) / 2 - 0.2), 0.11, c[2] * (math.min(d, 2.2) / 2 - 0.2), P.brass, M.metal, nc())
+		end
+		-- condiments along the back edge and a folded menu card
+		condiments(m, 0, h, d / 2 - 0.3, 0)
+		Kit.wedge(m, 0.5, 0.4, 0.3, CFrame.new(-w / 2 + 0.45, h + 0.2, d / 2 - 0.3), P.paper_warm, M.smooth, nc())
+		Kit.box(m, 0.42, 0.12, 0.02, -w / 2 + 0.45, h + 0.21, d / 2 - 0.32, P.lacquer, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(37), 0, 0) })
 	end
-	-- small soy sauce bottle and chopstick box
-	Kit.cyl(m, 0.22, 0.4, w / 2 - 0.4, h + 0.2, d / 2 - 0.35, P.white, M.smooth, { collide = false })
-	Kit.cyl(m, 0.24, 0.08, w / 2 - 0.4, h + 0.44, d / 2 - 0.35, P.lacquer, M.smooth, { collide = false })
-	Kit.box(m, 0.6, 0.25, 0.25, w / 2 - 0.95, h + 0.125, d / 2 - 0.35, P.wood_black, M.wood, { collide = false })
 	root:SetAttribute("TopY", h)
 end
-
 local function chair(m, item, color, mat)
 	local root = Kit.finish(m, size(item))
 	local seatH = item.fn.height
@@ -5227,7 +5498,23 @@ return function(Registry)
 			Kit.box(m, w - 0.3, h - 2.2, 0.15, 0, 1.9 + (h - 2.2) / 2, z + side * 0.33, P.lacquer_dark, M.leather, { collide = false })
 		end
 		Kit.box(m, w - 1.2, 0.2, 2, 0, 2.6, 0, P.wood_light, M.wood)
+		Kit.box(m, w - 1.25, 0.08, 2.05, 0, 2.48, 0, P.wood_dark, M.wood, nc())
 		Kit.box(m, 0.4, 2.4, 0.4, 0, 1.3, 0, P.wood_black, M.wood)
+		Kit.box(m, 1.6, 0.15, 0.8, 0, 0.08, 0, P.wood_black, M.wood, nc())
+		condiments(m, 0, 2.7, 0, 90)
+		-- kumiko lattice panels on top of both backrests and dark cap rails
+		for side = -1, 1, 2 do
+			local z = side * 1.85 + side * 0.5
+			Kit.box(m, w, 0.12, 0.36, 0, h + 0.06, z, P.wood_black, M.wood, nc())
+			Kit.box(m, w - 0.2, 0.7, 0.06, 0, h + 0.47, z, P.paper, M.smooth, { collide = false, shadow = false, transparency = 0.1 })
+			for x = -w / 2 + 0.1, w / 2 - 0.05, 0.45 do
+				Kit.box(m, 0.05, 0.7, 0.1, x, h + 0.47, z, P.wood_dark, M.wood, nc())
+			end
+			for _, y in ipairs({ h + 0.3, h + 0.6 }) do
+				Kit.box(m, w - 0.2, 0.05, 0.1, 0, y, z, P.wood_dark, M.wood, nc())
+			end
+			Kit.box(m, w, 0.1, 0.2, 0, h + 0.86, z, P.wood_black, M.wood, nc())
+		end
 		local i = 0
 		for side = -1, 1, 2 do
 			for _, x in ipairs({ -1.2, 1.2 }) do
@@ -5242,6 +5529,17 @@ return function(Registry)
 		local root = Kit.finish(m, size(item))
 		Kit.box(m, 4, 0.2, 2.4, 0, 1.2, 0, P.wood_black, M.wood)
 		Kit.box(m, 3.9, 0.04, 2.3, 0, 1.31, 0, P.lacquer_dark, M.smooth, { collide = false })
+		Kit.box(m, 4.06, 0.08, 2.46, 0, 1.08, 0, P.gold, M.metal, nc())
+		-- sake set: tokkuri flask and choko cups on a lacquer tray, plus a small ikebana
+		Kit.box(m, 0.9, 0.06, 0.5, 0, 1.36, 0, P.lacquer, M.smooth, nc())
+		Kit.blob(m, 0.28, 0.42, 0.28, -0.2, 1.58, 0, P.porcelain, M.smooth, nc())
+		Kit.cyl(m, 0.12, 0.16, -0.2, 1.85, 0, P.porcelain, M.smooth, nc())
+		Kit.cyl(m, 0.14, 0.1, 0.12, 1.44, -0.08, P.indigo, M.smooth, nc())
+		Kit.cyl(m, 0.14, 0.1, 0.3, 1.44, 0.08, P.indigo, M.smooth, nc())
+		Kit.cyl(m, 0.3, 0.3, 1.5, 1.48, 0, P.wood_black, M.smooth, nc())
+		Kit.box(m, 0.04, 0.6, 0.04, 1.5, 1.85, 0, P.leaf_dark, M.wood, nc())
+		Kit.ball(m, 0.2, 1.5, 2.15, 0, P.maple, M.smooth, nc())
+		Kit.ball(m, 0.14, 1.6, 1.98, 0.06, P.sakura, M.smooth, nc())
 		for _, c in ipairs({ { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } }) do
 			Kit.box(m, 0.3, 1.1, 0.3, c[1] * 1.7, 0.55, c[2] * 0.95, P.wood_black, M.wood)
 		end
@@ -5264,6 +5562,13 @@ return function(Registry)
 			Kit.box(m, 0.25, 1.4, 1, x, 0.7, 0, P.wood_dark, M.wood)
 		end
 		Kit.box(m, w, 0.5, 0.15, 0, 2.2 - 0.25, 0.6, P.wood_light, M.wood, { collide = false })
+		for _, x in ipairs({ -w / 2 + 0.4, w / 2 - 0.4 }) do
+			Kit.box(m, 0.15, 0.7, 0.15, x, 1.95, 0.6, P.wood_dark, M.wood, nc())
+		end
+		-- red felt runner (mosen) like a tea house bench
+		Kit.box(m, w - 0.6, 0.04, 1.1, 0, 1.62, 0, P.lacquer, M.fabric, nc())
+		Kit.box(m, w - 0.6, 0.6, 0.04, 0, 1.33, -0.56, P.lacquer, M.fabric, nc())
+		Kit.box(m, 0.6, 0.18, 0.5, w / 2 - 0.7, 1.73, 0.15, P.indigo, M.fabric, nc())
 		for i, x in ipairs({ -1.6, 0, 1.6 }) do
 			point(root, "Queue" .. i, x, 1.6, 0, 0)
 		end
@@ -5317,16 +5622,100 @@ local function slot(m, index, sx, sy, sz, x, y, z)
 	return p
 end
 
-local function cabinet(m, w, h, d, top, body)
-	Kit.box(m, w, h - 0.2, d, 0, (h - 0.2) / 2, 0, body or P.steel, M.metal)
-	Kit.box(m, w + 0.05, 0.2, d + 0.05, 0, h - 0.1, 0, top or P.metal, M.metal, { reflectance = 0.1 })
-	-- doors and handles on the cook side (-Z)
+local NC = { collide = false, shadow = false }
+local function nc()
+	return { collide = false, shadow = false }
+end
+local JP_FONT = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Bold)
+
+-- Steel (or wooden) work cabinet: recessed kick plate, framed doors with bar handles,
+-- thick top with a front lip. The cook side is -Z.
+local function cabinet(m, w, h, d, top, body, wood)
+	local bodyColor = body or P.metal
+	local mat = wood and M.wood or M.metal
+	Kit.box(m, w - 0.24, 0.35, d - 0.3, 0, 0.175, 0.05, P.charcoal, M.smooth)
+	Kit.box(m, w, h - 0.55, d, 0, 0.35 + (h - 0.55) / 2, 0, bodyColor, mat)
+	Kit.box(m, w + 0.08, 0.2, d + 0.1, 0, h - 0.1, 0.02, top or P.metal, wood and M.wood or M.metal, { reflectance = wood and 0 or 0.12 })
+	Kit.box(m, w + 0.08, 0.08, 0.1, 0, h + 0.02, -d / 2 - 0.02, top or P.metal, M.metal, nc())
 	local doors = math.max(1, math.floor(w / 1.6))
+	local dw = w / doors
 	for i = 0, doors - 1 do
-		local x = -w / 2 + w / doors * (i + 0.5)
-		Kit.box(m, w / doors - 0.15, h - 0.8, 0.05, x, (h - 0.2) / 2, -d / 2 - 0.02, P.steel_dark, M.metal, { collide = false })
-		Kit.box(m, 0.5, 0.08, 0.08, x, h - 0.65, -d / 2 - 0.08, P.metal, M.metal, { collide = false })
+		local x = -w / 2 + dw * (i + 0.5)
+		local doorH = h - 1.1
+		local cy = 0.4 + doorH / 2
+		Kit.box(m, dw - 0.18, doorH, 0.05, x, cy, -d / 2 - 0.025, wood and P.wood or P.steel, mat, nc())
+		Kit.box(m, dw - 0.42, doorH - 0.3, 0.03, x, cy, -d / 2 - 0.06, wood and P.wood_light or P.metal, mat, nc())
+		local hx = x + (i % 2 == 0 and (dw / 2 - 0.35) or -(dw / 2 - 0.35))
+		Kit.box(m, 0.07, 0.9, 0.07, hx, cy + 0.3, -d / 2 - 0.13, P.steel_dark, M.metal, nc())
 	end
+end
+
+-- Small wooden name plate with kanji on the cook side of a station
+local function plate(m, x, y, z, text)
+	local p = Kit.box(m, 1.0, 0.45, 0.06, x, y, z, P.hinoki, M.wood, nc())
+	Kit.text(p, Enum.NormalId.Front, text, { color = "#2B2320", font = JP_FONT, pps = 40 })
+	return p
+end
+
+local function knobs(m, n, x0, y, z)
+	for i = 0, n - 1 do
+		Kit.cylH(m, 0.22, 0.12, x0 + i * 0.4, y, z, P.charcoal, M.smooth, nc(), "z")
+		Kit.box(m, 0.04, 0.12, 0.04, x0 + i * 0.4, y + 0.05, z - 0.07, P.neon_red, M.smooth, nc())
+	end
+end
+
+-- Extraction hood with a duct to the ceiling (over hot stations)
+local function hood(m, w, h, d)
+	-- high and shallow so it never hides the board from the game camera
+	local y = h + 5.2
+	local hd = 1.5
+	local hz = d / 2 - hd / 2
+	Kit.box(m, w - 0.8, 0.7, hd, 0, y, hz, P.metal, M.metal, { collide = false, reflectance = 0.15 })
+	Kit.wedge(m, w - 0.8, 0.5, hd, CFrame.new(0, y + 0.6, hz) * CFrame.Angles(0, math.rad(180), 0), P.metal, M.metal, nc())
+	Kit.box(m, w - 0.9, 0.06, hd - 0.1, 0, y - 0.36, hz, P.steel_dark, M.metal, nc())
+	Kit.box(m, 0.8, 13.9 - (y + 0.85), 0.8, 0, (y + 0.85 + 13.9) / 2, d / 2 - 0.45, P.metal, M.metal, nc())
+	local light = Kit.box(m, w - 1.6, 0.05, 0.3, 0, y - 0.38, hz - 0.4, P.lamp, M.neon, nc())
+	Kit.light(light, "Surface", P.lamp, 8, 0.8, { face = Enum.NormalId.Bottom, night = false })
+end
+
+-- Backsplash with a narrow shelf (back = +Z)
+local function backsplash(m, w, h, d, tiles)
+	Kit.box(m, w, 1.0, 0.1, 0, h + 0.5, d / 2 - 0.05, tiles and P.white or P.metal, tiles and M.tiles or M.metal, nc())
+	Kit.box(m, w, 0.08, 0.35, 0, h + 1.04, d / 2 - 0.2, P.metal, M.metal, nc())
+end
+
+-- Utensil rail with hanging tools
+local function utensilRail(m, w, h, d, tools)
+	local y = h + 1.6
+	local z = d / 2 - 0.15
+	Kit.cylH(m, 0.06, w - 0.6, 0, y, z, P.metal, M.metal, nc())
+	local n = #tools
+	for i, t in ipairs(tools) do
+		local x = -w / 2 + 0.6 + (w - 1.2) * (i - 0.5) / n
+		Kit.cyl(m, 0.04, 0.9, x, y - 0.45, z, P.metal, M.metal, nc())
+		if t == "ladle" then
+			Kit.blob(m, 0.35, 0.18, 0.35, x, y - 0.95, z - 0.05, P.metal, M.metal, nc())
+		elseif t == "strainer" then
+			Kit.cyl(m, 0.42, 0.06, x, y - 0.95, z - 0.1, P.steel, M.metal, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(80), 0, 0) })
+		elseif t == "spatula" then
+			Kit.box(m, 0.35, 0.3, 0.03, x, y - 0.95, z - 0.03, P.metal, M.metal, nc())
+		elseif t == "towel" then
+			Kit.box(m, 0.5, 0.8, 0.04, x, y - 0.4, z - 0.05, P.white, M.fabric, nc())
+			Kit.box(m, 0.5, 0.1, 0.045, x, y - 0.55, z - 0.05, P.indigo, M.fabric, nc())
+		end
+	end
+end
+
+local function bowlStack(m, x, z, y0, n, color)
+	for i = 0, n - 1 do
+		Kit.cyl(m, 0.7, 0.14, x, y0 + 0.07 + i * 0.15, z, color, M.smooth, nc())
+		Kit.cyl(m, 0.72, 0.03, x, y0 + 0.14 + i * 0.15, z, P.lacquer, M.smooth, nc())
+	end
+end
+
+local function pan(m, x, z, y0, color)
+	Kit.box(m, 0.42, 0.14, 0.42, x, y0 + 0.07, z, P.metal, M.metal, nc())
+	Kit.box(m, 0.36, 0.05, 0.36, x, y0 + 0.13, z, color, M.smooth, nc())
 end
 
 local function shelfUnit(m, item)
@@ -5335,10 +5724,16 @@ local function shelfUnit(m, item)
 	local slots = item.fn.slots
 	local cols = slots > 4 and 2 or 1
 	local rows = math.ceil(slots / cols)
-	-- frame
+	-- frame: dark posts on black feet, light hinoki back boards
 	Kit.box(m, w, h, 0.12, 0, h / 2, d / 2 - 0.06, P.wood_dark, M.planks)
+	Kit.box(m, w - 0.4, h - 0.3, 0.03, 0, h / 2, d / 2 - 0.135, P.hinoki, M.planks, nc())
 	for _, x in ipairs({ -w / 2 + 0.1, w / 2 - 0.1 }) do
 		Kit.box(m, 0.2, h, d, x, h / 2, 0, P.wood_dark, M.wood)
+		Kit.box(m, 0.28, 0.12, d + 0.08, x, 0.06, 0, P.wood_black, M.wood, nc())
+		for _, y in ipairs({ 0.55, h - 0.55 }) do
+			Kit.box(m, 0.24, 0.3, 0.03, x, y, -d / 2 - 0.015, P.charcoal, M.metal, nc())
+			Kit.ball(m, 0.07, x, y, -d / 2 - 0.04, P.brass, M.metal, nc())
+		end
 	end
 	if cols == 2 then
 		Kit.box(m, 0.14, h, d, 0, h / 2, 0, P.wood_dark, M.wood)
@@ -5348,8 +5743,7 @@ local function shelfUnit(m, item)
 	for r = 0, rows - 1 do
 		local y = 0.15 + r * rowH
 		Kit.box(m, w - 0.2, 0.12, d, 0, y, 0, P.wood_light, M.wood)
-		-- little price/label strip
-		Kit.box(m, w - 0.3, 0.14, 0.04, 0, y + 0.02, -d / 2 - 0.01, P.paper, M.smooth, { collide = false })
+		Kit.box(m, w - 0.3, 0.16, 0.05, 0, y + 0.02, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
 		for c = 0, cols - 1 do
 			idx += 1
 			if idx <= slots then
@@ -5357,26 +5751,52 @@ local function shelfUnit(m, item)
 				local x = -w / 2 + 0.15 + cw * (c + 0.5)
 				local s = slot(m, idx, cw - 0.1, rowH - 0.2, d - 0.1, x, y + 0.06 + (rowH - 0.2) / 2, 0)
 				s:SetAttribute("Width", cw - 0.2)
+				-- paper price tag on the shelf lip
+				Kit.box(m, 0.55, 0.13, 0.02, x, y + 0.02, -d / 2 - 0.055, P.paper, M.smooth, nc())
+				Kit.box(m, 0.12, 0.13, 0.025, x - 0.2, y + 0.02, -d / 2 - 0.058, P.lacquer, M.smooth, nc())
 			end
 		end
 	end
-	Kit.box(m, w, 0.15, d, 0, h - 0.075, 0, P.wood_dark, M.wood)
+	-- crown with a kanji header board ("ingredients")
+	Kit.box(m, w + 0.2, 0.18, d + 0.15, 0, h - 0.06, -0.02, P.wood_black, M.wood)
+	Kit.box(m, w + 0.3, 0.06, d + 0.25, 0, h + 0.06, -0.02, P.wood_dark, M.wood, nc())
+	local sign = Kit.box(m, math.min(2.2, w - 0.8), 0.6, 0.08, 0, h + 0.4, -d / 2 + 0.2, P.hinoki, M.wood, nc())
+	Kit.text(sign, Enum.NormalId.Front, "食材", { color = "#2B2320", font = JP_FONT, pps = 40 })
+	Kit.box(m, math.min(2.2, w - 0.8) + 0.12, 0.08, 0.1, 0, h + 0.74, -d / 2 + 0.2, P.wood_dark, M.wood, nc())
 end
 
 local function riceCooker(m, item, pro)
 	local root = Kit.finish(m, size(item))
 	local w, h = item.size[1], item.size[2]
 	local standH = h - 1.4
+	-- wooden stand with a drawer and kanji label
 	Kit.box(m, w, standH, w, 0, standH / 2, 0, P.wood_dark, M.wood)
-	local body = Kit.cyl(m, w - 0.35, 1.0, 0, standH + 0.5, 0, pro and P.metal or P.white, pro and M.metal or M.smooth, { name = "Body" })
-	Kit.cyl(m, w - 0.3, 0.08, 0, standH + 0.12, 0, P.charcoal, M.smooth, { collide = false })
-	Kit.blob(m, w - 0.4, 0.35, w - 0.4, 0, standH + 1.05, 0, pro and P.steel or P.porcelain, M.smooth, { collide = false })
-	Kit.box(m, 0.5, 0.12, 0.1, 0, standH + 1.25, 0, P.charcoal, M.smooth, { collide = false })
-	local panel = Kit.box(m, 0.6, 0.3, 0.06, 0, standH + 0.55, -(w - 0.35) / 2 - 0.02, P.charcoal, M.smooth, { collide = false })
-	local led = Kit.box(m, 0.12, 0.12, 0.04, 0.15, standH + 0.55, -(w - 0.35) / 2 - 0.06, P.neon_red, M.neon, { collide = false, name = "Led" })
+	Kit.box(m, w + 0.1, 0.1, w + 0.1, 0, standH - 0.05, 0, P.wood_black, M.wood, nc())
+	Kit.box(m, w - 0.3, standH - 0.45, 0.04, 0, standH / 2 + 0.05, -w / 2 - 0.02, P.wood, M.wood, nc())
+	Kit.box(m, 0.4, 0.06, 0.06, 0, standH - 0.35, -w / 2 - 0.06, P.brass, M.metal, nc())
+	local label = Kit.box(m, 0.8, 0.34, 0.03, 0, standH / 2 - 0.1, -w / 2 - 0.05, P.paper, M.smooth, nc())
+	Kit.text(label, Enum.NormalId.Front, "炊飯", { color = "#2B2320", font = JP_FONT, pps = 40 })
+	-- cooker body with side handles, lid, steam vent and control panel
+	local r = w - 0.35
+	local body = Kit.cyl(m, r, 1.0, 0, standH + 0.5, 0, pro and P.metal or P.white, pro and M.metal or M.smooth, { name = "Body", reflectance = pro and 0.12 or 0 })
+	Kit.cyl(m, r + 0.04, 0.08, 0, standH + 0.12, 0, P.charcoal, M.smooth, nc())
+	Kit.cyl(m, r + 0.04, 0.05, 0, standH + 0.98, 0, pro and P.steel or P.sakura_dark, M.smooth, nc())
+	for _, sx in ipairs({ -1, 1 }) do
+		Kit.box(m, 0.12, 0.1, 0.5, sx * (r / 2 + 0.04), standH + 0.85, 0, P.charcoal, M.smooth, nc())
+	end
+	Kit.blob(m, r - 0.05, 0.35, r - 0.05, 0, standH + 1.05, 0, pro and P.steel or P.porcelain, M.smooth, nc())
+	Kit.box(m, 0.5, 0.12, 0.1, 0, standH + 1.25, -0.25, P.charcoal, M.smooth, nc())
+	Kit.cyl(m, 0.16, 0.08, 0, standH + 1.24, 0.15, P.steel_dark, M.metal, nc())
+	local panel = Kit.box(m, 0.6, 0.3, 0.06, 0, standH + 0.55, -r / 2 - 0.02, P.charcoal, M.smooth, nc())
+	Kit.box(m, 0.42, 0.08, 0.03, -0.05, standH + 0.6, -r / 2 - 0.06, P.neon_blue, M.neon, nc())
+	local led = Kit.box(m, 0.12, 0.12, 0.04, 0.15, standH + 0.48, -r / 2 - 0.06, P.neon_red, M.neon, { collide = false, name = "Led" })
 	local _ = panel
 	local _2 = led
-	local vent = Kit.box(m, 0.2, 0.1, 0.2, 0, standH + 1.3, 0, P.white, M.smooth, { transparency = 1, collide = false, name = "Steam" })
+	-- rice paddle (shamoji) in its holder
+	Kit.cyl(m, 0.16, 0.4, r / 2 + 0.12, standH + 0.55, -0.2, P.white, M.smooth, nc())
+	Kit.box(m, 0.08, 0.6, 0.04, r / 2 + 0.12, standH + 0.8, -0.2, P.hinoki, M.wood, nc())
+	Kit.blob(m, 0.24, 0.3, 0.06, r / 2 + 0.12, standH + 1.15, -0.2, P.hinoki, M.wood, nc())
+	local vent = Kit.box(m, 0.2, 0.1, 0.2, 0, standH + 1.3, 0.15, P.white, M.smooth, { transparency = 1, collide = false, name = "Steam" })
 	Kit.particles(vent, "steam", { enabled = false })
 	local _3 = body
 	point(root, "Content", 0, standH + 1.1, 0)
@@ -5387,29 +5807,60 @@ local function brothPot(m, item, large)
 	local w, h = item.size[1], item.size[2]
 	local stoveH = 1.5
 	cabinet(m, w, stoveH, w, P.steel_dark, P.steel)
+	plate(m, w / 2 - 0.75, stoveH - 0.45, -w / 2 - 0.12, "出汁")
+	knobs(m, 2, -w / 2 + 0.45, stoveH - 0.45, -w / 2 - 0.08)
+	-- burner ring and cast iron grate
 	Kit.cyl(m, w * 0.6, 0.06, 0, stoveH + 0.03, 0, P.neon_blue, M.neon, { collide = false, name = "Flame" })
+	Kit.cyl(m, w * 0.35, 0.08, 0, stoveH + 0.05, 0, P.charcoal, M.metal, nc())
+	for i = 0, 3 do
+		Kit.box(m, w * 0.85, 0.08, 0.1, 0, stoveH + 0.1, 0, P.charcoal, M.metal, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(i * 45), 0) })
+	end
 	local potH = h - stoveH - 0.2
 	local d = w - 0.4
-	Kit.cyl(m, d, potH, 0, stoveH + potH / 2 + 0.05, 0, P.metal, M.metal, { reflectance = 0.15, name = "Body" })
-	Kit.cyl(m, d + 0.1, 0.12, 0, stoveH + potH, 0, P.steel, M.metal, { collide = false })
-	local broth = Kit.cyl(m, d - 0.15, 0.06, 0, stoveH + potH - 0.12, 0, P.wood, M.smooth, { collide = false, name = "Broth", transparency = 1 })
+	Kit.cyl(m, d, potH, 0, stoveH + potH / 2 + 0.15, 0, P.metal, M.metal, { reflectance = 0.15, name = "Body" })
+	for _, y in ipairs({ 0.35, potH - 0.45 }) do
+		Kit.cyl(m, d + 0.05, 0.06, 0, stoveH + 0.15 + y, 0, P.steel, M.metal, nc())
+	end
+	Kit.cyl(m, d + 0.1, 0.12, 0, stoveH + potH + 0.1, 0, P.steel, M.metal, { collide = false })
+	local broth = Kit.cyl(m, d - 0.15, 0.06, 0, stoveH + potH - 0.02, 0, P.wood, M.smooth, { collide = false, name = "Broth", transparency = 1 })
 	broth:SetAttribute("Fill", true)
 	for _, x in ipairs({ -d / 2 - 0.15, d / 2 + 0.15 }) do
-		Kit.box(m, 0.3, 0.12, 0.6, x, stoveH + potH - 0.35, 0, P.steel_dark, M.metal, { collide = false })
+		Kit.box(m, 0.3, 0.12, 0.6, x, stoveH + potH - 0.25, 0, P.steel_dark, M.metal, { collide = false })
+		Kit.box(m, 0.12, 0.3, 0.12, x - (x > 0 and 0.08 or -0.08), stoveH + potH - 0.12, 0.22, P.steel_dark, M.metal, nc())
+		Kit.box(m, 0.12, 0.3, 0.12, x - (x > 0 and 0.08 or -0.08), stoveH + potH - 0.12, -0.22, P.steel_dark, M.metal, nc())
 	end
-	-- ladle resting in the pot
-	Kit.cyl(m, 0.08, 2, d / 4, stoveH + potH + 0.3, 0, P.metal, M.metal, { collide = false, rot = CFrame.Angles(0, 0, math.rad(25)) })
-	local vent = Kit.box(m, d - 0.4, 0.1, d - 0.4, 0, stoveH + potH + 0.1, 0, P.white, M.smooth, { transparency = 1, collide = false, name = "Steam" })
+	-- lid leaning against the back of the pot
+	Kit.cyl(m, d * 0.9, 0.08, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.25, P.metal, M.metal, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(80), 0, 0) })
+	Kit.box(m, 0.4, 0.1, 0.12, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.2, P.wood_dark, M.wood, nc())
+	-- long ladle (handle + bowl) resting in the pot
+	Kit.cyl(m, 0.08, 2.2, d / 4, stoveH + potH + 0.45, 0, P.metal, M.metal, { collide = false, rot = CFrame.Angles(0, 0, math.rad(25)) })
+	Kit.cyl(m, 0.1, 0.4, d / 4 - 0.5, stoveH + potH + 1.4, 0, P.wood_dark, M.wood, { collide = false, rot = CFrame.Angles(0, 0, math.rad(25)) })
+	local vent = Kit.box(m, d - 0.4, 0.1, d - 0.4, 0, stoveH + potH + 0.2, 0, P.white, M.smooth, { transparency = 1, collide = false, name = "Steam" })
 	Kit.particles(vent, "steam", { enabled = false, rate = large and 10 or 6 })
 	Kit.particles(broth, "bubbles", { enabled = false })
 	point(root, "Content", 0, stoveH + potH, 0)
 end
 
--- Work station: counter with a board area (-x), a plate spot (+x), a tool hovering point.
-local function station(m, item, deco)
+-- Work station: cabinet with the board area (-x), the plate spot (+x) and a tool hovering point.
+-- opts: { wood = bool, hood = bool, plate = "寿司", tools = {...}, tiles = bool, knobs = n }
+local function station(m, item, deco, opts)
+	opts = opts or {}
 	local root = Kit.finish(m, size(item))
 	local w, h, d = item.size[1], item.size[2], item.size[3]
-	cabinet(m, w, h, d, P.metal, P.steel)
+	cabinet(m, w, h, d, opts.wood and P.hinoki or P.metal, opts.wood and P.wood_dark or P.metal, opts.wood)
+	backsplash(m, w, h, d, opts.tiles)
+	if opts.tools then
+		utensilRail(m, w, h, d, opts.tools)
+	end
+	if opts.hood then
+		hood(m, w, h, d)
+	end
+	if opts.knobs then
+		knobs(m, opts.knobs, -0.4 * (opts.knobs - 1) / 2, h - 0.45, -d / 2 - 0.08)
+	end
+	if opts.plate then
+		plate(m, w / 2 - 0.8, h - 0.75, -d / 2 - 0.12, opts.plate)
+	end
 	local boardX = -w / 2 + 1.4
 	local plateX = w / 2 - 0.9
 	deco(m, w, h, d, boardX, plateX)
@@ -5417,8 +5868,6 @@ local function station(m, item, deco)
 	point(root, "Plate", plateX, h + 0.05, 0.1)
 	point(root, "Tool", boardX, h + 1.2, -0.1)
 	point(root, "Cook", 0, 0, -d / 2 - 1.3, 0)
-	local label = Kit.box(m, 0.1, 0.1, 0.1, 0, h + 2.2, 0, P.white, M.smooth, { transparency = 1, collide = false, shadow = false, name = "LabelAnchor" })
-	local _ = label
 end
 
 return function(Registry)
@@ -5461,53 +5910,107 @@ return function(Registry)
 
 	Registry.register("sushi_station", function(m, item)
 		station(m, item, function(model, w, h, d, boardX, plateX)
-			Kit.box(model, 2.4, 0.18, 1.5, boardX, h + 0.09, 0.05, P.hinoki, M.wood)
-			Kit.box(model, 2.3, 0.02, 1.4, boardX, h + 0.185, 0.05, P.paper_warm, M.wood, { collide = false })
-			Kit.box(model, 1.4, 0.2, 0.8, plateX, h + 0.1, 0.1, P.wood_light, M.wood, { collide = false })
-			Kit.cyl(model, 0.6, 0.35, plateX - 0.2, h + 0.18, -0.6, P.porcelain, M.smooth, { collide = false })
-			Kit.box(model, 0.08, 0.04, 1.2, boardX + 1.4, h + 0.04, -0.6, P.metal, M.metal, { collide = false })
-			Kit.box(model, 0.8, 0.5, 0.5, w / 2 - 0.5, h + 0.25, -0.75, P.wood_dark, M.wood, { collide = false })
-		end)
+			-- hinoki board with a yanagiba knife and a wet cloth
+			Kit.box(model, 2.0, 0.18, 1.5, boardX, h + 0.09, 0.05, P.hinoki, M.wood)
+			Kit.box(model, 1.9, 0.02, 1.4, boardX, h + 0.185, 0.05, P.paper_warm, M.wood, nc())
+			Kit.box(model, 1.2, 0.02, 0.12, boardX + 0.2, h + 0.2, -0.62, P.metal, M.metal, { collide = false, shadow = false, reflectance = 0.3 })
+			Kit.box(model, 0.45, 0.06, 0.1, boardX - 0.6, h + 0.2, -0.62, P.wood_black, M.wood, nc())
+			-- hangiri rice tub with shamoji paddle
+			local tx, tz = boardX + 1.5, 0.72
+			Kit.cyl(model, 1.1, 0.36, tx, h + 0.18, tz, P.hinoki, M.wood, nc())
+			Kit.cyl(model, 1.14, 0.06, tx, h + 0.1, tz, P.copper, M.metal, nc())
+			Kit.cyl(model, 1.14, 0.06, tx, h + 0.3, tz, P.copper, M.metal, nc())
+			Kit.blob(model, 0.9, 0.25, 0.9, tx, h + 0.36, tz, P.rice, M.sand, nc())
+			Kit.box(model, 0.18, 0.04, 0.8, tx + 0.25, h + 0.48, tz - 0.1, P.wood_light, M.wood, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(-12), math.rad(25), 0) })
+			-- small dishes: wasabi and pickled ginger, water bowl (tezu)
+			Kit.cyl(model, 0.4, 0.06, plateX - 0.75, h + 0.03, -0.65, P.porcelain, M.smooth, nc())
+			Kit.blob(model, 0.2, 0.12, 0.2, plateX - 0.75, h + 0.1, -0.65, P.matcha, M.smooth, nc())
+			Kit.cyl(model, 0.4, 0.06, plateX - 0.3, h + 0.03, -0.65, P.porcelain, M.smooth, nc())
+			Kit.blob(model, 0.24, 0.1, 0.24, plateX - 0.3, h + 0.09, -0.65, P.sakura, M.smooth, nc())
+			Kit.cyl(model, 0.5, 0.25, boardX - 0.95, h + 0.13, 0.65, P.indigo, M.smooth, nc())
+			Kit.cyl(model, 0.44, 0.02, boardX - 0.95, h + 0.24, 0.65, P.water, M.glass, { collide = false, shadow = false, transparency = 0.3 })
+			-- geta plate for the finished dish and a stack of spare plates
+			Kit.box(model, 1.4, 0.12, 0.8, plateX, h + 0.06, 0.1, P.wood_light, M.wood, nc())
+			for _, sx in ipairs({ -0.55, 0.55 }) do
+				Kit.box(model, 0.12, 0.08, 0.8, plateX + sx, h + 0.0, 0.1, P.wood_light, M.wood, nc())
+			end
+			for i = 0, 3 do
+				Kit.box(model, 0.9, 0.06, 0.5, plateX + 0.15, h + 1.1 + i * 0.07, d / 2 - 0.2, P.wood_light, M.wood, nc())
+			end
+			-- rolled makisu and bamboo leaves on the shelf
+			Kit.cylH(model, 0.22, 0.9, -0.9, h + 1.2, d / 2 - 0.2, P.bamboo, M.wood, nc())
+			for i = 0, 2 do
+				Kit.blob(model, 0.7, 0.03, 0.22, -2 + i * 0.25, h + 1.12, d / 2 - 0.22, P.leaf, M.leafy, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(i * 20), 0) })
+			end
+			Kit.cyl(model, 0.2, 0.45, 1.2, h + 1.3, d / 2 - 0.2, P.charcoal, M.smooth, nc())
+			Kit.cyl(model, 0.22, 0.06, 1.2, h + 1.55, d / 2 - 0.2, P.lacquer, M.smooth, nc())
+		end, { wood = true, plate = "寿司", tools = { "towel", "ladle" } })
 	end)
 
 	Registry.register("ramen_station", function(m, item)
 		station(m, item, function(model, w, h, d, boardX, plateX)
-			-- noodle boiler with tebo baskets
+			-- noodle boiler with four tebo baskets
 			local bx = boardX - 0.3
 			Kit.box(model, 1.9, 0.6, 1.5, bx, h + 0.3, 0.05, P.steel_dark, M.metal)
 			local water = Kit.box(model, 1.7, 0.05, 1.3, bx, h + 0.6, 0.05, P.water, M.glass, { collide = false, transparency = 0.3, name = "Water" })
-			Kit.particles(water, "steam", { rate = 2 })
+			Kit.particles(water, "steam", { rate = 3 })
 			for _, c in ipairs({ { -0.45, -0.3 }, { 0.45, -0.3 }, { -0.45, 0.35 }, { 0.45, 0.35 } }) do
 				Kit.cyl(model, 0.5, 0.5, bx + c[1], h + 0.65, 0.05 + c[2], P.metal, M.metal, { collide = false, transparency = 0.2 })
-				Kit.cylH(model, 0.06, 0.9, bx + c[1], h + 1.0, 0.05 + c[2] - 0.55, P.wood_dark, M.wood, { collide = false }, "z")
+				Kit.cylH(model, 0.06, 0.9, bx + c[1], h + 1.0, 0.05 + c[2] - 0.55, P.wood_dark, M.wood, nc(), "z")
 			end
-			Kit.box(model, 1.5, 0.12, 1.2, plateX - 0.1, h + 0.06, 0.1, P.wood_light, M.wood, { collide = false })
-			-- topping tray
-			for i = 0, 3 do
-				Kit.box(model, 0.35, 0.15, 0.5, plateX - 0.6 + i * 0.4, h + 0.08, -0.75, P.metal, M.metal, { collide = false })
+			-- bowl for the finished dish on a wooden tray
+			Kit.box(model, 1.5, 0.12, 1.2, plateX - 0.1, h + 0.06, 0.1, P.wood_light, M.wood, nc())
+			-- topping pans: scallion, naruto, chashu, corn, egg
+			local colors = { P.leaf_light, P.sakura, P.copper, P.neon_yellow }
+			for i, c in ipairs(colors) do
+				pan(model, -0.2 + (i - 1) * 0.44, -0.72, h, c)
 			end
-		end)
+			-- tare pots and bowl stacks on the back shelf
+			for i = 0, 2 do
+				Kit.cyl(model, 0.38, 0.4, -1.8 + i * 0.5, h + 1.3, d / 2 - 0.2, P.metal, M.metal, nc())
+				Kit.cyl(model, 0.32, 0.03, -1.8 + i * 0.5, h + 1.51, d / 2 - 0.2, ({ P.wood, P.cream, P.copper })[i + 1], M.smooth, nc())
+			end
+			bowlStack(model, 0.6, d / 2 - 0.25, h + 1.08, 4, P.charcoal)
+			bowlStack(model, 1.4, d / 2 - 0.25, h + 1.08, 4, P.lacquer_dark)
+		end, { hood = true, plate = "麺", tools = { "ladle", "ladle", "strainer", "towel" }, tiles = true, knobs = 3 })
 	end)
 
 	Registry.register("drink_station", function(m, item)
 		station(m, item, function(model, w, h, d, boardX, plateX)
-			Kit.cyl(model, 0.9, 1.3, boardX - 0.3, h + 0.65, 0.3, P.metal, M.metal, { reflectance = 0.15 })
-			Kit.box(model, 0.2, 0.2, 0.3, boardX - 0.3, h + 0.4, -0.25, P.charcoal, M.smooth, { collide = false })
+			-- tea urn with a tap
+			Kit.cyl(model, 0.9, 1.3, boardX - 0.3, h + 0.65, 0.35, P.metal, M.metal, { reflectance = 0.15 })
+			Kit.cyl(model, 0.95, 0.12, boardX - 0.3, h + 1.32, 0.35, P.steel_dark, M.metal, nc())
+			Kit.box(model, 0.18, 0.18, 0.35, boardX - 0.3, h + 0.35, -0.2, P.charcoal, M.smooth, nc())
+			-- ramune bottles in an ice bucket
+			Kit.cyl(model, 0.8, 0.5, boardX + 0.75, h + 0.25, 0.45, P.metal, M.metal, nc())
+			Kit.cyl(model, 0.7, 0.05, boardX + 0.75, h + 0.48, 0.45, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.2 })
 			for i = 0, 3 do
-				Kit.cyl(model, 0.32, 0.4, boardX + 0.6 + (i % 2) * 0.4, h + 0.2, -0.3 + math.floor(i / 2) * 0.45, P.porcelain, M.smooth, { collide = false })
+				local a = i * math.pi / 2
+				Kit.cyl(model, 0.16, 0.5, boardX + 0.75 + math.cos(a) * 0.18, h + 0.6, 0.45 + math.sin(a) * 0.18, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.25 })
 			end
-			Kit.box(model, 1.2, 0.08, 0.8, plateX, h + 0.04, 0.1, P.wood_dark, M.wood, { collide = false })
-		end)
+			-- matcha bowl and whisk, cups
+			Kit.cyl(model, 0.5, 0.22, boardX + 0.2, h + 0.11, -0.55, P.stone_dark, M.smooth, nc())
+			Kit.cyl(model, 0.42, 0.02, boardX + 0.2, h + 0.21, -0.55, P.matcha, M.smooth, nc())
+			Kit.cyl(model, 0.2, 0.3, boardX + 0.75, h + 0.15, -0.55, P.bamboo, M.wood, nc())
+			for i = 0, 3 do
+				Kit.cyl(model, 0.3, 0.32, -0.2 + i * 0.36, h + 1.25, d / 2 - 0.2, P.porcelain, M.smooth, nc())
+			end
+			Kit.box(model, 1.2, 0.08, 0.8, plateX, h + 0.04, 0.1, P.wood_dark, M.wood, nc())
+		end, { plate = "茶", tools = { "towel" } })
 	end)
 
 	Registry.register("griddle", function(m, item)
 		station(m, item, function(model, w, h, d, boardX, plateX)
 			Kit.box(model, 2.6, 0.12, 1.6, boardX + 0.1, h + 0.06, 0.05, P.charcoal, M.metal, { reflectance = 0.05 })
+			for _, e in ipairs({ { 0, 0.82, 2.6, 0.06 }, { -1.27, 0, 0.06, 1.6 }, { 1.27, 0, 0.06, 1.6 } }) do
+				Kit.box(model, e[3], 0.18, e[4], boardX + 0.1 + e[1], h + 0.15, 0.05 + e[2], P.steel_dark, M.metal, nc())
+			end
 			local heat = Kit.box(model, 2.4, 0.02, 1.4, boardX + 0.1, h + 0.13, 0.05, P.steel_dark, M.metal, { collide = false, name = "Heat" })
 			Kit.particles(heat, "smoke", { enabled = false })
-			Kit.box(model, 0.1, 0.05, 0.8, boardX + 1.5, h + 0.2, -0.5, P.metal, M.metal, { collide = false })
-			Kit.box(model, 1, 0.08, 0.7, plateX + 0.1, h + 0.04, 0.1, P.wood_light, M.wood, { collide = false })
-		end)
+			Kit.cyl(model, 0.22, 0.6, plateX + 0.5, h + 0.3, 0.6, P.gold, M.glass, { collide = false, shadow = false, transparency = 0.2 })
+			Kit.box(model, 0.1, 0.05, 0.8, boardX + 1.5, h + 0.2, -0.5, P.metal, M.metal, nc())
+			Kit.box(model, 1, 0.08, 0.7, plateX + 0.1, h + 0.04, 0.1, P.wood_light, M.wood, nc())
+		end, { hood = true, plate = "餃子", tools = { "spatula", "spatula", "towel" }, tiles = true, knobs = 2 })
 	end)
 
 	Registry.register("fryer", function(m, item)
@@ -5516,8 +6019,10 @@ return function(Registry)
 			local oil = Kit.box(model, 1.2, 0.04, 1.2, boardX - 0.1, h + 0.5, 0.05, P.gold, M.glass, { collide = false, transparency = 0.2, name = "Oil" })
 			Kit.particles(oil, "bubbles", { enabled = false })
 			Kit.box(model, 0.9, 0.35, 0.9, boardX - 0.1, h + 0.75, 0.05, P.metal, M.metal, { collide = false, transparency = 0.4 })
-			Kit.box(model, 0.8, 0.08, 0.6, plateX + 0.2, h + 0.04, 0.1, P.paper, M.smooth, { collide = false })
-		end)
+			Kit.cylH(model, 0.06, 0.8, boardX - 0.1, h + 0.95, -0.7, P.charcoal, M.smooth, nc(), "z")
+			-- draining rack with paper
+			Kit.box(model, 0.8, 0.08, 0.6, plateX + 0.2, h + 0.04, 0.1, P.paper, M.smooth, nc())
+		end, { hood = true, plate = "天ぷら", tools = { "strainer", "towel" }, tiles = true, knobs = 2 })
 	end)
 
 	Registry.register("takoyaki_stove", function(m, item)
@@ -5525,42 +6030,82 @@ return function(Registry)
 			Kit.box(model, 1.6, 0.25, 1.3, boardX - 0.1, h + 0.125, 0.05, P.charcoal, M.metal)
 			for i = 0, 3 do
 				for j = 0, 2 do
-					Kit.cyl(model, 0.28, 0.02, boardX - 0.65 + i * 0.36, h + 0.26, -0.3 + j * 0.35, P.black, M.smooth, { collide = false })
+					Kit.cyl(model, 0.28, 0.02, boardX - 0.65 + i * 0.36, h + 0.26, -0.3 + j * 0.35, P.black, M.smooth, nc())
+					if (i + j) % 2 == 0 then
+						Kit.ball(model, 0.26, boardX - 0.65 + i * 0.36, h + 0.3, -0.3 + j * 0.35, P.copper, M.sand, nc())
+					end
 				end
 			end
-			Kit.box(model, 0.8, 0.1, 0.6, plateX + 0.2, h + 0.05, 0.1, P.wood_light, M.wood, { collide = false })
-		end)
+			Kit.box(model, 0.8, 0.1, 0.6, plateX + 0.2, h + 0.05, 0.1, P.wood_light, M.wood, nc())
+		end, { hood = true, plate = "たこ焼", tools = { "towel" }, tiles = true, knobs = 1 })
 	end)
 
 	Registry.register("dessert_station", function(m, item)
 		station(m, item, function(model, w, h, d, boardX, plateX)
 			Kit.box(model, 2, 0.12, 1.3, boardX, h + 0.06, 0.05, P.porcelain, M.marble)
 			for i, c in ipairs({ P.sakura, P.white, P.matcha }) do
-				Kit.ball(model, 0.35, boardX - 0.6 + i * 0.35, h + 0.3, -0.45, c, M.smooth, { collide = false })
+				Kit.ball(model, 0.35, boardX - 0.6 + i * 0.35, h + 0.3, -0.45, c, M.smooth, nc())
 			end
-			Kit.box(model, 1, 0.08, 0.7, plateX, h + 0.04, 0.1, P.lacquer, M.smooth, { collide = false })
-		end)
+			-- glass cloche over a tray of mochi
+			Kit.cyl(model, 0.9, 0.06, plateX - 0.2, h + 1.12, d / 2 - 0.25, P.wood_dark, M.wood, nc())
+			for i = 0, 2 do
+				Kit.ball(model, 0.25, plateX - 0.45 + i * 0.25, h + 1.27, d / 2 - 0.25, ({ P.sakura, P.white, P.matcha })[i + 1], M.smooth, nc())
+			end
+			Kit.ball(model, 0.85, plateX - 0.2, h + 1.32, d / 2 - 0.25, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.7 })
+			Kit.box(model, 1, 0.08, 0.7, plateX, h + 0.04, 0.1, P.lacquer, M.smooth, nc())
+		end, { plate = "甘味", tools = { "towel" } })
 	end)
 
 	Registry.register("sink", function(m, item)
 		local root = Kit.finish(m, size(item))
 		local w, h, d = item.size[1], item.size[2], item.size[3]
 		cabinet(m, w, h, d, P.metal, P.steel)
-		-- basin (built from walls so it looks hollow)
-		local bw, bd = w - 1.4, d - 0.6
-		Kit.box(m, bw, 0.08, bd, -0.4, h - 0.7, 0, P.steel_dark, M.metal, { collide = false })
-		for _, s in ipairs({ { 0, -bd / 2, bw, 0.08 }, { 0, bd / 2, bw, 0.08 }, { -bw / 2, 0, 0.08, bd }, { bw / 2, 0, 0.08, bd } }) do
-			Kit.box(m, s[3], 0.7, s[4], -0.4 + s[1], h - 0.35, s[2], P.metal, M.metal, { collide = false })
+		backsplash(m, w, h, d, true)
+		plate(m, w / 2 - 0.8, h - 0.75, -d / 2 - 0.12, "洗い場")
+		-- double basin (built from walls so it looks hollow), soapy water in the left one
+		local bw, bd = 1.25, d - 0.75
+		for i, bx in ipairs({ -1.1, 0.25 }) do
+			Kit.box(m, bw, 0.08, bd, bx, h - 0.7, 0, P.steel_dark, M.metal, nc())
+			for _, s in ipairs({ { 0, -bd / 2, bw, 0.08 }, { 0, bd / 2, bw, 0.08 }, { -bw / 2, 0, 0.08, bd }, { bw / 2, 0, 0.08, bd } }) do
+				Kit.box(m, s[3], 0.7, s[4], bx + s[1], h - 0.35, s[2], P.metal, M.metal, { collide = false, reflectance = 0.1 })
+			end
+			Kit.cyl(m, 0.2, 0.02, bx, h - 0.65, 0, P.charcoal, M.metal, nc())
+			if i == 1 then
+				Kit.box(m, bw - 0.1, 0.05, bd - 0.1, bx, h - 0.45, 0, P.water, M.glass, { transparency = 0.35, collide = false, name = "Water" })
+				for k = 0, 4 do
+					Kit.ball(m, 0.18 + (k % 2) * 0.08, bx - 0.4 + k * 0.2, h - 0.4, -0.2 + (k % 3) * 0.15, P.white, M.smooth, { collide = false, shadow = false, transparency = 0.15 })
+				end
+			end
 		end
-		local water = Kit.box(m, bw - 0.1, 0.05, bd - 0.1, -0.4, h - 0.45, 0, P.water, M.glass, { transparency = 0.35, collide = false, name = "Water" })
-		local _ = water
-		-- faucet
-		Kit.cyl(m, 0.12, 1.2, -0.4, h + 0.55, bd / 2 - 0.1, P.metal, M.metal, { collide = false })
-		local spout = Kit.cylH(m, 0.1, 0.7, -0.4, h + 1.1, bd / 2 - 0.4, P.metal, M.metal, { collide = false, name = "Spout" }, "z")
+		-- gooseneck faucet between the basins with a pre-rinse sprayer
+		local fx, fz = -0.42, bd / 2 + 0.12
+		Kit.cyl(m, 0.2, 0.12, fx, h + 0.06, fz, P.metal, M.metal, nc())
+		Kit.cyl(m, 0.1, 1.4, fx, h + 0.8, fz, P.metal, M.metal, { collide = false, reflectance = 0.2 })
+		Kit.cylH(m, 0.1, 0.6, fx, h + 1.5, fz - 0.27, P.metal, M.metal, { collide = false, shadow = false, reflectance = 0.2 }, "z")
+		local spout = Kit.cyl(m, 0.1, 0.3, fx, h + 1.36, fz - 0.55, P.metal, M.metal, { collide = false, name = "Spout" })
 		Kit.particles(spout, "water", { enabled = false })
-		-- drying rack with plates
+		for _, sx in ipairs({ -0.3, 0.3 }) do
+			Kit.cylH(m, 0.12, 0.25, fx + sx, h + 0.35, fz, P.metal, M.metal, nc(), "x")
+			Kit.box(m, 0.05, 0.05, 0.25, fx + sx * 1.3, h + 0.35, fz - 0.1, sx < 0 and P.neon_red or P.neon_blue, M.smooth, nc())
+		end
+		-- sponge, dish soap and a tenugui towel over the cabinet lip
+		Kit.box(m, 0.35, 0.14, 0.22, -1.75, h + 0.07, bd / 2, P.leaf_light, M.fabric, nc())
+		Kit.box(m, 0.35, 0.05, 0.22, -1.75, h + 0.165, bd / 2, P.neon_yellow, M.fabric, nc())
+		Kit.cyl(m, 0.24, 0.5, -1.75, h + 0.25, bd / 2 - 0.4, P.leaf, M.plastic, { collide = false, shadow = false, transparency = 0.2 })
+		Kit.cyl(m, 0.08, 0.12, -1.75, h + 0.56, bd / 2 - 0.4, P.white, M.plastic, nc())
+		Kit.box(m, 0.6, 0.9, 0.03, 0.3, h - 0.4, -d / 2 - 0.16, P.white, M.fabric, nc())
+		Kit.box(m, 0.6, 0.12, 0.035, 0.3, h - 0.6, -d / 2 - 0.165, P.indigo, M.fabric, nc())
+		-- wire drying rack with clean plates
+		local rx = w / 2 - 0.55
+		Kit.box(m, 0.9, 0.05, d - 0.5, rx, h + 0.05, 0, P.metal, M.metal, nc())
+		for _, sx in ipairs({ -0.42, 0.42 }) do
+			for k = 0, 5 do
+				Kit.box(m, 0.03, 0.4, 0.03, rx + sx, h + 0.25, -0.75 + k * 0.3, P.metal, M.metal, nc())
+			end
+		end
 		for i = 0, 3 do
-			Kit.cyl(m, 0.7, 0.06, w / 2 - 0.55, h + 0.4, -0.45 + i * 0.3, P.porcelain, M.smooth, { collide = false, rot = CFrame.Angles(math.rad(90), 0, 0) })
+			Kit.cyl(m, 0.7, 0.06, rx, h + 0.42, -0.45 + i * 0.3, P.porcelain, M.smooth, { collide = false, rot = CFrame.Angles(math.rad(90), 0, 0) })
+			Kit.cyl(m, 0.74, 0.03, rx, h + 0.42, -0.45 + i * 0.3, P.indigo, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(90), 0, 0) })
 		end
 		point(root, "Basin", -0.4, h, 0)
 		point(root, "Dirty", w / 2 - 0.55, h + 0.1, 0.45)
@@ -5753,6 +6298,132 @@ local function rng(seed)
 	return Random.new(seed or 7)
 end
 
+local function NC()
+	return { collide = false, shadow = false }
+end
+
+-- Outdoor AC unit with a round fan grille, mounted on the wall
+local function acUnit(parent, x, y, face, facing)
+	local z = face - facing * 0.4
+	Kit.box(parent, 1.6, 1.1, 0.7, x, y, z, P.stone_light, M.smooth, NC())
+	Kit.cylH(parent, 0.8, 0.04, x - 0.25, y, z - facing * 0.36, P.steel_dark, M.metal, NC(), "z")
+	Kit.cylH(parent, 0.2, 0.05, x - 0.25, y, z - facing * 0.38, P.metal, M.metal, NC(), "z")
+	Kit.box(parent, 1.4, 0.08, 0.6, x, y - 0.6, z + facing * 0.05, P.steel_dark, M.metal, NC())
+	Kit.cyl(parent, 0.12, 1.2, x + 0.6, y + 0.9, face - facing * 0.15, P.white, M.smooth, NC())
+end
+
+-- Apartment balcony: slab, frosted panel railing and (sometimes) laundry on a pole
+local function balcony(parent, x, y, face, facing, r)
+	local z = face - facing * 0.7
+	Kit.box(parent, 3.6, 0.2, 1.4, x, y - 1.55, z, P.stone_light, M.concrete, NC())
+	local panel = Kit.box(parent, 3.6, 1.2, 0.08, x, y - 0.85, face - facing * 1.38, P.metal, M.glass, NC())
+	panel.Transparency = 0.35
+	Kit.box(parent, 3.7, 0.1, 0.14, x, y - 0.22, face - facing * 1.38, P.steel_dark, M.metal, NC())
+	if r:NextNumber() < 0.6 then
+		Kit.cylH(parent, 0.08, 3.2, x, y + 0.9, face - facing * 0.9, P.metal, M.metal, NC())
+		local colors = { P.white, P.sakura, P.navy, P.leaf_light, P.neon_yellow, P.indigo }
+		for k = 0, r:NextInteger(1, 3) do
+			local c = colors[r:NextInteger(1, #colors)]
+			local cw = 0.6 + r:NextNumber() * 0.5
+			Kit.box(parent, cw, 0.8 + r:NextNumber() * 0.4, 0.05, x - 1.2 + k * 0.85, y + 0.45, face - facing * 0.9, c, M.fabric, NC())
+		end
+	end
+end
+
+-- Chalkboard A-frame sign on the sidewalk
+local function aframe(parent, x, z, facing)
+	Kit.box(parent, 1.1, 1.6, 0.08, x, 0.4, z - facing * 0.25, P.wood_dark, M.wood, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(12), 0, 0) })
+	Kit.box(parent, 0.9, 1.2, 0.04, x, 0.45, z - facing * 0.32, P.charcoal, M.slate, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(12), 0, 0) })
+	Kit.box(parent, 1.1, 1.6, 0.08, x, 0.4, z + facing * 0.25, P.wood_dark, M.wood, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(-12), 0, 0) })
+end
+
+-- Part placed in the local frame of `base`
+local function lp(parent, base, sx, sy, sz, lx, ly, lz, rot, color, mat, props)
+	local cf = base * CFrame.new(lx, ly, lz)
+	if rot then
+		cf = cf * rot
+	end
+	return Kit.part(parent, Vector3.new(sx, sy, sz), cf, color, mat, props)
+end
+
+-- Japanese city bicycle (mamachari) with a front basket; yaw in degrees, ground at -0.4
+function S.bicycle(parent, x, z, yaw, color)
+	local base = CFrame.new(x, -0.4, z) * CFrame.Angles(0, math.rad(yaw or 0), 0)
+	local wheel = CFrame.Angles(0, math.rad(90), 0)
+	for _, wx in ipairs({ -1.1, 1.1 }) do
+		lp(parent, base, 0.12, 1.7, 1.7, wx, 0.85, 0, wheel, P.charcoal, M.smooth, { collide = false, shadow = false, shape = Enum.PartType.Cylinder })
+		lp(parent, base, 0.13, 1.3, 1.3, wx, 0.85, 0, wheel, P.metal, M.metal, { collide = false, shadow = false, shape = Enum.PartType.Cylinder })
+	end
+	lp(parent, base, 1.4, 0.12, 0.12, -0.35, 1.25, 0, CFrame.Angles(0, 0, math.rad(-35)), color, M.metal, NC())
+	lp(parent, base, 1.3, 0.12, 0.12, 0.3, 1.1, 0, CFrame.Angles(0, 0, math.rad(20)), color, M.metal, NC())
+	lp(parent, base, 0.12, 1.2, 0.12, -0.45, 1.4, 0, CFrame.Angles(0, 0, math.rad(-15)), color, M.metal, NC())
+	lp(parent, base, 0.7, 0.18, 0.35, -0.6, 2.05, 0, nil, P.charcoal, M.leather, NC())
+	lp(parent, base, 0.12, 1.1, 0.12, 0.95, 1.5, 0, CFrame.Angles(0, 0, math.rad(15)), color, M.metal, NC())
+	lp(parent, base, 0.1, 0.1, 1.2, 0.85, 2.05, 0, nil, P.metal, M.metal, NC())
+	lp(parent, base, 0.7, 0.5, 0.8, 1.4, 1.75, 0, nil, P.metal, M.metal, { collide = false, shadow = false, transparency = 0.3 })
+	lp(parent, base, 0.9, 0.06, 0.6, -1.1, 1.75, 0, nil, P.metal, M.metal, NC())
+	lp(parent, base, 0.6, 0.6, 0.06, -0.9, 0.5, 0.2, nil, color, M.metal, NC())
+end
+
+-- Round-topped red post box
+function S.postBox(parent, x, z)
+	Kit.box(parent, 0.5, 1.6, 0.5, x, 0.4, z, P.charcoal, M.metal)
+	Kit.box(parent, 1.4, 2.0, 1.1, x, 2.2, z, P.red, M.metal)
+	Kit.cylH(parent, 1.1, 1.4, x, 3.2, z, P.red, M.metal, NC(), "z")
+	Kit.box(parent, 1.0, 0.12, 0.06, x, 2.8, z - 0.56, P.charcoal, M.metal, NC())
+	local plate = Kit.box(parent, 0.6, 0.5, 0.04, x, 2.1, z - 0.57, P.white, M.smooth, NC())
+	Kit.text(plate, Enum.NormalId.Front, "〒", { color = "#C0261E", font = JP_FONT })
+end
+
+-- Pair of recycling bins next to a vending machine
+function S.bins(parent, x, z)
+	for k, c in ipairs({ P.indigo, P.matcha }) do
+		local bx = x + (k - 1.5) * 1.1
+		Kit.box(parent, 1, 1.8, 1, bx, 0.5, z, c, M.plastic, NC())
+		Kit.box(parent, 1.05, 0.15, 1.05, bx, 1.45, z, P.white, M.plastic, NC())
+		Kit.cyl(parent, 0.4, 0.05, bx, 1.53, z, P.charcoal, M.smooth, NC())
+	end
+end
+
+-- Round traffic sign on a pole (kind = "walk" blue, "stop" red triangle)
+function S.trafficSign(parent, x, z, kind)
+	Kit.cyl(parent, 0.18, 7, x, 3.1, z, P.metal, M.metal)
+	if kind == "stop" then
+		local tri = Kit.wedge(parent, 0.08, 1.6, 0.9, CFrame.new(x, 6.2, z - 0.45) * CFrame.Angles(0, math.rad(90), 0), P.red, M.smooth, NC())
+		local _ = tri
+		Kit.wedge(parent, 0.08, 1.6, 0.9, CFrame.new(x, 6.2, z + 0.45) * CFrame.Angles(0, math.rad(-90), 0), P.red, M.smooth, NC())
+		local plate = Kit.box(parent, 1.4, 0.5, 0.06, x, 5.1, z, P.white, M.smooth, NC())
+		Kit.text(plate, Enum.NormalId.Back, "止まれ", { color = "#C0261E", font = JP_FONT })
+	else
+		Kit.box(parent, 1.4, 1.4, 0.08, x, 6, z, P.navy, M.smooth, NC())
+		Kit.wedge(parent, 0.04, 0.9, 0.5, CFrame.new(x - 0.25, 6, z - 0.06) * CFrame.Angles(0, math.rad(90), 0), P.white, M.smooth, NC())
+		Kit.wedge(parent, 0.04, 0.9, 0.5, CFrame.new(x + 0.25, 6, z - 0.06) * CFrame.Angles(0, math.rad(-90), 0), P.white, M.smooth, NC())
+	end
+end
+
+-- Manhole cover, optionally steaming
+function S.manhole(parent, x, y, z, steam)
+	local m = Kit.cyl(parent, 2, 0.06, x, y, z, P.stone_dark, M.metal, NC())
+	Kit.cyl(parent, 1.6, 0.07, x, y, z, P.steel_dark, M.metal, NC())
+	Kit.cyl(parent, 0.7, 0.08, x, y, z, P.stone_dark, M.metal, NC())
+	if steam then
+		Kit.particles(m, "steam", { rate = 3 })
+	end
+end
+
+-- Zebra crossing across the road (road along X, centered on z), with stop lines
+function S.crosswalk(parent, x, y, z, roadWidth)
+	local n = math.floor(roadWidth / 1.6)
+	for i = 0, n - 1 do
+		Kit.box(parent, 4, 0.04, 0.8, x, y, z - roadWidth / 2 + 0.8 + i * 1.6, P.road_line, M.smooth, NC())
+	end
+	Kit.box(parent, 0.4, 0.04, roadWidth / 2 - 0.4, x - 4, y, z + roadWidth / 4, P.road_line, M.smooth, NC())
+	Kit.box(parent, 0.4, 0.04, roadWidth / 2 - 0.4, x + 4, y, z - roadWidth / 4, P.road_line, M.smooth, NC())
+	local word = Kit.box(parent, 3.2, 0.04, 1.6, x - 6.5, y, z + roadWidth / 4, P.road, M.asphalt, NC())
+	word.Transparency = 1
+	Kit.text(word, Enum.NormalId.Top, "止まれ", { color = "#E8E4D8", font = JP_FONT, rotation = 90 })
+end
+
 -- Facade block with windows and an optional shop front
 function S.building(parent, x0, x1, zFront, depth, height, facing, color, r)
 	local w = x1 - x0
@@ -5766,6 +6437,25 @@ function S.building(parent, x0, x1, zFront, depth, height, facing, color, r)
 	Kit.box(parent, w - 1, 4.2, 0.2, cx, 2.1 - 0.4, face, P.wood_dark, M.wood, { collide = false })
 	local glass = Kit.box(parent, w - 2, 3.4, 0.1, cx, 2.0 - 0.4, face - facing * 0.12, P.paper_warm, M.neon, { collide = false })
 	glass.Transparency = 0.3
+	-- sash mullions, a short noren over the door and something on the sidewalk
+	local panes = math.max(2, math.floor((w - 2) / 2.2))
+	for i = 1, panes - 1 do
+		Kit.box(parent, 0.12, 3.4, 0.14, x0 + 1 + (w - 2) * i / panes, 1.6, face - facing * 0.16, P.wood_dark, M.wood, NC())
+	end
+	Kit.box(parent, w - 2, 0.12, 0.14, cx, 2.4, face - facing * 0.16, P.wood_dark, M.wood, NC())
+	for k = -1, 1 do
+		Kit.box(parent, 0.95, 1.3, 0.05, cx + k * 1.0, 2.75, face - facing * 0.3, awning, M.fabric, NC())
+	end
+	Kit.cylH(parent, 0.1, 3.4, cx, 3.45, face - facing * 0.3, P.wood_dark, M.wood, NC())
+	local extra = r:NextNumber()
+	if extra < 0.3 then
+		aframe(parent, cx + w / 2 - 1.6, face - facing * 1.6, facing)
+	elseif extra < 0.55 then
+		Kit.cyl(parent, 1.2, 1.1, cx - w / 2 + 1.4, 0.15, face - facing * 0.9, P.stone_dark, M.concrete, NC())
+		Kit.ball(parent, 1.6, cx - w / 2 + 1.4, 1.3, face - facing * 0.9, P.leaf, M.leafy, NC())
+	elseif extra < 0.75 then
+		S.bicycle(parent, cx - w / 2 + 2.2, face - facing * 1.3, facing < 0 and 0 or 180, ({ P.white, P.navy, P.lacquer, P.matcha })[r:NextInteger(1, 4)])
+	end
 	Kit.wedge(parent, w - 0.5, 0.8, 1.6, CFrame.new(cx, 4.8 - 0.4, face - facing * 0.8) * CFrame.Angles(0, math.rad(facing < 0 and 180 or 0), 0), awning, M.fabric, { collide = false })
 	local shopSign = Kit.box(parent, math.min(w - 2, 6), 1.1, 0.15, cx, 5.8 - 0.4, face - facing * 0.15, P.paper, M.smooth, { collide = false })
 	Kit.text(shopSign, facing < 0 and Enum.NormalId.Back or Enum.NormalId.Front, SIGNS[r:NextInteger(1, #SIGNS)], { color = "#2B2320", font = JP_FONT })
@@ -5777,11 +6467,54 @@ function S.building(parent, x0, x1, zFront, depth, height, facing, color, r)
 		for i = 0, n - 1 do
 			local x = x0 + w / n * (i + 0.5)
 			local lit = r:NextNumber() < 0.55
+			Kit.box(parent, 2.7, 2.9, 0.08, x, y, face - facing * 0.03, P.charcoal, M.metal, NC())
 			local win = Kit.box(parent, 2.4, 2.6, 0.1, x, y, face - facing * 0.06, lit and P.lamp or P.steel_dark, lit and M.neon or M.glass, { collide = false, shadow = false })
 			if lit then
 				win.Transparency = 0.25
 			end
+			Kit.box(parent, 0.08, 2.6, 0.12, x, y, face - facing * 0.1, P.charcoal, M.metal, NC())
 			Kit.box(parent, 2.8, 0.25, 0.4, x, y - 1.45, face - facing * 0.2, P.wood_dark, M.wood, { collide = false })
+			local roll = r:NextNumber()
+			if roll < 0.3 then
+				balcony(parent, x, y, face, facing, r)
+			elseif roll < 0.5 then
+				acUnit(parent, x + 2, y - 0.9, face, facing)
+			elseif roll < 0.62 then
+				-- flower pots on the sill
+				for k = -1, 1 do
+					Kit.box(parent, 0.4, 0.35, 0.3, x + k * 0.7, y - 1.15, face - facing * 0.25, P.vermilion, M.smooth, NC())
+					Kit.ball(parent, 0.5, x + k * 0.7, y - 0.85, face - facing * 0.25, k == 0 and P.sakura or P.leaf, M.leafy, NC())
+				end
+			end
+		end
+	end
+	-- drain pipe and roof furniture
+	Kit.cyl(parent, 0.3, height - 0.5, x1 - 0.35, height / 2 - 0.4, face - facing * 0.2, P.stone_dark, M.metal, NC())
+	local roofY = height - 0.4 + 0.6
+	local roof = r:NextNumber()
+	if roof < 0.35 then
+		-- water tank on legs
+		local tx, tz = cx - w / 4, cz
+		for _, c in ipairs({ { -0.8, -0.8 }, { 0.8, -0.8 }, { 0.8, 0.8 }, { -0.8, 0.8 } }) do
+			Kit.box(parent, 0.2, 1.4, 0.2, tx + c[1], roofY + 0.7, tz + c[2], P.steel_dark, M.metal, NC())
+		end
+		Kit.cyl(parent, 2.4, 2.4, tx, roofY + 2.6, tz, P.stone_light, M.concrete, NC())
+		Kit.cyl(parent, 2.5, 0.2, tx, roofY + 3.9, tz, P.steel, M.metal, NC())
+	elseif roof < 0.6 then
+		-- antenna and a couple of AC units
+		Kit.cyl(parent, 0.12, 4, cx + w / 4, roofY + 2, cz, P.metal, M.metal, NC())
+		for k = 0, 2 do
+			Kit.cylH(parent, 0.08, 1.6 - k * 0.4, cx + w / 4, roofY + 2.5 + k * 0.6, cz, P.metal, M.metal, NC())
+		end
+		for k = 0, 1 do
+			Kit.box(parent, 1.6, 1.1, 0.7, cx - w / 4 + k * 1.9, roofY + 0.55, cz, P.stone_light, M.smooth, NC())
+		end
+	elseif roof < 0.75 then
+		-- rooftop billboard
+		local bb = Kit.box(parent, math.min(w - 1, 9), 3, 0.3, cx, roofY + 2.6, zFront + facing * 3, P.white, M.smooth, NC())
+		Kit.text(bb, facing < 0 and Enum.NormalId.Back or Enum.NormalId.Front, ({ "ラーメン", "寿司", "カメラ", "牛乳", "ビール", "茶" })[r:NextInteger(1, 6)], { color = ({ "#C0261E", "#1E2A44", "#2F5A2A" })[r:NextInteger(1, 3)], font = JP_FONT })
+		for _, bx in ipairs({ -2, 2 }) do
+			Kit.box(parent, 0.25, 1.4, 0.25, cx + bx, roofY + 0.7, zFront + facing * 3, P.steel_dark, M.metal, NC())
 		end
 	end
 	-- vertical sign
@@ -5808,6 +6541,14 @@ end
 
 function S.pole(parent, x, z)
 	Kit.cyl(parent, 0.6, 16, x, -0.4 + 8, z, P.stone_light, M.concrete)
+	-- yellow and black guard sleeve, step bolts and an address plate
+	for k = 0, 3 do
+		Kit.cyl(parent, 0.66, 0.45, x, 0.05 + k * 0.45, z, k % 2 == 0 and P.neon_yellow or P.black, M.smooth, NC())
+	end
+	for k = 0, 4 do
+		Kit.cylH(parent, 0.08, 0.9, x, 6 + k * 1.2, z, P.steel_dark, M.metal, NC(), k % 2 == 0 and "z" or nil)
+	end
+	Kit.box(parent, 0.5, 1.6, 0.66, x, 4, z, P.navy, M.smooth, NC())
 	Kit.cylH(parent, 0.25, 3, x, 14.5, z, P.wood_dark, M.wood, { collide = false })
 	Kit.cylH(parent, 0.25, 2.4, x, 13.2, z, P.wood_dark, M.wood, { collide = false })
 	Kit.cyl(parent, 0.8, 1.2, x + 0.6, 12, z + 0.5, P.metal, M.metal, { collide = false })
@@ -6372,7 +7113,459 @@ function Registry.place(model, x, y, z, r)
 end
 
 return Registry
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000049"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000048"><Properties><string name="Name">Scene</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Builds the restaurant shell (floors, walls, roof, facade, stairs) and the street scenery.
+-- Shared so the server world builder and the preview renderer use the same code.
+local CollectionService = game:GetService("CollectionService")
+
+local Config = script.Parent.Parent.Config
+local GameConfig = require(Config.GameConfig)
+local Expansions = require(Config.Expansions)
+local Surfaces = require(Config.Surfaces)
+local Franchise = require(Config.Franchise)
+local Footprint = require(script.Parent.Parent.Logic.Footprint)
+local Registry = require(script.Parent.Registry)
+local Kit = require(script.Parent.Kit)
+local P = require(script.Parent.Palette)
+local Color = require(script.Parent.Parent.Util.Color)
+
+local Scene = {}
+
+local function floorY(f)
+	return (f or 0) * GameConfig.FloorHeight
+end
+Scene.floorY = floorY
+
+local function zoneAt(geo, x, z, f)
+	for _, zone in ipairs(geo.zones) do
+		if zone.floor == (f or 0) and Footprint.pointInRect(x, z, zone.rect) then
+			return zone
+		end
+	end
+	return nil
+end
+Scene.zoneAt = zoneAt
+
+local function style(id, kind)
+	local s = Surfaces.byId[id]
+	if not s or s.kind ~= kind then
+		s = Surfaces.byId[kind == "floor" and Surfaces.DefaultFloor or Surfaces.DefaultWall]
+	end
+	return { color = Color.hex(s.color), material = P.material(s.material), lattice = s.lattice, stripes = s.stripes }
+end
+
+function Scene.surfaceOf(data, zone, kind)
+	local s = data.surfaces[zone.id]
+	local id = s and s[kind]
+	if not id then
+		id = kind == "floor" and (zone.floorStyle or Surfaces.DefaultFloor) or (zone.wallStyle or Surfaces.DefaultWall)
+	end
+	return id
+end
+
+local function holesFor(geo, floor)
+	local holes = {}
+	for _, s in ipairs(geo.stairs) do
+		if s.floor == floor - 1 then
+			table.insert(holes, s.rect)
+		end
+	end
+	return holes
+end
+
+local function subtractAll(rect, holes)
+	local rects = { rect }
+	for _, h in ipairs(holes) do
+		local next = {}
+		for _, r in ipairs(rects) do
+			for _, piece in ipairs(Footprint.subtractRect(r, h)) do
+				table.insert(next, piece)
+			end
+		end
+		rects = next
+	end
+	return rects
+end
+
+local function indoorAt(geo, x, z, floor)
+	local zone = zoneAt(geo, x, z, floor)
+	return zone and not zone.outdoor and zone or nil
+end
+
+function Scene.shell(shell, geo, data)
+	shell:ClearAllChildren()
+	local B = Registry.Building
+	local floors = {}
+	for _, z in ipairs(geo.zones) do
+		floors[z.floor] = true
+	end
+	local topFloor = 0
+	for f in pairs(floors) do
+		topFloor = math.max(topFloor, f)
+	end
+	local deluxe = data.zones.facade_deluxe
+	local exterior = { color = deluxe and P.charcoal or P.cream, material = deluxe and P.M.wood or P.M.plaster }
+
+	for _, zone in ipairs(geo.zones) do
+		local fy = floorY(zone.floor)
+		local attrs = { Zone = zone.id, FloorIndex = zone.floor, Area = zone.area }
+		local floorStyle
+		if zone.outdoor then
+			if zone.area == "garden" then
+				floorStyle = { color = P.moss, material = P.M.leafy }
+			else
+				floorStyle = { color = P.wood, material = P.M.planks }
+			end
+		else
+			floorStyle = style(Scene.surfaceOf(data, zone, "floor"), "floor")
+		end
+		for _, r in ipairs(subtractAll(zone.rect, holesFor(geo, zone.floor))) do
+			B.floorSkin(shell, r, fy, floorStyle, attrs)
+			if zone.floor == 0 then
+				B.slab(shell, r, zone.outdoor and -0.7 or -1.2, zone.outdoor and 0.5 or 1.0, P.stone_dark, P.M.concrete, "Foundation")
+			end
+		end
+		if not zone.outdoor then
+			-- ceiling / roof slab with holes where stairs go up
+			local holes = {}
+			for _, s in ipairs(geo.stairs) do
+				if s.floor == zone.floor then
+					table.insert(holes, s.rect)
+				end
+			end
+			local covered = false
+			for _, other in ipairs(geo.zones) do
+				if other.floor == zone.floor + 1 and Footprint.pointInRect((zone.rect[1] + zone.rect[3]) / 2, (zone.rect[2] + zone.rect[4]) / 2, other.rect) then
+					covered = true
+				end
+			end
+			for _, r in ipairs(subtractAll(zone.rect, holes)) do
+				local c = B.slab(shell, r, fy + GameConfig.WallHeight, 1, P.wood_dark, P.M.wood, "Ceiling")
+				B.tag(c, "Ceiling", { FloorIndex = zone.floor })
+				B.tag(c, "Roof")
+				if not covered then
+					-- flat roof finish with gravel and a few rooftop details
+					local cover = B.slab(shell, r, fy + GameConfig.WallHeight + 1, 0.15, P.stone_dark, P.M.pebble, "RoofCover")
+					B.tag(cover, "Roof")
+				end
+			end
+			if not covered then
+				local rr = zone.rect
+				local cx, cz = (rr[1] + rr[3]) / 2, (rr[2] + rr[4]) / 2
+				local top = fy + GameConfig.WallHeight + 1.15
+				local unit = Kit.box(shell, 2.6, 1.6, 1.4, cx + 4, top + 0.8, cz + 3, P.white, P.M.metal, { collide = false })
+				B.tag(unit, "Roof")
+				local fan = Kit.cylH(shell, 1.1, 0.08, cx + 4, top + 0.8, cz + 2.27, P.steel_dark, P.M.metal, { collide = false, shadow = false }, "z")
+				B.tag(fan, "Roof")
+				local tank = Kit.cyl(shell, 2.2, 2.4, cx - 6, top + 1.6, cz + 5, P.metal, P.M.metal, { collide = false })
+				B.tag(tank, "Roof")
+				for _, dx in ipairs({ -0.7, 0.7 }) do
+					local leg = Kit.box(shell, 0.2, 0.6, 0.2, cx - 6 + dx, top + 0.3, cz + 5, P.steel_dark, P.M.metal, { collide = false, shadow = false })
+					B.tag(leg, "Roof")
+				end
+			end
+			-- exposed beams and soft ceiling lights
+			local r = zone.rect
+			for x = r[1] + 3, r[3] - 2, 6 do
+				local beam = Kit.box(shell, 0.6, 0.7, r[4] - r[2], x, fy + GameConfig.WallHeight - 0.35, (r[2] + r[4]) / 2, P.wood_black, P.M.wood, { collide = false })
+				B.tag(beam, "Roof")
+			end
+			for x = r[1] + 5, r[3] - 3, 10 do
+				for z = r[2] + 5, r[4] - 3, 10 do
+					local fixture = Kit.box(shell, 1.2, 0.2, 1.2, x, fy + GameConfig.WallHeight - 0.8, z, P.paper_warm, P.M.neon, { collide = false, shadow = false })
+					fixture.CanQuery = false
+					Kit.light(fixture, "Point", P.lamp, 22, 0.55, { night = false })
+					B.tag(fixture, "Roof")
+				end
+			end
+			if zone.area == "kitchen" or zone.area == "storage" then
+				local vol = Kit.box(shell, r[3] - r[1], 6, r[4] - r[2], (r[1] + r[3]) / 2, fy + 3, (r[2] + r[4]) / 2, P.white, P.M.smooth, { collide = false, transparency = 1, shadow = false })
+				vol.CanQuery = false
+				vol.Name = "StaffOnly"
+				local mod = Instance.new("PathfindingModifier")
+				mod.Label = "StaffOnly"
+				mod.Parent = vol
+			end
+		end
+	end
+
+	for floor in pairs(floors) do
+		local fy = floorY(floor)
+		local fw = geo.walls[floor] or { walls = {}, rails = {} }
+		for _, seg in ipairs(fw.walls) do
+			local mid = (seg.a + seg.b) / 2
+			local sideA, sideB
+			if seg.axis == "z" then
+				sideA, sideB = indoorAt(geo, mid, seg.line - 0.6, floor), indoorAt(geo, mid, seg.line + 0.6, floor)
+			else
+				sideA, sideB = indoorAt(geo, seg.line - 0.6, mid, floor), indoorAt(geo, seg.line + 0.6, mid, floor)
+			end
+			local zone = sideA or sideB
+			local wallStyle = style(zone and Scene.surfaceOf(data, zone, "wall") or Surfaces.DefaultWall, "wall")
+			local outsideSign = nil
+			if not sideA then
+				outsideSign = -1
+			elseif not sideB then
+				outsideSign = 1
+			end
+			B.wall(shell, seg, fy, GameConfig.WallHeight, 0.8, wallStyle, outsideSign, exterior)
+			-- interior finishes on each indoor side
+			if sideA then
+				B.wallTrim(shell, seg, fy, -1, sideA.area, GameConfig.WallHeight)
+			end
+			if sideB then
+				B.wallTrim(shell, seg, fy, 1, sideB.area, GameConfig.WallHeight)
+			end
+			if outsideSign then
+				if seg.axis == "z" and outsideSign == -1 then
+					B.eave(shell, seg, fy + GameConfig.WallHeight - 1.2, -1, 3)
+					if zone and zone.area ~= "storage" then
+						local avoid = {}
+						for _, o in ipairs(geo.openings) do
+							if o.axis == "z" and o.at == seg.line and o.floor == floor then
+								table.insert(avoid, { o.from - 4.4, o.to + 4.4 })
+							end
+						end
+						B.facadeDetail(shell, seg, fy, -1, avoid)
+					end
+					-- lattice windows facing the street (not over doors)
+					local len = seg.b - seg.a
+					local n = math.floor(len / 9)
+					for i = 0, n - 1 do
+						local along = seg.a + len / n * (i + 0.5)
+						if math.abs(along) > 6 then
+							B.window(shell, along, fy + 6.6, seg, -1, 4, 3.4)
+						end
+					end
+				end
+				local above = false
+				for _, z in ipairs(geo.zones) do
+					if z.floor == floor + 1 and Footprint.pointInRect(seg.axis == "z" and mid or seg.line, seg.axis == "z" and seg.line or mid, z.rect, 0.5) then
+						above = true
+					end
+				end
+				if not above then
+					B.parapet(shell, seg, fy + GameConfig.WallHeight + 1)
+				end
+			end
+		end
+		for _, seg in ipairs(fw.rails) do
+			B.railing(shell, seg, fy, floor == 0 and P.wood_dark or P.lacquer)
+		end
+	end
+	for _, o in ipairs(geo.openings) do
+		local fy = floorY(o.floor)
+		B.doorFrame(shell, o, fy, o.kind == "loading" and 10 or 9)
+		if o.kind == "entrance" then
+			B.entranceNoren(shell, o, fy)
+			B.entranceDetail(shell, o, fy)
+		elseif o.kind == "loading" then
+			B.shutter(shell, o, fy, 10)
+		end
+	end
+	for _, s in ipairs(geo.stairs) do
+		B.stairs(shell, s.rect, floorY(s.floor), GameConfig.FloorHeight)
+	end
+
+	-- Facade: big sign, entrance lanterns, open plate
+	local signText = "らーめん ・ 寿司"
+	local face = B.sign(shell, 0, 11.6, -0.9, 14, signText, deluxe)
+	B.tag(face, "Roof")
+	for _, x in ipairs({ -4.4, 4.4 }) do
+		local l = Kit.blob(shell, 1.3, 1.8, 1.3, x, 8.2, -1.6, P.lacquer, P.M.smooth, { collide = false })
+		Kit.cyl(shell, 0.8, 0.2, x, 9.2, -1.6, P.black, P.M.smooth, { collide = false })
+		Kit.cyl(shell, 0.8, 0.2, x, 7.2, -1.6, P.black, P.M.smooth, { collide = false })
+		Kit.light(l, "Point", P.lamp_warm, 16, 1.4)
+		l:SetAttribute("Animate", "sway")
+		l.CanQuery = false
+	end
+	local label = B.openSign(shell, 4.6, 5.2, -0.55)
+	if data.zones.sign_rooftop then
+		local topY = floorY(topFloor) + GameConfig.WallHeight + 2
+		local board = Kit.box(shell, 20, 5, 0.6, 0, topY + 3.5, 2, P.black, P.M.smooth, { collide = false })
+		Kit.text(board, Enum.NormalId.Front, "ラーメン 寿司", { color = "#FF3B4A", glow = true })
+		Kit.light(board, "Surface", P.neon_red, 30, 3, { face = Enum.NormalId.Front })
+		for _, x in ipairs({ -8, 8 }) do
+			Kit.box(shell, 0.4, 3.5, 0.4, x, topY + 1, 2.4, P.steel_dark, P.M.metal, { collide = false })
+		end
+		B.tag(board, "Roof")
+	end
+	if deluxe then
+		for _, x in ipairs({ -18.2, 18.2 }) do
+			local post = Kit.box(shell, 0.4, 13, 0.4, x, 6.5, -0.6, P.gold, P.M.foil, { collide = false })
+			B.tag(post, "Roof")
+		end
+		local glow = Kit.box(shell, 36.4, 0.2, 0.2, 0, 13.6, -0.7, P.neon_yellow, P.M.neon, { collide = false })
+		B.tag(glow, "Roof")
+	end
+	-- Fixed interactables: supplier tablet and menu board
+	local S = Registry.Street
+	local tabletCfg = Expansions.Supplier
+	local tablet = S.supplierTablet(shell, tabletCfg.x, tabletCfg.y, tabletCfg.z, 0)
+	tablet:SetAttribute("Uid", "fixed_supplier")
+	tablet:SetAttribute("Kind", "supplier")
+	CollectionService:AddTag(tablet, "Interactable")
+	local mb = Expansions.MenuBoard
+	local board = S.menuBoard(shell, mb.x, mb.z)
+	board:SetAttribute("Uid", "fixed_menu")
+	board:SetAttribute("Kind", "menuboard")
+	CollectionService:AddTag(board, "Interactable")
+
+	for _, d in ipairs(shell:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.CollisionGroup = "Shell"
+		end
+	end
+	return { openLabel = label }
+end
+
+-- Neighbour facade colour: the city tone mixed with plaster, tile or concrete shades
+local FACADE_MIX = { "#EFE3CC", "#B5B1A8", "#C9B8A0", "#9AA3A8", "#D8CFC0", "#A0705A" }
+local function facadeColor(pal, r)
+	local mix = Color.hex(FACADE_MIX[r:NextInteger(1, #FACADE_MIX)])
+	return Color.hex(pal.building):Lerp(mix, 0.35 + r:NextNumber() * 0.5)
+end
+
+function Scene.street(street, cityId)
+	street:ClearAllChildren()
+	local city = Franchise.byId[cityId] or Franchise.byId.tokyo
+	local pal = city.palette
+	local S = Registry.Street
+	local r = S.rng(42)
+	local M = P.M
+	-- ground
+	Kit.box(street, 900, 1, 600, 0, -1.9, 40, city.snow and P.white or Color.hex("#4A5A3A"), city.snow and M.snow or M.grass)
+	-- road
+	Kit.box(street, 900, 0.6, 16, 0, -1.1, -22, Color.hex(pal.road), M.asphalt)
+	for x = -440, 440, 12 do
+		Kit.box(street, 5, 0.05, 0.4, x, -0.78, -22, P.road_line, M.smooth, { collide = false, shadow = false })
+	end
+	-- solid edge lines, crossing, manholes (one steaming) and drain grates
+	for _, ez in ipairs({ -15, -29 }) do
+		Kit.box(street, 900, 0.05, 0.3, 0, -0.78, ez, P.road_line, M.smooth, { collide = false, shadow = false })
+	end
+	S.crosswalk(street, -26, -0.77, -22, 16)
+	for i, mx in ipairs({ -70, 30, 96, -130 }) do
+		S.manhole(street, mx, -0.77, i % 2 == 0 and -19 or -25, mx == 30)
+	end
+	for gx = -170, 170, 20 do
+		Kit.box(street, 1.6, 0.05, 0.6, gx + 7, -0.77, -14.7, P.steel_dark, M.metal, { collide = false, shadow = false })
+	end
+	-- sidewalks with yellow tactile paving
+	Kit.box(street, 900, 1, 14, 0, -0.9, -7, P.sidewalk, M.pavement)
+	Kit.box(street, 900, 0.5, 0.5, 0, -0.65, -14, P.stone_light, M.concrete)
+	Kit.box(street, 900, 1, 6, 0, -0.9, -33, P.sidewalk, M.pavement)
+	Kit.box(street, 900, 0.5, 0.5, 0, -0.65, -30, P.stone_light, M.concrete)
+	local tactile = Color.hex("#E2B93B")
+	Kit.box(street, 900, 0.06, 1, 0, -0.38, -5.5, tactile, M.pavement, { collide = false, shadow = false })
+	Kit.box(street, 900, 0.06, 1, 0, -0.38, -32.2, tactile, M.pavement, { collide = false, shadow = false })
+	Kit.box(street, 1, 0.06, 7.2, -26, -0.38, -9.6, tactile, M.pavement, { collide = false, shadow = false })
+	Kit.box(street, 3, 0.06, 1, -26, -0.38, -13.2, tactile, M.cobble, { collide = false, shadow = false })
+	Kit.box(street, 3, 0.06, 1, -26, -0.38, -30.8, tactile, M.cobble, { collide = false, shadow = false })
+	S.manhole(street, -80, -0.37, -6.5, false)
+	-- street furniture near the crossing: signs, post box, bus stop
+	S.trafficSign(street, -29.5, -13.4, "walk")
+	S.trafficSign(street, -22.5, -30.6, "walk")
+	S.trafficSign(street, -92, -13.4, "stop")
+	S.postBox(street, -36, -13.2)
+	Kit.cyl(street, 0.2, 7, 64, 3.1, -13.4, P.metal, M.metal)
+	local bus = Kit.cylH(street, 1.6, 0.1, 64, 6.4, -13.4, P.white, M.smooth, { collide = false, shadow = false }, "z")
+	Kit.text(bus, Enum.NormalId.Left, "バス", { color = "#1E2A44" })
+	Kit.text(bus, Enum.NormalId.Right, "バス", { color = "#1E2A44" })
+	Kit.box(street, 0.9, 1.4, 0.12, 64, 4.6, -13.4, P.paper, M.smooth, { collide = false, shadow = false })
+	Kit.box(street, 4, 0.2, 1.2, 68, 1.3, -13.2, P.wood_light, M.wood)
+	for _, bx in ipairs({ 66.4, 69.6 }) do
+		Kit.box(street, 0.2, 1.2, 1, bx, 0.6, -13.2, P.steel_dark, M.metal)
+	end
+	-- bicycles parked on the far sidewalk
+	for _, bx in ipairs({ -44, -42.8, -41.6, 34, 35.2, 118, 119.2, -150 }) do
+		S.bicycle(street, bx, -34, 90, ({ P.white, P.navy, P.lacquer, P.matcha, P.sakura_dark })[r:NextInteger(1, 5)])
+	end
+	-- plot lot and loading bay
+	local pb = Expansions.PlotBounds
+	Kit.box(street, pb[3] - pb[1], 1, 52 - 0, (pb[1] + pb[3]) / 2, -0.9, 26, P.stone_dark, M.pavement)
+	Kit.box(street, 12, 0.1, 12, 24, -0.38, 6, P.concrete, M.concrete, { collide = false })
+	for _, x in ipairs({ 18.3, 29.7 }) do
+		Kit.box(street, 0.25, 0.05, 12, x, -0.33, 6, P.neon_yellow, M.smooth, { collide = false, shadow = false })
+	end
+	-- opposite row
+	local x = -180
+	while x < 180 do
+		local w = r:NextInteger(10, 18)
+		S.building(street, x, x + w - 0.5, -36, 18, r:NextInteger(16, 34), -1, facadeColor(pal, r), r)
+		x += w
+	end
+	-- neighbours on our side
+	x = -180
+	while x < pb[1] - 2 do
+		local w = math.min(r:NextInteger(10, 16), pb[1] - 2 - x)
+		if w >= 6 then
+			S.building(street, x, x + w - 0.5, 0, 30, r:NextInteger(16, 30), 1, facadeColor(pal, r), r)
+		end
+		x += math.max(w, 6)
+	end
+	x = pb[3] + 2
+	while x < 180 do
+		local w = r:NextInteger(10, 16)
+		S.building(street, x, x + w - 0.5, 0, 30, r:NextInteger(16, 30), 1, facadeColor(pal, r), r)
+		x += w
+	end
+	-- back fence and trees
+	for fx = pb[1], pb[3] - 2, 2 do
+		Kit.box(street, 0.3, 5, 0.3, fx, 2.1, 52, P.bamboo, M.wood)
+	end
+	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 4.2, 52, P.bamboo, M.wood, { collide = false })
+	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 1.5, 52, P.bamboo, M.wood, { collide = false })
+	for _, tx in ipairs({ -50, -30, -5, 20, 40 }) do
+		S.planterTree(street, tx, 58, (tx % 20 == 0) and P.sakura or P.leaf)
+	end
+	-- sidewalk lamps, poles, trees
+	for lx = -170, 170, 30 do
+		if math.abs(lx) > 8 then
+			S.lamp(street, lx, -13, -1)
+		end
+	end
+	local prev = nil
+	for px = -180, 180, 40 do
+		S.pole(street, px, -34.5)
+		local top = Vector3.new(px, 14.5, -34.5)
+		if prev then
+			S.wire(street, prev, top, 1.2)
+			S.wire(street, prev + Vector3.new(0, -1.3, 0), top + Vector3.new(0, -1.3, 0), 1.2)
+		end
+		prev = top
+	end
+	for _, tx in ipairs({ -150, -110, -80, 70, 100, 140 }) do
+		S.planterTree(street, tx, -10, (tx % 20 == 0) and P.sakura or P.leaf_light)
+	end
+	for _, tx in ipairs({ -130, -60, 10, 80, 150 }) do
+		S.planterTree(street, tx, -33, P.sakura)
+	end
+	-- a few street vending machines
+	for _, vx in ipairs({ -60, 52, -100 }) do
+		local vm = Registry.build("vending_machine")
+		Registry.place(vm, vx, -0.4, -1.4, 180)
+		vm.Parent = street
+		S.bins(street, vx + (vx < 0 and -2.6 or 2.6), -1.3)
+	end
+	S.viaduct(street, -95, 22, -450, 450)
+	if city.snow then
+		local snow = Kit.box(street, 300, 1, 200, 0, 60, 0, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
+		snow.CanQuery = false
+		Kit.particles(snow, "snow", { rate = 60 })
+	end
+	for _, d in ipairs(street:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.CollisionGroup = "Shell"
+			d.CanTouch = false
+		end
+	end
+	return { sky = pal.sky }
+end
+
+
+return Scene
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000050"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Remote definitions shared by server and client.
 -- The server creates the instances; the client waits for them.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -6465,7 +7658,7 @@ function Net.func(name)
 end
 
 return Net
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000056"><Properties><string name="Name">Util</string></Properties><Item class="ModuleScript" referent="RBX000050"><Properties><string name="Name">Color</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000057"><Properties><string name="Name">Util</string></Properties><Item class="ModuleScript" referent="RBX000051"><Properties><string name="Name">Color</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Color = {}
 
 local cache = {}
@@ -6504,7 +7697,7 @@ function Color.lighten(c, amount)
 end
 
 return Color
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000051"><Properties><string name="Name">Format</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000052"><Properties><string name="Name">Format</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Format = {}
 
 local function group(n, sep)
@@ -6574,7 +7767,7 @@ function Format.duration(seconds)
 end
 
 return Format
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000052"><Properties><string name="Name">RateLimit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000053"><Properties><string name="Name">RateLimit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Token bucket rate limiter keyed by any value (player, player..remote, ...).
 local RateLimit = {}
 RateLimit.__index = RateLimit
@@ -6604,7 +7797,7 @@ function RateLimit:clear(key)
 end
 
 return RateLimit
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000053"><Properties><string name="Name">Signal</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000054"><Properties><string name="Name">Signal</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Minimal signal implementation (connect / once / fire / wait).
 local Signal = {}
 Signal.__index = Signal
@@ -6658,7 +7851,7 @@ function Signal:DisconnectAll()
 end
 
 return Signal
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000054"><Properties><string name="Name">TableUtil</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000055"><Properties><string name="Name">TableUtil</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local TableUtil = {}
 
 function TableUtil.deepCopy(value)
@@ -6755,7 +7948,7 @@ function TableUtil.weightedPick(list, weightFn, rng)
 end
 
 return TableUtil
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000055"><Properties><string name="Name">Uid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000056"><Properties><string name="Name">Uid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Short unique ids for placed items, boxes, entities.
 local Uid = {}
 
@@ -6774,14 +7967,14 @@ function Uid.new(prefix)
 end
 
 return Uid
-]]></ProtectedString></Properties></Item></Item></Item><Item class="Folder" referent="RBX000058"><Properties><string name="Name">AssetOverrides</string></Properties></Item></Item><Item class="ServerScriptService" referent="RBX000089"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX000088"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX000060"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item><Item class="Folder" referent="RBX000059"><Properties><string name="Name">AssetOverrides</string></Properties></Item></Item><Item class="ServerScriptService" referent="RBX000090"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX000089"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX000061"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of server services (avoids circular requires).
 local Core = {
 	S = {},
 	Started = false,
 }
 return Core
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000061"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000062"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Server entry point: loads every service, then calls Init() and Start() in order.
 local Core = require(script.Parent.Core)
 local Services = script.Parent.Services
@@ -6829,7 +8022,7 @@ for _, name in ipairs(ORDER) do
 end
 
 Core.Started = true
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000087"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX000062"><Properties><string name="Name">Appliance</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000088"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX000063"><Properties><string name="Name">Appliance</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Rice cookers, broth pots, sink, dishwasher, fridges and the clean/dirty dish pool.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Ingredients = require(Shared.Config.Ingredients)
@@ -7180,7 +8373,7 @@ function Appliance.Start()
 end
 
 return Appliance
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000063"><Properties><string name="Name">Cooking</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000064"><Properties><string name="Name">Cooking</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Stations: ingredients go on the board, each click runs the next step (cut, combine, roll,
 -- boil, pour, top, fry...), then the dish waits on the plate. Also the order tickets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -7632,7 +8825,7 @@ function Cooking.Init()
 end
 
 return Cooking
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000064"><Properties><string name="Name">Customers</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000065"><Properties><string name="Name">Customers</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Customers: arrive from the street, take a seat, order, wait (patience), eat, pay, review, leave.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -8312,7 +9505,7 @@ function Service.Start()
 end
 
 return Service
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000065"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000066"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Player profiles: loading, session locking, autosave, migrations and replication to clients.
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
@@ -8664,7 +9857,7 @@ end
 
 local _ = { RunService, HttpService }
 return Data
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000066"><Properties><string name="Name">Day</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000067"><Properties><string name="Name">Day</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Day cycle: prep -> open (11:00-23:00, 1 game hour = 1 minute) -> closing -> report -> prep.
 local Lighting = game:GetService("Lighting")
 
@@ -8868,7 +10061,7 @@ function Day.Start()
 end
 
 return Day
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000067"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000068"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Developer tools: available in Studio or to the experience creator.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -8973,7 +10166,7 @@ function Dev.Start()
 end
 
 return Dev
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000068"><Properties><string name="Name">Economy</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000069"><Properties><string name="Name">Economy</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Yen and sakura tokens, income multipliers, boosts and the per-day ledger.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Franchise = require(Shared.Config.Franchise)
@@ -9107,7 +10300,7 @@ function Economy.Init()
 end
 
 return Economy
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000069"><Properties><string name="Name">Entities</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000070"><Properties><string name="Name">Entities</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Registry of interactable things in the world (placed items, boxes, customers, fixed props).
 local CollectionService = game:GetService("CollectionService")
 
@@ -9164,7 +10357,7 @@ function Entities.position(e)
 end
 
 return Entities
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000070"><Properties><string name="Name">Franchise</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000071"><Properties><string name="Name">Franchise</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Franchise (prestige): open a restaurant in the next city with permanent bonuses.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Franchise = require(Shared.Config.Franchise)
@@ -9253,7 +10446,7 @@ function Service.Init()
 end
 
 return Service
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000071"><Properties><string name="Name">Hands</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000072"><Properties><string name="Name">Hands</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- What every actor (player or staff NPC) is carrying, with visuals welded in front of the body.
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -9507,7 +10700,7 @@ function Hands.Start()
 end
 
 return Hands
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000072"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000073"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Receives clicks/taps from players, checks distance and permissions, dispatches to services.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -9622,7 +10815,7 @@ function Interaction.Init()
 end
 
 return Interaction
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000073"><Properties><string name="Name">Leaderboard</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000074"><Properties><string name="Name">Leaderboard</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Global leaderboards (dishes served, yen earned) with a small cache.
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
@@ -9707,7 +10900,7 @@ function Leaderboard.Start()
 end
 
 return Leaderboard
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000074"><Properties><string name="Name">Meta</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000075"><Properties><string name="Name">Meta</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login streak, offline earnings and tutorial progress.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Quests = require(Shared.Config.Quests)
@@ -9982,7 +11175,7 @@ function Meta.Start()
 end
 
 return Meta
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000075"><Properties><string name="Name">Monetization</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000076"><Properties><string name="Name">Monetization</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Game passes and developer products (IDs in Shared.Config.Monetization; 0 = disabled).
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -10157,7 +11350,7 @@ function Monetization.Start()
 end
 
 return Monetization
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000076"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000077"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Server networking helpers: rate-limited handlers and broadcast helpers.
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -10239,7 +11432,7 @@ end
 
 local _ = Core
 return Net
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000077"><Properties><string name="Name">Npc</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000078"><Properties><string name="Name">Npc</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- NPC characters (customers and staff): creation, pooling, animations, walking with pathfinding,
 -- sitting and simple emotes.
 local Players = game:GetService("Players")
@@ -10566,7 +11759,7 @@ function Npc.Start()
 end
 
 return Npc
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000078"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000079"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Placed objects: spawning models from the owner's data, building remotes, inventory, painting,
 -- ambience. Functional services subscribe to ItemAdded / ItemRemoved / ItemMoved.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -11046,7 +12239,7 @@ function Placement.Start()
 end
 
 return Placement
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000079"><Properties><string name="Name">Progression</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000080"><Properties><string name="Name">Progression</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Restaurant level, licenses, upgrades, ads, expansions, menu, mastery, rating and popularity.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -11410,7 +12603,7 @@ function Progression.Start()
 end
 
 return Progression
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000080"><Properties><string name="Name">Seating</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000081"><Properties><string name="Name">Seating</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Works out which seats are usable (stool in front of a counter, chair next to a table,
 -- booths), where the dish goes, and keeps reservations / dirty dishes per seat.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -11657,7 +12850,7 @@ function Seating.Init()
 end
 
 return Seating
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000081"><Properties><string name="Name">SelfTest</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000082"><Properties><string name="Name">SelfTest</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- End-to-end self test of the core loop, started from the dev panel. It drives the real services
 -- with an invisible worker: restock, rice, cook a kappa maki, serve a customer, get paid, wash.
 -- Results go to the Output window and to a toast.
@@ -11877,7 +13070,7 @@ function SelfTest.run(player)
 end
 
 return SelfTest
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000082"><Properties><string name="Name">Session</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000083"><Properties><string name="Name">Session</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Personal worlds: public servers act as an entrance that teleports every player to their
 -- own reserved server; friends can join through invites. In Studio the server is a world directly.
 local Players = game:GetService("Players")
@@ -12223,7 +13416,7 @@ function Session.Start()
 end
 
 return Session
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000083"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000084"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Staff: hiring, training, salaries and the AI that automates the restaurant.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -12777,7 +13970,7 @@ function Staff.Start()
 end
 
 return Staff
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000084"><Properties><string name="Name">Supply</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000085"><Properties><string name="Name">Supply</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier orders, the delivery truck, boxes in the storage room and shelf slots.
 local TweenService = game:GetService("TweenService")
 
@@ -13413,7 +14606,7 @@ end
 
 Supply.updateBoxLabel = updateBoxLabel
 return Supply
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000085"><Properties><string name="Name">Tasks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000086"><Properties><string name="Name">Tasks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Task board helpers for staff: finds work, claims targets so two workers never do the same job.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Recipes = require(Shared.Config.Recipes)
@@ -13606,7 +14799,7 @@ function Tasks.findRefill(kinds)
 end
 
 return Tasks
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000086"><Properties><string name="Name">World</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000087"><Properties><string name="Name">World</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Builds the street and the restaurant shell from the unlocked zones; exposes the geometry
 -- (zones, walls, stairs, openings) used by placement, seating and NPC services.
 local CollectionService = game:GetService("CollectionService")
@@ -13622,6 +14815,7 @@ local Items = require(Shared.Config.Items)
 local Geometry = require(Shared.Logic.Geometry)
 local Footprint = require(Shared.Logic.Footprint)
 local Registry = require(Shared.Models.Registry)
+local Scene = require(Shared.Models.Scene)
 local Kit = require(Shared.Models.Kit)
 local P = require(Shared.Models.Palette)
 local Color = require(Shared.Util.Color)
@@ -13694,333 +14888,23 @@ function World.ctx(placed)
 	return Geometry.ctx({ zones = World.zones, walls = World.walls, stairs = World.stairs, fixed = World.fixed }, Items.byId, placed, GameConfig)
 end
 
-local function style(id, kind)
-	local s = Surfaces.byId[id]
-	if not s or s.kind ~= kind then
-		s = Surfaces.byId[kind == "floor" and Surfaces.DefaultFloor or Surfaces.DefaultWall]
-	end
-	return { color = Color.hex(s.color), material = P.material(s.material), lattice = s.lattice, stripes = s.stripes }
-end
-
 function World.surfaceOf(data, zone, kind)
-	local s = data.surfaces[zone.id]
-	local id = s and s[kind]
-	if not id then
-		id = kind == "floor" and (zone.floorStyle or Surfaces.DefaultFloor) or (zone.wallStyle or Surfaces.DefaultWall)
-	end
-	return id
+	return Scene.surfaceOf(data, zone, kind)
 end
 
-local function holesFor(floor)
-	local holes = {}
-	for _, s in ipairs(World.stairs) do
-		if s.floor == floor - 1 then
-			table.insert(holes, s.rect)
-		end
-	end
-	return holes
-end
-
-local function subtractAll(rect, holes)
-	local rects = { rect }
-	for _, h in ipairs(holes) do
-		local next = {}
-		for _, r in ipairs(rects) do
-			for _, piece in ipairs(Footprint.subtractRect(r, h)) do
-				table.insert(next, piece)
-			end
-		end
-		rects = next
-	end
-	return rects
-end
-
-local function indoorAt(x, z, floor)
-	local zone = World.zoneAt(x, z, floor)
-	return zone and not zone.outdoor and zone or nil
+local function geo()
+	return { zones = World.zones, openings = World.openings, stairs = World.stairs, walls = World.walls, fixed = World.fixed }
 end
 
 local function buildShell(data)
-	shell:ClearAllChildren()
-	local B = Registry.Building
-	local floors = {}
-	for _, z in ipairs(World.zones) do
-		floors[z.floor] = true
-	end
-	local topFloor = 0
-	for f in pairs(floors) do
-		topFloor = math.max(topFloor, f)
-	end
-	local deluxe = data.zones.facade_deluxe
-	local exterior = { color = deluxe and P.charcoal or P.cream, material = deluxe and P.M.wood or P.M.plaster }
-
-	for _, zone in ipairs(World.zones) do
-		local fy = World.floorY(zone.floor)
-		local attrs = { Zone = zone.id, FloorIndex = zone.floor, Area = zone.area }
-		local floorStyle
-		if zone.outdoor then
-			if zone.area == "garden" then
-				floorStyle = { color = P.moss, material = P.M.leafy }
-			else
-				floorStyle = { color = P.wood, material = P.M.planks }
-			end
-		else
-			floorStyle = style(World.surfaceOf(data, zone, "floor"), "floor")
-		end
-		for _, r in ipairs(subtractAll(zone.rect, holesFor(zone.floor))) do
-			B.floorSkin(shell, r, fy, floorStyle, attrs)
-			if zone.floor == 0 then
-				B.slab(shell, r, zone.outdoor and -0.7 or -1.2, zone.outdoor and 0.5 or 1.0, P.stone_dark, P.M.concrete, "Foundation")
-			end
-		end
-		if not zone.outdoor then
-			-- ceiling / roof slab with holes where stairs go up
-			local holes = {}
-			for _, s in ipairs(World.stairs) do
-				if s.floor == zone.floor then
-					table.insert(holes, s.rect)
-				end
-			end
-			for _, r in ipairs(subtractAll(zone.rect, holes)) do
-				local c = B.slab(shell, r, fy + GameConfig.WallHeight, 1, P.wood_dark, P.M.wood, "Ceiling")
-				B.tag(c, "Ceiling", { FloorIndex = zone.floor })
-				B.tag(c, "Roof")
-			end
-			-- exposed beams and soft ceiling lights
-			local r = zone.rect
-			for x = r[1] + 3, r[3] - 2, 6 do
-				local beam = Kit.box(shell, 0.6, 0.7, r[4] - r[2], x, fy + GameConfig.WallHeight - 0.35, (r[2] + r[4]) / 2, P.wood_black, P.M.wood, { collide = false })
-				B.tag(beam, "Roof")
-			end
-			for x = r[1] + 5, r[3] - 3, 10 do
-				for z = r[2] + 5, r[4] - 3, 10 do
-					local fixture = Kit.box(shell, 1.2, 0.2, 1.2, x, fy + GameConfig.WallHeight - 0.8, z, P.paper_warm, P.M.neon, { collide = false, shadow = false })
-					fixture.CanQuery = false
-					Kit.light(fixture, "Point", P.lamp, 22, 0.55, { night = false })
-					B.tag(fixture, "Roof")
-				end
-			end
-			if zone.area == "kitchen" or zone.area == "storage" then
-				local vol = Kit.box(shell, r[3] - r[1], 6, r[4] - r[2], (r[1] + r[3]) / 2, fy + 3, (r[2] + r[4]) / 2, P.white, P.M.smooth, { collide = false, transparency = 1, shadow = false })
-				vol.CanQuery = false
-				vol.Name = "StaffOnly"
-				local mod = Instance.new("PathfindingModifier")
-				mod.Label = "StaffOnly"
-				mod.Parent = vol
-			end
-		end
-	end
-
-	for floor in pairs(floors) do
-		local fy = World.floorY(floor)
-		local fw = World.walls[floor] or { walls = {}, rails = {} }
-		for _, seg in ipairs(fw.walls) do
-			local mid = (seg.a + seg.b) / 2
-			local sideA, sideB
-			if seg.axis == "z" then
-				sideA, sideB = indoorAt(mid, seg.line - 0.6, floor), indoorAt(mid, seg.line + 0.6, floor)
-			else
-				sideA, sideB = indoorAt(seg.line - 0.6, mid, floor), indoorAt(seg.line + 0.6, mid, floor)
-			end
-			local zone = sideA or sideB
-			local wallStyle = style(zone and World.surfaceOf(data, zone, "wall") or Surfaces.DefaultWall, "wall")
-			local outsideSign = nil
-			if not sideA then
-				outsideSign = -1
-			elseif not sideB then
-				outsideSign = 1
-			end
-			B.wall(shell, seg, fy, GameConfig.WallHeight, 0.8, wallStyle, outsideSign, exterior)
-			if outsideSign then
-				if seg.axis == "z" and outsideSign == -1 then
-					B.eave(shell, seg, fy + GameConfig.WallHeight - 1.2, -1, 3)
-					-- lattice windows facing the street (not over doors)
-					local len = seg.b - seg.a
-					local n = math.floor(len / 9)
-					for i = 0, n - 1 do
-						local along = seg.a + len / n * (i + 0.5)
-						if math.abs(along) > 6 then
-							B.window(shell, along, fy + 5.2, seg, -1, 4, 3.4)
-						end
-					end
-				end
-				local above = false
-				for _, z in ipairs(World.zones) do
-					if z.floor == floor + 1 and Footprint.pointInRect(seg.axis == "z" and mid or seg.line, seg.axis == "z" and seg.line or mid, z.rect, 0.5) then
-						above = true
-					end
-				end
-				if not above then
-					B.parapet(shell, seg, fy + GameConfig.WallHeight + 1)
-				end
-			end
-		end
-		for _, seg in ipairs(fw.rails) do
-			B.railing(shell, seg, fy, floor == 0 and P.wood_dark or P.lacquer)
-		end
-	end
-	for _, o in ipairs(World.openings) do
-		local fy = World.floorY(o.floor)
-		B.doorFrame(shell, o, fy, o.kind == "loading" and 10 or 9)
-		if o.kind == "entrance" then
-			B.entranceNoren(shell, o, fy)
-		end
-	end
-	for _, s in ipairs(World.stairs) do
-		B.stairs(shell, s.rect, World.floorY(s.floor), GameConfig.FloorHeight)
-	end
-
-	-- Facade: big sign, entrance lanterns, open plate
-	local signText = "らーめん ・ 寿司"
-	local face = B.sign(shell, 0, 11.6, -0.9, 14, signText, deluxe)
-	B.tag(face, "Roof")
-	for _, x in ipairs({ -4.4, 4.4 }) do
-		local l = Kit.blob(shell, 1.3, 1.8, 1.3, x, 8.2, -1.6, P.lacquer, P.M.smooth, { collide = false })
-		Kit.cyl(shell, 0.8, 0.2, x, 9.2, -1.6, P.black, P.M.smooth, { collide = false })
-		Kit.cyl(shell, 0.8, 0.2, x, 7.2, -1.6, P.black, P.M.smooth, { collide = false })
-		Kit.light(l, "Point", P.lamp_warm, 16, 1.4)
-		l:SetAttribute("Animate", "sway")
-		l.CanQuery = false
-	end
-	local label = B.openSign(shell, 4.6, 5.2, -0.55)
-	World.openLabel = label
-	if data.zones.sign_rooftop then
-		local topY = World.floorY(topFloor) + GameConfig.WallHeight + 2
-		local board = Kit.box(shell, 20, 5, 0.6, 0, topY + 3.5, 2, P.black, P.M.smooth, { collide = false })
-		Kit.text(board, Enum.NormalId.Front, "ラーメン 寿司", { color = "#FF3B4A", glow = true })
-		Kit.light(board, "Surface", P.neon_red, 30, 3, { face = Enum.NormalId.Front })
-		for _, x in ipairs({ -8, 8 }) do
-			Kit.box(shell, 0.4, 3.5, 0.4, x, topY + 1, 2.4, P.steel_dark, P.M.metal, { collide = false })
-		end
-		B.tag(board, "Roof")
-	end
-	if deluxe then
-		for _, x in ipairs({ -18.2, 18.2 }) do
-			local post = Kit.box(shell, 0.4, 13, 0.4, x, 6.5, -0.6, P.gold, P.M.foil, { collide = false })
-			B.tag(post, "Roof")
-		end
-		local glow = Kit.box(shell, 36.4, 0.2, 0.2, 0, 13.6, -0.7, P.neon_yellow, P.M.neon, { collide = false })
-		B.tag(glow, "Roof")
-	end
-	-- Fixed interactables: supplier tablet and menu board
-	local S = Registry.Street
-	local tabletCfg = Expansions.Supplier
-	local tablet = S.supplierTablet(shell, tabletCfg.x, tabletCfg.y, tabletCfg.z, 0)
-	tablet:SetAttribute("Uid", "fixed_supplier")
-	tablet:SetAttribute("Kind", "supplier")
-	CollectionService:AddTag(tablet, "Interactable")
-	local mb = Expansions.MenuBoard
-	local board = S.menuBoard(shell, mb.x, mb.z)
-	board:SetAttribute("Uid", "fixed_menu")
-	board:SetAttribute("Kind", "menuboard")
-	CollectionService:AddTag(board, "Interactable")
-
-	for _, d in ipairs(shell:GetDescendants()) do
-		if d:IsA("BasePart") then
-			d.CollisionGroup = "Shell"
-		end
-	end
+	local result = Scene.shell(shell, geo(), data)
+	World.openLabel = result.openLabel
 end
 
 local function buildStreet(cityId)
-	street:ClearAllChildren()
-	local city = Franchise.byId[cityId] or Franchise.byId.tokyo
-	local pal = city.palette
-	local S = Registry.Street
-	local r = S.rng(42)
-	local M = P.M
-	-- ground
-	Kit.box(street, 900, 1, 600, 0, -1.9, 40, city.snow and P.white or Color.hex("#4A5A3A"), city.snow and M.snow or M.grass)
-	-- road
-	Kit.box(street, 900, 0.6, 16, 0, -1.1, -22, Color.hex(pal.road), M.asphalt)
-	for x = -440, 440, 12 do
-		Kit.box(street, 5, 0.05, 0.4, x, -0.78, -22, P.road_line, M.smooth, { collide = false, shadow = false })
-	end
-	-- sidewalks
-	Kit.box(street, 900, 1, 14, 0, -0.9, -7, P.sidewalk, M.pavement)
-	Kit.box(street, 900, 0.5, 0.5, 0, -0.65, -14, P.stone_light, M.concrete)
-	Kit.box(street, 900, 1, 6, 0, -0.9, -33, P.sidewalk, M.pavement)
-	Kit.box(street, 900, 0.5, 0.5, 0, -0.65, -30, P.stone_light, M.concrete)
-	-- plot lot and loading bay
-	local pb = Expansions.PlotBounds
-	Kit.box(street, pb[3] - pb[1], 1, 52 - 0, (pb[1] + pb[3]) / 2, -0.9, 26, P.stone_dark, M.pavement)
-	Kit.box(street, 12, 0.1, 12, 24, -0.38, 6, P.concrete, M.concrete, { collide = false })
-	for _, x in ipairs({ 18.3, 29.7 }) do
-		Kit.box(street, 0.25, 0.05, 12, x, -0.33, 6, P.neon_yellow, M.smooth, { collide = false, shadow = false })
-	end
-	-- opposite row
-	local x = -180
-	while x < 180 do
-		local w = r:NextInteger(10, 18)
-		S.building(street, x, x + w - 0.5, -36, 18, r:NextInteger(16, 34), -1, Color.hex(pal.building):Lerp(P.cream, r:NextNumber() * 0.5), r)
-		x += w
-	end
-	-- neighbours on our side
-	x = -180
-	while x < pb[1] - 2 do
-		local w = math.min(r:NextInteger(10, 16), pb[1] - 2 - x)
-		if w >= 6 then
-			S.building(street, x, x + w - 0.5, 0, 30, r:NextInteger(16, 30), 1, Color.hex(pal.building):Lerp(P.cream, r:NextNumber() * 0.5), r)
-		end
-		x += math.max(w, 6)
-	end
-	x = pb[3] + 2
-	while x < 180 do
-		local w = r:NextInteger(10, 16)
-		S.building(street, x, x + w - 0.5, 0, 30, r:NextInteger(16, 30), 1, Color.hex(pal.building):Lerp(P.cream, r:NextNumber() * 0.5), r)
-		x += w
-	end
-	-- back fence and trees
-	for fx = pb[1], pb[3] - 2, 2 do
-		Kit.box(street, 0.3, 5, 0.3, fx, 2.1, 52, P.bamboo, M.wood)
-	end
-	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 4.2, 52, P.bamboo, M.wood, { collide = false })
-	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 1.5, 52, P.bamboo, M.wood, { collide = false })
-	for _, tx in ipairs({ -50, -30, -5, 20, 40 }) do
-		S.planterTree(street, tx, 58, (tx % 20 == 0) and P.sakura or P.leaf)
-	end
-	-- sidewalk lamps, poles, trees
-	for lx = -170, 170, 30 do
-		if math.abs(lx) > 8 then
-			S.lamp(street, lx, -13, -1)
-		end
-	end
-	local prev = nil
-	for px = -180, 180, 40 do
-		S.pole(street, px, -34.5)
-		local top = Vector3.new(px, 14.5, -34.5)
-		if prev then
-			S.wire(street, prev, top, 1.2)
-			S.wire(street, prev + Vector3.new(0, -1.3, 0), top + Vector3.new(0, -1.3, 0), 1.2)
-		end
-		prev = top
-	end
-	for _, tx in ipairs({ -150, -110, -80, 70, 100, 140 }) do
-		S.planterTree(street, tx, -10, (tx % 20 == 0) and P.sakura or P.leaf_light)
-	end
-	for _, tx in ipairs({ -130, -60, 10, 80, 150 }) do
-		S.planterTree(street, tx, -33, P.sakura)
-	end
-	-- a few street vending machines
-	for _, vx in ipairs({ -60, 52, -100 }) do
-		local vm = Registry.build("vending_machine")
-		Registry.place(vm, vx, -0.4, -1.4, 180)
-		vm.Parent = street
-	end
-	S.viaduct(street, -95, 22, -450, 450)
-	if city.snow then
-		local snow = Kit.box(street, 300, 1, 200, 0, 60, 0, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
-		snow.CanQuery = false
-		Kit.particles(snow, "snow", { rate = 60 })
-	end
-	for _, d in ipairs(street:GetDescendants()) do
-		if d:IsA("BasePart") then
-			d.CollisionGroup = "Shell"
-			d.CanTouch = false
-		end
-	end
+	local result = Scene.street(street, cityId)
 	Lighting:SetAttribute("City", cityId)
-	Lighting:SetAttribute("Sky", pal.sky)
+	Lighting:SetAttribute("Sky", result.sky)
 	streetBuilt = true
 end
 
@@ -14105,7 +14989,7 @@ function World.Start()
 end
 
 return World
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000126"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000125"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000124"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000101"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000090"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000127"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000126"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000125"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000102"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000091"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client-only animations: swaying lanterns and noren, maneki-neko paws, koi, shishi-odoshi,
 -- streamers, and the evening train on the viaduct.
 local RunService = game:GetService("RunService")
@@ -14199,7 +15083,7 @@ function Ambient.Start()
 end
 
 return Ambient
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000091"><Properties><string name="Name">Audio</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000092"><Properties><string name="Name">Audio</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Sound effects (2D or positional) and background music.
 local SoundService = game:GetService("SoundService")
 
@@ -14279,7 +15163,7 @@ function Audio.Start()
 end
 
 return Audio
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000092"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000093"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build mode: ghost preview on a 1/5/10 stud grid, rotation, local validation (same rules as the
 -- server), placing, moving, storing and selling objects.
 local Players = game:GetService("Players")
@@ -14836,7 +15720,7 @@ function Build.Start()
 end
 
 return Build
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000093"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build-mode camera (top view) and hiding roofs/ceilings while building.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -14957,7 +15841,7 @@ function Camera.Start()
 end
 
 return Camera
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Local copy of the player's profile ("me"), the restaurant owner's data ("world"),
 -- session info, day state and tickets.
 local Players = game:GetService("Players")
@@ -15082,7 +15966,7 @@ function Data.Start()
 end
 
 return Data
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Effects</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000096"><Properties><string name="Name">Effects</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Visual feedback for server events: money popups, review stars, level up confetti,
 -- dish ready sparkles, construction dust, sounds.
 local Players = game:GetService("Players")
@@ -15202,7 +16086,7 @@ function Effects.Init()
 end
 
 return Effects
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000096"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000097"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Hover highlight + action label on nearby interactables; click / tap / E sends Interact.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -15550,7 +16434,7 @@ function Interaction.Start()
 end
 
 return Interaction
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000097"><Properties><string name="Name">Lighting</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000098"><Properties><string name="Name">Lighting</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Time-of-day look (sky colors, atmosphere, bloom, color grading) and night lights.
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
@@ -15654,7 +16538,7 @@ function LightingC.Start()
 end
 
 return LightingC
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000098"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000099"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Guided first day: step panel, arrow beam to the target and a floating marker.
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
@@ -15887,7 +16771,7 @@ function Tutorial.Start()
 end
 
 return Tutorial
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000099"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000100"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Screen manager, toasts and shared UI helpers.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -16087,7 +16971,7 @@ function UI.Start()
 end
 
 return UI
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000100"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Localized billboards over customers (order + patience), stations (board / next step),
 -- rice cookers & pots, shelf slots, dirty dishes and staff name tags.
 local Players = game:GetService("Players")
@@ -16371,13 +17255,13 @@ function WorldUI.Start()
 end
 
 return WorldUI
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000102"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000103"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of client controllers and UI screens.
 return {
 	C = {},
 	Screens = {},
 }
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000103"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000104"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client entry point.
 if not game:IsLoaded() then
 	game.Loaded:Wait()
@@ -16423,7 +17307,7 @@ for _, name in ipairs(ORDER) do
 		end)
 	end
 end
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000123"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000124"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Helper to build standard modal screens: Base.make(name, titleKey, size, render)
 -- render(content, screen) rebuilds the content each refresh.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -16468,7 +17352,7 @@ function Base.make(name, titleKey, size, render)
 end
 
 return Base
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Emoji icons for catalog cards (no image assets needed).
 local Icons = {
 	cat = {
@@ -16506,7 +17390,7 @@ function Icons.forItem(item)
 end
 
 return Icons
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Tiny declarative UI toolkit + the visual theme (washi paper, dark wood, lacquer red, gold).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Color = require(Shared.Util.Color)
@@ -16644,6 +17528,7 @@ function Kit.button(text, opts)
 	}, {
 		Kit.corner(opts.radius or 10),
 		Kit.stroke(style == "plain" and T.woodLight or Color3.new(0, 0, 0), 2, style == "plain" and 0 or 0.7),
+		Kit.sheen(),
 	})
 	if opts.disabled then
 		b.BackgroundColor3 = T.locked
@@ -16667,6 +17552,16 @@ function Kit.button(text, opts)
 	return b
 end
 
+-- Soft top-lit gradient so flat colours read like lacquer
+function Kit.sheen(amount)
+	local a = amount or 0.82
+	return Kit.new("UIGradient", {
+		Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(a, a, a)),
+		Rotation = 90,
+	})
+end
+
+-- Washi panel framed like a lacquer box (dark wood edge, soft paper gradient)
 function Kit.panel(props, children)
 	local base = { BackgroundColor3 = T.paper, Size = UDim2.fromScale(1, 1) }
 	for k, v in pairs(props or {}) do
@@ -16675,7 +17570,22 @@ function Kit.panel(props, children)
 	local f = Kit.new("Frame", base, children)
 	Kit.corner(12).Parent = f
 	Kit.stroke(T.wood, 3).Parent = f
+	Kit.new("UIGradient", { Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(0.94, 0.92, 0.88)), Rotation = 90, Parent = f })
 	return f
+end
+
+-- Thin inner gold line (only for frames without UIPadding, which would shift it)
+function Kit.goldLine(parent, inset)
+	local i = inset or 5
+	return Kit.new("Frame", {
+		Name = "GoldLine",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(i, i),
+		Size = UDim2.new(1, -2 * i, 1, -2 * i),
+		ZIndex = 0,
+		Active = false,
+		Parent = parent,
+	}, { Kit.corner(9), Kit.stroke(T.gold, 1, 0.35) })
 end
 
 function Kit.card(props, children)
@@ -16740,8 +17650,15 @@ function Kit.window(parent, size, titleText, onClose)
 		Parent = parent,
 	})
 	Kit.new("UISizeConstraint", { MaxSize = Vector2.new(980, 720), MinSize = Vector2.new(320, 260), Parent = frame })
-	local header = Kit.new("Frame", { BackgroundColor3 = T.wood, Size = UDim2.new(1, 0, 0, 48), Parent = frame }, { Kit.corner(10) })
-	local title = Kit.title(titleText or "", { Parent = header, Size = UDim2.new(1, -110, 1, 0), Position = UDim2.fromOffset(16, 0), TextColor3 = T.paper, TextSize = 24, TextYAlignment = Enum.TextYAlignment.Center })
+	Kit.goldLine(frame, 5)
+	local header = Kit.new("Frame", { BackgroundColor3 = T.wood, Size = UDim2.new(1, 0, 0, 48), Parent = frame }, { Kit.corner(10), Kit.sheen(0.7) })
+	-- lacquer red and gold trim under the header, and a little red seal before the title
+	Kit.new("Frame", { BackgroundColor3 = T.red, BorderSizePixel = 0, Position = UDim2.new(0, 6, 0, 44), Size = UDim2.new(1, -12, 0, 4), Parent = header })
+	Kit.new("Frame", { BackgroundColor3 = T.gold, BorderSizePixel = 0, Position = UDim2.new(0, 6, 0, 48), Size = UDim2.new(1, -12, 0, 2), Parent = header })
+	local seal = Kit.new("Frame", { BackgroundColor3 = T.red, Size = UDim2.fromOffset(30, 30), Position = UDim2.fromOffset(12, 8), Rotation = -4, Parent = header }, { Kit.corner(6), Kit.stroke(T.gold, 1, 0.2) })
+	Kit.new("TextLabel", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "和", TextScaled = true, TextColor3 = T.paper, FontFace = T.title, AutoLocalize = false, Parent = seal })
+	local title = Kit.title(titleText or "", { Parent = header, Size = UDim2.new(1, -150, 1, 0), Position = UDim2.fromOffset(52, 0), TextColor3 = T.paper, TextSize = 24, TextYAlignment = Enum.TextYAlignment.Center })
+	title.TextStrokeTransparency = 0.7
 	Kit.button("✕", { parent = header, size = UDim2.fromOffset(38, 38), position = UDim2.new(1, -44, 0, 5), style = "primary", onClick = onClose })
 	local content = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 56), Size = UDim2.new(1, -24, 1, -66), Parent = frame, Name = "Content" })
 	return { frame = frame, content = content, title = title }
@@ -16773,6 +17690,8 @@ end
 -- Row with an emoji icon, title, subtitle and a right side area. Returns card, right
 function Kit.row(icon, titleText, subtitle, height)
 	local card = Kit.card({ Size = UDim2.new(1, -8, 0, height or 72) })
+	-- red accent along the left edge of every list row
+	Kit.new("Frame", { BackgroundColor3 = T.red, BorderSizePixel = 0, Position = UDim2.fromOffset(0, 10), Size = UDim2.new(0, 4, 1, -20), Parent = card }, { Kit.corner(2) })
 	Kit.label(icon or "", { Parent = card, Size = UDim2.fromOffset(52, 52), Position = UDim2.fromOffset(10, ((height or 72) - 52) / 2), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
 	Kit.label(titleText or "", { Parent = card, Position = UDim2.fromOffset(70, 8), Size = UDim2.new(1, -250, 0, 24), FontFace = T.bold, TextSize = 19, TextTruncate = Enum.TextTruncate.AtEnd })
 	Kit.label(subtitle or "", { Parent = card, Position = UDim2.fromOffset(70, 32), Size = UDim2.new(1, -250, 0, (height or 72) - 38), TextSize = 15, TextColor3 = T.muted, TextYAlignment = Enum.TextYAlignment.Top })
@@ -16781,7 +17700,7 @@ function Kit.row(icon, titleText, subtitle, height)
 end
 
 return Kit
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000122"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000123"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000108"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build panel: catalog by category, inventory, floor/wall styles, grid & rotation tools,
 -- selection actions (move / rotate / store / sell).
 local Players = game:GetService("Players")
@@ -17063,7 +17982,7 @@ function Screen.close()
 end
 
 return Screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000108"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17111,7 +18030,7 @@ screen = Base.make("DayReport", "ui.report", UDim2.fromScale(0.42, 0.74), functi
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Kit = require(script.Parent.Parent.Kit)
@@ -17133,7 +18052,7 @@ return Base.make("Dev", "ui.dev", UDim2.fromScale(0.5, 0.6), function(content)
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17177,7 +18096,7 @@ return Base.make("Expansions", "ui.expansions", UDim2.fromScale(0.66, 0.76), fun
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login calendar, leaderboards and franchise.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -17339,7 +18258,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Always-visible HUD: wallet, level, clock/day controls, rating, tickets, hands and menu bar.
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
@@ -17576,7 +18495,7 @@ function HUD.open() end
 function HUD.close() end
 
 return HUD
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Invite friends to the personal world and set their permissions.
 local Players = game:GetService("Players")
 local SocialService = game:GetService("SocialService")
@@ -17623,7 +18542,7 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.66), function(con
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17675,7 +18594,7 @@ return Base.make("Licenses", "ui.licenses", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Menu board: enable dishes, set prices (-30%..+30%), recipe book with mastery.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -17768,7 +18687,7 @@ screen = Base.make("Menu", "ui.menu", UDim2.fromScale(0.66, 0.76), function(cont
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17789,7 +18708,7 @@ return Base.make("Offline", "ui.offline", UDim2.fromScale(0.36, 0.4), function(c
 		Core.C.UI.close("Offline")
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17840,7 +18759,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 		end
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17881,7 +18800,7 @@ return Base.make("Shop", "ui.shop", UDim2.fromScale(0.6, 0.72), function(content
 		Kit.label("🛒 " .. t("ui.shop_soon"), { Parent = scroll, Size = UDim2.new(1, 0, 0, 80), TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -17947,7 +18866,7 @@ return Base.make("Staff", "ui.staff", UDim2.fromScale(0.66, 0.78), function(cont
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier tablet: order boxes of ingredients and dish sets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -18053,7 +18972,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -18125,4 +19044,4 @@ return Base.make("Upgrades", "ui.upgrades", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000127"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000128"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000129"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000128"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000129"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000130"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

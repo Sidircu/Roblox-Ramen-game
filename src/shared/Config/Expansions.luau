@@ -62,6 +62,6 @@ return {
 	StreetEnds = { -110, 110 },
 	LoadingBay = { x = 24, z = 5 },
 	Supplier = { x = 17.7, y = 5, z = 17.5 },
-	MenuBoard = { x = -6.5, z = -1.8 },
+	MenuBoard = { x = -8.6, z = -2.6 },
 	PlotBounds = { -60, -14, 52, 52 },
 }

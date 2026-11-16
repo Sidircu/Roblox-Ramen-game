@@ -42,3 +42,15 @@ python3 tools/check_roblox_api.py   # dopo aver scaricato build/API-Dump.json (i
 pip install lupa && python3 tools/run_logic_tests.py
 python3 tools/build_place.py
 ```
+
+## Anteprima dei modelli (senza Studio)
+`tools/preview.py` costruisce i modelli procedurali con un finto ambiente Roblox (lupa) e li disegna
+in un PNG con matplotlib (`pip install lupa matplotlib numpy`). Utile per controllare la grafica:
+```
+python3 tools/preview.py item sushi_station ramen_station out.png --view=24,58,1.6
+python3 tools/preview.py category seating out.png
+python3 tools/preview.py facade out.png            # facciata del ristorante
+python3 tools/preview.py interior out.png --zones=dining,kitchen
+python3 tools/preview.py street out.png --focus=-60,20,-40,0
+```
+Il testo delle insegne e le luci non vengono disegnati: l'aspetto finale va sempre verificato in Studio.

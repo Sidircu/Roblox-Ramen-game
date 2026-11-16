@@ -35,6 +35,9 @@ function Geometry.compute(expansions, unlocked, supplier)
 		table.insert(fixed, { floor = s.floor, rect = { r[1], r[2] - 2.5, r[3], r[2] } })
 		table.insert(fixed, { floor = s.floor + 1, rect = { r[1], r[4], r[3], r[4] + 2.5 } })
 	end
+	-- machiya facade details (lattice, bamboo fence, pines, menu board) in front of the street wall
+	table.insert(fixed, { floor = 0, rect = { -60, -1.6, 50, 0 } })
+	table.insert(fixed, { floor = 0, rect = { -10.2, -3.6, -7, -1.6 } })
 	if supplier then
 		table.insert(fixed, { floor = 0, rect = { supplier.x - 1.2, supplier.z - 1.5, supplier.x + 0.3, supplier.z + 1.5 } })
 	end

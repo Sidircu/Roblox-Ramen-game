@@ -136,6 +136,7 @@ function Kit.button(text, opts)
 	}, {
 		Kit.corner(opts.radius or 10),
 		Kit.stroke(style == "plain" and T.woodLight or Color3.new(0, 0, 0), 2, style == "plain" and 0 or 0.7),
+		Kit.sheen(),
 	})
 	if opts.disabled then
 		b.BackgroundColor3 = T.locked
@@ -159,6 +160,16 @@ function Kit.button(text, opts)
 	return b
 end
 
+-- Soft top-lit gradient so flat colours read like lacquer
+function Kit.sheen(amount)
+	local a = amount or 0.82
+	return Kit.new("UIGradient", {
+		Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(a, a, a)),
+		Rotation = 90,
+	})
+end
+
+-- Washi panel framed like a lacquer box (dark wood edge, soft paper gradient)
 function Kit.panel(props, children)
 	local base = { BackgroundColor3 = T.paper, Size = UDim2.fromScale(1, 1) }
 	for k, v in pairs(props or {}) do
@@ -167,7 +178,22 @@ function Kit.panel(props, children)
 	local f = Kit.new("Frame", base, children)
 	Kit.corner(12).Parent = f
 	Kit.stroke(T.wood, 3).Parent = f
+	Kit.new("UIGradient", { Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(0.94, 0.92, 0.88)), Rotation = 90, Parent = f })
 	return f
+end
+
+-- Thin inner gold line (only for frames without UIPadding, which would shift it)
+function Kit.goldLine(parent, inset)
+	local i = inset or 5
+	return Kit.new("Frame", {
+		Name = "GoldLine",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(i, i),
+		Size = UDim2.new(1, -2 * i, 1, -2 * i),
+		ZIndex = 0,
+		Active = false,
+		Parent = parent,
+	}, { Kit.corner(9), Kit.stroke(T.gold, 1, 0.35) })
 end
 
 function Kit.card(props, children)
@@ -232,8 +258,15 @@ function Kit.window(parent, size, titleText, onClose)
 		Parent = parent,
 	})
 	Kit.new("UISizeConstraint", { MaxSize = Vector2.new(980, 720), MinSize = Vector2.new(320, 260), Parent = frame })
-	local header = Kit.new("Frame", { BackgroundColor3 = T.wood, Size = UDim2.new(1, 0, 0, 48), Parent = frame }, { Kit.corner(10) })
-	local title = Kit.title(titleText or "", { Parent = header, Size = UDim2.new(1, -110, 1, 0), Position = UDim2.fromOffset(16, 0), TextColor3 = T.paper, TextSize = 24, TextYAlignment = Enum.TextYAlignment.Center })
+	Kit.goldLine(frame, 5)
+	local header = Kit.new("Frame", { BackgroundColor3 = T.wood, Size = UDim2.new(1, 0, 0, 48), Parent = frame }, { Kit.corner(10), Kit.sheen(0.7) })
+	-- lacquer red and gold trim under the header, and a little red seal before the title
+	Kit.new("Frame", { BackgroundColor3 = T.red, BorderSizePixel = 0, Position = UDim2.new(0, 6, 0, 44), Size = UDim2.new(1, -12, 0, 4), Parent = header })
+	Kit.new("Frame", { BackgroundColor3 = T.gold, BorderSizePixel = 0, Position = UDim2.new(0, 6, 0, 48), Size = UDim2.new(1, -12, 0, 2), Parent = header })
+	local seal = Kit.new("Frame", { BackgroundColor3 = T.red, Size = UDim2.fromOffset(30, 30), Position = UDim2.fromOffset(12, 8), Rotation = -4, Parent = header }, { Kit.corner(6), Kit.stroke(T.gold, 1, 0.2) })
+	Kit.new("TextLabel", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "和", TextScaled = true, TextColor3 = T.paper, FontFace = T.title, AutoLocalize = false, Parent = seal })
+	local title = Kit.title(titleText or "", { Parent = header, Size = UDim2.new(1, -150, 1, 0), Position = UDim2.fromOffset(52, 0), TextColor3 = T.paper, TextSize = 24, TextYAlignment = Enum.TextYAlignment.Center })
+	title.TextStrokeTransparency = 0.7
 	Kit.button("✕", { parent = header, size = UDim2.fromOffset(38, 38), position = UDim2.new(1, -44, 0, 5), style = "primary", onClick = onClose })
 	local content = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 56), Size = UDim2.new(1, -24, 1, -66), Parent = frame, Name = "Content" })
 	return { frame = frame, content = content, title = title }
@@ -265,6 +298,8 @@ end
 -- Row with an emoji icon, title, subtitle and a right side area. Returns card, right
 function Kit.row(icon, titleText, subtitle, height)
 	local card = Kit.card({ Size = UDim2.new(1, -8, 0, height or 72) })
+	-- red accent along the left edge of every list row
+	Kit.new("Frame", { BackgroundColor3 = T.red, BorderSizePixel = 0, Position = UDim2.fromOffset(0, 10), Size = UDim2.new(0, 4, 1, -20), Parent = card }, { Kit.corner(2) })
 	Kit.label(icon or "", { Parent = card, Size = UDim2.fromOffset(52, 52), Position = UDim2.fromOffset(10, ((height or 72) - 52) / 2), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
 	Kit.label(titleText or "", { Parent = card, Position = UDim2.fromOffset(70, 8), Size = UDim2.new(1, -250, 0, 24), FontFace = T.bold, TextSize = 19, TextTruncate = Enum.TextTruncate.AtEnd })
 	Kit.label(subtitle or "", { Parent = card, Position = UDim2.fromOffset(70, 32), Size = UDim2.new(1, -250, 0, (height or 72) - 38), TextSize = 15, TextColor3 = T.muted, TextYAlignment = Enum.TextYAlignment.Top })

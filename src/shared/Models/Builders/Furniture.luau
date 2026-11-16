@@ -14,6 +14,32 @@ local function point(root, name, x, y, z, yaw)
 	return Kit.attach(root, name, CFrame.new(x, y - h / 2, z) * CFrame.Angles(0, math.rad(yaw or 0), 0))
 end
 
+local function nc()
+	return { collide = false, shadow = false }
+end
+
+-- Condiment set: soy dispenser, shichimi tin, chopstick box and toothpick holder
+local function condiments(m, x, y, z, rotY)
+	local base = CFrame.new(x, y, z) * CFrame.Angles(0, math.rad(rotY or 0), 0)
+	local function at(dx, dz)
+		local p = base * CFrame.new(dx, 0, dz)
+		return p.X, p.Z
+	end
+	local sx, sz = at(-0.45, 0)
+	Kit.cyl(m, 0.24, 0.42, sx, y + 0.21, sz, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.25 })
+	Kit.cyl(m, 0.2, 0.26, sx, y + 0.14, sz, P.wood_black, M.smooth, nc())
+	Kit.cyl(m, 0.26, 0.1, sx, y + 0.47, sz, P.lacquer, M.smooth, nc())
+	local tx, tz = at(-0.12, 0.05)
+	Kit.cyl(m, 0.2, 0.3, tx, y + 0.15, tz, P.vermilion, M.metal, nc())
+	Kit.cyl(m, 0.21, 0.05, tx, y + 0.32, tz, P.gold, M.metal, nc())
+	local bx, bz = at(0.35, 0)
+	Kit.box(m, 0.6, 0.28, 0.3, bx, y + 0.14, bz, P.wood_black, M.wood, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(rotY or 0), 0) })
+	Kit.box(m, 0.56, 0.04, 0.26, bx, y + 0.29, bz, P.lacquer_dark, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(rotY or 0), 0) })
+	local px, pz = at(0.8, 0.02)
+	Kit.cyl(m, 0.16, 0.24, px, y + 0.12, pz, P.bamboo, M.wood, nc())
+	Kit.cyl(m, 0.1, 0.12, px, y + 0.3, pz, P.hinoki, M.wood, nc())
+end
+
 local function stool(m, item, seatColor, seatMat, legColor, swivel)
 	local root = Kit.finish(m, size(item))
 	local h = item.size[2]
@@ -31,8 +57,15 @@ local function stool(m, item, seatColor, seatMat, legColor, swivel)
 			Kit.box(m, r[3], 0.1, r[4], r[1], 0.8, r[2], legColor, M.wood, { collide = false })
 		end
 		Kit.cyl(m, 1.55, 0.28, 0, h - 0.16, 0, P.wood_light, M.wood)
+		Kit.cyl(m, 1.6, 0.06, 0, h - 0.29, 0, P.wood_dark, M.wood, nc())
 		if seatMat == M.fabric then
 			Kit.cyl(m, 1.45, 0.2, 0, h + 0.02, 0, seatColor, M.fabric, { collide = false })
+			Kit.cyl(m, 1.47, 0.04, 0, h - 0.07, 0, P.gold, M.fabric, nc())
+			Kit.ball(m, 0.14, 0, h + 0.13, 0, P.gold, M.fabric, nc())
+		else
+			-- wood grain rings on the bare seat
+			Kit.cyl(m, 1.0, 0.02, 0, h, 0, P.wood, M.wood, nc())
+			Kit.cyl(m, 0.5, 0.025, 0, h + 0.005, 0, P.wood_light, M.wood, nc())
 		end
 	end
 	point(root, "SitPoint", 0, h, 0, 0)
@@ -43,23 +76,51 @@ local function counter(m, item, kind)
 	local w, h, d = item.size[1], item.size[2], item.size[3]
 	-- cabinet (customer side faces -Z)
 	Kit.box(m, w, h - 0.25, d - 0.6, 0, (h - 0.25) / 2, 0.3, P.wood_dark, M.wood)
-	-- vertical slats on the customer side
+	-- vertical slats on the customer side with a dark rail above and below
 	local n = math.max(2, math.floor(w / 0.5))
 	for i = 0, n - 1 do
 		local x = -w / 2 + 0.25 + (w - 0.5) * i / math.max(1, n - 1)
-		Kit.box(m, 0.12, h - 0.75, 0.08, x, (h - 0.25) / 2 + 0.1, -d / 2 + 0.58, P.wood, M.wood, { collide = false })
+		Kit.box(m, 0.12, h - 0.75, 0.08, x, (h - 0.25) / 2 + 0.1, -d / 2 + 0.58, P.wood, M.wood, nc())
 	end
-	-- kick plate and foot rail
-	Kit.box(m, w, 0.35, 0.1, 0, 0.175, -d / 2 + 0.62, P.black, M.smooth, { collide = false })
+	Kit.box(m, w, 0.12, 0.12, 0, h - 0.5, -d / 2 + 0.56, P.wood_black, M.wood, nc())
+	Kit.box(m, w, 0.12, 0.12, 0, 0.42, -d / 2 + 0.56, P.wood_black, M.wood, nc())
+	-- brass bag hooks under the overhang
+	for x = -w / 2 + 0.7, w / 2 - 0.4, 1.4 do
+		Kit.box(m, 0.08, 0.2, 0.08, x, h - 0.7, -d / 2 + 0.5, P.brass, M.metal, nc())
+		Kit.box(m, 0.08, 0.06, 0.2, x, h - 0.82, -d / 2 + 0.42, P.brass, M.metal, nc())
+	end
+	-- warm light strip hidden under the overhang
+	Kit.box(m, w - 0.1, 0.05, 0.08, 0, h - 0.27, -d / 2 + 0.66, P.lamp_warm, M.neon, nc())
+	-- kick plate and foot rail on brass brackets
+	Kit.box(m, w, 0.35, 0.1, 0, 0.175, -d / 2 + 0.62, P.black, M.smooth, nc())
 	Kit.cylH(m, 0.12, w, 0, 0.7, -d / 2 + 0.25, P.brass, M.metal, { collide = false, reflectance = 0.15 })
-	-- hinoki counter top with front overhang
+	for x = -w / 2 + 0.5, w / 2 - 0.3, 2 do
+		Kit.box(m, 0.08, 0.08, 0.36, x, 0.7, -d / 2 + 0.43, P.brass, M.metal, nc())
+	end
+	-- hinoki counter top with front overhang and a dark edge band
 	Kit.box(m, w, 0.22, d, 0, h - 0.11, 0, P.hinoki, M.wood)
+	Kit.box(m, w, 0.1, 0.06, 0, h - 0.17, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
 	-- raised chef ledge (tsukedai) on the kitchen side
-	Kit.box(m, w, 0.35, 0.5, 0, h + 0.15, d / 2 - 0.25, P.wood_light, M.wood, { collide = false })
+	Kit.box(m, w, 0.35, 0.5, 0, h + 0.15, d / 2 - 0.25, P.wood_light, M.wood, nc())
+	Kit.box(m, w, 0.06, 0.56, 0, h + 0.35, d / 2 - 0.25, P.hinoki, M.wood, nc())
+	-- kitchen side: open niche with stacked plates and bowls
+	Kit.box(m, w - 0.4, 1.2, 0.08, 0, h - 1.05, d / 2 + 0.01, P.wood_black, M.wood, nc())
+	Kit.box(m, w - 0.4, 0.06, 0.4, 0, h - 1.05, d / 2 - 0.2, P.wood, M.wood, nc())
+	for x = -w / 2 + 0.6, w / 2 - 0.5, 1 do
+		for k = 0, 2 do
+			Kit.cyl(m, 0.6, 0.07, x, h - 0.98 + k * 0.08, d / 2 - 0.2, k == 2 and P.indigo or P.porcelain, M.smooth, nc())
+		end
+	end
 	if kind == "corner" then
-		Kit.box(m, 0.5, 0.35, d - 0.5, w / 2 - 0.25, h + 0.15, -0.25, P.wood_light, M.wood, { collide = false })
+		Kit.box(m, 0.5, 0.35, d - 0.5, w / 2 - 0.25, h + 0.15, -0.25, P.wood_light, M.wood, nc())
+		Kit.box(m, 0.56, 0.06, d - 0.5, w / 2 - 0.25, h + 0.35, -0.25, P.hinoki, M.wood, nc())
 	elseif kind == "end" then
-		Kit.box(m, 0.15, h - 0.4, d - 0.4, w / 2 - 0.075, (h - 0.4) / 2 + 0.1, 0, P.wood_black, M.wood, { collide = false })
+		Kit.box(m, 0.15, h - 0.4, d - 0.4, w / 2 - 0.075, (h - 0.4) / 2 + 0.1, 0, P.wood_black, M.wood, nc())
+		Kit.box(m, 0.2, 0.12, d, w / 2 - 0.1, h - 0.06, 0, P.wood_black, M.wood, nc())
+	end
+	-- condiments on the ledge (one set per straight/corner segment)
+	if kind ~= "end" then
+		condiments(m, kind == "corner" and -0.3 or 0, h + 0.38, d / 2 - 0.25, 0)
 	end
 	root:SetAttribute("TopY", h)
 end
@@ -67,26 +128,44 @@ end
 local function tableTop(m, item, topColor, legColor, low)
 	local root = Kit.finish(m, size(item))
 	local w, h, d = item.size[1], item.size[2], item.size[3]
-	Kit.box(m, w, 0.2, d, 0, h - 0.1, 0, topColor, M.wood)
-	Kit.box(m, w - 0.1, 0.06, d - 0.1, 0, h + 0.005, 0, Color3.new(1, 1, 1):Lerp(topColor, 0.85), M.wood, { collide = false })
 	if low then
+		-- round chabudai with an inlaid rim and four folding legs
+		local r = math.min(w, d) - 0.2
+		Kit.cyl(m, r, 0.2, 0, h - 0.1, 0, topColor, M.wood)
+		Kit.cyl(m, r - 0.3, 0.04, 0, h + 0.005, 0, Color3.new(1, 1, 1):Lerp(topColor, 0.85), M.wood, nc())
+		Kit.cyl(m, r + 0.04, 0.06, 0, h - 0.18, 0, P.wood_black, M.wood, nc())
 		for _, c in ipairs({ { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } }) do
-			Kit.box(m, 0.35, h - 0.2, 0.35, c[1] * (w / 2 - 0.4), (h - 0.2) / 2, c[2] * (d / 2 - 0.4), legColor, M.wood)
+			Kit.box(m, 0.3, h - 0.2, 0.3, c[1] * r * 0.3, (h - 0.2) / 2, c[2] * r * 0.3, legColor, M.wood)
 		end
-		Kit.box(m, w - 0.6, 0.12, d - 0.6, 0, h - 0.26, 0, legColor, M.wood, { collide = false })
+		Kit.box(m, r * 0.7, 0.1, 0.2, 0, h - 0.27, 0, legColor, M.wood, nc())
+		Kit.box(m, 0.2, 0.1, r * 0.7, 0, h - 0.27, 0, legColor, M.wood, nc())
+		-- tea set: kyusu teapot and cups on a small tray
+		Kit.cyl(m, 1.1, 0.05, 0.6, h + 0.03, -0.5, P.bamboo, M.wood, nc())
+		Kit.blob(m, 0.45, 0.4, 0.45, 0.45, h + 0.25, -0.5, P.matcha, M.smooth, nc())
+		Kit.cylH(m, 0.08, 0.3, 0.75, h + 0.3, -0.5, P.matcha, M.smooth, nc())
+		Kit.cyl(m, 0.12, 0.06, 0.45, h + 0.47, -0.5, P.wood_dark, M.smooth, nc())
+		for _, cx in ipairs({ 0.85, 1.0 }) do
+			Kit.cyl(m, 0.2, 0.2, cx, h + 0.15, -0.25, P.porcelain, M.smooth, nc())
+		end
 	else
+		Kit.box(m, w, 0.2, d, 0, h - 0.1, 0, topColor, M.wood)
+		Kit.box(m, w - 0.1, 0.06, d - 0.1, 0, h + 0.005, 0, Color3.new(1, 1, 1):Lerp(topColor, 0.85), M.wood, nc())
+		Kit.box(m, w + 0.04, 0.08, d + 0.04, 0, h - 0.18, 0, legColor, M.wood, nc())
 		Kit.box(m, 0.4, h - 0.5, 0.4, 0, (h - 0.5) / 2 + 0.2, 0, legColor, M.wood)
 		Kit.box(m, math.min(w, 2.2), 0.2, 0.4, 0, 0.1, 0, legColor, M.wood)
 		Kit.box(m, 0.4, 0.2, math.min(d, 2.2), 0, 0.1, 0, legColor, M.wood)
-		Kit.box(m, w - 0.6, 0.15, 0.3, 0, h - 0.28, 0, legColor, M.wood, { collide = false })
+		Kit.box(m, w - 0.6, 0.15, 0.3, 0, h - 0.28, 0, legColor, M.wood, nc())
+		-- brass caps on the cross feet
+		for _, c in ipairs({ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) do
+			Kit.box(m, 0.44, 0.22, 0.44, c[1] * (math.min(w, 2.2) / 2 - 0.2), 0.11, c[2] * (math.min(d, 2.2) / 2 - 0.2), P.brass, M.metal, nc())
+		end
+		-- condiments along the back edge and a folded menu card
+		condiments(m, 0, h, d / 2 - 0.3, 0)
+		Kit.wedge(m, 0.5, 0.4, 0.3, CFrame.new(-w / 2 + 0.45, h + 0.2, d / 2 - 0.3), P.paper_warm, M.smooth, nc())
+		Kit.box(m, 0.42, 0.12, 0.02, -w / 2 + 0.45, h + 0.21, d / 2 - 0.32, P.lacquer, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(37), 0, 0) })
 	end
-	-- small soy sauce bottle and chopstick box
-	Kit.cyl(m, 0.22, 0.4, w / 2 - 0.4, h + 0.2, d / 2 - 0.35, P.white, M.smooth, { collide = false })
-	Kit.cyl(m, 0.24, 0.08, w / 2 - 0.4, h + 0.44, d / 2 - 0.35, P.lacquer, M.smooth, { collide = false })
-	Kit.box(m, 0.6, 0.25, 0.25, w / 2 - 0.95, h + 0.125, d / 2 - 0.35, P.wood_black, M.wood, { collide = false })
 	root:SetAttribute("TopY", h)
 end
-
 local function chair(m, item, color, mat)
 	local root = Kit.finish(m, size(item))
 	local seatH = item.fn.height
@@ -162,7 +241,23 @@ return function(Registry)
 			Kit.box(m, w - 0.3, h - 2.2, 0.15, 0, 1.9 + (h - 2.2) / 2, z + side * 0.33, P.lacquer_dark, M.leather, { collide = false })
 		end
 		Kit.box(m, w - 1.2, 0.2, 2, 0, 2.6, 0, P.wood_light, M.wood)
+		Kit.box(m, w - 1.25, 0.08, 2.05, 0, 2.48, 0, P.wood_dark, M.wood, nc())
 		Kit.box(m, 0.4, 2.4, 0.4, 0, 1.3, 0, P.wood_black, M.wood)
+		Kit.box(m, 1.6, 0.15, 0.8, 0, 0.08, 0, P.wood_black, M.wood, nc())
+		condiments(m, 0, 2.7, 0, 90)
+		-- kumiko lattice panels on top of both backrests and dark cap rails
+		for side = -1, 1, 2 do
+			local z = side * 1.85 + side * 0.5
+			Kit.box(m, w, 0.12, 0.36, 0, h + 0.06, z, P.wood_black, M.wood, nc())
+			Kit.box(m, w - 0.2, 0.7, 0.06, 0, h + 0.47, z, P.paper, M.smooth, { collide = false, shadow = false, transparency = 0.1 })
+			for x = -w / 2 + 0.1, w / 2 - 0.05, 0.45 do
+				Kit.box(m, 0.05, 0.7, 0.1, x, h + 0.47, z, P.wood_dark, M.wood, nc())
+			end
+			for _, y in ipairs({ h + 0.3, h + 0.6 }) do
+				Kit.box(m, w - 0.2, 0.05, 0.1, 0, y, z, P.wood_dark, M.wood, nc())
+			end
+			Kit.box(m, w, 0.1, 0.2, 0, h + 0.86, z, P.wood_black, M.wood, nc())
+		end
 		local i = 0
 		for side = -1, 1, 2 do
 			for _, x in ipairs({ -1.2, 1.2 }) do
@@ -177,6 +272,17 @@ return function(Registry)
 		local root = Kit.finish(m, size(item))
 		Kit.box(m, 4, 0.2, 2.4, 0, 1.2, 0, P.wood_black, M.wood)
 		Kit.box(m, 3.9, 0.04, 2.3, 0, 1.31, 0, P.lacquer_dark, M.smooth, { collide = false })
+		Kit.box(m, 4.06, 0.08, 2.46, 0, 1.08, 0, P.gold, M.metal, nc())
+		-- sake set: tokkuri flask and choko cups on a lacquer tray, plus a small ikebana
+		Kit.box(m, 0.9, 0.06, 0.5, 0, 1.36, 0, P.lacquer, M.smooth, nc())
+		Kit.blob(m, 0.28, 0.42, 0.28, -0.2, 1.58, 0, P.porcelain, M.smooth, nc())
+		Kit.cyl(m, 0.12, 0.16, -0.2, 1.85, 0, P.porcelain, M.smooth, nc())
+		Kit.cyl(m, 0.14, 0.1, 0.12, 1.44, -0.08, P.indigo, M.smooth, nc())
+		Kit.cyl(m, 0.14, 0.1, 0.3, 1.44, 0.08, P.indigo, M.smooth, nc())
+		Kit.cyl(m, 0.3, 0.3, 1.5, 1.48, 0, P.wood_black, M.smooth, nc())
+		Kit.box(m, 0.04, 0.6, 0.04, 1.5, 1.85, 0, P.leaf_dark, M.wood, nc())
+		Kit.ball(m, 0.2, 1.5, 2.15, 0, P.maple, M.smooth, nc())
+		Kit.ball(m, 0.14, 1.6, 1.98, 0.06, P.sakura, M.smooth, nc())
 		for _, c in ipairs({ { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } }) do
 			Kit.box(m, 0.3, 1.1, 0.3, c[1] * 1.7, 0.55, c[2] * 0.95, P.wood_black, M.wood)
 		end
@@ -199,6 +305,13 @@ return function(Registry)
 			Kit.box(m, 0.25, 1.4, 1, x, 0.7, 0, P.wood_dark, M.wood)
 		end
 		Kit.box(m, w, 0.5, 0.15, 0, 2.2 - 0.25, 0.6, P.wood_light, M.wood, { collide = false })
+		for _, x in ipairs({ -w / 2 + 0.4, w / 2 - 0.4 }) do
+			Kit.box(m, 0.15, 0.7, 0.15, x, 1.95, 0.6, P.wood_dark, M.wood, nc())
+		end
+		-- red felt runner (mosen) like a tea house bench
+		Kit.box(m, w - 0.6, 0.04, 1.1, 0, 1.62, 0, P.lacquer, M.fabric, nc())
+		Kit.box(m, w - 0.6, 0.6, 0.04, 0, 1.33, -0.56, P.lacquer, M.fabric, nc())
+		Kit.box(m, 0.6, 0.18, 0.5, w / 2 - 0.7, 1.73, 0.15, P.indigo, M.fabric, nc())
 		for i, x in ipairs({ -1.6, 0, 1.6 }) do
 			point(root, "Queue" .. i, x, 1.6, 0, 0)
 		end

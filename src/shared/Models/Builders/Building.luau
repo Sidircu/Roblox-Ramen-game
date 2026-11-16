@@ -178,31 +178,208 @@ function B.stairs(parent, rect, y0, rise)
 	end
 end
 
--- Tiled eave projecting from a street facing wall (axis "z" segment), outsideSign -1 means street at -Z
+-- Tiled eave (hisashi) projecting from a street facing wall (axis "z" segment).
+-- outsideSign -1 means the street is at -Z. Tiles rows, round tile channels, rafter tails, end caps.
 function B.eave(parent, seg, y, outsideSign, depth)
 	depth = depth or 3
 	local len = seg.b - seg.a + 2
 	local cx = (seg.a + seg.b) / 2
 	local z = seg.line + outsideSign * (depth / 2 + 0.5)
 	local yaw = outsideSign < 0 and 0 or 180
-	local roof = Kit.wedge(parent, len, 1.6, depth, CFrame.new(cx, y + 0.8, z) * CFrame.Angles(0, math.rad(yaw), 0), P.tile, M.roof, { collide = false })
+	local rise = 1.6
+	local roof = Kit.wedge(parent, len, rise, depth, CFrame.new(cx, y + rise / 2, z) * CFrame.Angles(0, math.rad(yaw), 0), P.tile, M.roof, { collide = false })
 	tag(roof, "Roof")
-	local ridge = Kit.box(parent, len, 0.5, 0.6, cx, y + 1.7, seg.line + outsideSign * 0.6, P.charcoal, M.roof, { collide = false })
-	tag(ridge, "Roof")
-	local edge = Kit.box(parent, len, 0.25, 0.4, cx, y + 0.1, seg.line + outsideSign * (depth + 0.4), P.charcoal, M.smooth, { collide = false })
-	tag(edge, "Roof")
-	for _, sx in ipairs({ seg.a - 1, seg.b + 1 }) do
-		local cap = Kit.box(parent, 0.5, 0.6, 0.5, sx, y + 0.3, seg.line + outsideSign * (depth + 0.3), P.charcoal, M.roof, { collide = false })
+	-- round tile channels running down the slope
+	local slope = math.sqrt(depth * depth + rise * rise)
+	local n = math.floor(len / 0.7)
+	for i = 0, n do
+		local x = seg.a - 1 + len * i / n
+		local top = Vector3.new(x, y + rise + 0.08, seg.line + outsideSign * 0.5)
+		local bottom = Vector3.new(x, y + 0.08, seg.line + outsideSign * (depth + 0.5))
+		local mid = (top + bottom) / 2
+		local cf = CFrame.lookAt(mid, bottom) * CFrame.Angles(0, math.rad(90), 0)
+		local ch = Kit.part(parent, Vector3.new(slope, 0.22, 0.22), cf, P.charcoal, M.roof, { collide = false, shadow = false, shape = Enum.PartType.Cylinder })
+		ch.CanQuery = false
+		tag(ch, "Roof")
+		-- round end tile (tomoe) facing the street
+		local cap = Kit.cylH(parent, 0.34, 0.12, x, y + 0.1, seg.line + outsideSign * (depth + 0.56), P.charcoal, M.roof, { collide = false, shadow = false }, "z")
+		cap.CanQuery = false
 		tag(cap, "Roof")
 	end
+	-- ridge, fascia board and rafter tails
+	local ridge = Kit.box(parent, len, 0.55, 0.7, cx, y + rise + 0.2, seg.line + outsideSign * 0.65, P.charcoal, M.roof, { collide = false })
+	tag(ridge, "Roof")
+	local ridgeTop = Kit.cylH(parent, 0.4, len, cx, y + rise + 0.5, seg.line + outsideSign * 0.65, P.tile, M.roof, { collide = false, shadow = false })
+	tag(ridgeTop, "Roof")
+	local fascia = Kit.box(parent, len, 0.32, 0.18, cx, y - 0.05, seg.line + outsideSign * (depth + 0.42), P.wood_dark, M.wood, { collide = false })
+	tag(fascia, "Roof")
+	for i = 0, math.floor(len / 1.1) do
+		local x = seg.a - 1 + 0.55 + i * 1.1
+		if x < seg.b + 1 then
+			local tail = Kit.box(parent, 0.22, 0.22, depth - 0.3, x, y - 0.3, seg.line + outsideSign * (depth / 2 + 0.35), P.wood_dark, M.wood, { collide = false, shadow = false })
+			tail.CanQuery = false
+			tag(tail, "Roof")
+		end
+	end
+	for _, sx in ipairs({ seg.a - 1.05, seg.b + 1.05 }) do
+		local cap = Kit.box(parent, 0.5, 0.9, 0.6, sx, y + 0.5, seg.line + outsideSign * (depth + 0.2), P.charcoal, M.roof, { collide = false })
+		tag(cap, "Roof")
+		local oni = Kit.box(parent, 0.55, 0.9, 0.7, sx, y + rise + 0.45, seg.line + outsideSign * 0.65, P.charcoal, M.roof, { collide = false })
+		tag(oni, "Roof")
+	end
+end
+
+-- Coordinates on the face of a wall segment: along the wall, height, distance from the wall
+-- line towards `side` (+1 / -1). Returns the created part.
+local function faceBox(parent, seg, side, sa, sy, so, along, y, out, color, mat, props)
+	if seg.axis == "z" then
+		return Kit.box(parent, sa, sy, so, along, y, seg.line + side * out, color, mat, props)
+	end
+	return Kit.box(parent, so, sy, sa, seg.line + side * out, y, along, color, mat, props)
+end
+B.faceBox = faceBox
+
+local function inAvoid(along, avoid)
+	for _, r in ipairs(avoid or {}) do
+		if along > r[1] and along < r[2] then
+			return true
+		end
+	end
+	return false
+end
+
+-- Interior finishes on one side of a wall: koshi-ita wainscot, hashira posts and nageshi beam
+-- in dining rooms; white tiles in kitchens; plain concrete wainscot in storage rooms.
+function B.wallTrim(parent, seg, y0, side, area, height)
+	local len = seg.b - seg.a
+	local mid = (seg.a + seg.b) / 2
+	local NC = { collide = false, shadow = false }
+	local parts = {}
+	local function add(p)
+		p.CanQuery = true
+		tag(p, "Wall", { FloorIndex = seg.floor })
+		table.insert(parts, p)
+		return p
+	end
+	if area == "kitchen" then
+		add(faceBox(parent, seg, side, len, 6.4, 0.06, mid, y0 + 0.6 + 3.2, 0.43, P.white, M.tiles, NC))
+		add(faceBox(parent, seg, side, len, 0.12, 0.12, mid, y0 + 7.05, 0.46, P.metal, M.metal, NC))
+	elseif area == "storage" then
+		add(faceBox(parent, seg, side, len, 3, 0.06, mid, y0 + 1.5, 0.43, P.concrete, M.concrete, NC))
+		add(faceBox(parent, seg, side, len, 0.15, 0.1, mid, y0 + 3.05, 0.45, P.neon_yellow, M.smooth, NC))
+	else
+		local panel = area == "tatami" and P.hinoki or P.wood_dark
+		add(faceBox(parent, seg, side, len, 2.7, 0.08, mid, y0 + 1.35, 0.44, panel, M.planks, NC))
+		add(faceBox(parent, seg, side, len, 0.18, 0.16, mid, y0 + 2.75, 0.48, P.wood_light, M.wood, NC))
+		add(faceBox(parent, seg, side, len, 0.4, 0.2, mid, y0 + 10.2, 0.5, P.wood_dark, M.wood, NC))
+		local posts = math.max(1, math.floor(len / 6))
+		for i = 0, posts do
+			local along = seg.a + len * i / posts
+			along = math.clamp(along, seg.a + 0.25, seg.b - 0.25)
+			add(faceBox(parent, seg, side, 0.45, height - 0.2, 0.14, along, y0 + (height - 0.2) / 2, 0.47, P.wood_dark, M.wood, NC))
+		end
+	end
+	return parts
+end
+
+-- Kyoto machiya street front: koshi lattice band, timber frame and inu-yarai bamboo fence.
+-- avoid = list of {from, to} ranges along the wall to keep clear (doors).
+function B.facadeDetail(parent, seg, y0, side, avoid)
+	local len = seg.b - seg.a
+	local mid = (seg.a + seg.b) / 2
+	local NC = { collide = false, shadow = false }
+	local function add(p)
+		p.CanQuery = false
+		tag(p, "Roof")
+		return p
+	end
+	-- timber frame bands
+	add(faceBox(parent, seg, side, len, 0.35, 0.16, mid, y0 + 4.5, 0.68, P.wood_dark, M.wood, NC))
+	add(faceBox(parent, seg, side, len, 0.3, 0.16, mid, y0 + 9.6, 0.68, P.wood_dark, M.wood, NC))
+	-- koshi lattice (lower band)
+	add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 1.5, 0.72, P.wood_dark, M.wood, NC))
+	add(faceBox(parent, seg, side, len, 0.18, 0.2, mid, y0 + 4.15, 0.72, P.wood_dark, M.wood, NC))
+	local step = 0.42
+	for i = 0, math.floor(len / step) do
+		local along = seg.a + 0.2 + i * step
+		if along < seg.b - 0.2 and not inAvoid(along, avoid) then
+			add(faceBox(parent, seg, side, 0.13, 2.6, 0.12, along, y0 + 2.85, 0.76, P.wood, M.wood, NC))
+		end
+	end
+	-- inu-yarai: curved bamboo fence leaning against the base of the wall
+	for i = 0, math.floor(len / 0.55) do
+		local along = seg.a + 0.3 + i * 0.55
+		if along < seg.b - 0.3 and not inAvoid(along, avoid) then
+			local a = (seg.axis == "z") and Vector3.new(along, y0 + 0.02, seg.line + side * 1.45) or Vector3.new(seg.line + side * 1.45, y0 + 0.02, along)
+			local b = (seg.axis == "z") and Vector3.new(along, y0 + 1.25, seg.line + side * 0.8) or Vector3.new(seg.line + side * 0.8, y0 + 1.25, along)
+			local midp = (a + b) / 2
+			local rod = Kit.part(parent, Vector3.new((b - a).Magnitude, 0.14, 0.14), CFrame.lookAt(midp, b) * CFrame.Angles(0, math.rad(90), 0), P.bamboo, M.wood, { collide = false, shadow = false, shape = Enum.PartType.Cylinder })
+			add(rod)
+		end
+	end
+	for _, h in ipairs({ 0.45, 0.95 }) do
+		local out = 1.45 - (h / 1.25) * 0.65
+		add(faceBox(parent, seg, side, len, 0.08, 0.08, mid, y0 + h, out + 0.04, P.bamboo_green, M.wood, NC))
+	end
+end
+
+-- Details around the main entrance: parked sliding lattice doors, stone step, salt cones, pines
+function B.entranceDetail(parent, o, y0)
+	local NC = { collide = false, shadow = false }
+	local z = o.at - 0.75
+	for _, sgn in ipairs({ -1, 1 }) do
+		local edge = sgn < 0 and o.from or o.to
+		local cx = edge + sgn * 1.45
+		-- sliding koshi-do door pushed aside
+		Kit.box(parent, 2.8, 8.4, 0.12, cx, y0 + 4.3, z, P.wood_dark, M.wood, NC)
+		Kit.box(parent, 2.4, 3.6, 0.04, cx, y0 + 6.3, z - 0.08, P.paper_warm, M.fabric, NC)
+		for k = 0, 5 do
+			Kit.box(parent, 0.1, 7.8, 0.08, cx - 1.1 + k * 0.44, y0 + 4.3, z - 0.11, P.wood, M.wood, NC)
+		end
+		Kit.box(parent, 2.8, 0.12, 0.1, cx, y0 + 4.3, z - 0.12, P.wood, M.wood, NC)
+		-- morishio: salt cone on a small dish
+		local sx = edge - sgn * 0.45
+		Kit.cyl(parent, 0.6, 0.06, sx, y0 + 0.03, o.at - 1.0, P.porcelain, M.smooth, NC)
+		for k = 0, 3 do
+			Kit.cyl(parent, 0.42 - k * 0.1, 0.12, sx, y0 + 0.12 + k * 0.11, o.at - 1.0, P.white, M.sand, NC)
+		end
+		-- potted pine
+		local px = edge + sgn * 3.6
+		Kit.cyl(parent, 1.1, 0.9, px, y0 - 0.4 + 0.45, o.at - 1.25, P.indigo, M.smooth, NC)
+		Kit.cyl(parent, 0.18, 1.3, px, y0 + 1.1, o.at - 1.25, P.wood_dark, M.wood, NC)
+		Kit.blob(parent, 1.4, 0.5, 1.1, px - 0.2, y0 + 1.75, o.at - 1.25, P.leaf_dark, M.leafy, NC)
+		Kit.blob(parent, 1.0, 0.4, 0.9, px + 0.25, y0 + 2.15, o.at - 1.25, P.leaf_dark, M.leafy, NC)
+	end
+	-- stone step
+	Kit.box(parent, o.to - o.from - 0.6, 0.3, 1.2, (o.from + o.to) / 2, -0.25, o.at - 1.0, P.stone, M.granite, { collide = true })
+end
+
+-- Loading door: rolled-up shutter, hazard stripe and a small sign
+function B.shutter(parent, o, y0, height)
+	local NC = { collide = false, shadow = false }
+	local len = o.to - o.from
+	local cx = (o.from + o.to) / 2
+	local z = o.at - 0.5
+	Kit.box(parent, len + 0.4, 1.1, 0.9, cx, y0 + height + 0.1, z - 0.2, P.steel, M.metal, NC)
+	for k = 0, 3 do
+		Kit.box(parent, len, 0.22, 0.06, cx, y0 + height - 0.4 - k * 0.3, z, P.metal, M.metal, NC)
+	end
+	for k = 0, math.floor(len / 0.6) do
+		local stripe = Kit.box(parent, 0.3, 0.02, 0.6, o.from + 0.3 + k * 0.6, y0 - 0.33, o.at - 1.2, k % 2 == 0 and P.neon_yellow or P.black, M.smooth, NC)
+		stripe.CanQuery = false
+	end
+	local plate = Kit.box(parent, 2.2, 0.7, 0.06, o.to + 1.6, y0 + 7, z, P.white, M.smooth, NC)
+	Kit.text(plate, Enum.NormalId.Front, "搬入口", { color = "#2B2320", font = JP_FONT })
 end
 
 function B.parapet(parent, seg, y0)
 	local len = seg.b - seg.a
 	local cx = seg.axis == "z" and (seg.a + seg.b) / 2 or seg.line
 	local cz = seg.axis == "z" and seg.line or (seg.a + seg.b) / 2
-	local p = Kit.box(parent, seg.axis == "z" and len + 0.8 or 0.8, 1.2, seg.axis == "z" and 0.8 or len + 0.8, cx, y0 + 0.6, cz, P.charcoal, M.roof, { collide = true })
+	local p = Kit.box(parent, seg.axis == "z" and len + 0.8 or 0.7, 0.8, seg.axis == "z" and 0.7 or len + 0.8, cx, y0 + 0.4, cz, P.cream, M.plaster, { collide = true })
 	tag(p, "Roof")
+	local cap = Kit.box(parent, seg.axis == "z" and len + 1 or 1, 0.22, seg.axis == "z" and 1 or len + 1, cx, y0 + 0.9, cz, P.tile, M.roof, { collide = false, shadow = false })
+	tag(cap, "Roof")
 	return p
 end
 
@@ -222,6 +399,18 @@ function B.window(parent, along, y, seg, outsideSign, w, h)
 		local bz = seg.axis == "z" and z + outsideSign * 0.06 or a
 		local bar = Kit.box(parent, seg.axis == "z" and 0.1 or 0.08, h, seg.axis == "z" and 0.08 or 0.1, bx, y, bz, P.wood_dark, M.wood, { collide = false, shadow = false })
 		tag(bar, "Roof")
+	end
+	-- sill with a flower box
+	local sillA = seg.axis == "z" and w + 0.6 or 0.5
+	local sillB = seg.axis == "z" and 0.5 or w + 0.6
+	local sill = Kit.box(parent, sillA, 0.18, sillB, x + (seg.axis == "x" and outsideSign * 0.2 or 0), y - h / 2 - 0.12, z + (seg.axis == "z" and outsideSign * 0.2 or 0), P.wood_dark, M.wood, { collide = false, shadow = false })
+	tag(sill, "Roof")
+	for k = 0, math.floor(w / 0.6) do
+		local fa = along - w / 2 + 0.3 + k * 0.6
+		local fx = seg.axis == "z" and fa or x + outsideSign * 0.3
+		local fz = seg.axis == "z" and z + outsideSign * 0.3 or fa
+		local leaf = Kit.blob(parent, 0.55, 0.4, 0.55, fx, y - h / 2 + 0.12, fz, k % 3 == 1 and P.sakura_dark or P.leaf, M.leafy, { collide = false, shadow = false })
+		tag(leaf, "Roof")
 	end
 	for j = 0, rows do
 		local yy = y - h / 2 + h * j / rows
