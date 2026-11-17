@@ -13,3 +13,7 @@ Thumbs.db
 
 # Roblox API dump used by tools/check_roblox_api.py (download, do not commit)
 build/API-Dump.json
+
+# Python bytecode caches of the tools
+__pycache__/
+*.pyc
