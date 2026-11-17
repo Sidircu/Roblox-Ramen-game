@@ -29,6 +29,7 @@ Net.Events = {
 	"ClaimAchievement",
 	"ClaimDaily",
 	"ClaimOffline",
+	"Wash", -- (sinkUid, holding) hold to wash dishes at the sink
 	"ClaimGift", -- (index) free gift for minutes played
 	"RedeemCode", -- (code)
 	"SetSetting", -- (key, value)

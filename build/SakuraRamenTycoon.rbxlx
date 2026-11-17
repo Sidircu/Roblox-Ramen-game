@@ -566,6 +566,10 @@ return {
 	BoxShelfSlots = 2,
 	ShelfItemScale = 1.3, -- size of the products shown on shelf slots
 
+	-- Sink: hold to wash one plate every Time seconds; at most MaxPile dirty plates are drawn in the
+	-- soaking basin; staff wash up to StaffBatch plates per trip
+	Washing = { Time = 1.6, MaxPile = 12, StaffBatch = 8 },
+
 	-- Dishes (plates and bowls)
 	StartDishes = 12,
 	DishSetSize = 6,
@@ -1402,6 +1406,7 @@ return {
 	["hint.serve"] = "Serve {dish}",
 	["hint.shelf_empty"] = "Empty slot",
 	["hint.sink"] = "Sink",
+	["hint.sink_drop"] = "Put the dirty dishes here",
 	["hint.station"] = "Bring ingredients",
 	["hint.supplier"] = "Order ingredients",
 	["hint.take_box"] = "Take box: {name}",
@@ -1410,7 +1415,9 @@ return {
 	["hint.take_order"] = "Take the order",
 	["hint.waiting_for"] = "Waiting for {dish}",
 	["hint.wash"] = "Wash the dishes",
+	["hint.wash_hold"] = "Hold to wash the dishes ({n})",
 	["hint.wash_pile"] = "Wash dirty dishes ({n})",
+	["hint.washing"] = "Washing… keep holding",
 	["ing.avocado"] = "Avocado",
 	["ing.batter"] = "Tempura batter",
 	["ing.black_garlic"] = "Black garlic oil",
@@ -1687,6 +1694,7 @@ return {
 	["msg.too_far"] = "Get closer.",
 	["msg.upgrade_bought"] = "⬆️ {name} level {level}!",
 	["msg.use_appliance"] = "Rice and broth go into the rice cooker and pots.",
+	["msg.wash_hold"] = "Hold the click (or E) on the sink to wash the dishes.",
 	["msg.world_private"] = "This world is private.",
 	["msg.wrong_dish"] = "They ordered: {dish}",
 	["quest.q_customers"] = "Welcome {n} customers",
@@ -1806,7 +1814,7 @@ return {
 	["tut.serve"] = "Click the dish to pick it up and click the customer to serve it.",
 	["tut.step"] = "Tutorial {i}/{n}",
 	["tut.take_box"] = "Follow the yellow arrow to the storage room and click a box to pick it up.",
-	["tut.wash"] = "Click the sink to wash them.",
+	["tut.wash"] = "Bring them to the sink, then hold the click (or E) on the sink: the sponge washes one plate at a time.",
 	["tut.welcome"] = "Welcome to your ramen-ya! Walk with WASD (Shift to run) and look around with the mouse or by dragging a finger. Aim at things with the dot in the middle and click or press E to use them. Hold Alt to click the buttons on screen; Enter shows the next tip.",
 	["ui.active"] = "Active",
 	["ui.ad_desc"] = "+{pop} popularity today",
@@ -2170,6 +2178,7 @@ return {
 	["hint.serve"] = "Servi {dish}",
 	["hint.shelf_empty"] = "Slot vuoto",
 	["hint.sink"] = "Lavello",
+	["hint.sink_drop"] = "Posa qui i piatti sporchi",
 	["hint.station"] = "Porta gli ingredienti",
 	["hint.supplier"] = "Ordina ingredienti",
 	["hint.take_box"] = "Prendi scatola: {name}",
@@ -2178,7 +2187,9 @@ return {
 	["hint.take_order"] = "Prendi l'ordine",
 	["hint.waiting_for"] = "Aspetta {dish}",
 	["hint.wash"] = "Lava le stoviglie",
+	["hint.wash_hold"] = "Tieni premuto: lava i piatti ({n})",
 	["hint.wash_pile"] = "Lava le stoviglie sporche ({n})",
+	["hint.washing"] = "Stai lavando… tieni premuto",
 	["ing.avocado"] = "Avocado",
 	["ing.batter"] = "Pastella",
 	["ing.black_garlic"] = "Olio d'aglio nero",
@@ -2455,6 +2466,7 @@ return {
 	["msg.too_far"] = "Avvicinati.",
 	["msg.upgrade_bought"] = "⬆️ {name} livello {level}!",
 	["msg.use_appliance"] = "Riso e brodo vanno nel rice cooker e nei pentoloni.",
+	["msg.wash_hold"] = "Tieni premuto il clic (o E) sul lavello per lavare i piatti.",
 	["msg.world_private"] = "Questo mondo è privato.",
 	["msg.wrong_dish"] = "Ha ordinato: {dish}",
 	["quest.q_customers"] = "Accogli {n} clienti",
@@ -2574,7 +2586,7 @@ return {
 	["tut.serve"] = "Clicca il piatto per prenderlo e clicca il cliente per servirlo.",
 	["tut.step"] = "Tutorial {i}/{n}",
 	["tut.take_box"] = "Segui la freccia gialla fino al magazzino e clicca una scatola per prenderla.",
-	["tut.wash"] = "Clicca il lavello per lavarle.",
+	["tut.wash"] = "Portali al lavello, poi tieni premuto il clic (o E) sul lavello: la spugna lava un piatto alla volta.",
 	["tut.welcome"] = "Benvenuto nel tuo ramen-ya! Cammina con WASD (Shift per correre) e guardati intorno con il mouse o trascinando un dito. Punta le cose con il pallino al centro e clicca o premi E per usarle. Tieni premuto Alt per cliccare i pulsanti sullo schermo; Invio mostra il consiglio successivo.",
 	["ui.active"] = "Attivo",
 	["ui.ad_desc"] = "+{pop} popolarità oggi",
@@ -4153,6 +4165,75 @@ function B.doorFrame(parent, o, y0, height)
 	Kit.box(parent, o.axis == "z" and len or 0.8, 14 - h - 0.6, o.axis == "z" and 0.8 or len, cx, y0 + h + 0.6 + (14 - h - 0.6) / 2, cz, P.cream, M.plaster, { collide = true })
 end
 
+-- The noren print (the word ramen and a white bowl crest) drawn on the cloth itself. The whole
+-- design is laid out across the curtain and every panel shows its own slice of it, so the print
+-- sways with the fabric and is cut by the slits between panels like a real noren.
+-- offset = studs from the design's left edge (as seen on this face) to the panel's left edge.
+local function norenPrint(cloth, face, width, height, offset)
+	local pps = 60
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = "Print"
+	gui.Face = face
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = pps
+	gui.LightInfluence = 1
+	gui.Parent = cloth
+	local design = Instance.new("Frame")
+	design.BackgroundTransparency = 1
+	design.Position = UDim2.fromOffset(-offset * pps, 0)
+	design.Size = UDim2.fromOffset(width * pps, height * pps)
+	design.Parent = gui
+	local white = Color.of(P.white)
+	-- x, y: centre in studs from the design's top-left corner
+	local function shape(parent, x, y, w, h, color, round, rot)
+		local blot = Instance.new("Frame")
+		blot.AnchorPoint = Vector2.new(0.5, 0.5)
+		blot.Position = UDim2.fromOffset(x * pps, y * pps)
+		blot.Size = UDim2.fromOffset(w * pps, h * pps)
+		blot.BackgroundColor3 = color
+		blot.BorderSizePixel = 0
+		blot.Rotation = rot or 0
+		if round then
+			local c = Instance.new("UICorner")
+			c.CornerRadius = UDim.new(round, 0)
+			c.Parent = blot
+		end
+		blot.Parent = parent
+		return blot
+	end
+	local word = Instance.new("TextLabel")
+	word.AnchorPoint = Vector2.new(0.5, 0.5)
+	word.Position = UDim2.fromOffset(width / 2 * pps, 0.66 * pps)
+	word.Size = UDim2.fromOffset((width - 0.4) * pps, 1.05 * pps)
+	word.BackgroundTransparency = 1
+	word.Text = "ら ー め ん"
+	word.TextScaled = true
+	word.TextColor3 = white
+	word.FontFace = JP_FONT
+	word.AutoLocalize = false
+	word.Parent = design
+	-- bowl: the lower half of an ellipse, a rim line and a small foot
+	local cx = width / 2
+	local clip = Instance.new("Frame")
+	clip.AnchorPoint = Vector2.new(0.5, 0)
+	clip.Position = UDim2.fromOffset(cx * pps, 2.2 * pps)
+	clip.Size = UDim2.fromOffset(1.8 * pps, 0.66 * pps)
+	clip.BackgroundTransparency = 1
+	clip.ClipsDescendants = true
+	clip.Parent = design
+	shape(clip, 0.9, 0, 1.8, 1.32, white, 0.5)
+	shape(design, cx, 2.2, 1.95, 0.09, white, 0.5)
+	shape(design, cx, 2.9, 0.62, 0.1, white, 0.3)
+	-- noodles lifted out of the bowl and two chopsticks
+	for k = -1, 1 do
+		shape(design, cx + k * 0.2, 1.86, 0.07, 0.6, white, 0.5)
+	end
+	for k = 0, 1 do
+		shape(design, cx + 0.42 + k * 0.15, 1.72, 0.06, 1.0, white, 0.5, 28)
+	end
+	return gui
+end
+
 -- Fixed noren curtain hanging in the entrance (customers walk through it)
 function B.entranceNoren(parent, o, y0)
 	local len = o.to - o.from
@@ -4160,28 +4241,16 @@ function B.entranceNoren(parent, o, y0)
 	local z = o.at - 0.6
 	Kit.cylH(parent, 0.18, len, cx, y0 + 8.7, z, P.wood_dark, M.wood, { collide = false })
 	local panels = 4
+	local h = 3.2
+	local pw = len / panels - 0.12
 	for i = 0, panels - 1 do
 		local x = o.from + len / panels * (i + 0.5)
-		local cloth = Kit.box(parent, len / panels - 0.12, 3.2, 0.06, x, y0 + 7, z, P.indigo, M.fabric, { collide = false })
+		local cloth = Kit.box(parent, pw, h, 0.06, x, y0 + 7, z, P.indigo, M.fabric, { collide = false })
 		cloth.CanQuery = false
 		cloth:SetAttribute("Animate", "sway")
-	end
-	local label = Kit.box(parent, len - 0.3, 1.1, 0.02, cx, y0 + 7.95, z - 0.05, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
-	label.CanQuery = false
-	Kit.text(label, Enum.NormalId.Front, "ら ー め ん", { color = "#FFFFFF", font = JP_FONT, pps = 30 })
-	-- white ramen bowl crest: bowl, rim cut-out, noodles and chopsticks
-	local NC = { collide = false, shadow = false }
-	local function icon(p)
-		p.CanQuery = false
-		return p
-	end
-	icon(Kit.blob(parent, 1.7, 0.95, 0.04, cx, y0 + 6.25, z - 0.06, P.white, M.fabric, NC))
-	icon(Kit.blob(parent, 1.55, 0.36, 0.04, cx, y0 + 6.62, z - 0.08, P.indigo, M.fabric, NC))
-	for k = -1, 1 do
-		icon(Kit.box(parent, 0.08, 0.55, 0.03, cx + k * 0.22, y0 + 6.95, z - 0.08, P.white, M.fabric, NC))
-	end
-	for k = 0, 1 do
-		icon(Kit.part(parent, Vector3.new(0.07, 1.0, 0.03), CFrame.new(cx + 0.35 + k * 0.16, y0 + 7.1, z - 0.08) * CFrame.Angles(0, 0, math.rad(-30)), P.white, M.fabric, NC))
+		-- the front (street side, -Z) shows world +X on its left; the back shows world -X on its left
+		norenPrint(cloth, Enum.NormalId.Front, len, h, o.to - (x + pw / 2))
+		norenPrint(cloth, Enum.NormalId.Back, len, h, (x - pw / 2) - o.from)
 	end
 end
 
@@ -10379,6 +10448,7 @@ Net.Events = {
 	"ClaimAchievement",
 	"ClaimDaily",
 	"ClaimOffline",
+	"Wash", -- (sinkUid, holding) hold to wash dishes at the sink
 	"ClaimGift", -- (index) free gift for minutes played
 	"RedeemCode", -- (code)
 	"SetSetting", -- (key, value)
@@ -10809,15 +10879,22 @@ end
 Core.Started = true
 ]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000091"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX000065"><Properties><string name="Name">Appliance</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Rice cookers, broth pots, sink, dishwasher, fridges and the clean/dirty dish pool.
+-- Sink: dirty dishes brought here pile up in the soaking basin; a player holds the click / E on
+-- the sink to wash them one by one (hold sessions below), staff wash them on their own. The sink
+-- model carries Washing / WashStart / WashTime / Washer so every client animates the plate and the
+-- sponge (Controllers/Sink).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Ingredients = require(Shared.Config.Ingredients)
+local GameConfig = require(Shared.Config.GameConfig)
 local Color = require(Shared.Util.Color)
+local Registry = require(Shared.Models.Registry)
 local Core = require(script.Parent.Parent.Core)
 
 local Appliance = {}
 local sinkPile = 0
 local washerQueue = {} -- [uid] = count waiting
-local washing = {} -- [uid] = true while animating
+local sessions = {} -- [sink uid] = { actor, e, start, dur, staff }
+local WASH = GameConfig.Washing
 
 local function data()
 	return Core.S.Session.ownerData()
@@ -10998,6 +11075,83 @@ function Appliance.addDirtyToSink(n)
 	workspace:SetAttribute("SinkPile", sinkPile)
 end
 
+local function sinkLocal(e, x, y, z)
+	-- builder coordinates (floor at y = 0) to a world CFrame on the sink
+	local h = e.item.size[2]
+	return e.model.PrimaryPart.CFrame * CFrame.new(x, y - h / 2, z)
+end
+
+-- the sink that shows the pile (the first one placed)
+local function mainSink()
+	local list = Core.S.Entities.ofKind("sink")
+	table.sort(list, function(a, b)
+		return a.uid < b.uid
+	end)
+	return list[1]
+end
+
+-- dirty plates stacked in the soaking basin of the main sink
+local function refreshPiles()
+	Registry.load()
+	local main = mainSink()
+	for _, e in ipairs(Core.S.Entities.ofKind("sink")) do
+		if e.model and e.model.PrimaryPart then
+			local want = (e == main) and math.min(sinkPile, WASH.MaxPile) or 0
+			local pile = e.model:FindFirstChild("DirtyPile")
+			if (pile and pile:GetAttribute("N") or 0) ~= want then
+				if pile then
+					pile:Destroy()
+				end
+				if want > 0 then
+					pile = Instance.new("Model")
+					pile.Name = "DirtyPile"
+					pile:SetAttribute("N", want)
+					for i = 1, want do
+						local m = Registry.food("dirty", "plate")
+						for _, d in ipairs(m:GetDescendants()) do
+							if d:IsA("BasePart") then
+								d.Anchored = true
+								d.CanCollide = false
+							end
+						end
+						-- a slightly messy stack: aiming at it aims at the sink
+						local yaw = (i * 47) % 360
+						m:PivotTo(sinkLocal(e, -1.1 + ((i % 3) - 1) * 0.05, 2.95 + (i - 1) * 0.13, -0.05) * CFrame.Angles(0, math.rad(yaw), 0))
+						m.Parent = pile
+					end
+					pile.Parent = e.model
+				end
+			end
+		end
+	end
+end
+
+local function spoutEmitter(e)
+	local spout = e.model and e.model:FindFirstChild("Spout")
+	return spout and spout:FindFirstChildOfClass("ParticleEmitter")
+end
+
+local function setWashing(e, on, dur, actor)
+	local m = e.model
+	if not m then
+		return
+	end
+	m:SetAttribute("Washing", on)
+	m:SetAttribute("Busy", on)
+	if on then
+		m:SetAttribute("WashStart", workspace:GetServerTimeNow())
+		m:SetAttribute("WashTime", dur)
+		m:SetAttribute("Washer", typeof(actor) == "Instance" and actor.UserId or 0)
+		Core.S.Net.fx("sfx", { name = "wash", pos = m.PrimaryPart.Position })
+	else
+		m:SetAttribute("Washer", 0)
+	end
+	local emitter = spoutEmitter(e)
+	if emitter then
+		emitter.Enabled = on
+	end
+end
+
 function Appliance.sinkPile()
 	return sinkPile
 end
@@ -11010,40 +11164,131 @@ local function finishWash(count)
 	Core.S.Meta.event(Core.S.Session.owner, "wash", count)
 end
 
--- Sink: wash the dirty dishes in hands (or from the pile); duration scales with count
+-- one plate from the pile is clean: it slides to the drying rack on every client
+local function washOne(e, actor)
+	sinkPile = math.max(0, sinkPile - 1)
+	workspace:SetAttribute("SinkPile", sinkPile)
+	finishWash(1)
+	Core.S.Net.fx("washed", { uid = e.uid })
+	Core.S.Net.fx("sfx", { name = "plate", pos = e.model.PrimaryPart.Position })
+	if typeof(actor) == "Instance" then
+		Core.S.Net.fxTo(actor, "action", { kind = "wash" })
+	end
+	refreshPiles()
+end
+
+-- Sink: dirty dishes in hand go on the pile. Players then hold to wash (Appliance.hold); staff (and
+-- the self test) wash the pile right away, dish by dish, with the same animation.
 function Appliance.useSink(actor, e, speed)
 	local Hands = Core.S.Hands
-	if washing[e.uid] then
-		return false, "msg.busy"
-	end
 	local hands = Hands.get(actor)
-	local count = 0
+	local isPlayer = typeof(actor) == "Instance"
 	if hands.kind == "dirty" then
-		count = #hands.items
+		local n = #hands.items
 		Hands.clear(actor)
-	elseif hands.kind == nil and sinkPile > 0 then
-		count = math.min(6, sinkPile)
-		sinkPile -= count
-		workspace:SetAttribute("SinkPile", sinkPile)
-	else
+		Appliance.addDirtyToSink(n)
+		refreshPiles()
+		Core.S.Net.fx("sfx", { name = "plate", pos = e.model.PrimaryPart.Position })
+		if isPlayer then
+			return true
+		end
+	elseif hands.kind ~= nil then
 		return false, sinkPile > 0 and "msg.hands_busy" or "msg.sink_hint"
 	end
-	washing[e.uid] = true
-	Core.S.Net.fx("sfx", { name = "wash", pos = e.model.PrimaryPart.Position })
-	local spout = e.model:FindFirstChild("Spout")
-	local emitter = spout and spout:FindFirstChildOfClass("ParticleEmitter")
-	if emitter then
-		emitter.Enabled = true
+	if isPlayer then
+		return false, sinkPile > 0 and "msg.wash_hold" or "msg.sink_hint"
 	end
-	e.model:SetAttribute("Busy", true)
-	task.wait(math.max(0.6, 0.35 * count) / (speed or 1))
-	if emitter then
-		emitter.Enabled = false
+	if sessions[e.uid] then
+		return false, "msg.busy"
 	end
-	e.model:SetAttribute("Busy", false)
-	washing[e.uid] = nil
-	finishWash(count)
-	return true
+	local dur = WASH.Time / (speed or 1)
+	sessions[e.uid] = { actor = actor, e = e, staff = true }
+	local count = 0
+	while sinkPile > 0 and count < WASH.StaffBatch and e.model and e.model.Parent do
+		setWashing(e, true, dur, actor)
+		task.wait(dur)
+		washOne(e, actor)
+		count += 1
+	end
+	sessions[e.uid] = nil
+	setWashing(e, false)
+	return count > 0
+end
+
+local function near(player, e)
+	local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	if not hrp or not e.model or not e.model.PrimaryPart then
+		return false
+	end
+	local p = e.model.PrimaryPart.Position
+	local flat = (Vector3.new(p.X, 0, p.Z) - Vector3.new(hrp.Position.X, 0, hrp.Position.Z)).Magnitude
+	return flat <= GameConfig.InteractRange + 3 and math.abs(p.Y - hrp.Position.Y) < 12
+end
+
+-- Hold to wash (remote "Wash"): on = true starts washing at this sink, false stops
+function Appliance.hold(player, uid, on)
+	if type(uid) ~= "string" then
+		return
+	end
+	local e = Core.S.Entities.get(uid)
+	if not e or e.kind ~= "sink" or not e.model or not e.model.PrimaryPart then
+		return
+	end
+	local s = sessions[uid]
+	if not on then
+		if s and s.actor == player then
+			sessions[uid] = nil
+			setWashing(e, false)
+		end
+		return
+	end
+	if not Core.S.Session.canWork(player) then
+		return
+	end
+	if s then
+		if s.actor ~= player then
+			Core.S.Net.notify(player, "msg.busy", nil, "info")
+		end
+		return
+	end
+	if not Core.S.Hands.isEmpty(player) then
+		return Core.S.Net.notify(player, "msg.hands_busy", nil, "info")
+	end
+	if sinkPile <= 0 then
+		return Core.S.Net.notify(player, "msg.sink_hint", nil, "info")
+	end
+	if not near(player, e) then
+		return Core.S.Net.notify(player, "msg.too_far", nil, "info")
+	end
+	sessions[uid] = { actor = player, e = e, start = os.clock(), dur = WASH.Time }
+	setWashing(e, true, WASH.Time, player)
+end
+
+-- advances the players' hold sessions: one plate every WASH.Time while they keep holding
+local function washLoop()
+	while true do
+		task.wait(0.1)
+		for uid, s in pairs(sessions) do
+			if not s.staff then
+				local e = s.e
+				local valid = e.model ~= nil and e.model.Parent ~= nil and Core.S.Entities.get(uid) ~= nil
+				valid = valid and s.actor.Parent ~= nil and Core.S.Hands.isEmpty(s.actor) and near(s.actor, e)
+				if not valid or sinkPile <= 0 then
+					sessions[uid] = nil
+					setWashing(e, false)
+				elseif os.clock() - s.start >= s.dur then
+					washOne(e, s.actor)
+					if sinkPile > 0 then
+						s.start = os.clock()
+						setWashing(e, true, s.dur, s.actor)
+					else
+						sessions[uid] = nil
+						setWashing(e, false)
+					end
+				end
+			end
+		end
+	end
 end
 
 function Appliance.useDishwasher(actor, e)
@@ -11121,6 +11366,7 @@ function Appliance.fridgeNear(pos)
 end
 
 function Appliance.Init()
+	Core.S.Net.on("Wash", Appliance.hold, 10)
 	local Placement = Core.S.Placement
 	Placement.ItemAdded:Connect(function(e)
 		if e.kind == "ricecooker" or e.kind == "pot" then
@@ -11142,7 +11388,7 @@ function Appliance.Init()
 			if st.c > 0 then
 				return false, "msg.cooking_wait"
 			end
-		elseif e.kind == "sink" and washing[e.uid] then
+		elseif e.kind == "sink" and sessions[e.uid] then
 			return false, "msg.busy"
 		end
 		return true
@@ -11153,9 +11399,18 @@ function Appliance.Start()
 	Core.S.Session.OwnerReady:Connect(function(_, d)
 		d.dishes.clean = d.dishes.total -- everything was washed overnight
 		sinkPile = 0
+		workspace:SetAttribute("SinkPile", 0)
 	end)
 	task.spawn(cookLoop)
 	task.spawn(dishwasherLoop)
+	task.spawn(washLoop)
+	-- keep the pile visible after the sink is moved or rebuilt
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			refreshPiles()
+		end
+	end)
 end
 
 return Appliance
@@ -13678,7 +13933,7 @@ function Interaction.perform(actor, e, extra)
 end
 
 local ACTION_FOR_KIND = {
-	box = "take_box", shelf = "shelf", ricecooker = "rice", pot = "broth", sink = "wash",
+	box = "take_box", shelf = "shelf", ricecooker = "rice", pot = "broth", sink = "sink_drop",
 	dishwasher = "wash", station = "station", customer = "customer", dirty = "collect", rack = "rack",
 }
 
@@ -18327,7 +18582,7 @@ function World.Start()
 end
 
 return World
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000135"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000134"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000133"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000106"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000136"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000135"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000134"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000107"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client-only animations: swaying lanterns and noren, maneki-neko paws, koi, shishi-odoshi,
 -- streamers, and the evening train on the viaduct.
 local RunService = game:GetService("RunService")
@@ -19998,6 +20253,10 @@ function Effects.Init()
 			if Audio then
 				Audio.play("beep", data.pos)
 			end
+		elseif kind == "washed" and data.uid then
+			if Core.C.Sink then
+				Core.C.Sink.washed(data.uid)
+			end
 		elseif kind == "step" and Audio then
 			Audio.step(data.name, data.dur, data.pos)
 		elseif kind == "combo" then
@@ -20183,7 +20442,7 @@ local function updateCrosshair()
 		dot.Size = UDim2.fromOffset(6, 6)
 		dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	end
-	useButton.Visible = show and touch and target ~= nil and target.near == true
+	useButton.Visible = show and touch and ((target ~= nil and target.near == true) or (Core.C.Sink ~= nil and Core.C.Sink.isHolding()))
 end
 
 local function shortcut(key)
@@ -20252,9 +20511,15 @@ function FirstPerson.Init()
 		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -24, 1, -190), Size = UDim2.fromOffset(86, 86), Text = "✋",
 		TextScaled = true, BackgroundColor3 = T.gold, Visible = false, Parent = gui,
 	}, { Kit.corner(43), Kit.stroke(T.wood, 3, 0) })
-	useButton.Activated:Connect(function()
+	-- pressed = use (and start washing at a sink), released = stop washing
+	useButton.MouseButton1Down:Connect(function()
 		if Core.C.Interaction and Core.C.Interaction.act then
 			Core.C.Interaction.act()
+		end
+	end)
+	useButton.MouseButton1Up:Connect(function()
+		if Core.C.Sink then
+			Core.C.Sink.endHold()
 		end
 	end)
 	runButton = Kit.new("TextButton", {
@@ -20430,10 +20695,13 @@ local function actionText(model, kind, slot)
 		return t("hint.collect")
 	elseif kind == "sink" then
 		if hands == "dirty" then
-			return t("hint.wash")
+			return t("hint.sink_drop")
+		end
+		if model:GetAttribute("Washing") and model:GetAttribute("Washer") == player.UserId then
+			return t("hint.washing")
 		end
 		local pile = workspace:GetAttribute("SinkPile") or 0
-		return pile > 0 and t("hint.wash_pile", { n = pile }) or t("hint.sink")
+		return pile > 0 and t("hint.wash_hold", { n = pile }) or t("hint.sink")
 	elseif kind == "dishwasher" then
 		return hands == "dirty" and t("hint.load_dishwasher") or t("hint.dishwasher", { n = model:GetAttribute("Queue") or 0 })
 	elseif kind == "rack" then
@@ -20506,12 +20774,32 @@ local function update(screenPos)
 	setCurrent(model, slot)
 end
 
-local function act()
+-- washing is held: true when this click starts (or a tap toggles) washing at the sink
+local function washHold(tap)
+	if current.kind ~= "sink" or handsKind() ~= nil or (workspace:GetAttribute("SinkPile") or 0) <= 0 then
+		return false
+	end
+	local Sink = Core.C.Sink
+	if not Sink then
+		return false
+	end
+	if tap then
+		Sink.toggle(current.uid)
+	else
+		Sink.beginHold(current.uid)
+	end
+	return true
+end
+
+local function act(tap)
 	if not current then
 		return
 	end
 	if not current.near then
 		Core.C.UI.toast(t("msg.too_far"), "info")
+		return
+	end
+	if washHold(tap) then
 		return
 	end
 	if current.kind == "supplier" then
@@ -20655,6 +20943,13 @@ function Interaction.Start()
 			act()
 		end
 	end)
+	-- releasing the click / E stops washing
+	UserInputService.InputEnded:Connect(function(input)
+		local released = input.UserInputType == Enum.UserInputType.MouseButton1 or input.KeyCode == Enum.KeyCode.E or input.KeyCode == Enum.KeyCode.ButtonX
+		if released and Core.C.Sink then
+			Core.C.Sink.endHold()
+		end
+	end)
 	UserInputService.TouchTap:Connect(function(positions, processed)
 		if processed or (Core.C.Build and Core.C.Build.active) then
 			return
@@ -20663,7 +20958,7 @@ function Interaction.Start()
 		if p then
 			local viewport = Vector2.new(p.X, p.Y + GuiService:GetGuiInset().Y)
 			update(viewport)
-			act()
+			act(true)
 		end
 	end)
 end
@@ -20774,7 +21069,217 @@ function LightingC.Start()
 end
 
 return LightingC
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000103"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000103"><Properties><string name="Name">Sink</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Washing the dishes at the sink. While a sink has Washing = true (set by ApplianceService) every
+-- client shows a dirty plate under the running tap with a sponge scrubbing it in circles while the
+-- dirt fades away; each clean plate slides to the left, towards the drying rack, fading out.
+-- The player who washes also sees a thin progress bar under the middle of the screen.
+-- Holding: Interaction calls Sink.beginHold on click / E down (or the ✋ button) and Sink.endHold
+-- on release; a tap on a touch screen toggles instead.
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local CollectionService = game:GetService("CollectionService")
+
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local NetDef = require(Shared.Net)
+local Registry = require(Shared.Models.Registry)
+local Kit = require(Shared.Models.Kit)
+local UIKit = require(script.Parent.Parent.UI.Kit)
+local Core = require(script.Parent.Parent.Core)
+
+local Sink = {}
+local player = Players.LocalPlayer
+local scenes = {} -- [sink model] = { plate, dirt = { parts }, sponge }
+local holding = nil -- sink uid we are holding on
+local PLATE_LIFT = CFrame.new(0, 0.35, 0) -- a one-plate stack has its pivot 0.35 above its bottom
+local barGui, barFill
+
+-- where the plate is scrubbed: in the empty basin under the tap, tilted towards you
+local function plateCf(m)
+	local root = m.PrimaryPart
+	local h = root.Size.Y
+	return root.CFrame * CFrame.new(0.25, (h - 0.3) - h / 2, -0.12) * CFrame.Angles(math.rad(-22), 0, 0)
+end
+
+local function noQuery(model)
+	for _, d in ipairs(model:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+			d.CanQuery = false
+			d.CanTouch = false
+		end
+	end
+end
+
+local function makeScene(m)
+	local folder = Instance.new("Model")
+	folder.Name = "WashScene"
+	-- a clean plate with dirt on top (sauce smears and rice) that fades while scrubbing
+	local plate = Registry.food("stack", 1, "clean")
+	noQuery(plate)
+	plate.Parent = folder
+	local dirtModel = Kit.model("Dirt")
+	local dirt = {}
+	for i, spot in ipairs({ { 0.18, 0.1, 0.32 }, { -0.2, -0.12, 0.26 }, { 0.05, -0.25, 0.18 } }) do
+		local p = Kit.cyl(dirtModel, spot[3], 0.012, spot[1], 0.125, spot[2], i == 2 and "#C08A3E" or "#6B3E1E", Enum.Material.SmoothPlastic, { collide = false, shadow = false })
+		table.insert(dirt, p)
+	end
+	for k = 0, 5 do
+		local p = Kit.ball(dirtModel, 0.06, -0.25 + k * 0.1, 0.14, (k % 2) * 0.16 - 0.05, "#F4F1EA", Enum.Material.Sand, { collide = false, shadow = false })
+		table.insert(dirt, p)
+	end
+	noQuery(dirtModel)
+	dirtModel.WorldPivot = CFrame.new() -- built around the bottom of the plate
+	dirtModel.Parent = folder
+	-- the sponge: yellow foam with a green scrubbing side, and a few soap bubbles
+	local spongeModel = Kit.model("Sponge")
+	local foam = Kit.box(spongeModel, 0.42, 0.16, 0.28, 0, 0.08, 0, "#F2D04A", Enum.Material.Fabric, { collide = false })
+	Kit.box(spongeModel, 0.42, 0.05, 0.28, 0, -0.025, 0, "#4E8A3A", Enum.Material.Fabric, { collide = false })
+	Kit.particles(foam, "bubbles", { rate = 14 })
+	noQuery(spongeModel)
+	spongeModel.WorldPivot = CFrame.new()
+	spongeModel.Parent = folder
+	folder.Parent = workspace.CurrentCamera
+	return { folder = folder, plate = plate, dirtModel = dirtModel, dirt = dirt, sponge = spongeModel }
+end
+
+local function progressOf(m)
+	local start = m:GetAttribute("WashStart") or workspace:GetServerTimeNow()
+	local dur = math.max(0.1, m:GetAttribute("WashTime") or 1)
+	return math.clamp((workspace:GetServerTimeNow() - start) / dur, 0, 1)
+end
+
+local function update()
+	local now = os.clock()
+	local mine = nil
+	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
+		if m:GetAttribute("Kind") == "sink" then
+			local sc = scenes[m]
+			if m:GetAttribute("Washing") and m.PrimaryPart then
+				if not sc then
+					sc = makeScene(m)
+					scenes[m] = sc
+				end
+				local t = progressOf(m)
+				local base = plateCf(m)
+				local spin = CFrame.Angles(0, now * 0.9, 0)
+				sc.plate:PivotTo(base * spin * PLATE_LIFT)
+				sc.dirtModel:PivotTo(base * spin)
+				for _, p in ipairs(sc.dirt) do
+					p.Transparency = math.min(1, t * 1.15)
+				end
+				-- the sponge scrubs in small circles over the plate
+				local a = now * 9
+				local r = 0.22 + 0.06 * math.sin(now * 3)
+				sc.sponge:PivotTo(base * CFrame.new(math.cos(a) * r, 0.17, math.sin(a) * r) * CFrame.Angles(0, -a, math.sin(a * 2) * 0.12))
+				if m:GetAttribute("Washer") == player.UserId then
+					mine = t
+				end
+			elseif sc then
+				sc.folder:Destroy()
+				scenes[m] = nil
+			end
+		end
+	end
+	for m, sc in pairs(scenes) do
+		if not m.Parent then
+			sc.folder:Destroy()
+			scenes[m] = nil
+		end
+	end
+	barGui.Enabled = mine ~= nil
+	if mine then
+		barFill.Size = UDim2.fromScale(mine, 1)
+	end
+end
+
+-- a clean plate slides to the left (towards the drying rack) and fades out
+function Sink.washed(uid)
+	local m = nil
+	for _, inst in ipairs(CollectionService:GetTagged("Interactable")) do
+		if inst:GetAttribute("Uid") == uid then
+			m = inst
+		end
+	end
+	if not m or not m.PrimaryPart then
+		return
+	end
+	local start = plateCf(m)
+	local plate = Registry.food("stack", 1, "clean")
+	noQuery(plate)
+	start = start * PLATE_LIFT
+	plate:PivotTo(start)
+	plate.Parent = workspace.CurrentCamera
+	local parts = {}
+	for _, d in ipairs(plate:GetDescendants()) do
+		if d:IsA("BasePart") then
+			table.insert(parts, { part = d, base = d.Transparency })
+		end
+	end
+	-- the sink's +X is the left of a player facing it
+	local goal = start * CFrame.new(1.3, 0.3, 0) * CFrame.Angles(math.rad(22), 0, 0)
+	task.spawn(function()
+		local t0 = os.clock()
+		local dur = 0.7
+		while os.clock() - t0 < dur do
+			local k = (os.clock() - t0) / dur
+			local ease = 1 - (1 - k) * (1 - k)
+			plate:PivotTo(start:Lerp(goal, ease))
+			for _, p in ipairs(parts) do
+				p.part.Transparency = p.base + (1 - p.base) * k
+			end
+			RunService.RenderStepped:Wait()
+		end
+		plate:Destroy()
+	end)
+end
+
+function Sink.beginHold(uid)
+	if holding == uid then
+		return
+	end
+	if holding then
+		Sink.endHold()
+	end
+	holding = uid
+	NetDef.event("Wash"):FireServer(uid, true)
+end
+
+function Sink.endHold()
+	if holding then
+		NetDef.event("Wash"):FireServer(holding, false)
+		holding = nil
+	end
+end
+
+function Sink.toggle(uid)
+	if holding == uid then
+		Sink.endHold()
+	else
+		Sink.beginHold(uid)
+	end
+end
+
+function Sink.isHolding()
+	return holding ~= nil
+end
+
+function Sink.Init()
+	barGui = UIKit.new("ScreenGui", { Name = "WashBar", ResetOnSpawn = false, IgnoreGuiInset = true, Enabled = false, Parent = player:WaitForChild("PlayerGui") })
+	local track = UIKit.new("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0.5, 58), Size = UDim2.fromOffset(200, 7),
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.45, Parent = barGui,
+	}, { UIKit.corner(4) })
+	barFill = UIKit.new("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = UIKit.Theme.gold, Parent = track }, { UIKit.corner(4) })
+end
+
+function Sink.Start()
+	RunService.RenderStepped:Connect(update)
+end
+
+return Sink
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Guided first day: step panel, arrow beam to the target and a floating marker.
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
@@ -21031,7 +21536,7 @@ function Tutorial.Start()
 end
 
 return Tutorial
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Screen manager, toasts and shared UI helpers.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -21234,7 +21739,7 @@ function UI.Start()
 end
 
 return UI
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Localized billboards over customers (order + patience), stations (board / next step),
 -- rice cookers & pots, shelf slots, dirty dishes and staff name tags.
 local Players = game:GetService("Players")
@@ -21518,13 +22023,13 @@ function WorldUI.Start()
 end
 
 return WorldUI
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000108"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of client controllers and UI screens.
 return {
 	C = {},
 	Screens = {},
 }
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000108"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000109"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client entry point.
 if not game:IsLoaded() then
 	game.Loaded:Wait()
@@ -21534,7 +22039,7 @@ local Core = require(script.Parent.Core)
 local Controllers = script.Parent.Controllers
 
 local ORDER = {
-	"Data", "Audio", "UI", "Lighting", "Ambient", "WorldUI", "Camera", "Interaction", "FirstPerson", "Build", "Tutorial", "Effects",
+	"Data", "Audio", "UI", "Lighting", "Ambient", "WorldUI", "Camera", "Interaction", "FirstPerson", "Sink", "Build", "Tutorial", "Effects",
 }
 
 for _, name in ipairs(ORDER) do
@@ -21570,7 +22075,7 @@ for _, name in ipairs(ORDER) do
 		end)
 	end
 end
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000132"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000133"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Helper to build standard modal screens: Base.make(name, titleKey, size, render)
 -- render(content, screen) rebuilds the content each refresh.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -21615,7 +22120,7 @@ function Base.make(name, titleKey, size, render)
 end
 
 return Base
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Emoji icons for catalog cards (no image assets needed).
 local Icons = {
 	cat = {
@@ -21659,7 +22164,7 @@ function Icons.forItem(item)
 end
 
 return Icons
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Tiny declarative UI toolkit + the visual theme (washi paper, dark wood, lacquer red, gold).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Color = require(Shared.Util.Color)
@@ -21969,7 +22474,7 @@ function Kit.row(icon, titleText, subtitle, height)
 end
 
 return Kit
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000131"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000132"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build panel: catalog by category, inventory, floor/wall styles, grid & rotation tools,
 -- selection actions (move / rotate / store / sell).
 local Players = game:GetService("Players")
@@ -22260,7 +22765,7 @@ function Screen.close()
 end
 
 return Screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Codes</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Codes</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Redeem a code (Config/Rewards.Codes): each code works once per player.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -22291,7 +22796,7 @@ return Base.make("Codes", "ui.codes", UDim2.fromScale(0.4, 0.42), function(conte
 	end)
 	Kit.button(t("ui.redeem"), { parent = content, size = UDim2.new(1, 0, 0, 46), position = UDim2.new(0, 0, 1, -48), style = "green", onClick = redeem })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -22339,7 +22844,7 @@ screen = Base.make("DayReport", "ui.report", UDim2.fromScale(0.42, 0.74), functi
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Kit = require(script.Parent.Parent.Kit)
@@ -22361,7 +22866,7 @@ return Base.make("Dev", "ui.dev", UDim2.fromScale(0.5, 0.6), function(content)
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Expansions screen: new rooms and floors ("zones" tab) and renovations that turn the plain
 -- starting restaurant into the detailed one ("reno" tab, grouped by exterior/interior/furniture).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -22453,7 +22958,7 @@ screen = Base.make("Expansions", "ui.expansions", UDim2.fromScale(0.66, 0.76), f
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Gifts</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Gifts</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Free gifts for the minutes played in this session (Config/Rewards.Gifts). Timers tick every
 -- second without rebuilding the list.
 local Players = game:GetService("Players")
@@ -22577,7 +23082,7 @@ player:GetAttributeChangedSignal("GiftsClaimed"):Connect(function()
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login calendar, leaderboards and franchise.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -22739,7 +23244,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Order guide: tapping an order ticket (left) shows what to do, in a few short lines with live
 -- ticks, highlights the shelf slots and the station to use and draws a glowing arrow from you to
 -- the next thing to click.
@@ -23125,7 +23630,7 @@ function Guide.close()
 end
 
 return Guide
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Always-visible HUD, kept small: wallet and level (top-left), day bar with an open / closed
 -- switch (top-centre), rating line (top-right), order tickets (left), what you hold (bottom),
 -- build / supplier / phone (bottom-left).
@@ -23448,7 +23953,7 @@ function HUD.open() end
 function HUD.close() end
 
 return HUD
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Invite friends to the personal world and set their permissions.
 local Players = game:GetService("Players")
 local SocialService = game:GetService("SocialService")
@@ -23495,7 +24000,7 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.66), function(con
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000123"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -23547,7 +24052,7 @@ return Base.make("Licenses", "ui.licenses", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000123"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Menu board: enable dishes, set prices (-30%..+30%), recipe book with mastery.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -23640,7 +24145,7 @@ screen = Base.make("Menu", "ui.menu", UDim2.fromScale(0.66, 0.76), function(cont
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000125"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -23661,7 +24166,7 @@ return Base.make("Offline", "ui.offline", UDim2.fromScale(0.36, 0.4), function(c
 		Core.C.UI.close("Offline")
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000125"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000126"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Phone: every secondary screen is an app, ordered by how often it is needed. Opens from the
 -- 📱 button at the bottom-left and closes when an app is opened.
 local Players = game:GetService("Players")
@@ -23769,7 +24274,7 @@ function Phone.close()
 end
 
 return Phone
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000126"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000127"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -23822,7 +24327,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 		end
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000127"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000128"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -23863,7 +24368,7 @@ return Base.make("Shop", "ui.shop", UDim2.fromScale(0.6, 0.72), function(content
 		Kit.label("🛒 " .. t("ui.shop_soon"), { Parent = scroll, Size = UDim2.new(1, 0, 0, 80), TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000128"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000129"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -23929,7 +24434,7 @@ return Base.make("Staff", "ui.staff", UDim2.fromScale(0.66, 0.78), function(cont
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000129"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000130"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier tablet: order boxes of ingredients and dish sets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -24035,7 +24540,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000130"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000131"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -24107,4 +24612,4 @@ return Base.make("Upgrades", "ui.upgrades", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000136"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000137"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000138"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000137"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000138"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000139"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

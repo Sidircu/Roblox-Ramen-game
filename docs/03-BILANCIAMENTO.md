@@ -204,7 +204,7 @@ Colonne: prezzo, punti ambiente (Amb.), livello di sblocco, tipo di piazzamento,
 | `fryer` | Friggitrice | ¥8.000 | 18 | fritti |
 | `takoyaki_stove` | Fornello takoyaki | ¥9.000 | 24 | takoyaki |
 | `dessert_station` | Postazione dolci | ¥10.000 | 28 | dolci |
-| `sink` | Lavello | ¥500 | 1 | lavaggio a mano |
+| `sink` | Lavello | ¥500 | 1 | lavaggio a mano tenendo premuto: 1,6 s a piatto (`GameConfig.Washing`), si vedono fino a 12 piatti sporchi nella vasca; il personale ne lava fino a 8 a giro |
 | `dishwasher` | Lavastoviglie | ¥12.000 | 13 | lava 6 stoviglie ogni 20 s da sola |
 | `dish_set` | Set stoviglie (+6) | ¥300 | 1 | aumenta le stoviglie totali |
 | `storage_rack` | Scaffale magazzino | ¥700 | 1 | 6 scatole |

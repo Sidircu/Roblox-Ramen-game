@@ -206,7 +206,8 @@ Non esistono errori né tempismo: ogni piatto riesce sempre. Il guadagno dipende
 ### 5.6 Servire, pagare, pulire
 - Clic sul piatto pronto → lo prendi (anche più piatti, in base al Vassoio). Clic sul cliente → lo servi.
 - Il cliente mangia (barra), poi paga in automatico: le monete volano verso la cassa con un "cha-ching". Il pagamento è **prezzo del menu + mancia**.
-- Al posto restano **stoviglie sporche**: il posto non è utilizzabile finché non le raccogli. Clic → le prendi → clic sul **lavello** → si lavano con un'animazione e tornano pulite.
+- Al posto restano **stoviglie sporche**: il posto non è utilizzabile finché non le raccogli. Clic → le prendi → clic sul **lavello** → i piatti si **accumulano di lato**, impilati nella vasca con l'acqua saponata.
+- **Minigioco del lavaggio**: quando ci sono piatti sporchi compare "Tieni premuto: lava i piatti". Tieni premuto il clic (o E, o il pulsante ✋ su telefono): il rubinetto si apre, un piatto sporco va sotto l'acqua e una **spugna gira** sopra mentre lo sporco sparisce; una **barra sottile** sotto il centro dello schermo mostra il completamento. Quando il piatto è pulito **scorre verso sinistra**, verso lo scolapiatti, diventando trasparente fino a sparire, e si passa da solo al piatto successivo finché tieni premuto. Se lasci, il piatto in corso si ferma (con un tocco sul lavello, sul telefono, si avvia e si ferma). Il personale lava da solo con la stessa animazione.
 - Le **stoviglie pulite** sono una risorsa: se finiscono non puoi impiattare. Puoi comprare altri set di ciotole e piatti; la **lavastoviglie** lava da sola.
 
 ---

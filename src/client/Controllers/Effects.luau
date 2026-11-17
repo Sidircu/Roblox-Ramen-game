@@ -142,6 +142,10 @@ function Effects.Init()
 			if Audio then
 				Audio.play("beep", data.pos)
 			end
+		elseif kind == "washed" and data.uid then
+			if Core.C.Sink then
+				Core.C.Sink.washed(data.uid)
+			end
 		elseif kind == "step" and Audio then
 			Audio.step(data.name, data.dur, data.pos)
 		elseif kind == "combo" then

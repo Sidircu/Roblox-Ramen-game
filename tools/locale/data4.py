@@ -17,4 +17,8 @@ NEW = [
 ("msg.code_ok","🎟️ Code {code} redeemed!","🎟️ Codice {code} riscattato!"),
 ("msg.code_used","You already used this code.","Hai già usato questo codice."),
 ("msg.code_invalid","This code does not exist.","Questo codice non esiste."),
+("hint.sink_drop","Put the dirty dishes here","Posa qui i piatti sporchi"),
+("hint.wash_hold","Hold to wash the dishes ({n})","Tieni premuto: lava i piatti ({n})"),
+("hint.washing","Washing… keep holding","Stai lavando… tieni premuto"),
+("msg.wash_hold","Hold the click (or E) on the sink to wash the dishes.","Tieni premuto il clic (o E) sul lavello per lavare i piatti."),
 ]

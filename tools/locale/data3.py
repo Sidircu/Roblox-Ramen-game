@@ -121,7 +121,7 @@ TUT = [
 ("tut.cook","Click the right station to put the ingredients down, then click again for each step: the knife cuts, the ingredients combine!","Clicca la postazione giusta per posare gli ingredienti, poi clicca di nuovo per ogni passaggio: il coltello taglia, gli ingredienti si uniscono!"),
 ("tut.serve","Click the dish to pick it up and click the customer to serve it.","Clicca il piatto per prenderlo e clicca il cliente per servirlo."),
 ("tut.collect","When they leave, click the dirty dishes to collect them.","Quando se ne va, clicca le stoviglie sporche per raccoglierle."),
-("tut.wash","Click the sink to wash them.","Clicca il lavello per lavarle."),
+("tut.wash","Bring them to the sink, then hold the click (or E) on the sink: the sponge washes one plate at a time.","Portali al lavello, poi tieni premuto il clic (o E) sul lavello: la spugna lava un piatto alla volta."),
 ("tut.build","Open 🔨 Build to decorate: choose an object and place it on the 1/5/10 grid.","Apri 🔨 Costruisci per arredare: scegli un oggetto e piazzalo sulla griglia 1/5/10."),
 ("tut.done","You are ready! Earn yen, buy licenses, hire staff and grow your restaurant. がんばって!","Sei pronto! Guadagna yen, compra licenze, assumi personale e fai crescere il tuo ristorante. がんばって!"),
 ]

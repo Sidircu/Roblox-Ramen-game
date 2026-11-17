@@ -153,7 +153,7 @@ local function updateCrosshair()
 		dot.Size = UDim2.fromOffset(6, 6)
 		dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	end
-	useButton.Visible = show and touch and target ~= nil and target.near == true
+	useButton.Visible = show and touch and ((target ~= nil and target.near == true) or (Core.C.Sink ~= nil and Core.C.Sink.isHolding()))
 end
 
 local function shortcut(key)
@@ -222,9 +222,15 @@ function FirstPerson.Init()
 		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -24, 1, -190), Size = UDim2.fromOffset(86, 86), Text = "✋",
 		TextScaled = true, BackgroundColor3 = T.gold, Visible = false, Parent = gui,
 	}, { Kit.corner(43), Kit.stroke(T.wood, 3, 0) })
-	useButton.Activated:Connect(function()
+	-- pressed = use (and start washing at a sink), released = stop washing
+	useButton.MouseButton1Down:Connect(function()
 		if Core.C.Interaction and Core.C.Interaction.act then
 			Core.C.Interaction.act()
+		end
+	end)
+	useButton.MouseButton1Up:Connect(function()
+		if Core.C.Sink then
+			Core.C.Sink.endHold()
 		end
 	end)
 	runButton = Kit.new("TextButton", {

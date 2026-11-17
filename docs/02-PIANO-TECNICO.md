@@ -110,7 +110,7 @@ Un test controlla l'integrità: ogni ingrediente usato esiste, ogni licenza punt
 | `PlacementService` | piazzamento, spostamento, vendita, inventario, verniciatura; validazione (§11) |
 | `InteractionService` | riceve i clic, controlla distanza e stato, smista all'azione giusta; gestisce cosa ha in mano ogni giocatore |
 | `SupplyService` | ordini al fornitore, furgone, scatole nel magazzino, mensole e slot |
-| `ApplianceService` | rice cooker, pentoloni, lavello, lavastoviglie: lotti, timer, porzioni |
+| `ApplianceService` | rice cooker, pentoloni, lavello, lavastoviglie: lotti, timer, porzioni. Lavello: pila di piatti sporchi disegnata nella vasca, sessioni "tieni premuto" (remote `Wash(uid, on)`, un piatto ogni `Washing.Time` finché il giocatore tiene premuto, è vicino e ha le mani libere), attributi `Washing`/`WashStart`/`WashTime`/`Washer` per l'animazione sul client (`SinkController`) |
 | `CookingService` | biglietti d'ordine, sessioni di preparazione, risultati dei minigiochi, piatti pronti |
 | `CustomerService` | arrivo, scelta del posto, ordini, pazienza, pasto, pagamento, recensione; intelligenza dei clienti |
 | `SeatingService` | posti attivi (sgabello davanti al bancone, sedia vicino al tavolo), prenotazioni, punto dove appoggiare il piatto |

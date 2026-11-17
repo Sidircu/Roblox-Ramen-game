@@ -73,6 +73,10 @@ return {
 	BoxShelfSlots = 2,
 	ShelfItemScale = 1.3, -- size of the products shown on shelf slots
 
+	-- Sink: hold to wash one plate every Time seconds; at most MaxPile dirty plates are drawn in the
+	-- soaking basin; staff wash up to StaffBatch plates per trip
+	Washing = { Time = 1.6, MaxPile = 12, StaffBatch = 8 },
+
 	-- Dishes (plates and bowls)
 	StartDishes = 12,
 	DishSetSize = 6,

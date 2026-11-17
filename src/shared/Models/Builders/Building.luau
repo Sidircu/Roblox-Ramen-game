@@ -117,6 +117,75 @@ function B.doorFrame(parent, o, y0, height)
 	Kit.box(parent, o.axis == "z" and len or 0.8, 14 - h - 0.6, o.axis == "z" and 0.8 or len, cx, y0 + h + 0.6 + (14 - h - 0.6) / 2, cz, P.cream, M.plaster, { collide = true })
 end
 
+-- The noren print (the word ramen and a white bowl crest) drawn on the cloth itself. The whole
+-- design is laid out across the curtain and every panel shows its own slice of it, so the print
+-- sways with the fabric and is cut by the slits between panels like a real noren.
+-- offset = studs from the design's left edge (as seen on this face) to the panel's left edge.
+local function norenPrint(cloth, face, width, height, offset)
+	local pps = 60
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = "Print"
+	gui.Face = face
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = pps
+	gui.LightInfluence = 1
+	gui.Parent = cloth
+	local design = Instance.new("Frame")
+	design.BackgroundTransparency = 1
+	design.Position = UDim2.fromOffset(-offset * pps, 0)
+	design.Size = UDim2.fromOffset(width * pps, height * pps)
+	design.Parent = gui
+	local white = Color.of(P.white)
+	-- x, y: centre in studs from the design's top-left corner
+	local function shape(parent, x, y, w, h, color, round, rot)
+		local blot = Instance.new("Frame")
+		blot.AnchorPoint = Vector2.new(0.5, 0.5)
+		blot.Position = UDim2.fromOffset(x * pps, y * pps)
+		blot.Size = UDim2.fromOffset(w * pps, h * pps)
+		blot.BackgroundColor3 = color
+		blot.BorderSizePixel = 0
+		blot.Rotation = rot or 0
+		if round then
+			local c = Instance.new("UICorner")
+			c.CornerRadius = UDim.new(round, 0)
+			c.Parent = blot
+		end
+		blot.Parent = parent
+		return blot
+	end
+	local word = Instance.new("TextLabel")
+	word.AnchorPoint = Vector2.new(0.5, 0.5)
+	word.Position = UDim2.fromOffset(width / 2 * pps, 0.66 * pps)
+	word.Size = UDim2.fromOffset((width - 0.4) * pps, 1.05 * pps)
+	word.BackgroundTransparency = 1
+	word.Text = "ら ー め ん"
+	word.TextScaled = true
+	word.TextColor3 = white
+	word.FontFace = JP_FONT
+	word.AutoLocalize = false
+	word.Parent = design
+	-- bowl: the lower half of an ellipse, a rim line and a small foot
+	local cx = width / 2
+	local clip = Instance.new("Frame")
+	clip.AnchorPoint = Vector2.new(0.5, 0)
+	clip.Position = UDim2.fromOffset(cx * pps, 2.2 * pps)
+	clip.Size = UDim2.fromOffset(1.8 * pps, 0.66 * pps)
+	clip.BackgroundTransparency = 1
+	clip.ClipsDescendants = true
+	clip.Parent = design
+	shape(clip, 0.9, 0, 1.8, 1.32, white, 0.5)
+	shape(design, cx, 2.2, 1.95, 0.09, white, 0.5)
+	shape(design, cx, 2.9, 0.62, 0.1, white, 0.3)
+	-- noodles lifted out of the bowl and two chopsticks
+	for k = -1, 1 do
+		shape(design, cx + k * 0.2, 1.86, 0.07, 0.6, white, 0.5)
+	end
+	for k = 0, 1 do
+		shape(design, cx + 0.42 + k * 0.15, 1.72, 0.06, 1.0, white, 0.5, 28)
+	end
+	return gui
+end
+
 -- Fixed noren curtain hanging in the entrance (customers walk through it)
 function B.entranceNoren(parent, o, y0)
 	local len = o.to - o.from
@@ -124,28 +193,16 @@ function B.entranceNoren(parent, o, y0)
 	local z = o.at - 0.6
 	Kit.cylH(parent, 0.18, len, cx, y0 + 8.7, z, P.wood_dark, M.wood, { collide = false })
 	local panels = 4
+	local h = 3.2
+	local pw = len / panels - 0.12
 	for i = 0, panels - 1 do
 		local x = o.from + len / panels * (i + 0.5)
-		local cloth = Kit.box(parent, len / panels - 0.12, 3.2, 0.06, x, y0 + 7, z, P.indigo, M.fabric, { collide = false })
+		local cloth = Kit.box(parent, pw, h, 0.06, x, y0 + 7, z, P.indigo, M.fabric, { collide = false })
 		cloth.CanQuery = false
 		cloth:SetAttribute("Animate", "sway")
-	end
-	local label = Kit.box(parent, len - 0.3, 1.1, 0.02, cx, y0 + 7.95, z - 0.05, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
-	label.CanQuery = false
-	Kit.text(label, Enum.NormalId.Front, "ら ー め ん", { color = "#FFFFFF", font = JP_FONT, pps = 30 })
-	-- white ramen bowl crest: bowl, rim cut-out, noodles and chopsticks
-	local NC = { collide = false, shadow = false }
-	local function icon(p)
-		p.CanQuery = false
-		return p
-	end
-	icon(Kit.blob(parent, 1.7, 0.95, 0.04, cx, y0 + 6.25, z - 0.06, P.white, M.fabric, NC))
-	icon(Kit.blob(parent, 1.55, 0.36, 0.04, cx, y0 + 6.62, z - 0.08, P.indigo, M.fabric, NC))
-	for k = -1, 1 do
-		icon(Kit.box(parent, 0.08, 0.55, 0.03, cx + k * 0.22, y0 + 6.95, z - 0.08, P.white, M.fabric, NC))
-	end
-	for k = 0, 1 do
-		icon(Kit.part(parent, Vector3.new(0.07, 1.0, 0.03), CFrame.new(cx + 0.35 + k * 0.16, y0 + 7.1, z - 0.08) * CFrame.Angles(0, 0, math.rad(-30)), P.white, M.fabric, NC))
+		-- the front (street side, -Z) shows world +X on its left; the back shows world -X on its left
+		norenPrint(cloth, Enum.NormalId.Front, len, h, o.to - (x + pw / 2))
+		norenPrint(cloth, Enum.NormalId.Back, len, h, (x - pw / 2) - o.from)
 	end
 end
 

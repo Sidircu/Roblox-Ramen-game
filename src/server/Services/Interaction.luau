@@ -61,7 +61,7 @@ function Interaction.perform(actor, e, extra)
 end
 
 local ACTION_FOR_KIND = {
-	box = "take_box", shelf = "shelf", ricecooker = "rice", pot = "broth", sink = "wash",
+	box = "take_box", shelf = "shelf", ricecooker = "rice", pot = "broth", sink = "sink_drop",
 	dishwasher = "wash", station = "station", customer = "customer", dirty = "collect", rack = "rack",
 }
 

@@ -126,10 +126,13 @@ local function actionText(model, kind, slot)
 		return t("hint.collect")
 	elseif kind == "sink" then
 		if hands == "dirty" then
-			return t("hint.wash")
+			return t("hint.sink_drop")
+		end
+		if model:GetAttribute("Washing") and model:GetAttribute("Washer") == player.UserId then
+			return t("hint.washing")
 		end
 		local pile = workspace:GetAttribute("SinkPile") or 0
-		return pile > 0 and t("hint.wash_pile", { n = pile }) or t("hint.sink")
+		return pile > 0 and t("hint.wash_hold", { n = pile }) or t("hint.sink")
 	elseif kind == "dishwasher" then
 		return hands == "dirty" and t("hint.load_dishwasher") or t("hint.dishwasher", { n = model:GetAttribute("Queue") or 0 })
 	elseif kind == "rack" then
@@ -202,12 +205,32 @@ local function update(screenPos)
 	setCurrent(model, slot)
 end
 
-local function act()
+-- washing is held: true when this click starts (or a tap toggles) washing at the sink
+local function washHold(tap)
+	if current.kind ~= "sink" or handsKind() ~= nil or (workspace:GetAttribute("SinkPile") or 0) <= 0 then
+		return false
+	end
+	local Sink = Core.C.Sink
+	if not Sink then
+		return false
+	end
+	if tap then
+		Sink.toggle(current.uid)
+	else
+		Sink.beginHold(current.uid)
+	end
+	return true
+end
+
+local function act(tap)
 	if not current then
 		return
 	end
 	if not current.near then
 		Core.C.UI.toast(t("msg.too_far"), "info")
+		return
+	end
+	if washHold(tap) then
 		return
 	end
 	if current.kind == "supplier" then
@@ -351,6 +374,13 @@ function Interaction.Start()
 			act()
 		end
 	end)
+	-- releasing the click / E stops washing
+	UserInputService.InputEnded:Connect(function(input)
+		local released = input.UserInputType == Enum.UserInputType.MouseButton1 or input.KeyCode == Enum.KeyCode.E or input.KeyCode == Enum.KeyCode.ButtonX
+		if released and Core.C.Sink then
+			Core.C.Sink.endHold()
+		end
+	end)
 	UserInputService.TouchTap:Connect(function(positions, processed)
 		if processed or (Core.C.Build and Core.C.Build.active) then
 			return
@@ -359,7 +389,7 @@ function Interaction.Start()
 		if p then
 			local viewport = Vector2.new(p.X, p.Y + GuiService:GetGuiInset().Y)
 			update(viewport)
-			act()
+			act(true)
 		end
 	end)
 end

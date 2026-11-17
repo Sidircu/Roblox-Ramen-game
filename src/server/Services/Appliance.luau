@@ -1,14 +1,21 @@
 --!nonstrict
 -- Rice cookers, broth pots, sink, dishwasher, fridges and the clean/dirty dish pool.
+-- Sink: dirty dishes brought here pile up in the soaking basin; a player holds the click / E on
+-- the sink to wash them one by one (hold sessions below), staff wash them on their own. The sink
+-- model carries Washing / WashStart / WashTime / Washer so every client animates the plate and the
+-- sponge (Controllers/Sink).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Ingredients = require(Shared.Config.Ingredients)
+local GameConfig = require(Shared.Config.GameConfig)
 local Color = require(Shared.Util.Color)
+local Registry = require(Shared.Models.Registry)
 local Core = require(script.Parent.Parent.Core)
 
 local Appliance = {}
 local sinkPile = 0
 local washerQueue = {} -- [uid] = count waiting
-local washing = {} -- [uid] = true while animating
+local sessions = {} -- [sink uid] = { actor, e, start, dur, staff }
+local WASH = GameConfig.Washing
 
 local function data()
 	return Core.S.Session.ownerData()
@@ -189,6 +196,83 @@ function Appliance.addDirtyToSink(n)
 	workspace:SetAttribute("SinkPile", sinkPile)
 end
 
+local function sinkLocal(e, x, y, z)
+	-- builder coordinates (floor at y = 0) to a world CFrame on the sink
+	local h = e.item.size[2]
+	return e.model.PrimaryPart.CFrame * CFrame.new(x, y - h / 2, z)
+end
+
+-- the sink that shows the pile (the first one placed)
+local function mainSink()
+	local list = Core.S.Entities.ofKind("sink")
+	table.sort(list, function(a, b)
+		return a.uid < b.uid
+	end)
+	return list[1]
+end
+
+-- dirty plates stacked in the soaking basin of the main sink
+local function refreshPiles()
+	Registry.load()
+	local main = mainSink()
+	for _, e in ipairs(Core.S.Entities.ofKind("sink")) do
+		if e.model and e.model.PrimaryPart then
+			local want = (e == main) and math.min(sinkPile, WASH.MaxPile) or 0
+			local pile = e.model:FindFirstChild("DirtyPile")
+			if (pile and pile:GetAttribute("N") or 0) ~= want then
+				if pile then
+					pile:Destroy()
+				end
+				if want > 0 then
+					pile = Instance.new("Model")
+					pile.Name = "DirtyPile"
+					pile:SetAttribute("N", want)
+					for i = 1, want do
+						local m = Registry.food("dirty", "plate")
+						for _, d in ipairs(m:GetDescendants()) do
+							if d:IsA("BasePart") then
+								d.Anchored = true
+								d.CanCollide = false
+							end
+						end
+						-- a slightly messy stack: aiming at it aims at the sink
+						local yaw = (i * 47) % 360
+						m:PivotTo(sinkLocal(e, -1.1 + ((i % 3) - 1) * 0.05, 2.95 + (i - 1) * 0.13, -0.05) * CFrame.Angles(0, math.rad(yaw), 0))
+						m.Parent = pile
+					end
+					pile.Parent = e.model
+				end
+			end
+		end
+	end
+end
+
+local function spoutEmitter(e)
+	local spout = e.model and e.model:FindFirstChild("Spout")
+	return spout and spout:FindFirstChildOfClass("ParticleEmitter")
+end
+
+local function setWashing(e, on, dur, actor)
+	local m = e.model
+	if not m then
+		return
+	end
+	m:SetAttribute("Washing", on)
+	m:SetAttribute("Busy", on)
+	if on then
+		m:SetAttribute("WashStart", workspace:GetServerTimeNow())
+		m:SetAttribute("WashTime", dur)
+		m:SetAttribute("Washer", typeof(actor) == "Instance" and actor.UserId or 0)
+		Core.S.Net.fx("sfx", { name = "wash", pos = m.PrimaryPart.Position })
+	else
+		m:SetAttribute("Washer", 0)
+	end
+	local emitter = spoutEmitter(e)
+	if emitter then
+		emitter.Enabled = on
+	end
+end
+
 function Appliance.sinkPile()
 	return sinkPile
 end
@@ -201,40 +285,131 @@ local function finishWash(count)
 	Core.S.Meta.event(Core.S.Session.owner, "wash", count)
 end
 
--- Sink: wash the dirty dishes in hands (or from the pile); duration scales with count
+-- one plate from the pile is clean: it slides to the drying rack on every client
+local function washOne(e, actor)
+	sinkPile = math.max(0, sinkPile - 1)
+	workspace:SetAttribute("SinkPile", sinkPile)
+	finishWash(1)
+	Core.S.Net.fx("washed", { uid = e.uid })
+	Core.S.Net.fx("sfx", { name = "plate", pos = e.model.PrimaryPart.Position })
+	if typeof(actor) == "Instance" then
+		Core.S.Net.fxTo(actor, "action", { kind = "wash" })
+	end
+	refreshPiles()
+end
+
+-- Sink: dirty dishes in hand go on the pile. Players then hold to wash (Appliance.hold); staff (and
+-- the self test) wash the pile right away, dish by dish, with the same animation.
 function Appliance.useSink(actor, e, speed)
 	local Hands = Core.S.Hands
-	if washing[e.uid] then
-		return false, "msg.busy"
-	end
 	local hands = Hands.get(actor)
-	local count = 0
+	local isPlayer = typeof(actor) == "Instance"
 	if hands.kind == "dirty" then
-		count = #hands.items
+		local n = #hands.items
 		Hands.clear(actor)
-	elseif hands.kind == nil and sinkPile > 0 then
-		count = math.min(6, sinkPile)
-		sinkPile -= count
-		workspace:SetAttribute("SinkPile", sinkPile)
-	else
+		Appliance.addDirtyToSink(n)
+		refreshPiles()
+		Core.S.Net.fx("sfx", { name = "plate", pos = e.model.PrimaryPart.Position })
+		if isPlayer then
+			return true
+		end
+	elseif hands.kind ~= nil then
 		return false, sinkPile > 0 and "msg.hands_busy" or "msg.sink_hint"
 	end
-	washing[e.uid] = true
-	Core.S.Net.fx("sfx", { name = "wash", pos = e.model.PrimaryPart.Position })
-	local spout = e.model:FindFirstChild("Spout")
-	local emitter = spout and spout:FindFirstChildOfClass("ParticleEmitter")
-	if emitter then
-		emitter.Enabled = true
+	if isPlayer then
+		return false, sinkPile > 0 and "msg.wash_hold" or "msg.sink_hint"
 	end
-	e.model:SetAttribute("Busy", true)
-	task.wait(math.max(0.6, 0.35 * count) / (speed or 1))
-	if emitter then
-		emitter.Enabled = false
+	if sessions[e.uid] then
+		return false, "msg.busy"
 	end
-	e.model:SetAttribute("Busy", false)
-	washing[e.uid] = nil
-	finishWash(count)
-	return true
+	local dur = WASH.Time / (speed or 1)
+	sessions[e.uid] = { actor = actor, e = e, staff = true }
+	local count = 0
+	while sinkPile > 0 and count < WASH.StaffBatch and e.model and e.model.Parent do
+		setWashing(e, true, dur, actor)
+		task.wait(dur)
+		washOne(e, actor)
+		count += 1
+	end
+	sessions[e.uid] = nil
+	setWashing(e, false)
+	return count > 0
+end
+
+local function near(player, e)
+	local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	if not hrp or not e.model or not e.model.PrimaryPart then
+		return false
+	end
+	local p = e.model.PrimaryPart.Position
+	local flat = (Vector3.new(p.X, 0, p.Z) - Vector3.new(hrp.Position.X, 0, hrp.Position.Z)).Magnitude
+	return flat <= GameConfig.InteractRange + 3 and math.abs(p.Y - hrp.Position.Y) < 12
+end
+
+-- Hold to wash (remote "Wash"): on = true starts washing at this sink, false stops
+function Appliance.hold(player, uid, on)
+	if type(uid) ~= "string" then
+		return
+	end
+	local e = Core.S.Entities.get(uid)
+	if not e or e.kind ~= "sink" or not e.model or not e.model.PrimaryPart then
+		return
+	end
+	local s = sessions[uid]
+	if not on then
+		if s and s.actor == player then
+			sessions[uid] = nil
+			setWashing(e, false)
+		end
+		return
+	end
+	if not Core.S.Session.canWork(player) then
+		return
+	end
+	if s then
+		if s.actor ~= player then
+			Core.S.Net.notify(player, "msg.busy", nil, "info")
+		end
+		return
+	end
+	if not Core.S.Hands.isEmpty(player) then
+		return Core.S.Net.notify(player, "msg.hands_busy", nil, "info")
+	end
+	if sinkPile <= 0 then
+		return Core.S.Net.notify(player, "msg.sink_hint", nil, "info")
+	end
+	if not near(player, e) then
+		return Core.S.Net.notify(player, "msg.too_far", nil, "info")
+	end
+	sessions[uid] = { actor = player, e = e, start = os.clock(), dur = WASH.Time }
+	setWashing(e, true, WASH.Time, player)
+end
+
+-- advances the players' hold sessions: one plate every WASH.Time while they keep holding
+local function washLoop()
+	while true do
+		task.wait(0.1)
+		for uid, s in pairs(sessions) do
+			if not s.staff then
+				local e = s.e
+				local valid = e.model ~= nil and e.model.Parent ~= nil and Core.S.Entities.get(uid) ~= nil
+				valid = valid and s.actor.Parent ~= nil and Core.S.Hands.isEmpty(s.actor) and near(s.actor, e)
+				if not valid or sinkPile <= 0 then
+					sessions[uid] = nil
+					setWashing(e, false)
+				elseif os.clock() - s.start >= s.dur then
+					washOne(e, s.actor)
+					if sinkPile > 0 then
+						s.start = os.clock()
+						setWashing(e, true, s.dur, s.actor)
+					else
+						sessions[uid] = nil
+						setWashing(e, false)
+					end
+				end
+			end
+		end
+	end
 end
 
 function Appliance.useDishwasher(actor, e)
@@ -312,6 +487,7 @@ function Appliance.fridgeNear(pos)
 end
 
 function Appliance.Init()
+	Core.S.Net.on("Wash", Appliance.hold, 10)
 	local Placement = Core.S.Placement
 	Placement.ItemAdded:Connect(function(e)
 		if e.kind == "ricecooker" or e.kind == "pot" then
@@ -333,7 +509,7 @@ function Appliance.Init()
 			if st.c > 0 then
 				return false, "msg.cooking_wait"
 			end
-		elseif e.kind == "sink" and washing[e.uid] then
+		elseif e.kind == "sink" and sessions[e.uid] then
 			return false, "msg.busy"
 		end
 		return true
@@ -344,9 +520,18 @@ function Appliance.Start()
 	Core.S.Session.OwnerReady:Connect(function(_, d)
 		d.dishes.clean = d.dishes.total -- everything was washed overnight
 		sinkPile = 0
+		workspace:SetAttribute("SinkPile", 0)
 	end)
 	task.spawn(cookLoop)
 	task.spawn(dishwasherLoop)
+	task.spawn(washLoop)
+	-- keep the pile visible after the sink is moved or rebuilt
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			refreshPiles()
+		end
+	end)
 end
 
 return Appliance
