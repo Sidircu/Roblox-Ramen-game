@@ -8,12 +8,14 @@
 --   * keyboard shortcuts for the bottom buttons: B build, O supplier, P phone (all camera modes)
 --   * on touch screens a big ✋ button uses what is under the crosshair (tapping things works too)
 --   * running: hold Shift, or the 🏃 button on touch screens (every camera mode)
+--   * right mouse button puts down the box(es) you carry (in third person it turns the camera)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Locale = require(Shared.Locale)
+local NetDef = require(Shared.Net)
 local RewardsCfg = require(Shared.Config.Rewards)
 local Kit = require(script.Parent.Parent.UI.Kit)
 local Core = require(script.Parent.Parent.Core)
@@ -280,6 +282,13 @@ function FirstPerson.Start()
 			return
 		end
 		if processed or UserInputService:GetFocusedTextBox() then
+			return
+		end
+		-- right click puts the box down (only boxes: a dish dropped by mistake would be lost)
+		if input.UserInputType == Enum.UserInputType.MouseButton2 then
+			if active() and player:GetAttribute("HandsKind") == "box" then
+				NetDef.event("DropHands"):FireServer()
+			end
 			return
 		end
 		shortcut(input.KeyCode)

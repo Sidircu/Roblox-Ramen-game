@@ -1852,7 +1852,7 @@ return {
 	["tut.collect"] = "When they leave, click the dirty dishes to collect them.",
 	["tut.cook"] = "Click the ramen station: the ingredients fly onto their shapes. Then click again for each step: boil and drain the noodles, pour the broth, add the toppings!",
 	["tut.done"] = "You are ready! Earn yen, buy licenses, hire staff and grow your restaurant. がんばって!",
-	["tut.fill_shelf"] = "Carry it to a shelf in the kitchen and click the shelf: the products jump onto the free spots of the grid (each box fills 2 slots). G puts a box down.",
+	["tut.fill_shelf"] = "Carry it to a shelf in the kitchen and click the shelf: the products jump onto the free spots of the grid (each box fills 2 slots). Right click (or G) puts a box down.",
 	["tut.ingredients"] = "Look at the ramen station: the see-through shapes on the board are what you need. Take noodles, scallion and naruto from the shelves (the tag says what is on each slot).",
 	["tut.more_boxes"] = "Put the other boxes on the shelves too: you need noodles, scallion and naruto.",
 	["tut.open"] = "Tap the red CLOSED switch at the top: it turns green (OPEN) and customers arrive.",
@@ -1903,7 +1903,7 @@ return {
 	["ui.exit_build"] = "Exit",
 	["ui.expansions"] = "Expansions",
 	["ui.fast"] = "Fast",
-	["ui.fp_keys"] = "Click / E: use · G: put down · Shift: run · Q: mouse · B build · O supplier · P phone · R gifts",
+	["ui.fp_keys"] = "Click / E: use · Right click: put the box down · G: put down · Shift: run · Q: mouse · B build · O supplier · P phone · R gifts",
 	["ui.franchise_info"] = "Franchise stars: {stars} · permanent bonus +{yen}% yen and +{xp}% XP.",
 	["ui.franchise_open"] = "Open a restaurant in {city}",
 	["ui.franchise_req"] = "Requires level {level}, rating {rating}★ and all main expansions. Your decorations go to the inventory.",
@@ -2653,7 +2653,7 @@ return {
 	["tut.collect"] = "Quando se ne va, clicca le stoviglie sporche per raccoglierle.",
 	["tut.cook"] = "Clicca la postazione del ramen: gli ingredienti volano sulle loro sagome. Poi clicca di nuovo per ogni passaggio: cuoci e scola i noodles, versa il brodo, aggiungi i condimenti!",
 	["tut.done"] = "Sei pronto! Guadagna yen, compra licenze, assumi personale e fai crescere il tuo ristorante. がんばって!",
-	["tut.fill_shelf"] = "Portala a uno scaffale della cucina e clicca lo scaffale: i prodotti saltano nei posti liberi della griglia (ogni scatola riempie 2 ripiani). G posa la scatola.",
+	["tut.fill_shelf"] = "Portala a uno scaffale della cucina e clicca lo scaffale: i prodotti saltano nei posti liberi della griglia (ogni scatola riempie 2 ripiani). Il tasto destro (o G) posa la scatola.",
 	["tut.ingredients"] = "Guarda la postazione del ramen: le sagome trasparenti sul tagliere sono quello che serve. Prendi noodles, cipollotto e naruto dagli scaffali (il cartellino dice cosa c'è su ogni ripiano).",
 	["tut.more_boxes"] = "Metti sugli scaffali anche le altre scatole: servono noodles, cipollotto e naruto.",
 	["tut.open"] = "Tocca l'interruttore rosso CHIUSO in alto: diventa verde (APERTO) e arrivano i clienti.",
@@ -2704,7 +2704,7 @@ return {
 	["ui.exit_build"] = "Esci",
 	["ui.expansions"] = "Espansioni",
 	["ui.fast"] = "Veloce",
-	["ui.fp_keys"] = "Clic / E: usa · G: posa · Shift: corri · Q: mouse · B costruisci · O fornitore · P telefono · R regali",
+	["ui.fp_keys"] = "Clic / E: usa · Tasto destro: posa la scatola · G: posa · Shift: corri · Q: mouse · B costruisci · O fornitore · P telefono · R regali",
 	["ui.franchise_info"] = "Stelle franchise: {stars} · bonus permanente +{yen}% yen e +{xp}% XP.",
 	["ui.franchise_open"] = "Apri un locale a {city}",
 	["ui.franchise_req"] = "Serve il livello {level}, valutazione {rating}★ e tutte le espansioni principali. Le decorazioni vanno nell'inventario.",
@@ -21431,12 +21431,14 @@ return Effects
 --   * keyboard shortcuts for the bottom buttons: B build, O supplier, P phone (all camera modes)
 --   * on touch screens a big ✋ button uses what is under the crosshair (tapping things works too)
 --   * running: hold Shift, or the 🏃 button on touch screens (every camera mode)
+--   * right mouse button puts down the box(es) you carry (in third person it turns the camera)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Locale = require(Shared.Locale)
+local NetDef = require(Shared.Net)
 local RewardsCfg = require(Shared.Config.Rewards)
 local Kit = require(script.Parent.Parent.UI.Kit)
 local Core = require(script.Parent.Parent.Core)
@@ -21703,6 +21705,13 @@ function FirstPerson.Start()
 			return
 		end
 		if processed or UserInputService:GetFocusedTextBox() then
+			return
+		end
+		-- right click puts the box down (only boxes: a dish dropped by mistake would be lost)
+		if input.UserInputType == Enum.UserInputType.MouseButton2 then
+			if active() and player:GetAttribute("HandsKind") == "box" then
+				NetDef.event("DropHands"):FireServer()
+			end
 			return
 		end
 		shortcut(input.KeyCode)

@@ -486,9 +486,9 @@
     "semantic_hash": ""
   },
   "src/shared/Locale/en.luau": {
-    "mtime": 1794949286.9968288,
-    "seen": 1794949293.5971882,
-    "ast_hash": "03028ec7eddd0c2bb0200caeb10e30b4",
+    "mtime": 1794949434.0870466,
+    "seen": 1794949438.3790252,
+    "ast_hash": "2e019586e9a580e393fa5146459ecbba",
     "semantic_hash": ""
   },
   "src/shared/Locale/init.luau": {
@@ -498,9 +498,9 @@
     "semantic_hash": ""
   },
   "src/shared/Locale/it.luau": {
-    "mtime": 1794949286.997634,
-    "seen": 1794949293.5971904,
-    "ast_hash": "b2b771f73921d7907a0f9650f2450139",
+    "mtime": 1794949434.0878162,
+    "seen": 1794949438.379029,
+    "ast_hash": "c9987fa38434c803ebfba7664ccff6b8",
     "semantic_hash": ""
   },
   "src/shared/Logic/Ambience.luau": {
@@ -690,15 +690,15 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1794945057.0453806,
-    "seen": 1794945063.699217,
-    "ast_hash": "52a6ad83a17374464558a9b88c17a23d",
+    "mtime": 1794949434.067662,
+    "seen": 1794949438.3791234,
+    "ast_hash": "c05aef0b64dc252cb879d91b1656a605",
     "semantic_hash": ""
   },
   "docs/01-GAME-DESIGN.md": {
-    "mtime": 1794949286.97369,
-    "seen": 1794949293.5972397,
-    "ast_hash": "53769ebdcc5ba0d569947ba233aca14c",
+    "mtime": 1794949434.067387,
+    "seen": 1794949438.3791254,
+    "ast_hash": "0057567efeb65a1f748295fc3670b4b5",
     "semantic_hash": ""
   },
   "docs/02-PIANO-TECNICO.md": {
@@ -738,9 +738,9 @@
     "semantic_hash": ""
   },
   "tools/locale/data3.py": {
-    "mtime": 1794949286.9724069,
-    "seen": 1794949293.5972314,
-    "ast_hash": "0e12e230ab2493ed239a5fad5719a2fc",
+    "mtime": 1794949434.066828,
+    "seen": 1794949438.37911,
+    "ast_hash": "525cce0c0aa6b4fe30fb39928d81335c",
     "semantic_hash": ""
   },
   "tools/locale/gen.py": {
@@ -786,9 +786,9 @@
     "semantic_hash": ""
   },
   "src/client/Controllers/FirstPerson.luau": {
-    "mtime": 1794944761.135575,
-    "seen": 1794945063.6990635,
-    "ast_hash": "13acebc89a9e5af801844f09e46c3c59",
+    "mtime": 1794949434.0660946,
+    "seen": 1794949438.3788545,
+    "ast_hash": "b6d3ba538f5002160e9c6ada96e3cff5",
     "semantic_hash": ""
   },
   "src/client/UI/Screens/Codes.luau": {
@@ -816,9 +816,9 @@
     "semantic_hash": ""
   },
   "tools/locale/data4.py": {
-    "mtime": 1794944989.991921,
-    "seen": 1794945063.6992104,
-    "ast_hash": "108da8a0430e9f509d3a7bf986d87552",
+    "mtime": 1794949434.0662963,
+    "seen": 1794949438.3791118,
+    "ast_hash": "e19cb7242d9acb63e0f0a3827923580f",
     "semantic_hash": ""
   },
   "src/client/Controllers/Sink.luau": {

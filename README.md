@@ -10,7 +10,7 @@ Gioco Roblox tycoon: gestisci un ristorante giapponese di ramen e sushi, cucini 
 5. **Game Settings → Places → Max Players: 6**. Lascia disattivati i server privati Roblox.
 6. Premi **Play**. In Studio il server è direttamente il tuo mondo (i teletrasporti al mondo personale funzionano solo nel gioco pubblicato).
 
-**Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, G posa, Shift corri, Q per liberare il mouse e cliccare i pulsanti (di nuovo Q per tornare a guardare), B costruisci, O fornitore, P telefono, R regali. Mentre i noodles bollono, clicca nel verde della barra per una ciotola perfetta.
+**Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, tasto destro posa la scatola, G posa, Shift corri, Q per liberare il mouse e cliccare i pulsanti (di nuovo Q per tornare a guardare), B costruisci, O fornitore, P telefono, R regali. Mentre i noodles bollono, clicca nel verde della barra per una ciotola perfetta.
 
 Pannello sviluppatore (pulsante 🛠️, solo in Studio o per il creatore del gioco): yen, livelli, licenze, zone, scorte, clienti, chiusura della giornata.
 

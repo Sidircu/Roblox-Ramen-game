@@ -1,7 +1,7 @@
 # First person, gifts, codes, combo (texts added with the Roblox-style update)
 NEW = [
 ("ui.cam_first","First person","Prima persona"),
-("ui.fp_keys","Click / E: use · G: put down · Shift: run · Q: mouse · B build · O supplier · P phone · R gifts","Clic / E: usa · G: posa · Shift: corri · Q: mouse · B costruisci · O fornitore · P telefono · R regali"),
+("ui.fp_keys","Click / E: use · Right click: put the box down · G: put down · Shift: run · Q: mouse · B build · O supplier · P phone · R gifts","Clic / E: usa · Tasto destro: posa la scatola · G: posa · Shift: corri · Q: mouse · B costruisci · O fornitore · P telefono · R regali"),
 ("ui.combo","🔥 COMBO x{n}!  +{pct}% tips","🔥 COMBO x{n}!  +{pct}% mance"),
 ("ui.gifts","Gifts","Regali"),
 ("ui.gifts_hint","Free gifts for playing: a new one every few minutes!","Regali gratis mentre giochi: uno nuovo ogni pochi minuti!"),
