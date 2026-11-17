@@ -786,9 +786,9 @@
     "semantic_hash": ""
   },
   "src/client/Controllers/FirstPerson.luau": {
-    "mtime": 1794929459.3114843,
-    "seen": 1794929496.2065415,
-    "ast_hash": "6390114fa717a1d98a9e6105157d9244",
+    "mtime": 1794929902.8021104,
+    "seen": 1794929910.2714598,
+    "ast_hash": "5f246d29d77ccb115983baf03c23ffeb",
     "semantic_hash": ""
   },
   "src/client/UI/Screens/Codes.luau": {

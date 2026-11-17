@@ -19973,8 +19973,8 @@ end
 return Effects
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000100"><Properties><string name="Name">FirstPerson</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- First person (Settings → Camera, the default):
---   * a crosshair in the middle of the screen; under it, what clicking / E does on the object you
---     look at (gold when close enough)
+--   * a crosshair in the middle of the screen (the mouse arrow is hidden meanwhile); under it, what
+--     clicking / E does on the object you look at (gold when close enough)
 --   * what you hold is shown in front of the camera, with a light walking sway
 --   * the mouse is freed while a menu is open, while building or while Alt is held
 --   * keyboard shortcuts for the bottom buttons: B build, O supplier, P phone (all camera modes)
@@ -20087,6 +20087,10 @@ local function updateCrosshair()
 	modal.Visible = fp and free
 	local show = fp and not free
 	dot.Visible = show
+	-- the dot replaces the mouse arrow; the arrow comes back whenever the mouse is free
+	if UserInputService.MouseIconEnabled == show then
+		UserInputService.MouseIconEnabled = not show
+	end
 	local touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 	keysLabel.Visible = fp and not touch and not free
 	local target = show and Core.C.Interaction and Core.C.Interaction.target and Core.C.Interaction.target()

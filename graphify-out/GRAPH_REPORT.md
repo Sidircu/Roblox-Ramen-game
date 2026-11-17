@@ -1,7 +1,7 @@
 # Graph Report - Roblox-Ramen-game  (2026-11-17)
 
 ## Corpus Check
-- 137 files · ~167,332 words
+- 137 files · ~167,364 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: (none) 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e46b6a7e`
+- Built from commit: `57425231`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -82,12 +82,12 @@
 ## Surprising Connections (you probably didn't know these)
 - `12. Interfaccia e lingue` --references--> `refresh()`  [INFERRED]
   docs/02-PIANO-TECNICO.md → src/server/Services/Appliance.luau
+- `speed()` --calls--> `Formulas.staffSpeed()`  [INFERRED]
+  src/server/Services/Staff.luau → src/shared/Logic/Formulas.luau
 - `review()` --calls--> `Economy.addSakura()`  [INFERRED]
   src/server/Services/Customers.luau → src/server/Services/Economy.luau
-- `run()` --calls--> `Seating.benchSpot()`  [INFERRED]
-  src/server/Services/Customers.luau → src/server/Services/Seating.luau
-- `run()` --calls--> `Seating.freeBench()`  [INFERRED]
-  src/server/Services/Customers.luau → src/server/Services/Seating.luau
+- `Placement.place()` --calls--> `Economy.spendSakura()`  [INFERRED]
+  src/server/Services/Placement.luau → src/server/Services/Economy.luau
 - `overflowSlots()` --calls--> `World.fixedRects()`  [INFERRED]
   src/server/Services/Supply.luau → src/server/Services/World.luau
 
@@ -287,16 +287,16 @@ Nodes (5): 10. Interfaccia, Guida dell'ordine, Oggetti in mano, Telecamera e com
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `refresh()` connect `Cooking.luau` to `Color.hex`, `Piano tecnico — architettura e implementazione`?**
-  _High betweenness centrality (0.160) - this node is a cross-community bridge._
+  _High betweenness centrality (0.119) - this node is a cross-community bridge._
 - **Are the 92 inferred relationships involving `Kit.box()` (e.g. with `B.doorFrame()` and `B.eave()`) actually correct?**
   _`Kit.box()` has 92 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Cooking.luau` be split into smaller, more focused modules?**
   _Cohesion score 0.06386554621848739 - nodes in this community are weakly interconnected._
 - **Why does `Piano tecnico — architettura e implementazione` connect `Piano tecnico — architettura e implementazione` to `7. Salvataggi`, `10. Sistemi di gioco`, `01-GAME-DESIGN.md`?**
-  _High betweenness centrality (0.148) - this node is a cross-community bridge._
+  _High betweenness centrality (0.111) - this node is a cross-community bridge._
 - **Are the 56 inferred relationships involving `Kit.cyl()` (e.g. with `B.entranceDetail()` and `B.openSign()`) actually correct?**
   _`Kit.cyl()` has 56 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Services/Customers.luau` be split into smaller, more focused modules?**
   _Cohesion score 0.055130784708249496 - nodes in this community are weakly interconnected._
 - **Why does `12. Interfaccia e lingue` connect `Piano tecnico — architettura e implementazione` to `Cooking.luau`?**
-  _High betweenness centrality (0.146) - this node is a cross-community bridge._
+  _High betweenness centrality (0.110) - this node is a cross-community bridge._
