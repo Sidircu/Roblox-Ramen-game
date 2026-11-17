@@ -146,9 +146,9 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 
 ### 4.3 Dal magazzino alle mensole
 - Clicchi una scatola → la prendi in mano.
-- Clicchi una **mensola** dietro il bancone → il personaggio la svuota nello slot giusto (animazione di sistemazione).
-- Ogni mensola ha degli **slot**; ogni slot contiene un solo tipo di ingrediente fino a una capienza massima. Gli oggetti sulle mensole sono visibili (barattoli, pacchetti, filetti di pesce).
-- Se lo slot si riempie, la scatola resta in mano con le porzioni avanzate; una scatola vuota si butta automaticamente.
+- Clicchi una **mensola** dietro il bancone → il personaggio la svuota nel ripiano cliccato e, se avanza, nel ripiano libero successivo (animazione di sistemazione).
+- Ogni mensola ha dei **ripiani** (slot); ogni ripiano contiene un solo tipo di ingrediente. Un ripiano della mensola base contiene **mezza scatola**: **una scatola riempie al massimo 2 ripiani**. Le mensole più grandi e il miglioramento *Mensole rinforzate* rendono i ripiani più capienti (la scatola ne riempie meno). Gli oggetti sulle mensole sono visibili (barattoli, pacchetti, filetti di pesce).
+- Se avanzano porzioni (ripiano già mezzo pieno, mensola piena o scatola grande, che riempie 2 ripiani alla volta), la scatola resta in mano con le porzioni avanzate; una scatola vuota si butta automaticamente.
 - La **vetrina refrigerata del pesce** (sul bancone, come nei veri sushi bar) funziona come una mensola per il pesce e dà un bonus di freschezza (qualità).
 
 ### 4.4 Preparazioni di base

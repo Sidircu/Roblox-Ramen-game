@@ -33,9 +33,9 @@ local list = {
 	{ id = "waiting_bench", cat = "seating", price = 500, lv = 2, place = "floor", areas = { "dining", "outdoor" }, size = { 5, 2, 1.5 }, amb = 1, fn = { type = "bench", queue = 3 } },
 
 	-- Kitchen ------------------------------------------------------------------------------------
-	{ id = "shelf_small", cat = "kitchen", price = 400, lv = 1, place = "floor", areas = KITCHEN, size = { 4, 6, 1.5 }, amb = 0, fn = { type = "shelf", slots = 4, cap = 10 } },
-	{ id = "shelf_large", cat = "kitchen", price = 1500, lv = 7, place = "floor", areas = KITCHEN, size = { 6, 7, 1.5 }, amb = 0, fn = { type = "shelf", slots = 6, cap = 16 } },
-	{ id = "neta_case", cat = "kitchen", price = 3000, lv = 5, place = "floor", areas = KITCHEN, size = { 5, 3.2, 2.2 }, amb = 3, fn = { type = "shelf", slots = 4, cap = 12, fishOnly = true, fresh = true } },
+	{ id = "shelf_small", cat = "kitchen", price = 400, lv = 1, place = "floor", areas = KITCHEN, size = { 4, 6, 1.5 }, amb = 0, fn = { type = "shelf", slots = 4, size = 1 } },
+	{ id = "shelf_large", cat = "kitchen", price = 1500, lv = 7, place = "floor", areas = KITCHEN, size = { 6, 7, 1.5 }, amb = 0, fn = { type = "shelf", slots = 6, size = 1.6 } },
+	{ id = "neta_case", cat = "kitchen", price = 3000, lv = 5, place = "floor", areas = KITCHEN, size = { 5, 3.2, 2.2 }, amb = 3, fn = { type = "shelf", slots = 4, size = 1.2, fishOnly = true, fresh = true } },
 	{ id = "rice_cooker", cat = "kitchen", price = 600, lv = 1, place = "floor", areas = KITCHEN, size = { 2, 2.6, 2 }, amb = 0, fn = { type = "ricecooker", batch = 10, time = 30 } },
 	{ id = "rice_cooker_pro", cat = "kitchen", price = 5000, lv = 11, place = "floor", areas = KITCHEN, size = { 2.6, 3, 2.6 }, amb = 0, fn = { type = "ricecooker", batch = 25, time = 20 } },
 	{ id = "broth_pot", cat = "kitchen", price = 900, lv = 1, place = "floor", areas = KITCHEN, size = { 3, 3.6, 3 }, amb = 0, fn = { type = "pot", batch = 8, time = 60 } },

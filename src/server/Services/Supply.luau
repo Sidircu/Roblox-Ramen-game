@@ -37,10 +37,16 @@ local function ingUnlocked(d, ing)
 	return false
 end
 
-function Supply.shelfCap(entity)
+-- Units of ingredient g one slot of this shelf holds: a fraction of a supplier box, so that a
+-- box never fills more than GameConfig.BoxShelfSlots slots
+function Supply.slotCap(entity, g)
+	local ing = Ingredients.byId[g]
+	if not ing then
+		return 0
+	end
 	local d = data()
 	local mult = d and Upgrades.value(d.upgrades, "up_shelf") or 1
-	return math.floor(entity.item.fn.cap * mult)
+	return math.max(1, math.ceil(ing.units * (entity.item.fn.size or 1) * mult / GameConfig.BoxShelfSlots - 1e-6))
 end
 
 ------------------------------------------------------------------ storage layout
@@ -321,7 +327,6 @@ function Supply.refreshShelf(e)
 		return
 	end
 	local st = shelfState(e.uid)
-	local cap = Supply.shelfCap(e)
 	for slot = 1, e.item.fn.slots do
 		local part = e.model:FindFirstChild("Slot" .. slot)
 		local key = e.uid .. "#" .. slot
@@ -330,6 +335,7 @@ function Supply.refreshShelf(e)
 			slotVisuals[key] = nil
 		end
 		local s = st[tostring(slot)]
+		local cap = s and Supply.slotCap(e, s.g) or 0
 		if part then
 			part:SetAttribute("G", s and s.g or "")
 			part:SetAttribute("N", s and s.n or 0)
@@ -388,7 +394,7 @@ end
 
 function chooseSlot(e, g, requested)
 	local st = shelfState(e.uid)
-	local cap = Supply.shelfCap(e)
+	local cap = Supply.slotCap(e, g)
 	local slots = e.item.fn.slots
 	if requested and requested >= 1 and requested <= slots then
 		local s = st[tostring(requested)]
@@ -425,23 +431,24 @@ function Supply.useShelf(actor, e, slot)
 		if e.item.fn.fishOnly and ing.storage ~= "fish" then
 			return false, "msg.fish_only"
 		end
-		local cap = Supply.shelfCap(e)
-		local placed = 0
+		local cap = Supply.slotCap(e, entry.g)
+		local placed, filled = 0, 0
 		local target = chooseSlot(e, entry.g, slot)
 		if not target then
 			return false, "msg.shelf_full"
 		end
-		-- fill the clicked slot first, then every other slot that can take this ingredient
-		while target and entry.n > 0 do
+		-- fill the clicked slot first, then the next free one: at most BoxShelfSlots slots per box
+		while target and entry.n > 0 and filled < GameConfig.BoxShelfSlots do
 			local s = st[tostring(target)]
 			if not s or s.n == 0 then
 				s = { g = entry.g, n = 0 }
 				st[tostring(target)] = s
 			end
-			local amount = math.min(entry.n, cap - s.n)
+			local amount = math.max(0, math.min(entry.n, cap - s.n))
 			s.n += amount
 			entry.n -= amount
 			placed += amount
+			filled += 1
 			target = entry.n > 0 and chooseSlot(e, entry.g, nil) or nil
 		end
 		local left = entry.n

@@ -84,6 +84,8 @@
 
 Scatole grandi (Fornitore premium): ×3 porzioni, −10% (livello 1) o −20% (livello 2) sul prezzo.
 
+**Scatole e ripiani** (`GameConfig.BoxShelfSlots = 2`): un ripiano contiene `porzioni per scatola × dimensione mensola × Mensole rinforzate / 2` (arrotondato per eccesso), quindi una scatola riempie **al massimo 2 ripiani** della mensola base. Una scatola grande riempie 2 ripiani per volta e tiene il resto.
+
 ---
 
 ## 3. Ricette
@@ -188,9 +190,9 @@ Colonne: prezzo, punti ambiente (Amb.), livello di sblocco, tipo di piazzamento,
 ### 5.2 Cucina e magazzino
 | ID | Nome | Prezzo | Liv. | Funzione |
 |---|---|---|---|---|
-| `shelf_small` | Mensola piccola | ¥400 | 1 | 4 slot × 10 porzioni |
-| `shelf_large` | Mensola grande | ¥1.500 | 7 | 6 slot × 16 porzioni |
-| `neta_case` | Vetrina refrigerata del pesce | ¥3.000 | 5 | 4 slot × 12 pesce, +10% qualità ai piatti di pesce |
+| `shelf_small` | Mensola piccola | ¥400 | 1 | 4 ripiani da ½ scatola (dimensione 1) |
+| `shelf_large` | Mensola grande | ¥1.500 | 7 | 6 ripiani da 0,8 scatola (dimensione 1,6) |
+| `neta_case` | Vetrina refrigerata del pesce | ¥3.000 | 5 | 4 ripiani da 0,6 scatola di pesce (dimensione 1,2), +10% qualità ai piatti di pesce |
 | `rice_cooker` | Rice cooker | ¥600 | 1 | lotto 10, 30 s |
 | `rice_cooker_pro` | Rice cooker professionale | ¥5.000 | 11 | lotto 25, 20 s |
 | `broth_pot` | Pentolone | ¥900 | 1 | lotto 8, 60 s |
@@ -314,7 +316,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `up_knife` | Coltello (Santoku → Yanagiba → Damasco → Hon-yaki) | 0→4 | ¥2.000 · ¥15.000 · ¥90.000 · ¥400.000 | −10% durata dei passaggi T e U |
 | `up_mat` | Stuoia makisu | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | −12% durata del passaggio A |
 | `up_strainer` | Scolapasta tebo | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | −12% durata dei passaggi N, B, C, F |
-| `up_shelf` | Mensole rinforzate | 0→3 | ¥5.000 · ¥30.000 · ¥200.000 | +25% porzioni per slot |
+| `up_shelf` | Mensole rinforzate | 0→3 | ¥5.000 · ¥30.000 · ¥200.000 | +25% porzioni per ripiano |
 | `up_delivery` | Consegna | 0→3 | ¥4.000 · ¥40.000 · ¥250.000 | 45 s → 30 s → 15 s → 5 s |
 | `up_supplier` | Fornitore premium | 0→2 | ¥20.000 (L10) · ¥200.000 (L25) | scatole grandi −10% / −20% |
 | `up_sign` | Insegna luminosa | 0→5 | ¥2.000 × 4^n | +0,08 popolarità per livello |

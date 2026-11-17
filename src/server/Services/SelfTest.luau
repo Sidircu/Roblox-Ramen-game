@@ -3,6 +3,7 @@
 -- with an invisible worker: restock, rice, cook a kappa maki, serve a customer, get paid, wash.
 -- Results go to the Output window and to a toast.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local GameConfig = require(Shared.Config.GameConfig)
 local Ingredients = require(Shared.Config.Ingredients)
 local Expansions = require(Shared.Config.Expansions)
 local Registry = require(Shared.Models.Registry)
@@ -100,10 +101,21 @@ function SelfTest.run(player)
 			local shelf = firstOf("shelf", function(e)
 				return not e.item.fn.fishOnly
 			end)
+			local before = {}
+			for k, sl in pairs(d.shelves[shelf.uid] or {}) do
+				before[k] = sl.n
+			end
 			local ok, msg = S.Supply.useShelf(actor, shelf, nil)
 			assert(ok, "useShelf: " .. tostring(msg))
 			returnLeftover()
 			assert(S.Supply.shelfStock(g) > 0, g .. " not on the shelf")
+			local touched = 0
+			for k, sl in pairs(d.shelves[shelf.uid] or {}) do
+				if sl.n ~= (before[k] or 0) then
+					touched += 1
+				end
+			end
+			assert(touched <= GameConfig.BoxShelfSlots, "one box filled " .. touched .. " shelf slots")
 		end
 	end)
 

@@ -65,6 +65,9 @@ return {
 	-- Supply
 	DeliveryOverflowBoxes = 30,
 	BigBoxMultiplier = 3,
+	-- A box fills at most this many shelf slots: a base slot holds 1/BoxShelfSlots of a box
+	-- (bigger shelves and the shelf upgrade make slots roomier); big boxes fill this many per use
+	BoxShelfSlots = 2,
 
 	-- Dishes (plates and bowls)
 	StartDishes = 12,
