@@ -73,6 +73,7 @@ return {
 	-- optional noodle timing: stop the needle inside the green part of the bar while the noodles
 	-- boil (From..To of the step) for a perfect bowl and a bigger tip
 	NoodleTiming = { From = 0.5, To = 0.8, TipBonus = 0.2 },
+	DishInset = 0.85, -- studs from the edge of a counter / table to where a customer's dish goes
 	TipJarFull = 600, -- yen that fill the tip jar to the top (only the look: it never overflows)
 	RescueCooldown = 600, -- free kit when broke and out of ingredients, at most every 10 minutes
 	BigBoxMultiplier = 3,

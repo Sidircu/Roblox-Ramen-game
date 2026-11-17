@@ -93,7 +93,7 @@ Pianta indicativa (vista dall'alto):
 - Il bancone separa la **sala clienti** dalla **zona di lavoro**. I clienti non entrano dietro il bancone.
 - Dietro, oltre il corridoio, due mensole e una **cucina componibile**: moduli con la stessa altezza, ante in legno, piano in acciaio e piastrelle bianche fino alla stessa linea, messi uno accanto all'altro come un unico mobile: cuociriso, **fornello a gas** (forno, manopole, due fuochi, il pentolone del brodo e un pentolino di rame, cappa), piano di lavoro con ceppo dei coltelli e ciotole, **lavello** a due vasche incassate con scolapiatti, altro piano di lavoro. Il piano di lavoro si compra anche a parte per allungare la cucina e ci si possono appoggiare oggetti.
 - Gli oggetti iniziali sono normali oggetti piazzabili: puoi spostarli tutti in modalità costruzione.
-- **In scala con gli avatar**: il locale base misura 72 × 56 stud (sala 72 × 32, cucina 72 × 24, magazzino 24 × 32). Il bancone è lungo 28 stud (6 moduli + 2 terminali) con 12 sgabelli; in cucina le postazioni subito dietro e, oltre un corridoio largo 6 stud, scaffali, cuociriso, pentolone e lavello.
+- **In scala con gli avatar**: il locale base misura 72 × 56 stud (sala 72 × 32, cucina 72 × 24, magazzino 24 × 32). Il bancone è basso (3 stud) e profondo (3,8), lungo 40 stud: 12 moduli da 3 stud, uno per cliente, così i clienti seduti non si sovrappongono mai; ogni posto ha bacchette sul poggia-bacchette, tovagliolo e volantino del menu, e sul gradino del cuoco porta-menu (お品書き), bicchiere di bacchette, soia e peperoncino. Il piatto viene servito sul piano, non sul bordo; in cucina le postazioni subito dietro e, oltre un corridoio largo 6 stud, scaffali, cuociriso, pentolone e lavello.
 - **Si parte da un locale base**: pareti lisce, tettoia in lamiera, finestre semplici, bancone e postazioni essenziali, una sola lanterna. Tutto il resto (decorazioni e dettagli tradizionali) si compra col tempo: decorazioni piazzabili (§9) e **ristrutturazioni** (§8.5).
 
 ---
@@ -430,11 +430,11 @@ Stile: carta washi color crema, bordi in legno scuro, accenti rosso lacca e oro,
 | In alto a sinistra | Pillola compatta: yen, gettoni Sakura, livello con barra XP sottile |
 | In alto al centro | Barra sottile come in Pet Store Tycoon: orologio, giorno e un interruttore **CHIUSO / APERTO** (rosso/verde) da toccare |
 | In alto a destra | Una riga: ★ valutazione · ✨ atmosfera · 🍽️ piatti puliti / 🧽 da lavare |
-| A sinistra | Biglietti degli ordini; toccandone uno si apre la **guida dell'ordine** accanto |
+| A sinistra | Biglietti degli ordini, grandi e numerati: icona e nome del piatto, le icone di cosa serve (ingredienti, 🥣 brodo, 🍚 riso) e la barra colorata della pazienza del cliente; toccandone uno si apre la **guida dell'ordine** accanto |
 | In basso a sinistra | Solo 3 pulsanti: 🔨 Costruisci, 📦 Fornitore, 📱 **Telefono** |
 | Telefono | Tutte le altre funzioni come app, in ordine di utilità: Menu, Personale, Miglioramenti, Espansioni e ristrutturazioni, Licenze, Obiettivi, Come si gioca, Negozio, Invita, Impostazioni |
 | In basso al centro | Cosa tieni in mano, con **⬇ Posa** (tasto G) |
-| Sopra gli oggetti | Barre di cottura, porzioni rimaste, pazienza, nuvolette d'ordine |
+| Sopra gli oggetti | Barre di cottura, porzioni rimaste. Sopra i clienti una nuvoletta grande quanto un posto (non si sovrappone a quella del vicino), sempre visibile: icona grande (❗, il piatto, 😋), nome del piatto e barra della pazienza spessa (verde → gialla → rossa); lampeggia quando aspetta di ordinare |
 | Fine giornata | Resoconto con grafico degli incassi della giornata |
 
 Altre schermate: inventario decorazioni, ricettario, obiettivi, premio giornaliero, guadagni offline, impostazioni (lingua, griglia, rotazione, volume musica/effetti, qualità grafica ridotta per dispositivi deboli).

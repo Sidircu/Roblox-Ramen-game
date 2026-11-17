@@ -134,12 +134,12 @@ test("placing new objects", function()
   expect(ok, "scroll on the west wall: " .. tostring(reason))
   ok, reason = Placement.validate(ctx, { i = "chochin_red", x = 10, z = 8, r = 0, f = 0, s = "c" })
   expect(ok, "ceiling lantern: " .. tostring(reason))
-  ok, reason = Placement.validate(ctx, { i = "daruma", x = -14, z = 30.4, r = 0, f = 0, s = "t", p = "p3" })
+  ok, reason = Placement.validate(ctx, { i = "daruma", x = -17.5, z = 30.05, r = 0, f = 0, s = "t", p = "p3" })
   expect(ok, "daruma on the counter: " .. tostring(reason))
   -- wall of counters closing the dining room off from the kitchen must be refused
   local blockers = table.clone(placed)
   local _ = blockers
-  ok = Placement.validate(ctx, { i = "counter_straight", x = 8, z = 30.4, r = 0, f = 0, s = "f" })
+  ok = Placement.validate(ctx, { i = "counter_straight", x = 17.5, z = 30.05, r = 0, f = 0, s = "f" })
   expect(ok, "a counter next to the others is fine")
 end)
 
@@ -191,14 +191,13 @@ test("blocking the way to the kitchen is refused", function()
   local placed = starterPlaced()
   local ctx = ctxFor({ zone_base = true }, placed)
   local layout = table.clone(placed)
-  -- close both gaps beside the counter (x -36..-22 and 6..36)
+  -- close both gaps beside the counter (x -36..-24 and 16..36) with 3-stud modules
   local function add(i, x)
-    table.insert(layout, { u = "blk" .. #layout, i = i, x = x, z = 30.4, r = 0, f = 0, s = "f" })
+    table.insert(layout, { u = "blk" .. #layout, i = i, x = x, z = 30.05, r = 0, f = 0, s = "f" })
   end
-  for x = -34, -26, 4 do add("counter_straight", x) end
-  add("counter_end", -23)
-  for x = 8, 28, 4 do add("counter_straight", x) end
-  add("counter_straight", 32)
+  for x = -34.5, -25.5, 3 do add("counter_straight", x) end
+  for x = 17.5, 29.5, 3 do add("counter_straight", x) end
+  add("counter_straight", 32.5)
   add("counter_end", 35)
   local ok = Placement.pathOk(ctx, layout)
   expect(not ok, "a closed counter must block the kitchen")

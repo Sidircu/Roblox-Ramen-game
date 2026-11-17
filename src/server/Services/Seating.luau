@@ -3,6 +3,7 @@
 -- booths), where the dish goes, and keeps reservations / dirty dishes per seat.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Items = require(Shared.Config.Items)
+local GameConfig = require(Shared.Config.GameConfig)
 local Footprint = require(Shared.Logic.Footprint)
 local Core = require(script.Parent.Parent.Core)
 
@@ -88,6 +89,14 @@ function Seating.refresh()
 				end
 				if best then
 					local px, pz = closestPoint(best.fp, e.x, e.z)
+					-- move the dish spot from the edge onto the top, towards the middle of the surface
+					local cx, cz = best.entry.x, best.entry.z
+					local dx, dz = cx - px, cz - pz
+					local len = math.sqrt(dx * dx + dz * dz)
+					local inset = math.min(GameConfig.DishInset or 0.8, len)
+					if len > 0.001 then
+						px, pz = px + dx / len * inset, pz + dz / len * inset
+					end
 					local dish = Vector3.new(px, topY(best.entry) + 0.05, pz)
 					local sitY = Core.S.World.floorY(e.f) + item.fn.height
 					local seatPos = Vector3.new(e.x, sitY, e.z)

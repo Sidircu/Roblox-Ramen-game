@@ -45,4 +45,5 @@ NEW = [
 ("hint.slot_other","{name} is here: pick an empty slot","Qui c'è {name}: scegli un ripiano vuoto"),
 ("msg.slot_full","This slot is full: click another one.","Questo ripiano è pieno: clicca un altro ripiano."),
 ("msg.slot_other","{name} is on this slot: put your box on an empty slot.","Su questo ripiano c'è {name}: metti la scatola su un ripiano vuoto."),
+("ui.eating","Enjoying the meal","Sta mangiando"),
 ]

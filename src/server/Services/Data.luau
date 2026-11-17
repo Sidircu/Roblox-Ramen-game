@@ -19,7 +19,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 6
+local VERSION = 7
 local profiles = {} -- [player] = { data, key, loaded, saving }
 local store = nil
 local storeOk = false
@@ -181,6 +181,11 @@ local function migrate(d)
 			d.licenses.lic_sashimi = true
 		end
 		d.v = 6
+	end
+	if d.v < 7 then
+		-- v7: lower, deeper counter in 3-stud modules with a place setting each, stools 3 apart
+		rebuildLayout(d)
+		d.v = 7
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION

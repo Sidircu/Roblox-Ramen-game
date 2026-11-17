@@ -596,6 +596,7 @@ return {
 	["ui.dev"] = "Dev",
 	["ui.dishes_clean"] = "{clean}/{total} pulite",
 	["ui.drop"] = "Butta",
+	["ui.eating"] = "Sta mangiando",
 	["ui.empty"] = "vuoto",
 	["ui.exit_build"] = "Esci",
 	["ui.expansions"] = "Espansioni",

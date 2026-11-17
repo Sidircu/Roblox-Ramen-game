@@ -570,6 +570,7 @@ return {
 	-- optional noodle timing: stop the needle inside the green part of the bar while the noodles
 	-- boil (From..To of the step) for a perfect bowl and a bigger tip
 	NoodleTiming = { From = 0.5, To = 0.8, TipBonus = 0.2 },
+	DishInset = 0.85, -- studs from the edge of a counter / table to where a customer's dish goes
 	TipJarFull = 600, -- yen that fill the tip jar to the top (only the look: it never overflows)
 	RescueCooldown = 600, -- free kit when broke and out of ingredients, at most every 10 minutes
 	BigBoxMultiplier = 3,
@@ -687,19 +688,19 @@ local KITCHEN = { "kitchen" }
 
 local list = {
 	-- Seating, tables and counter -------------------------------------------------------------
-	{ id = "counter_straight", cat = "seating", price = 1000, lv = 1, place = "floor", areas = SEAT, size = { 4, 3.5, 3 }, amb = 0, fn = { type = "counter" } },
-	{ id = "counter_corner", cat = "seating", price = 1200, lv = 1, place = "floor", areas = SEAT, size = { 3, 3.5, 3 }, amb = 0, fn = { type = "counter" } },
-	{ id = "counter_end", cat = "seating", price = 800, lv = 1, place = "floor", areas = SEAT, size = { 2, 3.5, 3 }, amb = 0, fn = { type = "counter" } },
-	{ id = "stool_wood", cat = "seating", price = 80, lv = 1, place = "floor", areas = SEAT, size = { 1.6, 2.8, 1.6 }, amb = 0, fn = { type = "seat", comfort = 1, height = 2.8, symmetric = true } },
-	{ id = "stool_cushion", cat = "seating", price = 300, lv = 4, place = "floor", areas = SEAT, size = { 1.6, 2.8, 1.6 }, amb = 1, fn = { type = "seat", comfort = 2, height = 2.8, symmetric = true } },
-	{ id = "stool_swivel", cat = "seating", price = 900, lv = 12, place = "floor", areas = SEAT, size = { 1.8, 2.8, 1.8 }, amb = 2, fn = { type = "seat", comfort = 3, height = 2.8, symmetric = true } },
+	{ id = "counter_straight", cat = "seating", price = 750, lv = 1, place = "floor", areas = SEAT, size = { 3, 3, 3.8 }, amb = 0, fn = { type = "counter" } },
+	{ id = "counter_corner", cat = "seating", price = 1200, lv = 1, place = "floor", areas = SEAT, size = { 3.8, 3, 3.8 }, amb = 0, fn = { type = "counter" } },
+	{ id = "counter_end", cat = "seating", price = 800, lv = 1, place = "floor", areas = SEAT, size = { 2, 3, 3.8 }, amb = 0, fn = { type = "counter" } },
+	{ id = "stool_wood", cat = "seating", price = 80, lv = 1, place = "floor", areas = SEAT, size = { 1.6, 2.4, 1.6 }, amb = 0, fn = { type = "seat", comfort = 1, height = 2.4, symmetric = true } },
+	{ id = "stool_cushion", cat = "seating", price = 300, lv = 4, place = "floor", areas = SEAT, size = { 1.6, 2.4, 1.6 }, amb = 1, fn = { type = "seat", comfort = 2, height = 2.4, symmetric = true } },
+	{ id = "stool_swivel", cat = "seating", price = 900, lv = 12, place = "floor", areas = SEAT, size = { 1.8, 2.4, 1.8 }, amb = 2, fn = { type = "seat", comfort = 3, height = 2.4, symmetric = true } },
 	{ id = "table_2", cat = "seating", price = 600, lv = 3, place = "floor", areas = SEAT, size = { 3, 2.6, 3 }, amb = 1, fn = { type = "table" } },
 	{ id = "table_4", cat = "seating", price = 1400, lv = 6, place = "floor", areas = SEAT, size = { 5, 2.6, 3 }, amb = 2, fn = { type = "table" } },
 	{ id = "chair_wood", cat = "seating", price = 150, lv = 3, place = "floor", areas = SEAT, size = { 1.6, 3.5, 1.6 }, amb = 0, fn = { type = "seat", comfort = 1, height = 1.8 } },
 	{ id = "chair_lacquer", cat = "seating", price = 700, lv = 14, place = "floor", areas = SEAT, size = { 1.6, 3.5, 1.6 }, amb = 2, fn = { type = "seat", comfort = 3, height = 1.8 } },
 	{ id = "chabudai", cat = "seating", price = 1800, lv = 10, place = "floor", areas = SEAT, size = { 4, 1.2, 4 }, amb = 3, fn = { type = "table" } },
 	{ id = "zabuton", cat = "seating", price = 200, lv = 10, place = "floor", areas = SEAT, size = { 1.8, 0.4, 1.8 }, amb = 1, fn = { type = "seat", comfort = 2, height = 0.4, symmetric = true } },
-	{ id = "stool_red", cat = "seating", price = 220, lv = 2, place = "floor", areas = SEAT, size = { 1.6, 2.8, 1.6 }, amb = 1, set = "ramenya", fn = { type = "seat", comfort = 2, height = 2.8, symmetric = true } },
+	{ id = "stool_red", cat = "seating", price = 220, lv = 2, place = "floor", areas = SEAT, size = { 1.6, 2.4, 1.6 }, amb = 1, set = "ramenya", fn = { type = "seat", comfort = 2, height = 2.4, symmetric = true } },
 	{ id = "bench_table", cat = "seating", price = 2400, lv = 7, place = "floor", areas = SEAT, size = { 5, 2.7, 5 }, amb = 3, fn = { type = "booth", comfort = 2, seats = 4 } },
 	{ id = "booth", cat = "seating", price = 5000, lv = 15, place = "floor", areas = SEAT, size = { 6, 4, 5 }, amb = 6, fn = { type = "booth", comfort = 4, seats = 4 } },
 	{ id = "zashiki_table", cat = "seating", price = 30000, lv = 18, place = "floor", areas = { "tatami" }, size = { 6, 1.3, 6 }, amb = 12, fn = { type = "booth", comfort = 5, seats = 4, vip = true } },
@@ -1109,29 +1110,36 @@ return {
 -- s: "f" floor, "w" wall (y = height of the object's center), "c" ceiling, "t" on top of item index p
 return {
 	items = {
-		-- long counter facing the dining room (28 studs), twelve stools in front of it
-		{ i = "counter_end", x = -21, z = 30.4, r = 0, s = "f" },
-		{ i = "counter_straight", x = -18, z = 30.4, r = 0, s = "f" },
-		{ i = "counter_straight", x = -14, z = 30.4, r = 0, s = "f" },
-		{ i = "counter_straight", x = -10, z = 30.4, r = 0, s = "f" },
-		{ i = "counter_straight", x = -6, z = 30.4, r = 0, s = "f" },
-		{ i = "counter_straight", x = -2, z = 30.4, r = 0, s = "f" },
-		{ i = "counter_straight", x = 2, z = 30.4, r = 0, s = "f" },
-		{ i = "counter_end", x = 5, z = 30.4, r = 0, s = "f" },
-		-- tip jar at the end of the counter: tips wait in it until you click it (index 8 = that end)
-		{ i = "tip_jar", x = 5, z = 30.4, r = 0, s = "t", p = 8 },
-		{ i = "stool_wood", x = -19, z = 27.8, r = 0, s = "f" },
-		{ i = "stool_wood", x = -17, z = 27.8, r = 0, s = "f" },
-		{ i = "stool_wood", x = -15, z = 27.8, r = 0, s = "f" },
-		{ i = "stool_wood", x = -13, z = 27.8, r = 0, s = "f" },
-		{ i = "stool_wood", x = -11, z = 27.8, r = 0, s = "f" },
-		{ i = "stool_wood", x = -9, z = 27.8, r = 0, s = "f" },
-		{ i = "stool_wood", x = -7, z = 27.8, r = 0, s = "f" },
-		{ i = "stool_wood", x = -5, z = 27.8, r = 0, s = "f" },
-		{ i = "stool_wood", x = -3, z = 27.8, r = 0, s = "f" },
-		{ i = "stool_wood", x = -1, z = 27.8, r = 0, s = "f" },
-		{ i = "stool_wood", x = 1, z = 27.8, r = 0, s = "f" },
-		{ i = "stool_wood", x = 3, z = 27.8, r = 0, s = "f" },
+		-- long counter facing the dining room: twelve 3-stud modules (one seat and one place setting
+		-- each, so customers never overlap) between two ends, 40 studs, low (3) and deep (3.8)
+		{ i = "counter_end", x = -23, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = -20.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = -17.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = -14.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = -11.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = -8.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = -5.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = -2.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = 0.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = 3.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = 6.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = 9.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_straight", x = 12.5, z = 30.05, r = 0, s = "f" },
+		{ i = "counter_end", x = 15, z = 30.05, r = 0, s = "f" },
+		-- tip jar on the far end of the counter (index 14 = that end)
+		{ i = "tip_jar", x = 15, z = 30.05, r = 0, s = "t", p = 14 },
+		{ i = "stool_wood", x = -20.5, z = 27.3, r = 0, s = "f" },
+		{ i = "stool_wood", x = -17.5, z = 27.3, r = 0, s = "f" },
+		{ i = "stool_wood", x = -14.5, z = 27.3, r = 0, s = "f" },
+		{ i = "stool_wood", x = -11.5, z = 27.3, r = 0, s = "f" },
+		{ i = "stool_wood", x = -8.5, z = 27.3, r = 0, s = "f" },
+		{ i = "stool_wood", x = -5.5, z = 27.3, r = 0, s = "f" },
+		{ i = "stool_wood", x = -2.5, z = 27.3, r = 0, s = "f" },
+		{ i = "stool_wood", x = 0.5, z = 27.3, r = 0, s = "f" },
+		{ i = "stool_wood", x = 3.5, z = 27.3, r = 0, s = "f" },
+		{ i = "stool_wood", x = 6.5, z = 27.3, r = 0, s = "f" },
+		{ i = "stool_wood", x = 9.5, z = 27.3, r = 0, s = "f" },
+		{ i = "stool_wood", x = 12.5, z = 27.3, r = 0, s = "f" },
 		-- stations right behind the counter, the cook works facing it
 		{ i = "sushi_station", x = -11, z = 33.3, r = 180, s = "f" },
 		{ i = "ramen_station", x = -3, z = 33.3, r = 180, s = "f" },
@@ -1905,6 +1913,7 @@ return {
 	["ui.dev"] = "Dev",
 	["ui.dishes_clean"] = "{clean}/{total} clean",
 	["ui.drop"] = "Drop",
+	["ui.eating"] = "Enjoying the meal",
 	["ui.empty"] = "empty",
 	["ui.exit_build"] = "Exit",
 	["ui.expansions"] = "Expansions",
@@ -2712,6 +2721,7 @@ return {
 	["ui.dev"] = "Dev",
 	["ui.dishes_clean"] = "{clean}/{total} pulite",
 	["ui.drop"] = "Butta",
+	["ui.eating"] = "Sta mangiando",
 	["ui.empty"] = "vuoto",
 	["ui.exit_build"] = "Esci",
 	["ui.expansions"] = "Espansioni",
@@ -7192,6 +7202,7 @@ end
 local Kit = require(script.Parent.Parent.Kit)
 local P = require(script.Parent.Parent.Palette)
 local M = P.M
+local JP_FONT = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Bold)
 
 local function size(item)
 	return Vector3.new(item.size[1], item.size[2], item.size[3])
@@ -7264,6 +7275,34 @@ end
 -- Plain counter: cabinet, wooden top, chef ledge, kick plate and foot rail.
 -- Detail_counter (renovation "hinoki counter"): slats, brass hooks and brackets, light strip,
 -- hinoki top and edge band, plate niche. Detail_tableware: condiments on the ledge.
+-- One place setting at the front of a counter module, around the spot where the dish goes:
+-- chopsticks in a paper sleeve on a rest, a folded napkin and a small menu flyer
+local function placeSetting(m, x, y, zFront)
+	local z = zFront + 0.75
+	Kit.box(m, 0.16, 0.04, 0.85, x + 0.78, y + 0.02, z, P.paper, M.smooth, nc())
+	Kit.box(m, 0.05, 0.04, 0.6, x + 0.75, y + 0.06, z - 0.05, P.wood_light, M.wood, nc())
+	Kit.box(m, 0.05, 0.04, 0.6, x + 0.81, y + 0.06, z - 0.05, P.wood_light, M.wood, nc())
+	Kit.box(m, 0.22, 0.06, 0.1, x + 0.78, y + 0.03, z - 0.42, P.lacquer, M.smooth, nc())
+	Kit.box(m, 0.4, 0.03, 0.4, x - 0.8, y + 0.015, z + 0.05, P.white, M.fabric, nc())
+	local flyer = Kit.box(m, 0.48, 0.02, 0.62, x - 0.8, y + 0.04, z + 0.05, P.cream, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(-8), 0) })
+	Kit.text(flyer, Enum.NormalId.Top, "🍜 MENU", { color = "#B3262E", pps = 60 })
+end
+
+-- On the raised ledge: a menu stand (お品書き), a cup of chopsticks, soy sauce and chili
+local function ledgeProps(m, x, y, z)
+	local card = Kit.box(m, 0.7, 0.55, 0.04, x, y + 0.3, z - 0.05, P.cream, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(-12), 0, 0) })
+	Kit.text(card, Enum.NormalId.Front, "お品書き", { color = "#2B2320", font = JP_FONT, pps = 50 })
+	Kit.box(m, 0.72, 0.05, 0.2, x, y + 0.03, z + 0.05, P.wood_dark, M.wood, nc())
+	Kit.cyl(m, 0.3, 0.42, x - 0.8, y + 0.21, z, P.wood_black, M.smooth, nc())
+	for k = 0, 4 do
+		Kit.box(m, 0.04, 0.6, 0.04, x - 0.86 + (k % 3) * 0.06, y + 0.5, z - 0.04 + math.floor(k / 3) * 0.07, P.wood_light, M.wood, nc())
+	end
+	Kit.cyl(m, 0.18, 0.4, x + 0.62, y + 0.2, z, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.25 })
+	Kit.cyl(m, 0.14, 0.26, x + 0.62, y + 0.13, z, P.wood_black, M.smooth, nc())
+	Kit.cyl(m, 0.19, 0.08, x + 0.62, y + 0.44, z, P.lacquer, M.smooth, nc())
+	Kit.cyl(m, 0.18, 0.26, x + 0.88, y + 0.13, z, P.vermilion, M.metal, nc())
+end
+
 local function counter(m, item, kind)
 	local root = Kit.finish(m, size(item))
 	local w, h, d = item.size[1], item.size[2], item.size[3]
@@ -7318,9 +7357,14 @@ local function counter(m, item, kind)
 	elseif kind == "end" then
 		Kit.box(dc, 0.2, 0.12, d, w / 2 - 0.1, h - 0.06, 0, P.wood_black, M.wood, nc())
 	end
-	-- condiments on the ledge (one set per straight/corner segment)
-	if kind ~= "end" then
-		condiments(Kit.detail(m, "tableware"), kind == "corner" and -0.3 or 0, h + 0.38, d / 2 - 0.25, 0)
+	-- every straight module seats one customer: a place setting in front, props on the ledge
+	if kind == "straight" then
+		placeSetting(m, 0, h, -d / 2)
+		ledgeProps(m, 0, h + 0.33, d / 2 - 0.25)
+	end
+	-- renovated tableware: the lacquered condiment tray on the ledge of corner modules
+	if kind == "corner" then
+		condiments(Kit.detail(m, "tableware"), -0.3, h + 0.38, d / 2 - 0.25, 0)
 	end
 	root:SetAttribute("TopY", h)
 end
@@ -13174,7 +13218,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 6
+local VERSION = 7
 local profiles = {} -- [player] = { data, key, loaded, saving }
 local store = nil
 local storeOk = false
@@ -13336,6 +13380,11 @@ local function migrate(d)
 			d.licenses.lic_sashimi = true
 		end
 		d.v = 6
+	end
+	if d.v < 7 then
+		-- v7: lower, deeper counter in 3-stud modules with a place setting each, stools 3 apart
+		rebuildLayout(d)
+		d.v = 7
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION
@@ -16715,6 +16764,7 @@ return Rewards
 -- booths), where the dish goes, and keeps reservations / dirty dishes per seat.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Items = require(Shared.Config.Items)
+local GameConfig = require(Shared.Config.GameConfig)
 local Footprint = require(Shared.Logic.Footprint)
 local Core = require(script.Parent.Parent.Core)
 
@@ -16800,6 +16850,14 @@ function Seating.refresh()
 				end
 				if best then
 					local px, pz = closestPoint(best.fp, e.x, e.z)
+					-- move the dish spot from the edge onto the top, towards the middle of the surface
+					local cx, cz = best.entry.x, best.entry.z
+					local dx, dz = cx - px, cz - pz
+					local len = math.sqrt(dx * dx + dz * dz)
+					local inset = math.min(GameConfig.DishInset or 0.8, len)
+					if len > 0.001 then
+						px, pz = px + dx / len * inset, pz + dz / len * inset
+					end
 					local dish = Vector3.new(px, topY(best.entry) + 0.05, pz)
 					local sitY = Core.S.World.floorY(e.f) + item.fn.height
 					local seatPos = Vector3.new(e.x, sitY, e.z)
@@ -23312,7 +23370,7 @@ local TYPE_ICON = { cust_critic = "🧐", cust_influencer = "📱", cust_vip = "
 
 local function make(adornee, height, width)
 	local gui = Instance.new("BillboardGui")
-	gui.Size = UDim2.fromOffset(width or 170, 58)
+	gui.Size = UDim2.fromOffset(width or 210, 66)
 	gui.StudsOffsetWorldSpace = Vector3.new(0, height or 3, 0)
 	gui.AlwaysOnTop = false
 	gui.LightInfluence = 0
@@ -23349,17 +23407,92 @@ local function make(adornee, height, width)
 	sub.AutoLocalize = false
 	sub.Parent = bg
 	local bar = Instance.new("Frame")
-	bar.BackgroundColor3 = Color.hex("#E6D7BF")
-	bar.Size = UDim2.new(1, -16, 0, 6)
-	bar.Position = UDim2.new(0, 8, 1, -9)
+	bar.BackgroundColor3 = Color.hex("#D8C8AE")
+	bar.Size = UDim2.new(1, -16, 0, 9)
+	bar.Position = UDim2.new(0, 8, 1, -13)
 	bar.Visible = false
 	bar.Parent = bg
+	local barCorner = Instance.new("UICorner")
+	barCorner.CornerRadius = UDim.new(0, 4)
+	barCorner.Parent = bar
 	local fill = Instance.new("Frame")
 	fill.BackgroundColor3 = Color.hex("#5E8F3A")
 	fill.Size = UDim2.fromScale(1, 1)
 	fill.Parent = bar
+	local fillCorner = Instance.new("UICorner")
+	fillCorner.CornerRadius = UDim.new(0, 4)
+	fillCorner.Parent = fill
 	gui.Parent = player.PlayerGui
 	return { gui = gui, bg = bg, title = title, sub = sub, bar = bar, fill = fill }
+end
+
+-- Customer bubble: sized in studs (2.7 wide, narrower than the 3 studs between two stools, so
+-- neighbours never overlap), always on top, a big icon (❗, the dish, 😋), the dish name, and a
+-- thick patience bar that turns yellow and red
+local function makeCustomer(adornee)
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.fromScale(2.7, 1.5)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, 2.3, 0)
+	gui.AlwaysOnTop = true
+	gui.LightInfluence = 0
+	gui.MaxDistance = 40
+	gui.Adornee = adornee
+	local bg = Instance.new("Frame")
+	bg.Size = UDim2.fromScale(1, 1)
+	bg.BackgroundColor3 = Color.hex("#FFFBF2")
+	bg.Parent = gui
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0.22, 0)
+	c.Parent = bg
+	local s = Instance.new("UIStroke")
+	s.Color = Color.hex("#5B3A24")
+	s.Thickness = 2.5
+	s.Parent = bg
+	local icon = Instance.new("TextLabel")
+	icon.BackgroundTransparency = 1
+	icon.Position = UDim2.fromScale(0.03, 0.06)
+	icon.Size = UDim2.fromScale(0.34, 0.66)
+	icon.TextScaled = true
+	icon.AutoLocalize = false
+	icon.Parent = bg
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Position = UDim2.fromScale(0.38, 0.06)
+	title.Size = UDim2.fromScale(0.6, 0.38)
+	title.TextScaled = true
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Heavy)
+	title.TextColor3 = Color.hex("#2B2320")
+	title.AutoLocalize = false
+	title.Parent = bg
+	local sub = Instance.new("TextLabel")
+	sub.BackgroundTransparency = 1
+	sub.Position = UDim2.fromScale(0.38, 0.44)
+	sub.Size = UDim2.fromScale(0.6, 0.28)
+	sub.TextScaled = true
+	sub.TextXAlignment = Enum.TextXAlignment.Left
+	sub.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
+	sub.TextColor3 = Color.hex("#7A5A3A")
+	sub.AutoLocalize = false
+	sub.Parent = bg
+	local bar = Instance.new("Frame")
+	bar.BackgroundColor3 = Color.hex("#D8C8AE")
+	bar.Position = UDim2.fromScale(0.06, 0.78)
+	bar.Size = UDim2.fromScale(0.88, 0.14)
+	bar.Visible = false
+	bar.Parent = bg
+	local bc = Instance.new("UICorner")
+	bc.CornerRadius = UDim.new(0.5, 0)
+	bc.Parent = bar
+	local fill = Instance.new("Frame")
+	fill.BackgroundColor3 = Color.hex("#5E8F3A")
+	fill.Size = UDim2.fromScale(1, 1)
+	fill.Parent = bar
+	local fc = Instance.new("UICorner")
+	fc.CornerRadius = UDim.new(0.5, 0)
+	fc.Parent = fill
+	gui.Parent = player.PlayerGui
+	return { gui = gui, bg = bg, icon = icon, title = title, sub = sub, bar = bar, fill = fill, customer = true }
 end
 
 local function icons(list)
@@ -23388,23 +23521,29 @@ local function updateEntity(model, b)
 		local order = model:GetAttribute("Order") or ""
 		local typeIcon = TYPE_ICON[model:GetAttribute("Type") or ""] or ""
 		local r = Recipes.byId[order]
+		local icon = b.icon
 		if state == "order" then
-			b.title.Text = typeIcon .. " ❗ " .. t("ui.wants_order")
+			icon.Text = "❗"
+			b.title.Text = typeIcon .. t("ui.wants_order")
 			b.sub.Text = t("hint.take_order")
 		elseif state == "waiting" then
-			b.title.Text = typeIcon .. " " .. (r and r.icon or "🍽️") .. " " .. t("rec." .. order)
+			icon.Text = r and r.icon or "🍽️"
+			b.title.Text = typeIcon .. t("rec." .. order)
 			b.sub.Text = t("ui.waiting")
 		elseif state == "eating" or state == "served" then
-			b.title.Text = "😋"
+			icon.Text = "😋"
+			b.title.Text = t("ui.eating")
 			b.sub.Text = ""
 		elseif state == "queue" then
-			b.title.Text = "⏳"
-			b.sub.Text = t("ui.queue")
+			icon.Text = "⏳"
+			b.title.Text = t("ui.queue")
+			b.sub.Text = ""
 		else
 			b.gui.Enabled = false
 		end
 		setBar(b, model:GetAttribute("Patience") or 1, state == "order" or state == "waiting")
-		b.gui.StudsOffsetWorldSpace = Vector3.new(0, 3.6, 0)
+		-- a gentle pulse while the order waits to be taken
+		b.bg.BackgroundColor3 = state == "order" and Color.hex(math.floor(now * 2) % 2 == 0 and "#FFF1C2" or "#FFFBF2") or Color.hex("#FFFBF2")
 	elseif (kind == "station" or kind == "ricecooker") and Core.C.Interaction and Core.C.Interaction.lockOf(model, kind) then
 		-- not usable yet: name the license that unlocks it
 		local lock = Core.C.Interaction.lockOf(model, kind)
@@ -23505,7 +23644,7 @@ function WorldUI.Start()
 					local b = boards[model]
 					if not b then
 						local adornee = model:FindFirstChild("Head") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
-						b = make(adornee, kind == "station" and 3 or 2.5)
+						b = kind == "customer" and makeCustomer(adornee) or make(adornee, kind == "station" and 3 or 2.5)
 						boards[model] = b
 					end
 					alive[model] = true
@@ -25269,7 +25408,7 @@ function HUD.create(root)
 		Core.C.UI.toggle("Gifts")
 	end)
 	-- order tickets (left, under the wallet): click one to see how to make it
-	refs.tickets = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 104), Size = UDim2.fromOffset(196, 420), Parent = top }, { Kit.list(Enum.FillDirection.Vertical, 5) })
+	refs.tickets = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 104), Size = UDim2.fromOffset(236, 460), Parent = top }, { Kit.list(Enum.FillDirection.Vertical, 6) })
 	-- what you are holding (bottom-centre) with a put-down button
 	refs.hands = pill({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Size = UDim2.fromOffset(360, 40), Visible = false, Parent = top })
 	refs.handsLabel = Kit.label("", { Parent = refs.hands, Position = UDim2.fromOffset(14, 0), Size = UDim2.new(1, -130, 1, 0), TextSize = 15, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
@@ -25451,13 +25590,24 @@ function HUD.refreshInfo()
 	end
 end
 
+-- patience (0..1) of the customer who ordered, read from their model
+local function patienceOf(customerUid)
+	for _, m in ipairs(game:GetService("CollectionService"):GetTagged("Interactable")) do
+		if m:GetAttribute("Uid") == customerUid then
+			return m:GetAttribute("Patience") or 1
+		end
+	end
+	return nil
+end
+
+-- Order tickets on the left: big dish icon and name, what goes on the board, and the customer's
+-- patience as a coloured bar. Click one for the step-by-step guide.
 function HUD.refreshTickets()
 	local holder = refs.tickets
 	if not holder then
 		return
 	end
 	Kit.clear(holder)
-	local now = workspace:GetServerTimeNow()
 	local guide = Core.C.UI.screens.Guide
 	local selected = guide and guide.recipe
 	for i, tk in ipairs(Core.C.Data.tickets or {}) do
@@ -25465,12 +25615,29 @@ function HUD.refreshTickets()
 			break
 		end
 		local r = Recipes.byId[tk.recipe]
-		local age = now - (tk.created or now)
-		local col = age < 30 and T.paper or (age < 60 and Kit.Theme.gold or Kit.Theme.red)
-		local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(196, 44), BackgroundColor3 = col, LayoutOrder = i, Parent = holder }, { Kit.corner(10), Kit.stroke(selected == tk.recipe and T.red or T.wood, selected == tk.recipe and 3 or 2) })
-		Kit.label((r and r.icon or "🍽️"), { Parent = card, Size = UDim2.fromOffset(32, 32), Position = UDim2.fromOffset(6, 6), TextScaled = true })
-		Kit.label(t("rec." .. tk.recipe), { Parent = card, Position = UDim2.fromOffset(44, 3), Size = UDim2.new(1, -50, 0, 20), TextSize = 14, FontFace = T.bold, TextTruncate = Enum.TextTruncate.AtEnd })
-		Kit.label("⏱ " .. Format.duration(age) .. (tk.claimed and "  👨‍🍳" or "") .. "   " .. t("ui.tap_for_steps"), { Parent = card, Position = UDim2.fromOffset(44, 22), Size = UDim2.new(1, -50, 0, 18), TextSize = 12, TextColor3 = T.muted, TextTruncate = Enum.TextTruncate.AtEnd })
+		local p = patienceOf(tk.customer) or 1
+		local barColor = p > 0.5 and T.green or (p > 0.25 and T.gold or T.red)
+		local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(236, 62), BackgroundColor3 = Color3.fromRGB(255, 251, 242), LayoutOrder = i, Parent = holder }, {
+			Kit.corner(12), Kit.stroke(selected == tk.recipe and T.red or (p <= 0.25 and T.red or T.wood), selected == tk.recipe and 3 or 2),
+		})
+		Kit.label(tostring(i), { Parent = card, AnchorPoint = Vector2.new(0, 0), Position = UDim2.fromOffset(4, 3), Size = UDim2.fromOffset(16, 16), TextSize = 12, FontFace = T.bold, TextColor3 = T.muted })
+		Kit.label((r and r.icon or "🍽️"), { Parent = card, Size = UDim2.fromOffset(40, 40), Position = UDim2.fromOffset(14, 6), TextScaled = true })
+		Kit.label(t("rec." .. tk.recipe), { Parent = card, Position = UDim2.fromOffset(60, 4), Size = UDim2.new(1, -66, 0, 22), TextSize = 17, FontFace = T.bold, TextTruncate = Enum.TextTruncate.AtEnd })
+		-- what it needs: ingredients on the board, plus broth / rice
+		local need = {}
+		for _, g in ipairs(r and r.ing or {}) do
+			local ing = Ingredients.byId[g]
+			table.insert(need, ing and ing.icon or "?")
+		end
+		if r and r.broth then
+			table.insert(need, "🥣")
+		end
+		if r and r.rice then
+			table.insert(need, "🍚")
+		end
+		Kit.label(table.concat(need, " ") .. (tk.claimed and "   👨‍🍳" or ""), { Parent = card, Position = UDim2.fromOffset(60, 26), Size = UDim2.new(1, -66, 0, 18), TextSize = 15, TextTruncate = Enum.TextTruncate.AtEnd })
+		local bar = Kit.new("Frame", { Position = UDim2.new(0, 10, 1, -12), Size = UDim2.new(1, -20, 0, 7), BackgroundColor3 = Color3.fromRGB(216, 200, 174), Parent = card }, { Kit.corner(4) })
+		Kit.new("Frame", { Size = UDim2.fromScale(math.clamp(p, 0, 1), 1), BackgroundColor3 = barColor, Parent = bar }, { Kit.corner(4) })
 		card.MouseButton1Click:Connect(function()
 			if Core.C.UI.screens.Guide then
 				Core.C.UI.screens.Guide.show(tk.recipe)

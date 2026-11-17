@@ -21,7 +21,7 @@ local TYPE_ICON = { cust_critic = "🧐", cust_influencer = "📱", cust_vip = "
 
 local function make(adornee, height, width)
 	local gui = Instance.new("BillboardGui")
-	gui.Size = UDim2.fromOffset(width or 170, 58)
+	gui.Size = UDim2.fromOffset(width or 210, 66)
 	gui.StudsOffsetWorldSpace = Vector3.new(0, height or 3, 0)
 	gui.AlwaysOnTop = false
 	gui.LightInfluence = 0
@@ -58,17 +58,92 @@ local function make(adornee, height, width)
 	sub.AutoLocalize = false
 	sub.Parent = bg
 	local bar = Instance.new("Frame")
-	bar.BackgroundColor3 = Color.hex("#E6D7BF")
-	bar.Size = UDim2.new(1, -16, 0, 6)
-	bar.Position = UDim2.new(0, 8, 1, -9)
+	bar.BackgroundColor3 = Color.hex("#D8C8AE")
+	bar.Size = UDim2.new(1, -16, 0, 9)
+	bar.Position = UDim2.new(0, 8, 1, -13)
 	bar.Visible = false
 	bar.Parent = bg
+	local barCorner = Instance.new("UICorner")
+	barCorner.CornerRadius = UDim.new(0, 4)
+	barCorner.Parent = bar
 	local fill = Instance.new("Frame")
 	fill.BackgroundColor3 = Color.hex("#5E8F3A")
 	fill.Size = UDim2.fromScale(1, 1)
 	fill.Parent = bar
+	local fillCorner = Instance.new("UICorner")
+	fillCorner.CornerRadius = UDim.new(0, 4)
+	fillCorner.Parent = fill
 	gui.Parent = player.PlayerGui
 	return { gui = gui, bg = bg, title = title, sub = sub, bar = bar, fill = fill }
+end
+
+-- Customer bubble: sized in studs (2.7 wide, narrower than the 3 studs between two stools, so
+-- neighbours never overlap), always on top, a big icon (❗, the dish, 😋), the dish name, and a
+-- thick patience bar that turns yellow and red
+local function makeCustomer(adornee)
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.fromScale(2.7, 1.5)
+	gui.StudsOffsetWorldSpace = Vector3.new(0, 2.3, 0)
+	gui.AlwaysOnTop = true
+	gui.LightInfluence = 0
+	gui.MaxDistance = 40
+	gui.Adornee = adornee
+	local bg = Instance.new("Frame")
+	bg.Size = UDim2.fromScale(1, 1)
+	bg.BackgroundColor3 = Color.hex("#FFFBF2")
+	bg.Parent = gui
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0.22, 0)
+	c.Parent = bg
+	local s = Instance.new("UIStroke")
+	s.Color = Color.hex("#5B3A24")
+	s.Thickness = 2.5
+	s.Parent = bg
+	local icon = Instance.new("TextLabel")
+	icon.BackgroundTransparency = 1
+	icon.Position = UDim2.fromScale(0.03, 0.06)
+	icon.Size = UDim2.fromScale(0.34, 0.66)
+	icon.TextScaled = true
+	icon.AutoLocalize = false
+	icon.Parent = bg
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Position = UDim2.fromScale(0.38, 0.06)
+	title.Size = UDim2.fromScale(0.6, 0.38)
+	title.TextScaled = true
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Heavy)
+	title.TextColor3 = Color.hex("#2B2320")
+	title.AutoLocalize = false
+	title.Parent = bg
+	local sub = Instance.new("TextLabel")
+	sub.BackgroundTransparency = 1
+	sub.Position = UDim2.fromScale(0.38, 0.44)
+	sub.Size = UDim2.fromScale(0.6, 0.28)
+	sub.TextScaled = true
+	sub.TextXAlignment = Enum.TextXAlignment.Left
+	sub.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
+	sub.TextColor3 = Color.hex("#7A5A3A")
+	sub.AutoLocalize = false
+	sub.Parent = bg
+	local bar = Instance.new("Frame")
+	bar.BackgroundColor3 = Color.hex("#D8C8AE")
+	bar.Position = UDim2.fromScale(0.06, 0.78)
+	bar.Size = UDim2.fromScale(0.88, 0.14)
+	bar.Visible = false
+	bar.Parent = bg
+	local bc = Instance.new("UICorner")
+	bc.CornerRadius = UDim.new(0.5, 0)
+	bc.Parent = bar
+	local fill = Instance.new("Frame")
+	fill.BackgroundColor3 = Color.hex("#5E8F3A")
+	fill.Size = UDim2.fromScale(1, 1)
+	fill.Parent = bar
+	local fc = Instance.new("UICorner")
+	fc.CornerRadius = UDim.new(0.5, 0)
+	fc.Parent = fill
+	gui.Parent = player.PlayerGui
+	return { gui = gui, bg = bg, icon = icon, title = title, sub = sub, bar = bar, fill = fill, customer = true }
 end
 
 local function icons(list)
@@ -97,23 +172,29 @@ local function updateEntity(model, b)
 		local order = model:GetAttribute("Order") or ""
 		local typeIcon = TYPE_ICON[model:GetAttribute("Type") or ""] or ""
 		local r = Recipes.byId[order]
+		local icon = b.icon
 		if state == "order" then
-			b.title.Text = typeIcon .. " ❗ " .. t("ui.wants_order")
+			icon.Text = "❗"
+			b.title.Text = typeIcon .. t("ui.wants_order")
 			b.sub.Text = t("hint.take_order")
 		elseif state == "waiting" then
-			b.title.Text = typeIcon .. " " .. (r and r.icon or "🍽️") .. " " .. t("rec." .. order)
+			icon.Text = r and r.icon or "🍽️"
+			b.title.Text = typeIcon .. t("rec." .. order)
 			b.sub.Text = t("ui.waiting")
 		elseif state == "eating" or state == "served" then
-			b.title.Text = "😋"
+			icon.Text = "😋"
+			b.title.Text = t("ui.eating")
 			b.sub.Text = ""
 		elseif state == "queue" then
-			b.title.Text = "⏳"
-			b.sub.Text = t("ui.queue")
+			icon.Text = "⏳"
+			b.title.Text = t("ui.queue")
+			b.sub.Text = ""
 		else
 			b.gui.Enabled = false
 		end
 		setBar(b, model:GetAttribute("Patience") or 1, state == "order" or state == "waiting")
-		b.gui.StudsOffsetWorldSpace = Vector3.new(0, 3.6, 0)
+		-- a gentle pulse while the order waits to be taken
+		b.bg.BackgroundColor3 = state == "order" and Color.hex(math.floor(now * 2) % 2 == 0 and "#FFF1C2" or "#FFFBF2") or Color.hex("#FFFBF2")
 	elseif (kind == "station" or kind == "ricecooker") and Core.C.Interaction and Core.C.Interaction.lockOf(model, kind) then
 		-- not usable yet: name the license that unlocks it
 		local lock = Core.C.Interaction.lockOf(model, kind)
@@ -214,7 +295,7 @@ function WorldUI.Start()
 					local b = boards[model]
 					if not b then
 						local adornee = model:FindFirstChild("Head") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
-						b = make(adornee, kind == "station" and 3 or 2.5)
+						b = kind == "customer" and makeCustomer(adornee) or make(adornee, kind == "station" and 3 or 2.5)
 						boards[model] = b
 					end
 					alive[model] = true

@@ -172,13 +172,13 @@ Colonne: prezzo, punti ambiente (Amb.), livello di sblocco, tipo di piazzamento,
 ### 5.1 Sedute, tavoli e bancone
 | ID | Nome | Prezzo | Comfort | Liv. | Piazzamento | Dim. |
 |---|---|---|---|---|---|---|
-| `counter_straight` | Bancone dritto (2 posti) | ¥1.000 | — | 1 | pavimento | 4×3×3,5 |
-| `counter_corner` | Bancone ad angolo | ¥1.200 | — | 1 | pavimento | 3×3×3,5 |
-| `counter_end` | Bancone terminale | ¥800 | — | 1 | pavimento | 2×3×3,5 |
-| `stool_wood` | Sgabello in legno | ¥80 | 1 | 1 | pavimento | 1,6×1,6×2,8 |
-| `stool_cushion` | Sgabello imbottito | ¥300 | 2 | 4 | pavimento | 1,6×1,6×2,8 |
-| `stool_swivel` | Sgabello girevole laccato | ¥900 | 3 | 12 | pavimento | 1,8×1,8×2,8 |
-| `stool_red` | Sgabello rosso da ramen-ya | ¥220 | 2 | 2 | pavimento | 1,6×1,6×2,8 |
+| `counter_straight` | Bancone dritto (1 posto: bacchette, tovagliolo e menu davanti; porta-menu, bacchette, soia e peperoncino sul gradino) | ¥750 | — | 1 | pavimento | 3×3,8×3 |
+| `counter_corner` | Bancone ad angolo | ¥1.200 | — | 1 | pavimento | 3,8×3,8×3 |
+| `counter_end` | Bancone terminale | ¥800 | — | 1 | pavimento | 2×3,8×3 |
+| `stool_wood` | Sgabello in legno | ¥80 | 1 | 1 | pavimento | 1,6×1,6×2,4 |
+| `stool_cushion` | Sgabello imbottito | ¥300 | 2 | 4 | pavimento | 1,6×1,6×2,4 |
+| `stool_swivel` | Sgabello girevole laccato | ¥900 | 3 | 12 | pavimento | 1,8×1,8×2,4 |
+| `stool_red` | Sgabello rosso da ramen-ya | ¥220 | 2 | 2 | pavimento | 1,6×1,6×2,4 |
 | `table_2` | Tavolo da 2 | ¥600 | — | 3 | pavimento | 3×3×2,6 |
 | `table_4` | Tavolo da 4 | ¥1.400 | — | 6 | pavimento | 5×3×2,6 |
 | `chair_wood` | Sedia in legno | ¥150 | 1 | 3 | pavimento | 1,6×1,6×3,5 |
@@ -394,7 +394,7 @@ Il locale iniziale è spoglio. Ogni ristrutturazione si compra una volta; l'atmo
 
 Totale ¥231.000 e +122 atmosfera (circa un livello di ambiente in più a metà partita). Anche `sign_rooftop` e `facade_deluxe` stanno nella scheda Ristrutturazioni. Traguardo *Completa {n} ristrutturazioni*: 3 / 8 / 15 → 🌸5 / 15 / 40.
 
-**Si parte con il magazzino vuoto** (¥500 per il primo ordine: gli ingredienti del ramen costano ¥281), ma con il **pentolone già pieno di brodo shoyu** e il **cuociriso pieno**. Oggetti iniziali: bancone (6 moduli + 2 terminali, 28 stud), 12 sgabelli, postazioni sushi e ramen, 2 mensole, cucina componibile (cuociriso, fornello con pentolone, 2 piani di lavoro, lavello), scaffale del magazzino e **una sola lanterna**: tutte le altre decorazioni si comprano.
+**Si parte con il magazzino vuoto** (¥500 per il primo ordine: gli ingredienti del ramen costano ¥281), ma con il **pentolone già pieno di brodo shoyu** e il **cuociriso pieno**. Oggetti iniziali: bancone (12 moduli da 3 stud + 2 terminali, 40 stud, alto 3 e profondo 3,8), 12 sgabelli allineati ai moduli, postazioni sushi e ramen, 2 mensole, cucina componibile (cuociriso, fornello con pentolone, 2 piani di lavoro, lavello), scaffale del magazzino e **una sola lanterna**: tutte le altre decorazioni si comprano.
 
 ---
 

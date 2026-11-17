@@ -3,6 +3,7 @@
 local Kit = require(script.Parent.Parent.Kit)
 local P = require(script.Parent.Parent.Palette)
 local M = P.M
+local JP_FONT = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Bold)
 
 local function size(item)
 	return Vector3.new(item.size[1], item.size[2], item.size[3])
@@ -75,6 +76,34 @@ end
 -- Plain counter: cabinet, wooden top, chef ledge, kick plate and foot rail.
 -- Detail_counter (renovation "hinoki counter"): slats, brass hooks and brackets, light strip,
 -- hinoki top and edge band, plate niche. Detail_tableware: condiments on the ledge.
+-- One place setting at the front of a counter module, around the spot where the dish goes:
+-- chopsticks in a paper sleeve on a rest, a folded napkin and a small menu flyer
+local function placeSetting(m, x, y, zFront)
+	local z = zFront + 0.75
+	Kit.box(m, 0.16, 0.04, 0.85, x + 0.78, y + 0.02, z, P.paper, M.smooth, nc())
+	Kit.box(m, 0.05, 0.04, 0.6, x + 0.75, y + 0.06, z - 0.05, P.wood_light, M.wood, nc())
+	Kit.box(m, 0.05, 0.04, 0.6, x + 0.81, y + 0.06, z - 0.05, P.wood_light, M.wood, nc())
+	Kit.box(m, 0.22, 0.06, 0.1, x + 0.78, y + 0.03, z - 0.42, P.lacquer, M.smooth, nc())
+	Kit.box(m, 0.4, 0.03, 0.4, x - 0.8, y + 0.015, z + 0.05, P.white, M.fabric, nc())
+	local flyer = Kit.box(m, 0.48, 0.02, 0.62, x - 0.8, y + 0.04, z + 0.05, P.cream, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(-8), 0) })
+	Kit.text(flyer, Enum.NormalId.Top, "🍜 MENU", { color = "#B3262E", pps = 60 })
+end
+
+-- On the raised ledge: a menu stand (お品書き), a cup of chopsticks, soy sauce and chili
+local function ledgeProps(m, x, y, z)
+	local card = Kit.box(m, 0.7, 0.55, 0.04, x, y + 0.3, z - 0.05, P.cream, M.smooth, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(-12), 0, 0) })
+	Kit.text(card, Enum.NormalId.Front, "お品書き", { color = "#2B2320", font = JP_FONT, pps = 50 })
+	Kit.box(m, 0.72, 0.05, 0.2, x, y + 0.03, z + 0.05, P.wood_dark, M.wood, nc())
+	Kit.cyl(m, 0.3, 0.42, x - 0.8, y + 0.21, z, P.wood_black, M.smooth, nc())
+	for k = 0, 4 do
+		Kit.box(m, 0.04, 0.6, 0.04, x - 0.86 + (k % 3) * 0.06, y + 0.5, z - 0.04 + math.floor(k / 3) * 0.07, P.wood_light, M.wood, nc())
+	end
+	Kit.cyl(m, 0.18, 0.4, x + 0.62, y + 0.2, z, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.25 })
+	Kit.cyl(m, 0.14, 0.26, x + 0.62, y + 0.13, z, P.wood_black, M.smooth, nc())
+	Kit.cyl(m, 0.19, 0.08, x + 0.62, y + 0.44, z, P.lacquer, M.smooth, nc())
+	Kit.cyl(m, 0.18, 0.26, x + 0.88, y + 0.13, z, P.vermilion, M.metal, nc())
+end
+
 local function counter(m, item, kind)
 	local root = Kit.finish(m, size(item))
 	local w, h, d = item.size[1], item.size[2], item.size[3]
@@ -129,9 +158,14 @@ local function counter(m, item, kind)
 	elseif kind == "end" then
 		Kit.box(dc, 0.2, 0.12, d, w / 2 - 0.1, h - 0.06, 0, P.wood_black, M.wood, nc())
 	end
-	-- condiments on the ledge (one set per straight/corner segment)
-	if kind ~= "end" then
-		condiments(Kit.detail(m, "tableware"), kind == "corner" and -0.3 or 0, h + 0.38, d / 2 - 0.25, 0)
+	-- every straight module seats one customer: a place setting in front, props on the ledge
+	if kind == "straight" then
+		placeSetting(m, 0, h, -d / 2)
+		ledgeProps(m, 0, h + 0.33, d / 2 - 0.25)
+	end
+	-- renovated tableware: the lacquered condiment tray on the ledge of corner modules
+	if kind == "corner" then
+		condiments(Kit.detail(m, "tableware"), -0.3, h + 0.38, d / 2 - 0.25, 0)
 	end
 	root:SetAttribute("TopY", h)
 end

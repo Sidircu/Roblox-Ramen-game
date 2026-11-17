@@ -120,7 +120,7 @@ function HUD.create(root)
 		Core.C.UI.toggle("Gifts")
 	end)
 	-- order tickets (left, under the wallet): click one to see how to make it
-	refs.tickets = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 104), Size = UDim2.fromOffset(196, 420), Parent = top }, { Kit.list(Enum.FillDirection.Vertical, 5) })
+	refs.tickets = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 104), Size = UDim2.fromOffset(236, 460), Parent = top }, { Kit.list(Enum.FillDirection.Vertical, 6) })
 	-- what you are holding (bottom-centre) with a put-down button
 	refs.hands = pill({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Size = UDim2.fromOffset(360, 40), Visible = false, Parent = top })
 	refs.handsLabel = Kit.label("", { Parent = refs.hands, Position = UDim2.fromOffset(14, 0), Size = UDim2.new(1, -130, 1, 0), TextSize = 15, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
@@ -302,13 +302,24 @@ function HUD.refreshInfo()
 	end
 end
 
+-- patience (0..1) of the customer who ordered, read from their model
+local function patienceOf(customerUid)
+	for _, m in ipairs(game:GetService("CollectionService"):GetTagged("Interactable")) do
+		if m:GetAttribute("Uid") == customerUid then
+			return m:GetAttribute("Patience") or 1
+		end
+	end
+	return nil
+end
+
+-- Order tickets on the left: big dish icon and name, what goes on the board, and the customer's
+-- patience as a coloured bar. Click one for the step-by-step guide.
 function HUD.refreshTickets()
 	local holder = refs.tickets
 	if not holder then
 		return
 	end
 	Kit.clear(holder)
-	local now = workspace:GetServerTimeNow()
 	local guide = Core.C.UI.screens.Guide
 	local selected = guide and guide.recipe
 	for i, tk in ipairs(Core.C.Data.tickets or {}) do
@@ -316,12 +327,29 @@ function HUD.refreshTickets()
 			break
 		end
 		local r = Recipes.byId[tk.recipe]
-		local age = now - (tk.created or now)
-		local col = age < 30 and T.paper or (age < 60 and Kit.Theme.gold or Kit.Theme.red)
-		local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(196, 44), BackgroundColor3 = col, LayoutOrder = i, Parent = holder }, { Kit.corner(10), Kit.stroke(selected == tk.recipe and T.red or T.wood, selected == tk.recipe and 3 or 2) })
-		Kit.label((r and r.icon or "🍽️"), { Parent = card, Size = UDim2.fromOffset(32, 32), Position = UDim2.fromOffset(6, 6), TextScaled = true })
-		Kit.label(t("rec." .. tk.recipe), { Parent = card, Position = UDim2.fromOffset(44, 3), Size = UDim2.new(1, -50, 0, 20), TextSize = 14, FontFace = T.bold, TextTruncate = Enum.TextTruncate.AtEnd })
-		Kit.label("⏱ " .. Format.duration(age) .. (tk.claimed and "  👨‍🍳" or "") .. "   " .. t("ui.tap_for_steps"), { Parent = card, Position = UDim2.fromOffset(44, 22), Size = UDim2.new(1, -50, 0, 18), TextSize = 12, TextColor3 = T.muted, TextTruncate = Enum.TextTruncate.AtEnd })
+		local p = patienceOf(tk.customer) or 1
+		local barColor = p > 0.5 and T.green or (p > 0.25 and T.gold or T.red)
+		local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(236, 62), BackgroundColor3 = Color3.fromRGB(255, 251, 242), LayoutOrder = i, Parent = holder }, {
+			Kit.corner(12), Kit.stroke(selected == tk.recipe and T.red or (p <= 0.25 and T.red or T.wood), selected == tk.recipe and 3 or 2),
+		})
+		Kit.label(tostring(i), { Parent = card, AnchorPoint = Vector2.new(0, 0), Position = UDim2.fromOffset(4, 3), Size = UDim2.fromOffset(16, 16), TextSize = 12, FontFace = T.bold, TextColor3 = T.muted })
+		Kit.label((r and r.icon or "🍽️"), { Parent = card, Size = UDim2.fromOffset(40, 40), Position = UDim2.fromOffset(14, 6), TextScaled = true })
+		Kit.label(t("rec." .. tk.recipe), { Parent = card, Position = UDim2.fromOffset(60, 4), Size = UDim2.new(1, -66, 0, 22), TextSize = 17, FontFace = T.bold, TextTruncate = Enum.TextTruncate.AtEnd })
+		-- what it needs: ingredients on the board, plus broth / rice
+		local need = {}
+		for _, g in ipairs(r and r.ing or {}) do
+			local ing = Ingredients.byId[g]
+			table.insert(need, ing and ing.icon or "?")
+		end
+		if r and r.broth then
+			table.insert(need, "🥣")
+		end
+		if r and r.rice then
+			table.insert(need, "🍚")
+		end
+		Kit.label(table.concat(need, " ") .. (tk.claimed and "   👨‍🍳" or ""), { Parent = card, Position = UDim2.fromOffset(60, 26), Size = UDim2.new(1, -66, 0, 18), TextSize = 15, TextTruncate = Enum.TextTruncate.AtEnd })
+		local bar = Kit.new("Frame", { Position = UDim2.new(0, 10, 1, -12), Size = UDim2.new(1, -20, 0, 7), BackgroundColor3 = Color3.fromRGB(216, 200, 174), Parent = card }, { Kit.corner(4) })
+		Kit.new("Frame", { Size = UDim2.fromScale(math.clamp(p, 0, 1), 1), BackgroundColor3 = barColor, Parent = bar }, { Kit.corner(4) })
 		card.MouseButton1Click:Connect(function()
 			if Core.C.UI.screens.Guide then
 				Core.C.UI.screens.Guide.show(tk.recipe)
