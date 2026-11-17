@@ -115,28 +115,143 @@ local function clearBoardModels(st)
 		mdl:Destroy()
 	end
 	st.boardModels = {}
+	for _, mdl in ipairs(st.ghostModels or {}) do
+		mdl:Destroy()
+	end
+	st.ghostModels = {}
 end
 
+local BOARD_SCALE = 0.8
+local BOARD_GAP = 0.6
+
+-- multiset helpers
+local function counts(list)
+	local out = {}
+	for _, g in ipairs(list) do
+		out[g] = (out[g] or 0) + 1
+	end
+	return out
+end
+
+local function contains(recipe, ids)
+	local need = counts(recipe.ing)
+	for _, g in ipairs(ids) do
+		if not need[g] or need[g] == 0 then
+			return false
+		end
+		need[g] -= 1
+	end
+	return true
+end
+
+-- The recipe the board is heading for: the board itself if complete, else the oldest order for
+-- this station that still fits what is on the board, else any recipe that fits it
+local function targetRecipe(e)
+	local st = station(e)
+	local ids = {}
+	for _, b in ipairs(st.board) do
+		table.insert(ids, b.g)
+	end
+	local exact = Cooking.match(e)
+	if exact then
+		return exact
+	end
+	local unlocked = {}
+	for _, r in ipairs(unlockedRecipes(e)) do
+		unlocked[r.id] = r
+	end
+	for _, t in ipairs(Cooking.tickets or {}) do
+		local r = unlocked[t.recipe]
+		if r and contains(r, ids) then
+			return r
+		end
+	end
+	if #ids > 0 then
+		for _, r in pairs(unlocked) do
+			if contains(r, ids) then
+				return r
+			end
+		end
+	end
+	return nil
+end
+
+-- Spots on the board: one per ingredient of the target recipe (or one per item without a target)
+-- returns { { g, item?, cf } } where item is the board entry standing there (nil = still missing)
+local function boardSpots(e)
+	local st = station(e)
+	local att = attachment(e, "Board")
+	if not att then
+		return {}
+	end
+	local recipe = targetRecipe(e)
+	local spots = {}
+	if recipe then
+		local used = {}
+		for _, g in ipairs(recipe.ing) do
+			local found = nil
+			for i, b in ipairs(st.board) do
+				if not used[i] and b.g == g then
+					used[i] = true
+					found = b
+					break
+				end
+			end
+			table.insert(spots, { g = g, item = found })
+		end
+	else
+		for _, b in ipairs(st.board) do
+			table.insert(spots, { g = b.g, item = b })
+		end
+	end
+	local n = #spots
+	for i, sp in ipairs(spots) do
+		sp.cf = att.WorldCFrame * CFrame.new((i - (n + 1) / 2) * BOARD_GAP, 0, 0)
+	end
+	return spots
+end
+
+-- Board: the ingredients put on it, and a see-through outline of each one still missing for the
+-- order you are making, so you know what to bring and how many
 local function layoutBoard(e)
 	local st = station(e)
 	clearBoardModels(st)
-	local att = attachment(e, "Board")
-	if not att then
+	if not e.model then
 		return
 	end
-	local n = #st.board
-	for i, b in ipairs(st.board) do
-		local mdl = Registry.food("ingredient", b.g)
-		local x = (i - (n + 1) / 2) * 0.55
-		mdl:PivotTo(att.WorldCFrame * CFrame.new(x, 0.3, 0) * CFrame.Angles(0, math.rad(90), 0))
-		mdl:ScaleTo(0.8)
-		for _, d in ipairs(mdl:GetDescendants()) do
-			if d:IsA("BasePart") then
-				d.CanQuery = false
-			end
+	local need = {}
+	for _, sp in ipairs(boardSpots(e)) do
+		if not sp.item then
+			table.insert(need, sp.g)
 		end
-		mdl.Parent = e.model
-		table.insert(st.boardModels, mdl)
+		local mdl = Core.S.Supply.standProduct(sp.g, sp.cf, BOARD_SCALE, true)
+		if sp.item then
+			mdl.Parent = e.model
+			table.insert(st.boardModels, mdl)
+		else
+			for _, d in ipairs(mdl:GetDescendants()) do
+				if d:IsA("BasePart") then
+					d.Material = Enum.Material.ForceField
+					d.Transparency = math.max(d.Transparency, 0.35)
+					d.CastShadow = false
+				end
+			end
+			mdl.Name = "Ghost"
+			mdl.Parent = e.model
+			table.insert(st.ghostModels, mdl)
+		end
+	end
+	-- the hint on the station lists what is still missing
+	e.model:SetAttribute("Need", table.concat(need, ","))
+end
+
+-- new orders change what the idle boards ask for
+local function relayoutIdleBoards()
+	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+		local st = station(e)
+		if not st.busy and st.step == 0 and not st.ready then
+			layoutBoard(e)
+		end
 	end
 end
 
@@ -233,6 +348,10 @@ function Cooking.step(e, speed)
 		return false, "msg.no_recipe_fits"
 	end
 	local Appliance = Core.S.Appliance
+	if #st.boardModels ~= #st.board then
+		-- clicked before the last ingredients finished flying in: draw them now
+		layoutBoard(e)
+	end
 	if st.step == 0 then
 		if recipe.rice and not Appliance.hasRice() then
 			return false, "msg.need_rice"
@@ -302,8 +421,25 @@ function Cooking.use(actor, e, speed)
 			return false, (#st.board == 0) and "msg.no_recipe_fits" or "msg.not_for_this"
 		end
 		Hands.set(actor, "ing", remaining)
-		layoutBoard(e)
 		publish(e)
+		-- the ingredients fly from your hands onto their spots, then the board is redrawn
+		local flights = {}
+		local newItems = {}
+		for i = #st.board - deposited + 1, #st.board do
+			newItems[st.board[i]] = true
+		end
+		for _, sp in ipairs(boardSpots(e)) do
+			if sp.item and newItems[sp.item] then
+				table.insert(flights, { g = sp.g, cf = sp.cf, s = BOARD_SCALE, rot = true })
+			end
+		end
+		local step = GameConfig.StockFlyStep or 0.06
+		Core.S.Net.fx("stock", { from = Core.S.Supply.handPos(actor), items = flights, step = step * 2 })
+		task.delay(#flights * step * 2 + 0.3, function()
+			if not st.busy and st.step == 0 then
+				layoutBoard(e)
+			end
+		end)
 		return true
 	elseif hands.kind == "dish" or hands.kind == nil then
 		if st.ready then
@@ -361,6 +497,7 @@ function Cooking.addTicket(customerUid, recipeId)
 	local t = { id = Uid.new("t"), recipe = recipeId, customer = customerUid, created = workspace:GetServerTimeNow() }
 	table.insert(Cooking.tickets, t)
 	broadcast()
+	relayoutIdleBoards()
 	return t
 end
 
@@ -369,6 +506,7 @@ function Cooking.removeTicket(id)
 		if t.id == id then
 			table.remove(Cooking.tickets, i)
 			broadcast()
+			relayoutIdleBoards()
 			return t
 		end
 	end

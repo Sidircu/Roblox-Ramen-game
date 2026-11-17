@@ -66,6 +66,7 @@ return {
 		box = { ids = { a(9113720101) }, volume = 0.55, range = 40 }, -- cardboard box picked up / put down
 		restock = { ids = { a(9113578540), a(9113579415) }, volume = 0.5, range = 40 }, -- box slid onto a shelf
 		place = { ids = { a(9120880067), a(9120880071) }, volume = 0.5, range = 40 },
+		pop = { ids = { a(9120880067), a(9120880071) }, volume = 0.28, pitch = { 1.15, 1.3 }, range = 30 }, -- a product lands on its spot
 		truck = { ids = { a(9114075649) }, volume = 0.3, range = 200 },
 		-- customers
 		ticket = { ids = { a(15675037413) }, volume = 0.45, range = 50 }, -- order written on a ticket

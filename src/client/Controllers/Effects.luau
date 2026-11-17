@@ -10,7 +10,9 @@ local Locale = require(Shared.Locale)
 local Format = require(Shared.Util.Format)
 local Color = require(Shared.Util.Color)
 local Kit = require(Shared.Models.Kit)
+local Registry = require(Shared.Models.Registry)
 local Core = require(script.Parent.Parent.Core)
+local RunService = game:GetService("RunService")
 
 local Effects = {}
 local player = Players.LocalPlayer
@@ -73,6 +75,87 @@ local function confetti()
 	for _, c in ipairs({ "#FF3B4A", "#FFD23B", "#3BC8FF", "#6DDC5A", "#F7B7C9" }) do
 		burst(root.Position + Vector3.new(0, 4, 0), "sparkle", 18, c)
 	end
+end
+
+------------------------------------------------------------------ flying products
+
+-- a product model like the ones SupplyService puts on shelves (same size and resting rule)
+local function product(item)
+	Registry.load()
+	local m = Registry.food("ingredient", item.g)
+	for _, d in ipairs(m:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+			d.CanQuery = false
+			d.CastShadow = false
+		end
+	end
+	pcall(function()
+		m:ScaleTo(item.s or 1)
+	end)
+	local target = item.cf * (item.rot and CFrame.Angles(0, math.rad(90), 0) or CFrame.new())
+	m:PivotTo(target)
+	local box, size = m:GetBoundingBox()
+	local landing = target + Vector3.new(0, target.Position.Y - (box.Position.Y - size.Y / 2), 0)
+	return m, landing
+end
+
+-- moves a model along a small arc, then calls done
+local function arc(m, fromCf, toCf, dur, height, done)
+	task.spawn(function()
+		local t0 = os.clock()
+		while m.Parent do
+			local k = math.min(1, (os.clock() - t0) / dur)
+			local e = k * k * (3 - 2 * k)
+			m:PivotTo(fromCf:Lerp(toCf, e) + Vector3.new(0, math.sin(k * math.pi) * height, 0))
+			if k >= 1 then
+				break
+			end
+			RunService.RenderStepped:Wait()
+		end
+		if done then
+			done()
+		end
+	end)
+end
+
+-- products leave the box one after the other and land on their spot (shelf grid, board...)
+local function stock(data)
+	local items = data.items or {}
+	local step = data.step or 0.06
+	local total = #items * step + 0.3
+	for i, item in ipairs(items) do
+		task.delay((i - 1) * step, function()
+			local m, landing = product(item)
+			local from = data.from and (CFrame.new(data.from) * landing.Rotation) or (landing + Vector3.new(0, 2, 0))
+			m:PivotTo(from)
+			m.Parent = workspace.CurrentCamera
+			arc(m, from, landing, 0.28, 1, function()
+				local Audio = Core.C.Audio
+				if Audio then
+					Audio.play("pop", landing.Position, { pitch = 1 + math.min(i, 20) * 0.015 })
+				end
+				-- stay until the real product appears in the same place
+				task.delay(math.max(0.1, total - ((i - 1) * step + 0.28)) + 0.35, function()
+					m:Destroy()
+				end)
+			end)
+		end)
+	end
+end
+
+-- a product taken from a shelf flies into your hands
+local function take(data)
+	if not data.item or not data.to then
+		return
+	end
+	local m, landing = product(data.item)
+	m:PivotTo(landing)
+	m.Parent = workspace.CurrentCamera
+	arc(m, landing, CFrame.new(data.to) * landing.Rotation, 0.25, 0.6, function()
+		m:Destroy()
+	end)
 end
 
 -- Big "COMBO x3" banner in the middle of the screen
@@ -142,6 +225,10 @@ function Effects.Init()
 			if Audio then
 				Audio.play("beep", data.pos)
 			end
+		elseif kind == "stock" then
+			stock(data)
+		elseif kind == "take" then
+			take(data)
 		elseif kind == "washed" and data.uid then
 			if Core.C.Sink then
 				Core.C.Sink.washed(data.uid)

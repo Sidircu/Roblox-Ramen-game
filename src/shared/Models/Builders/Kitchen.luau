@@ -84,6 +84,73 @@ local function backsplash(m, w, h, d, tiles)
 	Kit.box(m, w, 0.08, 0.35, 0, h + 1.04, d / 2 - 0.2, P.metal, M.metal, nc())
 end
 
+-- Fitted kitchen: every back-line module (rice cooker, range, worktop, sink) shares this base:
+-- wooden drawers and doors, a stainless worktop and white tiles up to RUN_TOP with a wooden ledge,
+-- so modules placed side by side read as one long kitchen unit. Back = +Z.
+-- opts: oven (range door instead of cupboards), noDrawers, cutout = { x0, x1, z0, z1 } (hole in
+-- the worktop for basins; the cabinet stops lower so the basins are open)
+local RUN_TOP = 4.6
+local function fittedBase(m, w, h, d, opts)
+	opts = opts or {}
+	local cut = opts.cutout
+	local carcassTop = cut and (h - 0.8) or (h - 0.2)
+	Kit.box(m, w, 0.3, d - 0.3, 0, 0.15, 0.08, P.charcoal, M.smooth)
+	Kit.box(m, w, carcassTop - 0.3, d - 0.1, 0, 0.3 + (carcassTop - 0.3) / 2, 0.05, P.wood_dark, M.wood)
+	if cut then
+		-- apron and sides around the basins
+		Kit.box(m, w, h - 0.2 - carcassTop, 0.12, 0, (carcassTop + h - 0.2) / 2, -d / 2 + 0.11, P.wood_dark, M.wood)
+		Kit.box(m, w, h - 0.2 - carcassTop, 0.12, 0, (carcassTop + h - 0.2) / 2, d / 2 - 0.06, P.wood_dark, M.wood)
+		for _, sx in ipairs({ -1, 1 }) do
+			Kit.box(m, 0.12, h - 0.2 - carcassTop, d - 0.1, sx * (w / 2 - 0.06), (carcassTop + h - 0.2) / 2, 0.05, P.wood_dark, M.wood)
+		end
+		-- worktop in four strips around the hole
+		local x0, x1, z0, z1 = cut[1], cut[2], cut[3], cut[4]
+		local top = { reflectance = 0.12 }
+		Kit.box(m, x0 + w / 2 + 0.01, 0.18, d + 0.04, (-w / 2 - 0.01 + x0) / 2, h - 0.09, -0.02, P.metal, M.metal, top)
+		Kit.box(m, w / 2 + 0.01 - x1, 0.18, d + 0.04, (x1 + w / 2 + 0.01) / 2, h - 0.09, -0.02, P.metal, M.metal, top)
+		Kit.box(m, x1 - x0, 0.18, z0 + d / 2 + 0.02, (x0 + x1) / 2, h - 0.09, (-d / 2 - 0.04 + z0) / 2, P.metal, M.metal, top)
+		Kit.box(m, x1 - x0, 0.18, d / 2 - z1, (x0 + x1) / 2, h - 0.09, (z1 + d / 2) / 2, P.metal, M.metal, top)
+	else
+		Kit.box(m, w + 0.02, 0.18, d + 0.04, 0, h - 0.09, -0.02, P.metal, M.metal, { reflectance = 0.12 })
+	end
+	Kit.box(m, w + 0.02, 0.06, 0.08, 0, h - 0.2, -d / 2 - 0.02, P.steel, M.metal, nc())
+	-- fronts: drawers on top, doors (or the oven door of the range) below
+	local front = -d / 2 + 0.02
+	local drawerH = 0.55
+	local noDrawers = opts.noDrawers or cut ~= nil
+	local doorTop = h - 0.2 - (noDrawers and 0.1 or drawerH + 0.05)
+	if not noDrawers then
+		local nd = math.max(1, math.floor(w / 1.3))
+		local dw = w / nd
+		for i = 0, nd - 1 do
+			local x = -w / 2 + dw * (i + 0.5)
+			Kit.box(m, dw - 0.1, drawerH - 0.08, 0.06, x, h - 0.2 - drawerH / 2, front - 0.03, P.wood, M.wood, nc())
+			Kit.box(m, math.min(0.6, dw - 0.5), 0.06, 0.06, x, h - 0.2 - drawerH / 2, front - 0.09, P.brass, M.metal, nc())
+		end
+	end
+	if opts.oven then
+		Kit.box(m, w - 0.3, doorTop - 0.45, 0.06, 0, 0.35 + (doorTop - 0.45) / 2, front - 0.03, P.steel, M.metal, nc({ reflectance = 0.1 }))
+		Kit.box(m, w - 1.1, (doorTop - 0.45) * 0.42, 0.04, 0, 0.35 + (doorTop - 0.45) * 0.5, front - 0.07, P.charcoal, M.glass, nc({ transparency = 0.15 }))
+		Kit.cylH(m, 0.08, w - 0.9, 0, doorTop - 0.3, front - 0.17, P.metal, M.metal, nc(), "x")
+	else
+		local doors = math.max(1, math.floor(w / 1.3))
+		local dw = w / doors
+		local hgt = doorTop - 0.4
+		local cy = 0.35 + hgt / 2
+		for i = 0, doors - 1 do
+			local x = -w / 2 + dw * (i + 0.5)
+			Kit.box(m, dw - 0.1, hgt, 0.06, x, cy, front - 0.03, P.wood, M.wood, nc())
+			Kit.box(m, dw - 0.42, hgt - 0.35, 0.03, x, cy, front - 0.075, P.wood_light, M.wood, nc())
+			local hx = x + (i % 2 == 0 and (dw / 2 - 0.25) or -(dw / 2 - 0.25))
+			Kit.box(m, 0.06, 0.6, 0.06, hx, cy + hgt / 2 - 0.45, front - 0.12, P.brass, M.metal, nc())
+		end
+	end
+	-- white tiles up to the shared line, a wooden ledge on top
+	local bs = RUN_TOP - h
+	Kit.box(m, w, bs, 0.1, 0, h + bs / 2, d / 2 - 0.05, P.white, M.tiles, nc())
+	Kit.box(m, w + 0.02, 0.1, 0.4, 0, RUN_TOP + 0.05, d / 2 - 0.2, P.wood_dark, M.wood, nc())
+end
+
 -- Utensil rail with hanging tools
 local function utensilRail(m, w, h, d, tools)
 	local y = h + 1.6
@@ -168,18 +235,15 @@ end
 
 local function riceCooker(m, item, pro)
 	local root = Kit.finish(m, size(item))
-	local w, h = item.size[1], item.size[2]
-	local standH = h - 1.4
-	-- wooden stand with a drawer and kanji label
-	Kit.box(m, w, standH, w, 0, standH / 2, 0, P.wood_dark, M.wood)
+	local w, d = item.size[1], item.size[3]
+	local standH = 3.5
+	-- a module of the fitted kitchen, the cooker on its worktop
+	fittedBase(m, w, standH, d)
 	local dk = Kit.detail(m, "kitchen")
-	Kit.box(dk, w + 0.1, 0.1, w + 0.1, 0, standH - 0.05, 0, P.wood_black, M.wood, nc())
-	Kit.box(dk, w - 0.3, standH - 0.45, 0.04, 0, standH / 2 + 0.05, -w / 2 - 0.02, P.wood, M.wood, nc())
-	Kit.box(dk, 0.4, 0.06, 0.06, 0, standH - 0.35, -w / 2 - 0.06, P.brass, M.metal, nc())
-	local label = Kit.box(dk, 0.8, 0.34, 0.03, 0, standH / 2 - 0.1, -w / 2 - 0.05, P.paper, M.smooth, nc())
+	local label = Kit.box(dk, 0.8, 0.34, 0.03, 0, standH - 0.85, -d / 2 - 0.08, P.paper, M.smooth, nc())
 	Kit.text(label, Enum.NormalId.Front, "炊飯", { color = "#2B2320", font = JP_FONT, pps = 40 })
 	-- cooker body with side handles, lid, steam vent and control panel
-	local r = w - 0.35
+	local r = math.min(w, d) - (pro and 0.5 or 0.7)
 	local body = Kit.cyl(m, r, 1.0, 0, standH + 0.5, 0, pro and P.metal or P.white, pro and M.metal or M.smooth, { name = "Body", reflectance = pro and 0.12 or 0 })
 	Kit.cyl(m, r + 0.04, 0.08, 0, standH + 0.12, 0, P.charcoal, M.smooth, nc())
 	Kit.cyl(dk, r + 0.04, 0.05, 0, standH + 0.98, 0, pro and P.steel or P.sakura_dark, M.smooth, nc())
@@ -204,44 +268,52 @@ local function riceCooker(m, item, pro)
 	point(root, "Content", 0, standH + 1.1, 0)
 end
 
+-- Gas range of the fitted kitchen: oven door and knobs, black cooktop with two burners, the big
+-- stock pot on the main one and a small saucepan on the other, hood above
 local function brothPot(m, item, large)
 	local root = Kit.finish(m, size(item))
-	local w, h = item.size[1], item.size[2]
-	local stoveH = 1.5
-	cabinet(m, w, stoveH, w, P.steel_dark, P.steel)
+	local w, d = item.size[1], item.size[3]
+	local stoveH = 3.0
+	fittedBase(m, w, stoveH, d, { oven = true, noDrawers = true })
 	local dk = Kit.detail(m, "kitchen")
-	plate(dk, w / 2 - 0.75, stoveH - 0.45, -w / 2 - 0.12, "出汁")
-	knobs(m, 2, -w / 2 + 0.45, stoveH - 0.45, -w / 2 - 0.08)
-	-- burner ring and cast iron grate
-	Kit.cyl(m, w * 0.6, 0.06, 0, stoveH + 0.03, 0, P.neon_blue, M.neon, { collide = false, name = "Flame" })
-	Kit.cyl(m, w * 0.35, 0.08, 0, stoveH + 0.05, 0, P.charcoal, M.metal, nc())
+	knobs(m, 4, -0.6, stoveH - 0.35, -d / 2 - 0.08)
+	plate(dk, w / 2 - 0.7, stoveH + 1.0, d / 2 - 0.12, "出汁")
+	Kit.box(m, w - 0.1, 0.06, d - 0.2, 0, stoveH + 0.03, -0.05, P.charcoal, M.metal, nc())
+	local dPot = large and 2.3 or 1.9
+	local potH = large and 1.45 or 1.2
+	local px = -w / 2 + dPot / 2 + 0.2
+	-- main burner: blue flame ring (lit while cooking) and a cast iron grate
+	Kit.cyl(m, dPot * 0.55, 0.05, px, stoveH + 0.08, 0, P.neon_blue, M.neon, { collide = false, name = "Flame" })
+	Kit.cyl(m, dPot * 0.3, 0.07, px, stoveH + 0.09, 0, P.charcoal, M.metal, nc())
 	for i = 0, 3 do
-		Kit.box(m, w * 0.85, 0.08, 0.1, 0, stoveH + 0.1, 0, P.charcoal, M.metal, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(i * 45), 0) })
+		Kit.box(m, dPot * 0.95, 0.07, 0.09, px, stoveH + 0.13, 0, P.charcoal, M.metal, { collide = false, shadow = false, rot = CFrame.Angles(0, math.rad(i * 45), 0) })
 	end
-	local potH = h - stoveH - 0.2
-	local d = w - 0.4
-	Kit.cyl(m, d, potH, 0, stoveH + potH / 2 + 0.15, 0, P.metal, M.metal, { reflectance = 0.15, name = "Body" })
-	for _, y in ipairs({ 0.35, potH - 0.45 }) do
-		Kit.cyl(dk, d + 0.05, 0.06, 0, stoveH + 0.15 + y, 0, P.steel, M.metal, nc())
+	-- the stock pot
+	local y0 = stoveH + 0.16
+	Kit.cyl(m, dPot, potH, px, y0 + potH / 2, 0, P.metal, M.metal, { reflectance = 0.15, name = "Body" })
+	for _, y in ipairs({ 0.3, potH - 0.35 }) do
+		Kit.cyl(dk, dPot + 0.05, 0.06, px, y0 + y, 0, P.steel, M.metal, nc())
 	end
-	Kit.cyl(m, d + 0.1, 0.12, 0, stoveH + potH + 0.1, 0, P.steel, M.metal, { collide = false })
-	local broth = Kit.cyl(m, d - 0.15, 0.06, 0, stoveH + potH - 0.02, 0, P.wood, M.smooth, { collide = false, name = "Broth", transparency = 1 })
+	Kit.cyl(m, dPot + 0.1, 0.1, px, y0 + potH, 0, P.steel, M.metal, { collide = false })
+	local broth = Kit.cyl(m, dPot - 0.15, 0.06, px, y0 + potH - 0.12, 0, P.wood, M.smooth, { collide = false, name = "Broth", transparency = 1 })
 	broth:SetAttribute("Fill", true)
-	for _, x in ipairs({ -d / 2 - 0.15, d / 2 + 0.15 }) do
-		Kit.box(m, 0.3, 0.12, 0.6, x, stoveH + potH - 0.25, 0, P.steel_dark, M.metal, { collide = false })
-		Kit.box(m, 0.12, 0.3, 0.12, x - (x > 0 and 0.08 or -0.08), stoveH + potH - 0.12, 0.22, P.steel_dark, M.metal, nc())
-		Kit.box(m, 0.12, 0.3, 0.12, x - (x > 0 and 0.08 or -0.08), stoveH + potH - 0.12, -0.22, P.steel_dark, M.metal, nc())
+	for _, sx in ipairs({ -1, 1 }) do
+		Kit.box(m, 0.28, 0.1, 0.55, px + sx * (dPot / 2 + 0.12), y0 + potH - 0.25, 0, P.steel_dark, M.metal, { collide = false })
 	end
-	-- lid leaning against the back of the pot
-	Kit.cyl(dk, d * 0.9, 0.08, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.25, P.metal, M.metal, { collide = false, shadow = false, rot = CFrame.Angles(math.rad(80), 0, 0) })
-	Kit.box(dk, 0.4, 0.1, 0.12, 0, stoveH + potH / 2 + 0.3, d / 2 + 0.2, P.wood_dark, M.wood, nc())
-	-- long ladle (handle + bowl) resting in the pot
-	Kit.cyl(m, 0.08, 2.2, d / 4, stoveH + potH + 0.45, 0, P.metal, M.metal, { collide = false, rot = CFrame.Angles(0, 0, math.rad(25)) })
-	Kit.cyl(m, 0.1, 0.4, d / 4 - 0.5, stoveH + potH + 1.4, 0, P.wood_dark, M.wood, { collide = false, rot = CFrame.Angles(0, 0, math.rad(25)) })
-	local vent = Kit.box(m, d - 0.4, 0.1, d - 0.4, 0, stoveH + potH + 0.2, 0, P.white, M.smooth, { transparency = 1, collide = false, name = "Steam" })
+	-- long ladle resting in the pot
+	Kit.cyl(m, 0.08, 1.9, px + dPot / 4, y0 + potH + 0.4, 0, P.metal, M.metal, { collide = false, rot = CFrame.Angles(0, 0, math.rad(25)) })
+	Kit.cyl(m, 0.1, 0.4, px + dPot / 4 - 0.45, y0 + potH + 1.2, 0, P.wood_dark, M.wood, { collide = false, rot = CFrame.Angles(0, 0, math.rad(25)) })
+	local vent = Kit.box(m, dPot - 0.4, 0.1, dPot - 0.4, px, y0 + potH + 0.15, 0, P.white, M.smooth, { transparency = 1, collide = false, name = "Steam" })
 	Kit.particles(vent, "steam", { enabled = false, rate = large and 10 or 6 })
 	Kit.particles(broth, "bubbles", { enabled = false })
-	point(root, "Content", 0, stoveH + potH, 0)
+	-- second burner with a small saucepan
+	local sx2 = w / 2 - 0.65
+	Kit.cyl(m, 0.7, 0.05, sx2, stoveH + 0.08, 0.15, P.charcoal, M.metal, nc())
+	Kit.cyl(dk, 0.9, 0.45, sx2, stoveH + 0.35, 0.15, P.copper, M.metal, nc({ reflectance = 0.1 }))
+	Kit.box(dk, 0.7, 0.08, 0.1, sx2, stoveH + 0.5, -0.55, P.wood_dark, M.wood, nc())
+	-- hood low enough to frame the range in first person, still above your head
+	hood(m, w, stoveH - 1.4, d)
+	point(root, "Content", px, y0 + potH, 0)
 end
 
 -- Work station: cabinet with the board area (-x), the plate spot (+x) and a tool hovering point.
@@ -469,12 +541,35 @@ return function(Registry)
 		end, { plate = "甘味", tools = { "towel" } })
 	end)
 
+	-- plain worktop module of the fitted kitchen, with a few tools on it
+	Registry.register("kitchen_counter", function(m, item)
+		Kit.finish(m, size(item))
+		local w, h, d = item.size[1], item.size[2], item.size[3]
+		fittedBase(m, w, h, d)
+		-- wooden knife block with handles, a stack of bowls, a crock of ladles
+		Kit.box(m, 0.5, 0.6, 0.45, -w / 2 + 0.5, h + 0.3, d / 2 - 0.45, P.wood_dark, M.wood, nc())
+		for k = 0, 2 do
+			Kit.box(m, 0.08, 0.3, 0.12, -w / 2 + 0.36 + k * 0.14, h + 0.72, d / 2 - 0.45, P.charcoal, M.smooth, nc())
+		end
+		bowlStack(m, 0.25, -0.1, h, 4, P.white)
+		Kit.cyl(m, 0.45, 0.55, w / 2 - 0.45, h + 0.28, d / 2 - 0.5, P.steel, M.metal, nc())
+		for k = 0, 2 do
+			Kit.cyl(m, 0.05, 1.0, w / 2 - 0.55 + k * 0.1, h + 0.75, d / 2 - 0.5, P.wood_dark, M.wood, { collide = false, rot = CFrame.Angles(0, 0, math.rad(-8 + k * 8)) })
+		end
+		local dk = Kit.detail(m, "kitchen")
+		-- a hinoki board leaning on the tiles and soy sauce bottles on the ledge
+		Kit.box(dk, 1.2, 0.8, 0.08, 0.2, h + 0.45, d / 2 - 0.2, P.hinoki, M.wood, nc({ rot = CFrame.Angles(math.rad(-12), 0, 0) }))
+		for k = 0, 1 do
+			Kit.cyl(dk, 0.2, 0.5, -0.4 + k * 0.3, RUN_TOP + 0.35, d / 2 - 0.2, P.soy or "#2B1A10", M.glass, nc())
+		end
+	end)
+
 	Registry.register("sink", function(m, item)
 		local root = Kit.finish(m, size(item))
 		local w, h, d = item.size[1], item.size[2], item.size[3]
-		cabinet(m, w, h, d, P.metal, P.steel)
+		local bdHalf = (d - 0.75) / 2
+		fittedBase(m, w, h, d, { cutout = { -1.725, 0.875, -bdHalf, bdHalf } })
 		local dk = Kit.detail(m, "kitchen")
-		backsplash(dk, w, h, d, true)
 		plate(dk, w / 2 - 0.8, h - 0.75, -d / 2 - 0.12, "洗い場")
 		-- double basin (built from walls so it looks hollow), soapy water in the left one
 		local bw, bd = 1.25, d - 0.75
@@ -503,10 +598,10 @@ return function(Registry)
 			Kit.box(dk, 0.05, 0.05, 0.25, fx + sx * 1.3, h + 0.35, fz - 0.1, sx < 0 and P.neon_red or P.neon_blue, M.smooth, nc())
 		end
 		-- sponge, dish soap and a tenugui towel over the cabinet lip
-		Kit.box(dk, 0.35, 0.14, 0.22, -1.75, h + 0.07, bd / 2, P.leaf_light, M.fabric, nc())
-		Kit.box(dk, 0.35, 0.05, 0.22, -1.75, h + 0.165, bd / 2, P.neon_yellow, M.fabric, nc())
-		Kit.cyl(dk, 0.24, 0.5, -1.75, h + 0.25, bd / 2 - 0.4, P.leaf, M.plastic, { collide = false, shadow = false, transparency = 0.2 })
-		Kit.cyl(dk, 0.08, 0.12, -1.75, h + 0.56, bd / 2 - 0.4, P.white, M.plastic, nc())
+		Kit.box(dk, 0.35, 0.14, 0.22, -1.6, h + 0.07, bd / 2 + 0.2, P.leaf_light, M.fabric, nc())
+		Kit.box(dk, 0.35, 0.05, 0.22, -1.6, h + 0.165, bd / 2 + 0.2, P.neon_yellow, M.fabric, nc())
+		Kit.cyl(dk, 0.24, 0.5, -1.15, h + 0.25, bd / 2 + 0.2, P.leaf, M.plastic, { collide = false, shadow = false, transparency = 0.2 })
+		Kit.cyl(dk, 0.08, 0.12, -1.15, h + 0.56, bd / 2 + 0.2, P.white, M.plastic, nc())
 		Kit.box(dk, 0.6, 0.9, 0.03, 0.3, h - 0.4, -d / 2 - 0.16, P.white, M.fabric, nc())
 		Kit.box(dk, 0.6, 0.12, 0.035, 0.3, h - 0.6, -d / 2 - 0.165, P.indigo, M.fabric, nc())
 		-- wire drying rack with clean plates

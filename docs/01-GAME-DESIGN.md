@@ -91,6 +91,7 @@ Pianta indicativa (vista dall'alto):
 ```
 
 - Il bancone separa la **sala clienti** dalla **zona di lavoro**. I clienti non entrano dietro il bancone.
+- Dietro, oltre il corridoio, due mensole e una **cucina componibile**: moduli con la stessa altezza, ante in legno, piano in acciaio e piastrelle bianche fino alla stessa linea, messi uno accanto all'altro come un unico mobile: cuociriso, **fornello a gas** (forno, manopole, due fuochi, il pentolone del brodo e un pentolino di rame, cappa), piano di lavoro con ceppo dei coltelli e ciotole, **lavello** a due vasche incassate con scolapiatti, altro piano di lavoro. Il piano di lavoro si compra anche a parte per allungare la cucina e ci si possono appoggiare oggetti.
 - Gli oggetti iniziali sono normali oggetti piazzabili: puoi spostarli tutti in modalità costruzione.
 - **In scala con gli avatar**: il locale base misura 72 × 56 stud (sala 72 × 32, cucina 72 × 24, magazzino 24 × 32). Il bancone è lungo 28 stud (6 moduli + 2 terminali) con 12 sgabelli; in cucina le postazioni subito dietro e, oltre un corridoio largo 6 stud, scaffali, cuociriso, pentolone e lavello.
 - **Si parte da un locale base**: pareti lisce, tettoia in lamiera, finestre semplici, bancone e postazioni essenziali, una sola lanterna. Tutto il resto (decorazioni e dettagli tradizionali) si compra col tempo: decorazioni piazzabili (§9) e **ristrutturazioni** (§8.5).
@@ -145,10 +146,10 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 - Ogni scatola ha un'etichetta con icona e nome dell'ingrediente e il numero di porzioni rimaste.
 
 ### 4.3 Dal magazzino alle mensole
-- Clicchi una scatola → la prendi in mano.
-- Clicchi una **mensola** dietro il bancone → il personaggio la svuota nel ripiano cliccato e, se avanza, nel ripiano libero successivo (animazione di sistemazione).
-- Le mensole sono **grandi** (la piccola è alta 7,4 stud e larga 5,6) e mostrano i prodotti ben visibili.
-- Ogni mensola ha dei **ripiani** (slot); ogni ripiano contiene un solo tipo di ingrediente. Un ripiano della mensola base contiene **mezza scatola**: **una scatola riempie al massimo 2 ripiani**. Le mensole più grandi e il miglioramento *Mensole rinforzate* rendono i ripiani più capienti (la scatola ne riempie meno). Gli oggetti sulle mensole sono visibili (barattoli, pacchetti, filetti di pesce).
+- Clicchi una scatola → la prendi in mano: la scatola **si apre** (alette piegate in fuori) e dentro si vedono alcuni prodotti, come in Pet Store Tycoon e Supermarket Together; sulla faccia verso di te c'è l'icona e quanti pezzi restano (es. 7/20).
+- Clicchi una **mensola** dietro il bancone → i prodotti **volano fuori dalla scatola uno alla volta** (un piccolo arco e un "toc" quando si posano) nel ripiano cliccato e, se avanza, nel ripiano libero successivo. Prendendo un prodotto dalla mensola, quello vola nelle tue mani.
+- Le mensole sono **grandi** (la piccola è alta 7,4 stud e larga 5,6).
+- Ogni mensola ha dei **ripiani** (slot); ogni ripiano contiene un solo tipo di ingrediente, disposto **a scacchiera** (2×3, 2×4, 2×5, 3×5…): ogni casella è un prodotto e le **caselle libere sono segnate** da un quadratino chiaro, così si vede a colpo d'occhio quanti ne entrano e quanti mancano (niente numeri "10/10"). Un ripiano contiene **mezza scatola**: **una scatola riempie al massimo 2 ripiani**. Il miglioramento *Mensole rinforzate* aggiunge file di prodotti verso il fondo; la mensola grande ha più ripiani.
 - Se avanzano porzioni (ripiano già mezzo pieno, mensola piena o scatola grande, che riempie 2 ripiani alla volta), la scatola resta in mano con le porzioni avanzate; una scatola vuota si butta automaticamente.
 - La **vetrina refrigerata del pesce** (sul bancone, come nei veri sushi bar) funziona come una mensola per il pesce e dà un bonus di freschezza (qualità).
 
@@ -165,6 +166,10 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 - Il cliente seduto mostra una nuvoletta con l'icona del piatto.
 - Clic sul cliente → l'ordine diventa un **biglietto** appeso alla barra degli ordini sopra il bancone (max 6 biglietti; 10 con upgrade).
 - Clic su un biglietto (o sulla postazione) → il gioco **evidenzia in oro** gli ingredienti che servono sulle mensole e la postazione corretta.
+
+### 5.1 bis Il tagliere ti dice cosa portare
+- Sul tagliere di ogni postazione compaiono le **sagome trasparenti** degli ingredienti dell'ordine più vecchio per quella postazione (una per pezzo, al loro posto). Guardando la postazione compare "Porta qui: 🍙 🥒 🟩".
+- Quando posi gli ingredienti, volano dalle tue mani alla loro sagoma e la riempiono; le sagome che restano sono quelle che mancano. Senza ordini il tagliere è vuoto; con ingredienti già posati, le sagome seguono la ricetta che stai facendo.
 
 ### 5.2 Preparare il sushi (postazione sushi / tagliere)
 Esempio *Sake Nigiri*:

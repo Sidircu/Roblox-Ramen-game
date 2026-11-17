@@ -6,7 +6,7 @@
 local list = {
 	{ id = "rice", units = 20, price = 60, storage = "rice", license = "lic_base", icon = "🍚", color = "#F4F1EA", shape = "sack" },
 	{ id = "nori", units = 30, price = 45, storage = "shelf", license = "lic_base", icon = "🟩", color = "#1E2B1E", shape = "sheet" },
-	{ id = "cucumber", units = 15, price = 30, storage = "shelf", license = "lic_base", icon = "🥒", color = "#4E8A3A", shape = "veg" },
+	{ id = "cucumber", units = 16, price = 32, storage = "shelf", license = "lic_base", icon = "🥒", color = "#4E8A3A", shape = "veg" },
 	{ id = "salmon", units = 12, price = 120, storage = "fish", license = "lic_base", icon = "🐟", color = "#F28C5A", shape = "fillet" },
 	{ id = "noodles", units = 20, price = 80, storage = "shelf", license = "lic_base", icon = "🍜", color = "#F2D27A", shape = "noodle" },
 	{ id = "broth_shoyu", units = 16, price = 96, storage = "broth", license = "lic_base", icon = "🥣", color = "#7A4A22", shape = "jar" },
@@ -20,7 +20,7 @@ local list = {
 	{ id = "miso_paste", units = 16, price = 96, storage = "shelf", license = "lic_sides", icon = "🟫", color = "#B5803A", shape = "jar" },
 	{ id = "tofu", units = 20, price = 50, storage = "shelf", license = "lic_sides", icon = "⬜", color = "#F6F2E6", shape = "pack" },
 	{ id = "avocado", units = 12, price = 72, storage = "shelf", license = "lic_sushi2", icon = "🥑", color = "#7FA33A", shape = "veg" },
-	{ id = "surimi", units = 15, price = 75, storage = "shelf", license = "lic_sushi2", icon = "🦀", color = "#E8544A", shape = "pack" },
+	{ id = "surimi", units = 16, price = 80, storage = "shelf", license = "lic_sushi2", icon = "🦀", color = "#E8544A", shape = "pack" },
 	{ id = "sesame", units = 40, price = 40, storage = "shelf", license = "lic_sushi2", icon = "⚪", color = "#E9DCC0", shape = "jar" },
 	{ id = "shrimp", units = 12, price = 144, storage = "fish", license = "lic_sushi2", icon = "🦐", color = "#F48A6A", shape = "fillet" },
 	{ id = "broth_miso", units = 16, price = 128, storage = "broth", license = "lic_ramen2", icon = "🥣", color = "#C58A3E", shape = "jar" },

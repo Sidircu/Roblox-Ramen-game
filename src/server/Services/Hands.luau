@@ -93,7 +93,8 @@ end
 
 local function buildVisual(kind, item)
 	if kind == "box" then
-		return Registry.food("box", item.g, item.n, Core.S.Supply.boxCap(item))
+		-- carried boxes are open with some of the products showing
+		return Registry.food("box", item.g, item.n, Core.S.Supply.boxCap(item), true)
 	elseif kind == "ing" then
 		return Registry.food("ingredient", item.g)
 	elseif kind == "dish" then

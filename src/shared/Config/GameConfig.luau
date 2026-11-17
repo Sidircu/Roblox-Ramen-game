@@ -71,7 +71,8 @@ return {
 	-- A box fills at most this many shelf slots: a base slot holds 1/BoxShelfSlots of a box
 	-- (bigger shelves and the shelf upgrade make slots roomier); big boxes fill this many per use
 	BoxShelfSlots = 2,
-	ShelfItemScale = 1.3, -- size of the products shown on shelf slots
+	ShelfItemScale = 1.3, -- largest size of the products shown in the shelf grids
+	StockFlyStep = 0.06, -- seconds between two products flying from the box to the shelf
 
 	-- Sink: hold to wash one plate every Time seconds; at most MaxPile dirty plates are drawn in the
 	-- soaking basin; staff wash up to StaffBatch plates per trip

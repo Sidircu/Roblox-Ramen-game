@@ -10,13 +10,14 @@ local Upgrades = require(Shared.Config.Upgrades)
 local Items = require(Shared.Config.Items)
 local Expansions = require(Shared.Config.Expansions)
 local Footprint = require(Shared.Logic.Footprint)
+local ShelfGrid = require(Shared.Logic.ShelfGrid)
 local Registry = require(Shared.Models.Registry)
 local Uid = require(Shared.Util.Uid)
 local Core = require(script.Parent.Parent.Core)
 
 local Supply = {}
 local boxModels = {} -- [boxUid] = entity
-local slotVisuals = {} -- [shelfUid .. "#" .. slot] = Model
+local slotVisuals = {} -- [shelfUid .. "#" .. slot] = { holder, g, cols, rows, cells = { [k] = { kind, inst } } }
 local pending = {} -- deliveries { t, boxes }
 local truckBusy = false
 
@@ -37,16 +38,24 @@ local function ingUnlocked(d, ing)
 	return false
 end
 
--- Units of ingredient g one slot of this shelf holds: a fraction of a supplier box, so that a
--- box never fills more than GameConfig.BoxShelfSlots slots
-function Supply.slotCap(entity, g)
+-- Product grid of one slot for ingredient g (Logic/ShelfGrid): half a supplier box laid out like
+-- a chessboard, plus rows from the shelf upgrade. A box therefore fills at most two slots.
+function Supply.slotGrid(g)
 	local ing = Ingredients.byId[g]
 	if not ing then
-		return 0
+		return 1, 1
 	end
 	local d = data()
 	local mult = d and Upgrades.value(d.upgrades, "up_shelf") or 1
-	return math.max(1, math.ceil(ing.units * (entity.item.fn.size or 1) * mult / GameConfig.BoxShelfSlots - 1e-6))
+	return ShelfGrid.forIngredient(ing.units, GameConfig.BoxShelfSlots, mult)
+end
+
+function Supply.slotCap(entity, g)
+	if not Ingredients.byId[g] then
+		return 0
+	end
+	local cols, rows = Supply.slotGrid(g)
+	return cols * rows
 end
 
 ------------------------------------------------------------------ storage layout
@@ -334,50 +343,152 @@ function shelfState(uid)
 	return d.shelves[uid]
 end
 
-function Supply.refreshShelf(e)
-	if not e or not e.model then
-		return
+-- how big a product is drawn in a cell (fits the cell, never bigger than ShelfItemScale)
+local extents = {}
+local function productFit(g, cw, cd, ch)
+	local ext = extents[g]
+	if not ext then
+		local m = Registry.food("ingredient", g)
+		ext = m:GetExtentsSize()
+		m:Destroy()
+		extents[g] = ext
 	end
+	local maxScale = GameConfig.ShelfItemScale or 1.3
+	local straight = math.min(0.86 * cw / ext.X, 0.86 * cd / ext.Z, 0.8 * ch / ext.Y)
+	local turned = math.min(0.86 * cw / ext.Z, 0.86 * cd / ext.X, 0.8 * ch / ext.Y)
+	if turned > straight then
+		return math.min(turned, maxScale), true
+	end
+	return math.min(straight, maxScale), false
+end
+
+-- world CFrame of the floor of cell k of a slot part, and the cell size
+local function cellFloor(part, k, cols, rows)
+	local x, z, cw, cd = ShelfGrid.cell(k, cols, rows, part.Size.X - 0.1, part.Size.Z - 0.1)
+	return part.CFrame * CFrame.new(x, -part.Size.Y / 2 + 0.02, z), cw, cd
+end
+
+-- one product standing on a floor CFrame (bottom resting on it); clients use the same rule
+local function standProduct(g, floorCf, scale, turned)
+	local m = Registry.food("ingredient", g)
+	for _, d in ipairs(m:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.CanQuery = false
+			d.CanCollide = false
+		end
+	end
+	pcall(function()
+		m:ScaleTo(scale)
+	end)
+	local target = floorCf * (turned and CFrame.Angles(0, math.rad(90), 0) or CFrame.new())
+	m:PivotTo(target)
+	local box, size = m:GetBoundingBox()
+	m:PivotTo(target + Vector3.new(0, target.Position.Y - (box.Position.Y - size.Y / 2), 0))
+	return m
+end
+
+Supply.standProduct = standProduct
+
+-- a faint square marking a free spot of the grid
+local function spot(floorCf, cw, cd)
+	local p = Instance.new("Part")
+	p.Name = "Spot"
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	p.CastShadow = false
+	p.Material = Enum.Material.SmoothPlastic
+	p.Color = Color3.fromRGB(255, 244, 214)
+	p.Transparency = 0.5
+	p.Size = Vector3.new(cw * 0.8, 0.02, cd * 0.8)
+	p.CFrame = floorCf * CFrame.new(0, 0.01, 0)
+	return p
+end
+
+-- what fly animations need to land exactly where the product will stand
+function Supply.cellTarget(e, slot, k, g)
+	local part = e.model and e.model:FindFirstChild("Slot" .. slot)
+	if not part then
+		return nil
+	end
+	local cols, rows = Supply.slotGrid(g)
+	local floorCf, cw, cd = cellFloor(part, k, cols, rows)
+	local scale, turned = productFit(g, cw, cd, part.Size.Y)
+	return { g = g, cf = floorCf, s = scale, rot = turned }
+end
+
+local function refreshSlot(e, slot)
 	local st = shelfState(e.uid)
-	for slot = 1, e.item.fn.slots do
-		local part = e.model:FindFirstChild("Slot" .. slot)
-		local key = e.uid .. "#" .. slot
-		if slotVisuals[key] then
-			slotVisuals[key]:Destroy()
+	local part = e.model:FindFirstChild("Slot" .. slot)
+	local key = e.uid .. "#" .. slot
+	local cur = slotVisuals[key]
+	local s = st[tostring(slot)]
+	local g = (s and s.n > 0) and s.g or nil
+	if part then
+		part:SetAttribute("G", g or "")
+		part:SetAttribute("N", g and s.n or 0)
+		part:SetAttribute("Cap", g and Supply.slotCap(e, g) or 0)
+	end
+	if not g or not part then
+		if cur then
+			cur.holder:Destroy()
 			slotVisuals[key] = nil
 		end
-		local s = st[tostring(slot)]
-		local cap = s and Supply.slotCap(e, s.g) or 0
-		if part then
-			part:SetAttribute("G", s and s.g or "")
-			part:SetAttribute("N", s and s.n or 0)
-			part:SetAttribute("Cap", cap)
+		return
+	end
+	local cols, rows = Supply.slotGrid(g)
+	if not cur or cur.g ~= g or cur.cols ~= cols or cur.rows ~= rows or not cur.holder.Parent then
+		if cur then
+			cur.holder:Destroy()
 		end
-		if s and s.n > 0 and part then
-			local holder = Instance.new("Model")
-			holder.Name = "SlotItems"
-			local width = part:GetAttribute("Width") or 3
-			local shown = math.min(6, math.max(1, math.ceil(s.n / math.max(1, cap) * 6)))
-			for k = 1, shown do
-				local m = Registry.food("ingredient", s.g)
-				-- the shelves are big: show the products a little bigger too
-				pcall(function()
-					m:ScaleTo(GameConfig.ShelfItemScale or 1)
-				end)
-				local x = -width / 2 + width * (k - 0.5) / shown
-				m:PivotTo(part.CFrame * CFrame.new(x, -part.Size.Y / 2 + 0.32 * (GameConfig.ShelfItemScale or 1), 0))
-				for _, dsc in ipairs(m:GetDescendants()) do
-					if dsc:IsA("BasePart") then
-						dsc.CanQuery = false
-					end
-				end
-				m.Parent = holder
+		local holder = Instance.new("Model")
+		holder.Name = "SlotItems"
+		holder.Parent = e.model
+		cur = { holder = holder, g = g, cols = cols, rows = rows, cells = {} }
+		slotVisuals[key] = cur
+	end
+	local _, cw0, cd0 = cellFloor(part, 1, cols, rows)
+	local scale, turned = productFit(g, cw0, cd0, part.Size.Y)
+	for k = 1, cols * rows do
+		local want = k <= s.n and "item" or "spot"
+		local have = cur.cells[k]
+		if not have or have.kind ~= want then
+			if have then
+				have.inst:Destroy()
 			end
-			holder.Parent = e.model
-			slotVisuals[key] = holder
+			local floorCf, cw, cd = cellFloor(part, k, cols, rows)
+			local inst = want == "item" and standProduct(g, floorCf, scale, turned) or spot(floorCf, cw, cd)
+			inst.Parent = cur.holder
+			cur.cells[k] = { kind = want, inst = inst }
 		end
 	end
 end
+
+-- Draws the products of a shelf (or of one slot) as a grid with free spots marked
+function Supply.refreshShelf(e, onlySlot)
+	if not e or not e.model then
+		return
+	end
+	if onlySlot then
+		refreshSlot(e, onlySlot)
+		return
+	end
+	for slot = 1, e.item.fn.slots do
+		refreshSlot(e, slot)
+	end
+end
+
+-- where an actor holds things (start / end of the fly animations)
+local function handPos(actor)
+	if typeof(actor) == "Instance" then
+		local hrp = actor.Character and actor.Character:FindFirstChild("HumanoidRootPart")
+		return hrp and (hrp.CFrame * CFrame.new(0, 0.6, -1.6)).Position
+	end
+	local root = actor.npc and actor.npc.root
+	return root and (root.CFrame * CFrame.new(0, 0.6, -1.6)).Position
+end
+Supply.handPos = handPos
 
 function Supply.shelfStock(g)
 	local total = 0
@@ -454,6 +565,7 @@ function Supply.useShelf(actor, e, slot)
 			return false, "msg.shelf_full"
 		end
 		-- fill the clicked slot first, then the next free one: at most BoxShelfSlots slots per box
+		local flights, touched = {}, {}
 		while target and entry.n > 0 and filled < GameConfig.BoxShelfSlots do
 			local s = st[tostring(target)]
 			if not s or s.n == 0 then
@@ -461,10 +573,17 @@ function Supply.useShelf(actor, e, slot)
 				st[tostring(target)] = s
 			end
 			local amount = math.max(0, math.min(entry.n, cap - s.n))
+			for k = s.n + 1, s.n + amount do
+				local tgt = Supply.cellTarget(e, target, k, entry.g)
+				if tgt then
+					table.insert(flights, tgt)
+				end
+			end
 			s.n += amount
 			entry.n -= amount
 			placed += amount
 			filled += 1
+			table.insert(touched, target)
 			target = entry.n > 0 and chooseSlot(e, entry.g, nil) or nil
 		end
 		local left = entry.n
@@ -478,7 +597,25 @@ function Supply.useShelf(actor, e, slot)
 		if typeof(actor) == "Instance" then
 			Core.S.Net.notify(actor, left > 0 and "msg.restocked_left" or "msg.restocked", { n = placed, name = "ing." .. entry.g, left = left }, "success")
 		end
-		Supply.refreshShelf(e)
+		-- the products fly out of the box one by one (Supermarket Together style) and are drawn on
+		-- the shelf when the last one lands
+		local step = GameConfig.StockFlyStep or 0.06
+		Core.S.Net.fx("stock", { from = handPos(actor), items = flights, step = step })
+		task.delay(#flights * step + 0.3, function()
+			if e.model then
+				for _, slotIndex in ipairs(touched) do
+					refreshSlot(e, slotIndex)
+				end
+			end
+		end)
+		for _, slotIndex in ipairs(touched) do
+			local part = e.model:FindFirstChild("Slot" .. slotIndex)
+			local s = st[tostring(slotIndex)]
+			if part and s then
+				part:SetAttribute("G", s.g)
+				part:SetAttribute("N", s.n)
+			end
+		end
 		Core.S.Data.changed(Core.S.Session.owner, "shelves")
 		Core.S.Meta.event(Core.S.Session.owner, "restock", 1)
 		Core.S.Net.fx("sfx", { name = "restock", pos = e.model.PrimaryPart.Position })
@@ -501,11 +638,16 @@ function Supply.useShelf(actor, e, slot)
 		if not ok then
 			return false, reason
 		end
+		-- the last product of the slot flies into your hands
+		local from = Supply.cellTarget(e, slot, s.n, s.g)
+		if from then
+			Core.S.Net.fx("take", { item = from, to = handPos(actor) })
+		end
 		s.n -= 1
 		if s.n <= 0 then
 			st[tostring(slot)] = nil
 		end
-		Supply.refreshShelf(e)
+		Supply.refreshShelf(e, slot)
 		Core.S.Data.changed(Core.S.Session.owner, "shelves")
 		return true
 	end

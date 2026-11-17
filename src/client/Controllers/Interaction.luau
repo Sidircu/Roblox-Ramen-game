@@ -109,6 +109,15 @@ local function actionText(model, kind, slot)
 			local idx = (model:GetAttribute("Step") or 0) + 1
 			return t("hint.do_step", { step = "step." .. (list[idx] or "combine"), dish = "rec." .. recipe, i = idx, n = #list })
 		end
+		local need = model:GetAttribute("Need") or ""
+		if need ~= "" then
+			local icons = {}
+			for _, g in ipairs(string.split(need, ",")) do
+				local ing = Ingredients.byId[g]
+				table.insert(icons, ing and ing.icon or g)
+			end
+			return t("hint.board_need", { list = table.concat(icons, " ") })
+		end
 		if (model:GetAttribute("Board") or "") ~= "" then
 			return t("hint.board_incomplete")
 		end

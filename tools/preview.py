@@ -135,7 +135,7 @@ function scene_items(ids)
 end
 
 function scene_dish(ids)
-  -- grid of dishes; "ing:<id>" ingredient, "box:<id>" supplier box, "dirty:bowl", "tool:knife", "stack:clean"
+  -- grid of dishes; "ing:<id>" ingredient, "box:<id>" supplier box, "openbox:<id>" carried box, "dirty:bowl", "tool:knife", "stack:clean"
   local root = Instance.new("Model")
   local cols = math.ceil(math.sqrt(#ids))
   for i, id in ipairs(ids) do
@@ -143,6 +143,7 @@ function scene_dish(ids)
     local m
     if kind == "ing" then m = Registry.food("ingredient", rest)
     elseif kind == "box" then m = Registry.food("box", rest, 12)
+    elseif kind == "openbox" then m = Registry.food("box", rest, 8, 20, true)
     elseif kind == "stack" then m = Registry.food("stack", 4, rest)
     elseif kind then m = Registry.food(kind, rest)
     else m = Registry.food("dish", id) end

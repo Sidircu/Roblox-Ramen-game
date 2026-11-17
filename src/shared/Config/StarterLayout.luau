@@ -28,12 +28,16 @@ return {
 		-- stations right behind the counter, the cook works facing it
 		{ i = "sushi_station", x = -11, z = 33.3, r = 180, s = "f" },
 		{ i = "ramen_station", x = -3, z = 33.3, r = 180, s = "f" },
-		-- back line across a wide aisle: shelves, rice cooker, broth pot, sink
+		-- back line across a wide aisle: two shelves, then one fitted kitchen unit (same height,
+		-- depth and tiles) with the rice cooker, the gas range with the stock pot, a worktop, the
+		-- sink and another worktop, fronts aligned with the shelves
 		{ i = "shelf_small", x = -22, z = 42.2, r = 0, s = "f" },
 		{ i = "shelf_small", x = -15.5, z = 42.2, r = 0, s = "f" },
-		{ i = "rice_cooker", x = -5.5, z = 42, r = 0, s = "f" },
-		{ i = "broth_pot", x = -1.5, z = 42, r = 0, s = "f" },
-		{ i = "sink", x = 4, z = 42, r = 0, s = "f" },
+		{ i = "rice_cooker", x = -10.7, z = 42.45, r = 0, s = "f" },
+		{ i = "broth_pot", x = -7.4, z = 42.45, r = 0, s = "f" },
+		{ i = "kitchen_counter", x = -4.1, z = 42.45, r = 0, s = "f" },
+		{ i = "sink", x = -0.8, z = 42.45, r = 0, s = "f" },
+		{ i = "kitchen_counter", x = 2.5, z = 42.45, r = 0, s = "f" },
 		{ i = "storage_rack", x = 48, z = 54.6, r = 0, s = "f" },
 		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
 		{ i = "chochin_white", x = -6, z = 20, r = 0, s = "c" },

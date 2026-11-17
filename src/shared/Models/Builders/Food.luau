@@ -1311,24 +1311,104 @@ end
 
 -- Supplier cardboard box: packing tape, hand holes, coloured band by storage type, and on both big
 -- faces the icon with the portions left (language independent). cap = portions of a full box.
-local function box(id, count, cap)
+-- Products peeking out of an open box: up to 6 in a 3x2 grid, tops just above the rim
+local function boxContents(m, id, n, W, H, D)
+	local shown = math.min(n, 6)
+	local cols, rows = 3, 2
+	local cw, cd = (W - 0.25) / cols, (D - 0.25) / rows
+	for k = 1, shown do
+		local p = ingredient(id)
+		local ok, ext = pcall(function()
+			return p:GetExtentsSize()
+		end)
+		if ok and ext then
+			local fit = math.min(0.9 * cw / math.max(ext.X, 0.01), 0.9 * cd / math.max(ext.Z, 0.01), 0.7 / math.max(ext.Y, 0.01), 1)
+			pcall(function()
+				p:ScaleTo(fit)
+			end)
+		end
+		local i, j = (k - 1) % cols, math.floor((k - 1) / cols)
+		local x = -(W - 0.25) / 2 + cw * (i + 0.5)
+		local z = -(D - 0.25) / 2 + cd * (j + 0.5)
+		local target = CFrame.new(x, H - 0.5, z) * CFrame.Angles(0, math.rad((k * 37) % 20 - 10), 0)
+		p:PivotTo(target)
+		local okBox, bb, size = pcall(function()
+			return p:GetBoundingBox()
+		end)
+		if okBox and bb then
+			p:PivotTo(target + Vector3.new(0, target.Position.Y - (bb.Position.Y - size.Y / 2), 0))
+		end
+		for _, d in ipairs(p:GetDescendants()) do
+			if d:IsA("BasePart") then
+				d.CanCollide = false
+				d.CanQuery = false
+			end
+		end
+		p.Parent = m
+	end
+end
+
+-- Supplier cardboard box, closed on the racks: packing tape, hand holes, coloured band by storage
+-- type, and on both big faces the icon with the portions left (language independent).
+-- cap = portions of a full box. open = the box you carry: flaps folded out and some of the
+-- products inside visible (as in shop tycoons), as long as something is left in it.
+local function box(id, count, cap, open)
 	local ing = Ingredients.byId[id]
 	local m = Kit.model("Box")
-	local body = Kit.box(m, 1.8, 1.3, 1.5, 0, 0.65, 0, P.cardboard, M.cardboard, { name = "Body" })
-	Kit.box(m, 1.82, 0.12, 0.3, 0, 1.25, 0, c("#D8C49A"), M.smooth, nc({ transparency = 0.1 }))
-	Kit.box(m, 1.6, 0.012, 0.012, 0, 1.31, 0, lerp(P.cardboard, P.black, 0.35), M.smooth, nc())
-	local band = BOX_BAND[ing and ing.storage or "dry"] or BOX_BAND.dry
-	Kit.box(m, 1.82, 0.18, 1.52, 0, 0.18, 0, c(band), M.smooth, nc())
-	for _, s in ipairs({ -1, 1 }) do
-		Kit.box(m, 0.02, 0.14, 0.4, s * 0.905, 0.95, 0, lerp(P.cardboard, P.black, 0.55), M.smooth, nc())
-	end
+	local W, H, D, T = 1.8, 1.3, 1.5, 0.07
 	local icon = ing and ing.icon or "📦"
 	local n = count or (ing and ing.units) or 0
 	local full = math.max(cap or (ing and ing.units) or n, n)
+	local band = BOX_BAND[ing and ing.storage or "dry"] or BOX_BAND.dry
+	local front, back
+	if open and n > 0 then
+		local inside = lerp(P.cardboard, P.black, 0.35)
+		Kit.box(m, W - 2 * T, T, D - 2 * T, 0, T / 2 + 0.02, 0, inside, M.cardboard, nc())
+		front = Kit.box(m, W, H, T, 0, H / 2, -D / 2 + T / 2, P.cardboard, M.cardboard, { name = "Body" })
+		back = Kit.box(m, W, H, T, 0, H / 2, D / 2 - T / 2, P.cardboard, M.cardboard, nc())
+		for _, sx in ipairs({ -1, 1 }) do
+			Kit.box(m, T, H, D - 2 * T, sx * (W / 2 - T / 2), H / 2, 0, P.cardboard, M.cardboard, nc())
+			Kit.box(m, 0.02, 0.14, 0.4, sx * (W / 2 + 0.005), 0.95, 0, lerp(P.cardboard, P.black, 0.55), M.smooth, nc())
+		end
+		-- the inner faces of the walls are a little darker
+		Kit.box(m, W - 2 * T, H - 0.1, 0.01, 0, H / 2, -D / 2 + T + 0.005, inside, M.cardboard, nc())
+		Kit.box(m, W - 2 * T, H - 0.1, 0.01, 0, H / 2, D / 2 - T - 0.005, inside, M.cardboard, nc())
+		-- coloured band on the outside of the walls only (the inside stays cardboard)
+		for _, sz in ipairs({ -1, 1 }) do
+			Kit.box(m, W + 0.02, 0.18, 0.01, 0, 0.18, sz * (D / 2 + 0.005), c(band), M.smooth, nc())
+		end
+		for _, sx in ipairs({ -1, 1 }) do
+			Kit.box(m, 0.01, 0.18, D + 0.02, sx * (W / 2 + 0.005), 0.18, 0, c(band), M.smooth, nc())
+		end
+		-- four flaps folded outwards
+		local a = math.rad(50)
+		local len = 0.62
+		local fl = lerp(P.cardboard, P.white, 0.08)
+		for _, sz in ipairs({ -1, 1 }) do
+			local hinge = Vector3.new(0, H, sz * D / 2)
+			local dir = Vector3.new(0, math.sin(a), sz * math.cos(a))
+			Kit.part(m, Vector3.new(W - 0.04, 0.04, len), CFrame.new(hinge + dir * (len / 2)) * CFrame.Angles(-sz * a, 0, 0), fl, M.cardboard, nc())
+		end
+		for _, sx in ipairs({ -1, 1 }) do
+			local hinge = Vector3.new(sx * W / 2, H, 0)
+			local dir = Vector3.new(sx * math.cos(a), math.sin(a), 0)
+			Kit.part(m, Vector3.new(len * 0.8, 0.04, D - 0.06), CFrame.new(hinge + dir * (len * 0.4)) * CFrame.Angles(0, 0, sx * a), fl, M.cardboard, nc())
+		end
+		boxContents(m, id, n, W, H, D)
+	else
+		local body = Kit.box(m, W, H, D, 0, H / 2, 0, P.cardboard, M.cardboard, { name = "Body" })
+		Kit.box(m, W + 0.02, 0.12, 0.3, 0, H - 0.05, 0, c("#D8C49A"), M.smooth, nc({ transparency = 0.1 }))
+		Kit.box(m, W - 0.2, 0.012, 0.012, 0, H + 0.01, 0, lerp(P.cardboard, P.black, 0.35), M.smooth, nc())
+		Kit.box(m, W + 0.02, 0.18, D + 0.02, 0, 0.18, 0, c(band), M.smooth, nc())
+		for _, sx in ipairs({ -1, 1 }) do
+			Kit.box(m, 0.02, 0.14, 0.4, sx * 0.905, 0.95, 0, lerp(P.cardboard, P.black, 0.55), M.smooth, nc())
+		end
+		front, back = body, body
+	end
 	-- front faces the shelf / aisle, back faces you when you carry it
-	boxLabel(body, Enum.NormalId.Front, icon, n, full)
-	boxLabel(body, Enum.NormalId.Back, icon, n, full)
-	Kit.finish(m, Vector3.new(1.8, 1.3, 1.5))
+	boxLabel(front, Enum.NormalId.Front, icon, n, full)
+	boxLabel(back, Enum.NormalId.Back, icon, n, full)
+	Kit.finish(m, Vector3.new(W, H, D))
 	m:SetAttribute("Ingredient", id)
 	return m
 end

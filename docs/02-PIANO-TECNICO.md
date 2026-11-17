@@ -109,9 +109,9 @@ Un test controlla l'integrità: ogni ingrediente usato esiste, ogni licenza punt
 | `WorldService` | costruisce la strada e l'edificio dalle zone sbloccate; ricostruisce dopo un'espansione (§8) |
 | `PlacementService` | piazzamento, spostamento, vendita, inventario, verniciatura; validazione (§11) |
 | `InteractionService` | riceve i clic, controlla distanza e stato, smista all'azione giusta; gestisce cosa ha in mano ogni giocatore |
-| `SupplyService` | ordini al fornitore, furgone, scatole nel magazzino, mensole e slot |
+| `SupplyService` | ordini al fornitore, furgone, scatole nel magazzino, mensole e slot. Ripiani a scacchiera (`Logic/ShelfGrid`: colonne × file per ingrediente, caselle libere segnate), aggiornati un ripiano e una casella alla volta; `Fx("stock")` fa volare i prodotti dalla scatola alle caselle (il ripiano si ridisegna quando atterra l'ultimo), `Fx("take")` dalla casella alla mano. Le scatole in mano sono aperte con alcuni prodotti visibili |
 | `ApplianceService` | rice cooker, pentoloni, lavello, lavastoviglie: lotti, timer, porzioni. Lavello: pila di piatti sporchi disegnata nella vasca, sessioni "tieni premuto" (remote `Wash(uid, on)`, un piatto ogni `Washing.Time` finché il giocatore tiene premuto, è vicino e ha le mani libere), attributi `Washing`/`WashStart`/`WashTime`/`Washer` per l'animazione sul client (`SinkController`) |
-| `CookingService` | biglietti d'ordine, sessioni di preparazione, risultati dei minigiochi, piatti pronti |
+| `CookingService` | biglietti d'ordine, sessioni di preparazione, risultati dei minigiochi, piatti pronti. Il tagliere mostra le sagome (materiale ForceField) degli ingredienti mancanti della ricetta obiettivo (ordine più vecchio compatibile con quanto posato) e pubblica l'attributo `Need`; gli ingredienti posati volano al loro posto |
 | `CustomerService` | arrivo, scelta del posto, ordini, pazienza, pasto, pagamento, recensione; intelligenza dei clienti |
 | `SeatingService` | posti attivi (sgabello davanti al bancone, sedia vicino al tavolo), prenotazioni, punto dove appoggiare il piatto |
 | `StaffService` | assunzione, stipendi, addestramento, intelligenza del personale tramite bacheca dei compiti (§10) |
@@ -203,7 +203,7 @@ Permessi (salvati nei dati del proprietario): `helper` (cucina, serve, pulisce, 
 - DataStore `Profiles_v1`, chiave `u_<userId>`; scrittura sempre con `UpdateAsync`.
 - **Blocco di sessione**: il salvataggio contiene `{ jobId, time }`; un altro server non lo usa finché il blocco è recente (< 10 min), poi lo considera abbandonato. Evita duplicazioni.
 - Autosalvataggio ogni 120 s, all'uscita e in `game:BindToClose`; tentativi con attesa crescente; controllo del budget delle richieste.
-- `migrate(data)` porta i salvataggi vecchi alla versione corrente; i campi mancanti si riempiono dai valori predefiniti. Versione 2: locale ingrandito; versione 3: bancone da 12 sgabelli, mensole grandi e prima persona (gli oggetti comprati tornano nell'inventario, le scorte delle mensole tornano nelle scatole).
+- `migrate(data)` porta i salvataggi vecchi alla versione corrente; i campi mancanti si riempiono dai valori predefiniti. Versione 2: locale ingrandito; versione 3: bancone da 12 sgabelli, mensole grandi e prima persona; versione 4: cucina componibile e mensole a scacchiera (gli oggetti comprati tornano nell'inventario, le scorte delle mensole tornano nelle scatole).
 - Lo stato "in corso" (clienti seduti, piatti in mano) **non** si salva: alla riapertura il locale riparte pulito in fase di preparazione; le scorte (scatole, mensole, lotti pronti) invece si salvano.
 
 ### Replica al client

@@ -163,44 +163,6 @@ local function updateEntity(model, b)
 	end
 end
 
-local slotBoards = {}
-
-local function updateShelf(model, near)
-	for _, part in ipairs(model:GetChildren()) do
-		if part:IsA("BasePart") and part:GetAttribute("Slot") then
-			local b = slotBoards[part]
-			if near then
-				if not b then
-					b = Instance.new("BillboardGui")
-					b.Size = UDim2.fromOffset(70, 26)
-					b.StudsOffsetWorldSpace = Vector3.new(0, part.Size.Y / 2 - 0.1, -0.4)
-					b.LightInfluence = 0
-					b.MaxDistance = 18
-					b.Adornee = part
-					local l = Instance.new("TextLabel")
-					l.Name = "L"
-					l.Size = UDim2.fromScale(1, 1)
-					l.BackgroundColor3 = Color.hex("#2B2320")
-					l.BackgroundTransparency = 0.25
-					l.TextColor3 = Color.hex("#F4EBDD")
-					l.TextScaled = true
-					l.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
-					l.AutoLocalize = false
-					l.Parent = b
-					b.Parent = player.PlayerGui
-					slotBoards[part] = b
-				end
-				local g = part:GetAttribute("G") or ""
-				local ing = Ingredients.byId[g]
-				b.L.Text = g ~= "" and ((ing and ing.icon or "") .. " " .. (part:GetAttribute("N") or 0) .. "/" .. (part:GetAttribute("Cap") or 0)) or "—"
-				b.Enabled = true
-			elseif b then
-				b.Enabled = false
-			end
-		end
-	end
-end
-
 local staffTags = {}
 
 local function updateStaff(char, origin)
@@ -235,9 +197,8 @@ function WorldUI.Start()
 				local kind = model:GetAttribute("Kind")
 				local pos = model:GetPivot().Position
 				local near = (pos - origin).Magnitude < RANGE
-				if kind == "shelf" then
-					updateShelf(model, (pos - origin).Magnitude < 18)
-				elseif near and (kind == "customer" or kind == "station" or kind == "ricecooker" or kind == "pot" or kind == "dirty" or kind == "dishwasher") then
+				-- shelves need no label: their products stand in a grid with the free spots marked
+				if near and (kind == "customer" or kind == "station" or kind == "ricecooker" or kind == "pot" or kind == "dirty" or kind == "dishwasher") then
 					local b = boards[model]
 					if not b then
 						local adornee = model:FindFirstChild("Head") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
@@ -256,12 +217,6 @@ function WorldUI.Start()
 			if not alive[model] then
 				b.gui:Destroy()
 				boards[model] = nil
-			end
-		end
-		for part, b in pairs(slotBoards) do
-			if not part:IsDescendantOf(workspace) then
-				b:Destroy()
-				slotBoards[part] = nil
 			end
 		end
 		local npcs = workspace:FindFirstChild("NPCs")

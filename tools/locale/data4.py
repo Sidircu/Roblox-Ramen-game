@@ -21,4 +21,5 @@ NEW = [
 ("hint.wash_hold","Hold to wash the dishes ({n})","Tieni premuto: lava i piatti ({n})"),
 ("hint.washing","Washing… keep holding","Stai lavando… tieni premuto"),
 ("msg.wash_hold","Hold the click (or E) on the sink to wash the dishes.","Tieni premuto il clic (o E) sul lavello per lavare i piatti."),
+("hint.board_need","Bring here: {list}","Porta qui: {list}"),
 ]

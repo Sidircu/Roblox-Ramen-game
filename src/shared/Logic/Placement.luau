@@ -17,7 +17,7 @@ local Placement = {}
 local PLACE_CODE = { floor = "f", wall = "w", ceiling = "c", top = "t" }
 Placement.PlaceCode = PLACE_CODE
 
-local SURFACE_FN = { counter = true, table = true, booth = true }
+local SURFACE_FN = { counter = true, table = true, booth = true, worktop = true }
 
 local function contains(list, v)
 	for _, x in ipairs(list) do

@@ -14,6 +14,7 @@ local Ingredients = require(Shared.Config.Ingredients)
 local Licenses = require(Shared.Config.Licenses)
 local Surfaces = require(Shared.Config.Surfaces)
 local Sets = require(Shared.Config.Sets)
+local ShelfGrid = require(Shared.Logic.ShelfGrid)
 
 local function starterPlaced()
   local placed, uids = {}, {}
@@ -238,4 +239,31 @@ test("renovations are cosmetic and map to detail styles", function()
   local plain = Geometry.compute(Expansions.list, { zone_base = true }, Expansions)
   local reno = Geometry.compute(Expansions.list, { zone_base = true, reno_facade = true, reno_beams = true }, Expansions)
   expect(#plain.zones == #reno.zones and #plain.openings == #reno.openings, "renovations do not add rooms")
+end)
+
+test("shelf slots are product grids, a box fills two slots", function()
+  local function dims(n)
+    local c, r = ShelfGrid.dims(n)
+    return c .. "x" .. r
+  end
+  expect(dims(10) == "5x2" and dims(15) == "5x3" and dims(6) == "3x2" and dims(4) == "2x2", "grid shapes")
+  expect(dims(20) == "5x4" and dims(12) == "4x3" and dims(8) == "4x2" and dims(5) == "5x1", "more grid shapes")
+  local c, r = ShelfGrid.dims(7)
+  expect(c * r >= 7 and c <= 5, "uneven counts still fit")
+  -- every shelf ingredient: a full grid holds exactly half a box (no rounding surprises)
+  for _, ing in ipairs(Ingredients.list) do
+    if ing.storage == "shelf" or ing.storage == "fish" then
+      local cols, rows = ShelfGrid.forIngredient(ing.units, GameConfig.BoxShelfSlots, 1)
+      expect(cols * rows * GameConfig.BoxShelfSlots == ing.units, ing.id .. " box does not split into two full grids")
+    end
+  end
+  -- the shelf upgrade adds rows
+  local c1, r1 = ShelfGrid.forIngredient(20, 2, 1)
+  local c2, r2 = ShelfGrid.forIngredient(20, 2, 1.75)
+  expect(c1 == c2 and r2 > r1, "upgrade adds rows")
+  -- the front row fills first, starting on the left of a player facing the shelf (+x)
+  local x1, z1 = ShelfGrid.cell(1, 5, 2, 5, 2)
+  local x2, z2 = ShelfGrid.cell(2, 5, 2, 5, 2)
+  local x6, z6 = ShelfGrid.cell(6, 5, 2, 5, 2)
+  expect(x1 > x2 and z1 == z2 and z6 > z1, "fill order")
 end)

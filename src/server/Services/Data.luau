@@ -19,7 +19,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 3
+local VERSION = 4
 local profiles = {} -- [player] = { data, key, loaded, saving }
 local store = nil
 local storeOk = false
@@ -147,6 +147,11 @@ local function migrate(d)
 			d.settings.cam = "first"
 		end
 		d.v = 3
+	end
+	if d.v < 4 then
+		-- v4: fitted kitchen unit (rice cooker, gas range, worktops, sink) and grid shelves
+		rebuildLayout(d)
+		d.v = 4
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION

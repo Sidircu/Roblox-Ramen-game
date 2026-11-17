@@ -41,7 +41,7 @@
 |---|---|---|---|---|---|
 | `rice` | Riso / Rice | 20 | ¥60 | mensola → rice cooker | base |
 | `nori` | Alga nori / Nori | 30 | ¥45 | mensola | base |
-| `cucumber` | Cetriolo / Cucumber | 15 | ¥30 | mensola | base |
+| `cucumber` | Cetriolo / Cucumber | 16 | ¥32 | mensola | base |
 | `salmon` | Salmone / Salmon | 12 | ¥120 | mensola o vetrina | base |
 | `noodles` | Noodles / Noodles | 20 | ¥80 | mensola | base |
 | `broth_shoyu` | Base shoyu / Shoyu base | 16 | ¥96 | mensola → pentolone | base |
@@ -55,7 +55,7 @@
 | `miso_paste` | Pasta di miso / Miso paste | 16 | ¥96 | mensola | Contorni & tè |
 | `tofu` | Tofu | 20 | ¥50 | mensola | Contorni & tè |
 | `avocado` | Avocado | 12 | ¥72 | mensola | Sushi II |
-| `surimi` | Surimi | 15 | ¥75 | mensola | Sushi II |
+| `surimi` | Surimi | 16 | ¥80 | mensola | Sushi II |
 | `sesame` | Sesamo / Sesame | 40 | ¥40 | mensola | Sushi II |
 | `shrimp` | Gambero / Shrimp | 12 | ¥144 | mensola o vetrina | Sushi II |
 | `broth_miso` | Base miso ramen / Miso ramen base | 16 | ¥128 | mensola → pentolone | Ramen II |
@@ -84,7 +84,7 @@
 
 Scatole grandi (Fornitore premium): ×3 porzioni, −10% (livello 1) o −20% (livello 2) sul prezzo.
 
-**Scatole e ripiani** (`GameConfig.BoxShelfSlots = 2`): un ripiano contiene `porzioni per scatola × dimensione mensola × Mensole rinforzate / 2` (arrotondato per eccesso), quindi una scatola riempie **al massimo 2 ripiani** della mensola base. Una scatola grande riempie 2 ripiani per volta e tiene il resto.
+**Scatole e ripiani** (`GameConfig.BoxShelfSlots = 2`, `Logic/ShelfGrid.luau`): un ripiano contiene **mezza scatola** disposta a scacchiera, al massimo 5 colonne, nella forma più quadrata: 6 → 3×2, 8 → 4×2, 10 → 5×2, 12 → 4×3, 15 → 5×3, 20 → 5×4, 5 → 5×1. Tutte le scatole hanno un numero pari di porzioni (cetriolo e surimi passano da 15 a 16), così una scatola riempie **esattamente 2 ripiani**. *Mensole rinforzate* moltiplica le file (righe verso il fondo) per 1,25 / 1,5 / 1,75 arrotondando alla fila (es. 5×2 → 5×3 → 5×3 → 5×4). Una scatola grande riempie 2 ripiani per volta e tiene il resto.
 
 ---
 
@@ -190,9 +190,9 @@ Colonne: prezzo, punti ambiente (Amb.), livello di sblocco, tipo di piazzamento,
 ### 5.2 Cucina e magazzino
 | ID | Nome | Prezzo | Liv. | Funzione |
 |---|---|---|---|---|
-| `shelf_small` | Mensola piccola | ¥400 | 1 | 4 ripiani da ½ scatola (dimensione 1) |
-| `shelf_large` | Mensola grande | ¥1.500 | 7 | 6 ripiani da 0,8 scatola (dimensione 1,6) |
-| `neta_case` | Vetrina refrigerata del pesce | ¥3.000 | 5 | 4 ripiani da 0,6 scatola di pesce (dimensione 1,2), +10% qualità ai piatti di pesce |
+| `shelf_small` | Mensola piccola | ¥400 | 1 | 4 ripiani a scacchiera da ½ scatola |
+| `shelf_large` | Mensola grande | ¥1.500 | 7 | 6 ripiani a scacchiera da ½ scatola |
+| `neta_case` | Vetrina refrigerata del pesce | ¥3.000 | 5 | 4 ripiani a scacchiera da ½ scatola di pesce, +10% qualità ai piatti di pesce |
 | `rice_cooker` | Rice cooker | ¥600 | 1 | lotto 10, 30 s |
 | `rice_cooker_pro` | Rice cooker professionale | ¥5.000 | 11 | lotto 25, 20 s |
 | `broth_pot` | Pentolone | ¥900 | 1 | lotto 8, 60 s |
@@ -204,6 +204,7 @@ Colonne: prezzo, punti ambiente (Amb.), livello di sblocco, tipo di piazzamento,
 | `fryer` | Friggitrice | ¥8.000 | 18 | fritti |
 | `takoyaki_stove` | Fornello takoyaki | ¥9.000 | 24 | takoyaki |
 | `dessert_station` | Postazione dolci | ¥10.000 | 28 | dolci |
+| `kitchen_counter` | Piano di lavoro (modulo della cucina componibile) | ¥250 | 1 | decorativo, ci si appoggiano oggetti |
 | `sink` | Lavello | ¥500 | 1 | lavaggio a mano tenendo premuto: 1,6 s a piatto (`GameConfig.Washing`), si vedono fino a 12 piatti sporchi nella vasca; il personale ne lava fino a 8 a giro |
 | `dishwasher` | Lavastoviglie | ¥12.000 | 13 | lava 6 stoviglie ogni 20 s da sola |
 | `dish_set` | Set stoviglie (+6) | ¥300 | 1 | aumenta le stoviglie totali |
@@ -316,7 +317,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `up_knife` | Coltello (Santoku → Yanagiba → Damasco → Hon-yaki) | 0→4 | ¥2.000 · ¥15.000 · ¥90.000 · ¥400.000 | −10% durata dei passaggi T e U |
 | `up_mat` | Stuoia makisu | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | −12% durata del passaggio A |
 | `up_strainer` | Scolapasta tebo | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | −12% durata dei passaggi N, B, C, F |
-| `up_shelf` | Mensole rinforzate | 0→3 | ¥5.000 · ¥30.000 · ¥200.000 | +25% porzioni per ripiano |
+| `up_shelf` | Mensole rinforzate | 0→3 | ¥5.000 · ¥30.000 · ¥200.000 | file di prodotti × 1,25 / 1,5 / 1,75 (arrotondate) |
 | `up_delivery` | Consegna | 0→3 | ¥4.000 · ¥40.000 · ¥250.000 | 45 s → 30 s → 15 s → 5 s |
 | `up_supplier` | Fornitore premium | 0→2 | ¥20.000 (L10) · ¥200.000 (L25) | scatole grandi −10% / −20% |
 | `up_sign` | Insegna luminosa | 0→5 | ¥2.000 × 4^n | +0,08 popolarità per livello |
@@ -389,7 +390,7 @@ Il locale iniziale è spoglio. Ogni ristrutturazione si compra una volta; l'atmo
 
 Totale ¥231.000 e +122 atmosfera (circa un livello di ambiente in più a metà partita). Anche `sign_rooftop` e `facade_deluxe` stanno nella scheda Ristrutturazioni. Traguardo *Completa {n} ristrutturazioni*: 3 / 8 / 15 → 🌸5 / 15 / 40.
 
-Oggetti iniziali: bancone (6 moduli + 2 terminali, 28 stud), 12 sgabelli, postazioni sushi e ramen, 2 mensole, cuociriso, pentola del brodo, lavello, scaffale del magazzino e **una sola lanterna**: tutte le altre decorazioni si comprano.
+Oggetti iniziali: bancone (6 moduli + 2 terminali, 28 stud), 12 sgabelli, postazioni sushi e ramen, 2 mensole, cucina componibile (cuociriso, fornello con pentolone, 2 piani di lavoro, lavello), scaffale del magazzino e **una sola lanterna**: tutte le altre decorazioni si comprano.
 
 ---
 
