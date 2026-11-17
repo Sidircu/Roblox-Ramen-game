@@ -114,7 +114,7 @@ function Supply.capacity()
 end
 
 local function boxModel(entry)
-	local m = Registry.food("box", entry.g, entry.n)
+	local m = Registry.food("box", entry.g, entry.n, Supply.boxCap(entry))
 	return m
 end
 
@@ -161,13 +161,20 @@ function Supply.layout()
 	end
 end
 
+-- portions in a full box of this entry (big boxes hold several boxes)
+function Supply.boxCap(entry)
+	local ing = Ingredients.byId[entry.g]
+	return math.max(entry.c or (ing and ing.units) or entry.n, entry.n)
+end
+
 local function updateBoxLabel(entry)
 	local e = boxModels[entry.u]
 	if e and e.model then
-		local label = e.model:FindFirstChild("Count", true)
-		local ing = Ingredients.byId[entry.g]
-		if label then
-			label.Text = (ing and ing.icon or "📦") .. " " .. entry.n
+		local text = entry.n .. "/" .. Supply.boxCap(entry)
+		for _, d in ipairs(e.model:GetDescendants()) do
+			if d.Name == "Count" and d:IsA("TextLabel") then
+				d.Text = text
+			end
 		end
 	end
 end
@@ -537,7 +544,8 @@ function Supply.order(player, cart)
 				table.insert(boxes, { u = Uid.new("b"), g = g, n = ing.units })
 			end
 			for _ = 1, big do
-				table.insert(boxes, { u = Uid.new("b"), g = g, n = ing.units * GameConfig.BigBoxMultiplier })
+				local units = ing.units * GameConfig.BigBoxMultiplier
+				table.insert(boxes, { u = Uid.new("b"), g = g, n = units, c = units })
 			end
 		end
 	end

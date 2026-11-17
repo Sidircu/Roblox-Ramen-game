@@ -6700,9 +6700,56 @@ end
 
 local BOX_BAND = { fish = "#2E5A8C", fridge = "#3E8A4A", dry = "#B3262E" }
 
--- Supplier cardboard box: packing tape, hand holes, coloured band by storage type,
--- icon and portions label (language independent)
-local function box(id, count)
+-- Paper label on a big face of a box: the ingredient icon in the middle and "left/total" in the
+-- lower-right corner (TextLabel "Count", updated by SupplyService)
+local function boxLabel(body, face, icon, count, cap)
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = "Label"
+	gui.Face = face
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 60
+	gui.LightInfluence = 1
+	gui.Parent = body
+	local paper = Instance.new("Frame")
+	paper.AnchorPoint = Vector2.new(0.5, 0.5)
+	paper.Position = UDim2.fromScale(0.5, 0.48)
+	paper.Size = UDim2.fromScale(0.8, 0.72)
+	paper.BackgroundColor3 = Color3.fromRGB(244, 235, 221)
+	paper.Parent = gui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0.08, 0)
+	corner.Parent = paper
+	local iconLabel = Instance.new("TextLabel")
+	iconLabel.Name = "Icon"
+	iconLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	iconLabel.Position = UDim2.fromScale(0.42, 0.5)
+	iconLabel.Size = UDim2.fromScale(0.62, 0.86)
+	iconLabel.BackgroundTransparency = 1
+	iconLabel.Text = icon
+	iconLabel.TextScaled = true
+	iconLabel.AutoLocalize = false
+	iconLabel.Parent = paper
+	local countLabel = Instance.new("TextLabel")
+	countLabel.Name = "Count"
+	countLabel.AnchorPoint = Vector2.new(1, 1)
+	countLabel.Position = UDim2.new(1, -4, 1, -4)
+	countLabel.Size = UDim2.fromScale(0.44, 0.34)
+	countLabel.BackgroundColor3 = Color3.fromRGB(43, 35, 32)
+	countLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	countLabel.Text = tostring(count) .. "/" .. tostring(cap)
+	countLabel.TextScaled = true
+	countLabel.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json")
+	countLabel.AutoLocalize = false
+	countLabel.Parent = paper
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0.25, 0)
+	round.Parent = countLabel
+	return gui
+end
+
+-- Supplier cardboard box: packing tape, hand holes, coloured band by storage type, and on both big
+-- faces the icon with the portions left (language independent). cap = portions of a full box.
+local function box(id, count, cap)
 	local ing = Ingredients.byId[id]
 	local m = Kit.model("Box")
 	local body = Kit.box(m, 1.8, 1.3, 1.5, 0, 0.65, 0, P.cardboard, M.cardboard, { name = "Body" })
@@ -6713,10 +6760,12 @@ local function box(id, count)
 	for _, s in ipairs({ -1, 1 }) do
 		Kit.box(m, 0.02, 0.14, 0.4, s * 0.905, 0.95, 0, lerp(P.cardboard, P.black, 0.55), M.smooth, nc())
 	end
-	local _, label = Kit.text(body, Enum.NormalId.Front, (ing and ing.icon or "📦") .. " " .. tostring(count or (ing and ing.units) or 0), { color = "#2B2320", bg = "#F4EBDD", pps = 40 })
-	label.Name = "Count"
-	local _, label2 = Kit.text(body, Enum.NormalId.Top, ing and ing.icon or "📦", { color = "#2B2320", pps = 30 })
-	local _l = label2
+	local icon = ing and ing.icon or "📦"
+	local n = count or (ing and ing.units) or 0
+	local full = math.max(cap or (ing and ing.units) or n, n)
+	-- front faces the shelf / aisle, back faces you when you carry it
+	boxLabel(body, Enum.NormalId.Front, icon, n, full)
+	boxLabel(body, Enum.NormalId.Back, icon, n, full)
 	Kit.finish(m, Vector3.new(1.8, 1.3, 1.5))
 	m:SetAttribute("Ingredient", id)
 	return m
@@ -13374,7 +13423,7 @@ end
 
 local function buildVisual(kind, item)
 	if kind == "box" then
-		return Registry.food("box", item.g, item.n)
+		return Registry.food("box", item.g, item.n, Core.S.Supply.boxCap(item))
 	elseif kind == "ing" then
 		return Registry.food("ingredient", item.g)
 	elseif kind == "dish" then
@@ -17245,7 +17294,7 @@ function Supply.capacity()
 end
 
 local function boxModel(entry)
-	local m = Registry.food("box", entry.g, entry.n)
+	local m = Registry.food("box", entry.g, entry.n, Supply.boxCap(entry))
 	return m
 end
 
@@ -17292,13 +17341,20 @@ function Supply.layout()
 	end
 end
 
+-- portions in a full box of this entry (big boxes hold several boxes)
+function Supply.boxCap(entry)
+	local ing = Ingredients.byId[entry.g]
+	return math.max(entry.c or (ing and ing.units) or entry.n, entry.n)
+end
+
 local function updateBoxLabel(entry)
 	local e = boxModels[entry.u]
 	if e and e.model then
-		local label = e.model:FindFirstChild("Count", true)
-		local ing = Ingredients.byId[entry.g]
-		if label then
-			label.Text = (ing and ing.icon or "📦") .. " " .. entry.n
+		local text = entry.n .. "/" .. Supply.boxCap(entry)
+		for _, d in ipairs(e.model:GetDescendants()) do
+			if d.Name == "Count" and d:IsA("TextLabel") then
+				d.Text = text
+			end
 		end
 	end
 end
@@ -17668,7 +17724,8 @@ function Supply.order(player, cart)
 				table.insert(boxes, { u = Uid.new("b"), g = g, n = ing.units })
 			end
 			for _ = 1, big do
-				table.insert(boxes, { u = Uid.new("b"), g = g, n = ing.units * GameConfig.BigBoxMultiplier })
+				local units = ing.units * GameConfig.BigBoxMultiplier
+				table.insert(boxes, { u = Uid.new("b"), g = g, n = units, c = units })
 			end
 		end
 	end
@@ -20046,6 +20103,8 @@ local function syncViews(char, hrp)
 				for _, d in ipairs(clone:GetDescendants()) do
 					if d:IsA("JointInstance") or d:IsA("WeldConstraint") then
 						d:Destroy()
+					elseif d:IsA("SurfaceGui") or d:IsA("BillboardGui") then
+						d.Enabled = true
 					elseif d:IsA("BasePart") then
 						d.Anchored = true
 						d.CanCollide = false
@@ -20056,7 +20115,23 @@ local function syncViews(char, hrp)
 					end
 				end
 				clone.Parent = workspace.CurrentCamera
-				views[m] = { clone = clone, rel = hrp.CFrame:ToObjectSpace(m:GetPivot()) }
+				-- boxes sit low (they are big); dishes and ingredients a little higher to stay in view
+				local lift = m.Name == "Box" and 0 or 0.5
+				views[m] = { clone = clone, rel = CFrame.new(0, lift, 0) * hrp.CFrame:ToObjectSpace(m:GetPivot()) }
+			end
+		end
+	end
+end
+
+-- Roblox hides the character's parts in first person but not the labels drawn on them: the label
+-- of the real box would float in the air, so it is switched off for you (only your copy shows it)
+local function setHeldLabels(char, on)
+	for _, m in ipairs(char:GetChildren()) do
+		if m:IsA("Model") and m:GetAttribute("Held") then
+			for _, d in ipairs(m:GetDescendants()) do
+				if (d:IsA("SurfaceGui") or d:IsA("BillboardGui")) and d.Enabled ~= on then
+					d.Enabled = on
+				end
 			end
 		end
 	end
@@ -20067,15 +20142,19 @@ local function updateViews(dt)
 	local hrp = char and char:FindFirstChild("HumanoidRootPart")
 	if not hrp or not active() then
 		clearViews()
+		if char then
+			setHeldLabels(char, true)
+		end
 		return
 	end
 	syncViews(char, hrp)
+	setHeldLabels(char, false)
 	local cam = workspace.CurrentCamera
 	local speed = Vector3.new(hrp.AssemblyLinearVelocity.X, 0, hrp.AssemblyLinearVelocity.Z).Magnitude
 	local moving = speed > 1
 	bob += dt * (moving and 9 or 1.6)
 	local amp = moving and 0.05 or 0.015
-	local base = cam.CFrame * CFrame.new(0.5 + math.cos(bob * 0.5) * amp, -1.5 + math.abs(math.sin(bob)) * amp, -0.6)
+	local base = cam.CFrame * CFrame.new(0.45 + math.cos(bob * 0.5) * amp, -2.05 + math.abs(math.sin(bob)) * amp, -0.9)
 	for _, v in pairs(views) do
 		v.clone:PivotTo(base * v.rel)
 	end

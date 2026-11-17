@@ -270,9 +270,9 @@
     "semantic_hash": ""
   },
   "src/server/Services/Hands.luau": {
-    "mtime": 1794929082.2865827,
-    "seen": 1794929496.2065833,
-    "ast_hash": "851f8ba6ccb918ff2ecf1c734a477823",
+    "mtime": 1794930227.5329003,
+    "seen": 1794930270.4782696,
+    "ast_hash": "05dbb2e5d3bbf16eac11ec1a8a2bcd7f",
     "semantic_hash": ""
   },
   "src/server/Services/Interaction.luau": {
@@ -342,9 +342,9 @@
     "semantic_hash": ""
   },
   "src/server/Services/Supply.luau": {
-    "mtime": 1794929383.1488876,
-    "seen": 1794929496.2065969,
-    "ast_hash": "63169c4500c0215921b43a1cfcad0f97",
+    "mtime": 1794930227.5326824,
+    "seen": 1794930270.478284,
+    "ast_hash": "35c1cd0a961b1886cf027740807e4b70",
     "semantic_hash": ""
   },
   "src/server/Services/Tasks.luau": {
@@ -564,9 +564,9 @@
     "semantic_hash": ""
   },
   "src/shared/Models/Builders/Food.luau": {
-    "mtime": 1794853096.2275882,
-    "seen": 1794853106.9123743,
-    "ast_hash": "3aac1f0ba0ca944e6be7a666aa9bc082",
+    "mtime": 1794930218.1330485,
+    "seen": 1794930270.478319,
+    "ast_hash": "1b534feb8ed80c0fa5703e80b47fa15d",
     "semantic_hash": ""
   },
   "src/shared/Models/Builders/Furniture.luau": {
@@ -786,9 +786,9 @@
     "semantic_hash": ""
   },
   "src/client/Controllers/FirstPerson.luau": {
-    "mtime": 1794929902.8021104,
-    "seen": 1794929910.2714598,
-    "ast_hash": "5f246d29d77ccb115983baf03c23ffeb",
+    "mtime": 1794930251.7071695,
+    "seen": 1794930270.478227,
+    "ast_hash": "965285720a26d83beb093475b1ebafb8",
     "semantic_hash": ""
   },
   "src/client/UI/Screens/Codes.luau": {

@@ -1262,9 +1262,56 @@ end
 
 local BOX_BAND = { fish = "#2E5A8C", fridge = "#3E8A4A", dry = "#B3262E" }
 
--- Supplier cardboard box: packing tape, hand holes, coloured band by storage type,
--- icon and portions label (language independent)
-local function box(id, count)
+-- Paper label on a big face of a box: the ingredient icon in the middle and "left/total" in the
+-- lower-right corner (TextLabel "Count", updated by SupplyService)
+local function boxLabel(body, face, icon, count, cap)
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = "Label"
+	gui.Face = face
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 60
+	gui.LightInfluence = 1
+	gui.Parent = body
+	local paper = Instance.new("Frame")
+	paper.AnchorPoint = Vector2.new(0.5, 0.5)
+	paper.Position = UDim2.fromScale(0.5, 0.48)
+	paper.Size = UDim2.fromScale(0.8, 0.72)
+	paper.BackgroundColor3 = Color3.fromRGB(244, 235, 221)
+	paper.Parent = gui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0.08, 0)
+	corner.Parent = paper
+	local iconLabel = Instance.new("TextLabel")
+	iconLabel.Name = "Icon"
+	iconLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	iconLabel.Position = UDim2.fromScale(0.42, 0.5)
+	iconLabel.Size = UDim2.fromScale(0.62, 0.86)
+	iconLabel.BackgroundTransparency = 1
+	iconLabel.Text = icon
+	iconLabel.TextScaled = true
+	iconLabel.AutoLocalize = false
+	iconLabel.Parent = paper
+	local countLabel = Instance.new("TextLabel")
+	countLabel.Name = "Count"
+	countLabel.AnchorPoint = Vector2.new(1, 1)
+	countLabel.Position = UDim2.new(1, -4, 1, -4)
+	countLabel.Size = UDim2.fromScale(0.44, 0.34)
+	countLabel.BackgroundColor3 = Color3.fromRGB(43, 35, 32)
+	countLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	countLabel.Text = tostring(count) .. "/" .. tostring(cap)
+	countLabel.TextScaled = true
+	countLabel.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json")
+	countLabel.AutoLocalize = false
+	countLabel.Parent = paper
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0.25, 0)
+	round.Parent = countLabel
+	return gui
+end
+
+-- Supplier cardboard box: packing tape, hand holes, coloured band by storage type, and on both big
+-- faces the icon with the portions left (language independent). cap = portions of a full box.
+local function box(id, count, cap)
 	local ing = Ingredients.byId[id]
 	local m = Kit.model("Box")
 	local body = Kit.box(m, 1.8, 1.3, 1.5, 0, 0.65, 0, P.cardboard, M.cardboard, { name = "Body" })
@@ -1275,10 +1322,12 @@ local function box(id, count)
 	for _, s in ipairs({ -1, 1 }) do
 		Kit.box(m, 0.02, 0.14, 0.4, s * 0.905, 0.95, 0, lerp(P.cardboard, P.black, 0.55), M.smooth, nc())
 	end
-	local _, label = Kit.text(body, Enum.NormalId.Front, (ing and ing.icon or "📦") .. " " .. tostring(count or (ing and ing.units) or 0), { color = "#2B2320", bg = "#F4EBDD", pps = 40 })
-	label.Name = "Count"
-	local _, label2 = Kit.text(body, Enum.NormalId.Top, ing and ing.icon or "📦", { color = "#2B2320", pps = 30 })
-	local _l = label2
+	local icon = ing and ing.icon or "📦"
+	local n = count or (ing and ing.units) or 0
+	local full = math.max(cap or (ing and ing.units) or n, n)
+	-- front faces the shelf / aisle, back faces you when you carry it
+	boxLabel(body, Enum.NormalId.Front, icon, n, full)
+	boxLabel(body, Enum.NormalId.Back, icon, n, full)
 	Kit.finish(m, Vector3.new(1.8, 1.3, 1.5))
 	m:SetAttribute("Ingredient", id)
 	return m

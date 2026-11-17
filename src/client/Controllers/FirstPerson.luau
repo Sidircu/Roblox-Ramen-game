@@ -73,6 +73,8 @@ local function syncViews(char, hrp)
 				for _, d in ipairs(clone:GetDescendants()) do
 					if d:IsA("JointInstance") or d:IsA("WeldConstraint") then
 						d:Destroy()
+					elseif d:IsA("SurfaceGui") or d:IsA("BillboardGui") then
+						d.Enabled = true
 					elseif d:IsA("BasePart") then
 						d.Anchored = true
 						d.CanCollide = false
@@ -83,7 +85,23 @@ local function syncViews(char, hrp)
 					end
 				end
 				clone.Parent = workspace.CurrentCamera
-				views[m] = { clone = clone, rel = hrp.CFrame:ToObjectSpace(m:GetPivot()) }
+				-- boxes sit low (they are big); dishes and ingredients a little higher to stay in view
+				local lift = m.Name == "Box" and 0 or 0.5
+				views[m] = { clone = clone, rel = CFrame.new(0, lift, 0) * hrp.CFrame:ToObjectSpace(m:GetPivot()) }
+			end
+		end
+	end
+end
+
+-- Roblox hides the character's parts in first person but not the labels drawn on them: the label
+-- of the real box would float in the air, so it is switched off for you (only your copy shows it)
+local function setHeldLabels(char, on)
+	for _, m in ipairs(char:GetChildren()) do
+		if m:IsA("Model") and m:GetAttribute("Held") then
+			for _, d in ipairs(m:GetDescendants()) do
+				if (d:IsA("SurfaceGui") or d:IsA("BillboardGui")) and d.Enabled ~= on then
+					d.Enabled = on
+				end
 			end
 		end
 	end
@@ -94,15 +112,19 @@ local function updateViews(dt)
 	local hrp = char and char:FindFirstChild("HumanoidRootPart")
 	if not hrp or not active() then
 		clearViews()
+		if char then
+			setHeldLabels(char, true)
+		end
 		return
 	end
 	syncViews(char, hrp)
+	setHeldLabels(char, false)
 	local cam = workspace.CurrentCamera
 	local speed = Vector3.new(hrp.AssemblyLinearVelocity.X, 0, hrp.AssemblyLinearVelocity.Z).Magnitude
 	local moving = speed > 1
 	bob += dt * (moving and 9 or 1.6)
 	local amp = moving and 0.05 or 0.015
-	local base = cam.CFrame * CFrame.new(0.5 + math.cos(bob * 0.5) * amp, -1.5 + math.abs(math.sin(bob)) * amp, -0.6)
+	local base = cam.CFrame * CFrame.new(0.45 + math.cos(bob * 0.5) * amp, -2.05 + math.abs(math.sin(bob)) * amp, -0.9)
 	for _, v in pairs(views) do
 		v.clone:PivotTo(base * v.rel)
 	end
