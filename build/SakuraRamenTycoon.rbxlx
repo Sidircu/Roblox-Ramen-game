@@ -380,8 +380,21 @@ return {
 	allStyles = allStyles,
 	-- Fixed points of the plot (relative to origin)
 	Entrance = { x = 0, z = -1.5 },
-	StreetWalkZ = -11.5,
+	StreetWalkZ = -14,
 	StreetEnds = { -150, 150 },
+	-- The town around the restaurant, at the same scale: a 20-stud sidewalk in front of the
+	-- restaurant (front wall at z = 0), a four-lane road (9 studs per lane), a wide far sidewalk
+	-- and big neighbour buildings, a raised railway behind them.
+	Street = {
+		curb = -20,
+		roadFar = -56,
+		farFront = -72,
+		lane = 9,
+		truckLane = -24.5,
+		railZ = -175,
+		railY = 46,
+		reach = 380,
+	},
 	LoadingBay = { x = 50, z = 12 },
 	Supplier = { x = 35.7, y = 5, z = 35 },
 	MenuBoard = { x = -12, z = -2.6 },
@@ -968,27 +981,36 @@ return {
 -- s: "f" floor, "w" wall (y = height of the object's center), "c" ceiling, "t" on top of item index p
 return {
 	items = {
-		-- counter facing the dining room, six stools in front of it
-		{ i = "counter_end", x = -13, z = 30.4, r = 0, s = "f" },
+		-- long counter facing the dining room (28 studs), twelve stools in front of it
+		{ i = "counter_end", x = -21, z = 30.4, r = 0, s = "f" },
+		{ i = "counter_straight", x = -18, z = 30.4, r = 0, s = "f" },
+		{ i = "counter_straight", x = -14, z = 30.4, r = 0, s = "f" },
 		{ i = "counter_straight", x = -10, z = 30.4, r = 0, s = "f" },
 		{ i = "counter_straight", x = -6, z = 30.4, r = 0, s = "f" },
 		{ i = "counter_straight", x = -2, z = 30.4, r = 0, s = "f" },
-		{ i = "counter_end", x = 1, z = 30.4, r = 0, s = "f" },
+		{ i = "counter_straight", x = 2, z = 30.4, r = 0, s = "f" },
+		{ i = "counter_end", x = 5, z = 30.4, r = 0, s = "f" },
+		{ i = "stool_wood", x = -19, z = 27.8, r = 0, s = "f" },
+		{ i = "stool_wood", x = -17, z = 27.8, r = 0, s = "f" },
+		{ i = "stool_wood", x = -15, z = 27.8, r = 0, s = "f" },
+		{ i = "stool_wood", x = -13, z = 27.8, r = 0, s = "f" },
 		{ i = "stool_wood", x = -11, z = 27.8, r = 0, s = "f" },
 		{ i = "stool_wood", x = -9, z = 27.8, r = 0, s = "f" },
 		{ i = "stool_wood", x = -7, z = 27.8, r = 0, s = "f" },
 		{ i = "stool_wood", x = -5, z = 27.8, r = 0, s = "f" },
 		{ i = "stool_wood", x = -3, z = 27.8, r = 0, s = "f" },
 		{ i = "stool_wood", x = -1, z = 27.8, r = 0, s = "f" },
+		{ i = "stool_wood", x = 1, z = 27.8, r = 0, s = "f" },
+		{ i = "stool_wood", x = 3, z = 27.8, r = 0, s = "f" },
 		-- stations right behind the counter, the cook works facing it
-		{ i = "sushi_station", x = -8, z = 33.3, r = 180, s = "f" },
-		{ i = "ramen_station", x = -2, z = 33.3, r = 180, s = "f" },
+		{ i = "sushi_station", x = -11, z = 33.3, r = 180, s = "f" },
+		{ i = "ramen_station", x = -3, z = 33.3, r = 180, s = "f" },
 		-- back line across a wide aisle: shelves, rice cooker, broth pot, sink
-		{ i = "shelf_small", x = -12, z = 42, r = 0, s = "f" },
-		{ i = "shelf_small", x = -7, z = 42, r = 0, s = "f" },
-		{ i = "rice_cooker", x = -2.5, z = 42, r = 0, s = "f" },
-		{ i = "broth_pot", x = 1.5, z = 42, r = 0, s = "f" },
-		{ i = "sink", x = 7, z = 42, r = 0, s = "f" },
+		{ i = "shelf_small", x = -15, z = 42, r = 0, s = "f" },
+		{ i = "shelf_small", x = -10, z = 42, r = 0, s = "f" },
+		{ i = "rice_cooker", x = -5.5, z = 42, r = 0, s = "f" },
+		{ i = "broth_pot", x = -1.5, z = 42, r = 0, s = "f" },
+		{ i = "sink", x = 4, z = 42, r = 0, s = "f" },
 		{ i = "storage_rack", x = 48, z = 54.6, r = 0, s = "f" },
 		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
 		{ i = "chochin_white", x = -6, z = 20, r = 0, s = "c" },
@@ -8912,114 +8934,131 @@ function S.manhole(parent, x, y, z, steam)
 end
 
 -- Zebra crossing across the road (road along X, centered on z), with stop lines
-function S.crosswalk(parent, x, y, z, roadWidth)
+function S.crosswalk(parent, x, y, z, roadWidth, barLength)
+	local bl = barLength or 4
 	local n = math.floor(roadWidth / 1.6)
 	for i = 0, n - 1 do
-		Kit.box(parent, 4, 0.04, 0.8, x, y, z - roadWidth / 2 + 0.8 + i * 1.6, P.road_line, M.smooth, NC())
+		Kit.box(parent, bl, 0.04, 0.8, x, y, z - roadWidth / 2 + 0.8 + i * 1.6, P.road_line, M.smooth, NC())
 	end
-	Kit.box(parent, 0.4, 0.04, roadWidth / 2 - 0.4, x - 4, y, z + roadWidth / 4, P.road_line, M.smooth, NC())
-	Kit.box(parent, 0.4, 0.04, roadWidth / 2 - 0.4, x + 4, y, z - roadWidth / 4, P.road_line, M.smooth, NC())
-	local word = Kit.box(parent, 3.2, 0.04, 1.6, x - 6.5, y, z + roadWidth / 4, P.road, M.asphalt, NC())
+	Kit.box(parent, 0.4, 0.04, roadWidth / 2 - 0.4, x - bl / 2 - 2, y, z + roadWidth / 4, P.road_line, M.smooth, NC())
+	Kit.box(parent, 0.4, 0.04, roadWidth / 2 - 0.4, x + bl / 2 + 2, y, z - roadWidth / 4, P.road_line, M.smooth, NC())
+	local word = Kit.box(parent, 3.2, 0.04, 1.6, x - bl / 2 - 4.5, y, z + roadWidth / 4, P.road, M.asphalt, NC())
 	word.Transparency = 1
 	Kit.text(word, Enum.NormalId.Top, "止まれ", { color = "#E8E4D8", font = JP_FONT, rotation = 90 })
 end
 
--- Facade block with windows and an optional shop front
-function S.building(parent, x0, x1, zFront, depth, height, facing, color, r)
+-- Facade block with windows and an optional shop front. k scales every detail (doors, windows,
+-- floors) so big buildings keep human-sized openings; detail = balconies, AC units, signs (off
+-- for buildings far from the restaurant to keep the part count low).
+function S.building(parent, x0, x1, zFront, depth, height, facing, color, r, k, detail)
+	k = k or 1
+	if detail == nil then
+		detail = true
+	end
 	local w = x1 - x0
 	local cx = (x0 + x1) / 2
 	local cz = zFront + facing * depth / 2
 	local body = Kit.box(parent, w, height, depth, cx, -0.4 + height / 2, cz, color, M.plaster, { collide = true })
 	body.CastShadow = true
 	local face = zFront - facing * 0.05
-	-- shop front at street level
+	-- shop front at street level (one or two shops)
 	local awning = ({ P.lacquer, P.indigo, P.matcha, P.wood_dark, P.navy })[r:NextInteger(1, 5)]
-	Kit.box(parent, w - 1, 4.2, 0.2, cx, 2.1 - 0.4, face, P.wood_dark, M.wood, { collide = false })
-	local glass = Kit.box(parent, w - 2, 3.4, 0.1, cx, 2.0 - 0.4, face - facing * 0.12, P.paper_warm, M.neon, { collide = false })
-	glass.Transparency = 0.3
-	-- sash mullions, a short noren over the door and something on the sidewalk
-	local panes = math.max(2, math.floor((w - 2) / 2.2))
-	for i = 1, panes - 1 do
-		Kit.box(parent, 0.12, 3.4, 0.14, x0 + 1 + (w - 2) * i / panes, 1.6, face - facing * 0.16, P.wood_dark, M.wood, NC())
+	local shops = w > 30 and 2 or 1
+	for si = 0, shops - 1 do
+		local sw = w / shops
+		local scx = x0 + sw * (si + 0.5)
+		Kit.box(parent, sw - 1, 4.2 * k, 0.2, scx, 2.1 * k - 0.4, face, P.wood_dark, M.wood, { collide = false })
+		local glass = Kit.box(parent, sw - 2, 3.4 * k, 0.1, scx, 2.0 * k - 0.4, face - facing * 0.12, P.paper_warm, M.neon, { collide = false })
+		glass.Transparency = 0.3
+		local panes = math.max(2, math.floor((sw - 2) / (2.2 * k)))
+		for i = 1, panes - 1 do
+			Kit.box(parent, 0.12 * k, 3.4 * k, 0.14, scx - sw / 2 + 1 + (sw - 2) * i / panes, 1.6 * k, face - facing * 0.16, P.wood_dark, M.wood, NC())
+		end
+		Kit.box(parent, sw - 2, 0.12 * k, 0.14, scx, 2.4 * k, face - facing * 0.16, P.wood_dark, M.wood, NC())
+		for kk = -1, 1 do
+			Kit.box(parent, 0.95 * k, 1.3 * k, 0.05, scx + kk * k, 2.75 * k, face - facing * 0.3, awning, M.fabric, NC())
+		end
+		Kit.wedge(parent, sw - 0.5, 0.8 * k, 1.6 * k, CFrame.new(scx, 4.8 * k - 0.4, face - facing * 0.8 * k) * CFrame.Angles(0, math.rad(facing < 0 and 180 or 0), 0), awning, M.fabric, { collide = false })
+		local shopSign = Kit.box(parent, math.min(sw - 2, 6 * k), 1.1 * k, 0.15, scx, 5.8 * k - 0.4, face - facing * 0.15, P.paper, M.smooth, { collide = false })
+		Kit.text(shopSign, facing < 0 and Enum.NormalId.Back or Enum.NormalId.Front, SIGNS[r:NextInteger(1, #SIGNS)], { color = "#2B2320", font = JP_FONT })
+		if detail then
+			local extra = r:NextNumber()
+			if extra < 0.3 then
+				aframe(parent, scx + sw / 2 - 1.6, face - facing * 1.6, facing)
+			elseif extra < 0.55 then
+				Kit.cyl(parent, 1.2, 1.1, scx - sw / 2 + 1.4, 0.15, face - facing * 0.9, P.stone_dark, M.concrete, NC())
+				Kit.ball(parent, 1.6, scx - sw / 2 + 1.4, 1.3, face - facing * 0.9, P.leaf, M.leafy, NC())
+			elseif extra < 0.75 then
+				S.bicycle(parent, scx - sw / 2 + 2.2, face - facing * 1.3, facing < 0 and 0 or 180, ({ P.white, P.navy, P.lacquer, P.matcha })[r:NextInteger(1, 4)])
+			end
+		end
 	end
-	Kit.box(parent, w - 2, 0.12, 0.14, cx, 2.4, face - facing * 0.16, P.wood_dark, M.wood, NC())
-	for k = -1, 1 do
-		Kit.box(parent, 0.95, 1.3, 0.05, cx + k * 1.0, 2.75, face - facing * 0.3, awning, M.fabric, NC())
-	end
-	Kit.cylH(parent, 0.1, 3.4, cx, 3.45, face - facing * 0.3, P.wood_dark, M.wood, NC())
-	local extra = r:NextNumber()
-	if extra < 0.3 then
-		aframe(parent, cx + w / 2 - 1.6, face - facing * 1.6, facing)
-	elseif extra < 0.55 then
-		Kit.cyl(parent, 1.2, 1.1, cx - w / 2 + 1.4, 0.15, face - facing * 0.9, P.stone_dark, M.concrete, NC())
-		Kit.ball(parent, 1.6, cx - w / 2 + 1.4, 1.3, face - facing * 0.9, P.leaf, M.leafy, NC())
-	elseif extra < 0.75 then
-		S.bicycle(parent, cx - w / 2 + 2.2, face - facing * 1.3, facing < 0 and 0 or 180, ({ P.white, P.navy, P.lacquer, P.matcha })[r:NextInteger(1, 4)])
-	end
-	Kit.wedge(parent, w - 0.5, 0.8, 1.6, CFrame.new(cx, 4.8 - 0.4, face - facing * 0.8) * CFrame.Angles(0, math.rad(facing < 0 and 180 or 0), 0), awning, M.fabric, { collide = false })
-	local shopSign = Kit.box(parent, math.min(w - 2, 6), 1.1, 0.15, cx, 5.8 - 0.4, face - facing * 0.15, P.paper, M.smooth, { collide = false })
-	Kit.text(shopSign, facing < 0 and Enum.NormalId.Back or Enum.NormalId.Front, SIGNS[r:NextInteger(1, #SIGNS)], { color = "#2B2320", font = JP_FONT })
 	-- upper floor windows (lit at night)
-	local floors = math.floor((height - 7) / 5)
+	local floorH = 5 * k
+	local first = 9 * k
+	local floors = math.floor((height - first + 1) / floorH)
 	for f = 0, floors - 1 do
-		local y = 9 + f * 5 - 0.4
-		local n = math.max(1, math.floor(w / 5))
+		local y = first + f * floorH - 0.4
+		local n = math.max(1, math.floor(w / (5 * k)))
 		for i = 0, n - 1 do
 			local x = x0 + w / n * (i + 0.5)
 			local lit = r:NextNumber() < 0.55
-			Kit.box(parent, 2.7, 2.9, 0.08, x, y, face - facing * 0.03, P.charcoal, M.metal, NC())
-			local win = Kit.box(parent, 2.4, 2.6, 0.1, x, y, face - facing * 0.06, lit and P.lamp or P.steel_dark, lit and M.neon or M.glass, { collide = false, shadow = false })
+			Kit.box(parent, 2.7 * k, 2.9 * k, 0.08, x, y, face - facing * 0.03, P.charcoal, M.metal, NC())
+			local win = Kit.box(parent, 2.4 * k, 2.6 * k, 0.1, x, y, face - facing * 0.06, lit and P.lamp or P.steel_dark, lit and M.neon or M.glass, { collide = false, shadow = false })
 			if lit then
 				win.Transparency = 0.25
 			end
-			Kit.box(parent, 0.08, 2.6, 0.12, x, y, face - facing * 0.1, P.charcoal, M.metal, NC())
-			Kit.box(parent, 2.8, 0.25, 0.4, x, y - 1.45, face - facing * 0.2, P.wood_dark, M.wood, { collide = false })
-			local roll = r:NextNumber()
-			if roll < 0.3 then
-				balcony(parent, x, y, face, facing, r)
-			elseif roll < 0.5 then
-				acUnit(parent, x + 2, y - 0.9, face, facing)
-			elseif roll < 0.62 then
-				-- flower pots on the sill
-				for k = -1, 1 do
-					Kit.box(parent, 0.4, 0.35, 0.3, x + k * 0.7, y - 1.15, face - facing * 0.25, P.vermilion, M.smooth, NC())
-					Kit.ball(parent, 0.5, x + k * 0.7, y - 0.85, face - facing * 0.25, k == 0 and P.sakura or P.leaf, M.leafy, NC())
+			if detail then
+				Kit.box(parent, 0.08, 2.6 * k, 0.12, x, y, face - facing * 0.1, P.charcoal, M.metal, NC())
+				Kit.box(parent, 2.8 * k, 0.25, 0.4, x, y - 1.45 * k, face - facing * 0.2, P.wood_dark, M.wood, { collide = false })
+				local roll = r:NextNumber()
+				if roll < 0.25 then
+					balcony(parent, x, y, face, facing, r)
+				elseif roll < 0.42 then
+					acUnit(parent, x + 2 * k, y - 0.9 * k, face, facing)
+				elseif roll < 0.52 then
+					for kk = -1, 1 do
+						Kit.box(parent, 0.4, 0.35, 0.3, x + kk * 0.7, y - 1.15 * k, face - facing * 0.25, P.vermilion, M.smooth, NC())
+						Kit.ball(parent, 0.5, x + kk * 0.7, y - 1.15 * k + 0.3, face - facing * 0.25, kk == 0 and P.sakura or P.leaf, M.leafy, NC())
+					end
 				end
 			end
 		end
 	end
+	-- floor bands between storeys
+	for f = 1, floors do
+		Kit.box(parent, w + 0.1, 0.3, 0.3, cx, first + (f - 0.5) * floorH - 0.4 - 0.3, face - facing * 0.1, color:Lerp(P.black, 0.18), M.concrete, NC())
+	end
 	-- drain pipe and roof furniture
-	Kit.cyl(parent, 0.3, height - 0.5, x1 - 0.35, height / 2 - 0.4, face - facing * 0.2, P.stone_dark, M.metal, NC())
+	Kit.cyl(parent, 0.3 * k, height - 0.5, x1 - 0.35 * k, height / 2 - 0.4, face - facing * 0.2, P.stone_dark, M.metal, NC())
 	local roofY = height - 0.4 + 0.6
 	local roof = r:NextNumber()
 	if roof < 0.35 then
-		-- water tank on legs
 		local tx, tz = cx - w / 4, cz
-		for _, c in ipairs({ { -0.8, -0.8 }, { 0.8, -0.8 }, { 0.8, 0.8 }, { -0.8, 0.8 } }) do
-			Kit.box(parent, 0.2, 1.4, 0.2, tx + c[1], roofY + 0.7, tz + c[2], P.steel_dark, M.metal, NC())
+		for _, c in ipairs({ { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } }) do
+			Kit.box(parent, 0.3, 2.2, 0.3, tx + c[1] * 1.3 * k, roofY + 1.1, tz + c[2] * 1.3 * k, P.steel_dark, M.metal, NC())
 		end
-		Kit.cyl(parent, 2.4, 2.4, tx, roofY + 2.6, tz, P.stone_light, M.concrete, NC())
-		Kit.cyl(parent, 2.5, 0.2, tx, roofY + 3.9, tz, P.steel, M.metal, NC())
+		Kit.cyl(parent, 4 * k, 4 * k, tx, roofY + 2.2 + 2 * k, tz, P.stone_light, M.concrete, NC())
+		Kit.cyl(parent, 4.1 * k, 0.3, tx, roofY + 2.2 + 4 * k, tz, P.steel, M.metal, NC())
 	elseif roof < 0.6 then
-		-- antenna and a couple of AC units
-		Kit.cyl(parent, 0.12, 4, cx + w / 4, roofY + 2, cz, P.metal, M.metal, NC())
-		for k = 0, 2 do
-			Kit.cylH(parent, 0.08, 1.6 - k * 0.4, cx + w / 4, roofY + 2.5 + k * 0.6, cz, P.metal, M.metal, NC())
+		Kit.cyl(parent, 0.2, 7 * k, cx + w / 4, roofY + 3.5 * k, cz, P.metal, M.metal, NC())
+		for kk = 0, 2 do
+			Kit.cylH(parent, 0.12, (1.6 - kk * 0.4) * 2 * k, cx + w / 4, roofY + 4 * k + kk * k, cz, P.metal, M.metal, NC())
 		end
-		for k = 0, 1 do
-			Kit.box(parent, 1.6, 1.1, 0.7, cx - w / 4 + k * 1.9, roofY + 0.55, cz, P.stone_light, M.smooth, NC())
+		for kk = 0, 2 do
+			Kit.box(parent, 2.6 * k, 1.8 * k, 1.2 * k, cx - w / 4 + kk * 3 * k, roofY + 0.9 * k, cz, P.stone_light, M.smooth, NC())
 		end
-	elseif roof < 0.75 then
-		-- rooftop billboard
-		local bb = Kit.box(parent, math.min(w - 1, 9), 3, 0.3, cx, roofY + 2.6, zFront + facing * 3, P.white, M.smooth, NC())
-		Kit.text(bb, facing < 0 and Enum.NormalId.Back or Enum.NormalId.Front, ({ "ラーメン", "寿司", "カメラ", "牛乳", "ビール", "茶" })[r:NextInteger(1, 6)], { color = ({ "#C0261E", "#1E2A44", "#2F5A2A" })[r:NextInteger(1, 3)], font = JP_FONT })
-		for _, bx in ipairs({ -2, 2 }) do
-			Kit.box(parent, 0.25, 1.4, 0.25, cx + bx, roofY + 0.7, zFront + facing * 3, P.steel_dark, M.metal, NC())
+	elseif roof < 0.8 then
+		local bw = math.min(w - 2, 16 * k)
+		local bb = Kit.box(parent, bw, 5 * k, 0.4, cx, roofY + 4.5 * k, zFront + facing * 4, P.white, M.smooth, NC())
+		Kit.text(bb, facing < 0 and Enum.NormalId.Back or Enum.NormalId.Front, ({ "ラーメン", "寿司", "カメラ", "牛乳", "ビール", "茶", "本屋", "薬局" })[r:NextInteger(1, 8)], { color = ({ "#C0261E", "#1E2A44", "#2F5A2A" })[r:NextInteger(1, 3)], font = JP_FONT })
+		for _, bx in ipairs({ -bw / 3, bw / 3 }) do
+			Kit.box(parent, 0.4, 2 * k, 0.4, cx + bx, roofY + k, zFront + facing * 4, P.steel_dark, M.metal, NC())
 		end
 	end
-	-- vertical sign
-	if r:NextNumber() < 0.6 then
-		local vs = Kit.box(parent, 1.2, 5, 0.3, x0 + 1, height * 0.6, face - facing * 0.9, P.charcoal, M.smooth, { collide = false })
+	-- vertical neon sign
+	if detail and r:NextNumber() < 0.6 then
+		local vs = Kit.box(parent, 1.2 * k, 5 * k, 0.3, x0 + 1 * k, math.min(height * 0.5, 18 * k), face - facing * 0.9 * k, P.charcoal, M.smooth, { collide = false })
 		local word = SIGNS[r:NextInteger(1, #SIGNS)]
 		local vertical = ""
 		for _, c in utf8.codes(word) do
@@ -9028,19 +9067,21 @@ function S.building(parent, x0, x1, zFront, depth, height, facing, color, r)
 		Kit.text(vs, facing < 0 and Enum.NormalId.Back or Enum.NormalId.Front, vertical, { color = ({ "#FF3B4A", "#3BC8FF", "#FFD23B", "#FF5AC8" })[r:NextInteger(1, 4)], glow = true, font = JP_FONT })
 	end
 	-- roof edge
-	Kit.box(parent, w + 0.4, 0.6, depth + 0.4, cx, height - 0.4 + 0.3, cz, P.charcoal, M.roof, { collide = false })
+	Kit.box(parent, w + 0.4, 0.6 * k, depth + 0.4, cx, height - 0.4 + 0.3 * k, cz, P.charcoal, M.roof, { collide = false })
 	return body
 end
 
-function S.lamp(parent, x, z, facing)
-	Kit.cyl(parent, 0.35, 9, x, -0.4 + 4.5, z, P.charcoal, M.metal)
-	Kit.cylH(parent, 0.2, 2, x, 8.4, z + facing * 1, P.charcoal, M.metal, { collide = false }, "z")
-	local head = Kit.box(parent, 0.9, 0.4, 1.2, x, 8.2, z + facing * 1.8, P.lamp, M.neon, { collide = false })
-	Kit.light(head, "Spot", P.lamp_warm, 26, 2, { face = Enum.NormalId.Bottom, angle = 100 })
+function S.lamp(parent, x, z, facing, k)
+	k = k or 1
+	Kit.cyl(parent, 0.35 * k, 9 * k, x, -0.4 + 4.5 * k, z, P.charcoal, M.metal)
+	Kit.cylH(parent, 0.2 * k, 2.4 * k, x, 8.4 * k, z + facing * 1.2 * k, P.charcoal, M.metal, { collide = false }, "z")
+	local head = Kit.box(parent, 0.9 * k, 0.4 * k, 1.2 * k, x, 8.2 * k, z + facing * 2.2 * k, P.lamp, M.neon, { collide = false })
+	Kit.light(head, "Spot", P.lamp_warm, 26 * k, 2, { face = Enum.NormalId.Bottom, angle = 100 })
 end
 
-function S.pole(parent, x, z)
-	Kit.cyl(parent, 0.6, 16, x, -0.4 + 8, z, P.stone_light, M.concrete)
+function S.pole(parent, x, z, k)
+	k = k or 1
+	Kit.cyl(parent, 0.6 * k, 16 * k, x, -0.4 + 8 * k, z, P.stone_light, M.concrete)
 	-- yellow and black guard sleeve, step bolts and an address plate
 	for k = 0, 3 do
 		Kit.cyl(parent, 0.66, 0.45, x, 0.05 + k * 0.45, z, k % 2 == 0 and P.neon_yellow or P.black, M.smooth, NC())
@@ -9049,9 +9090,9 @@ function S.pole(parent, x, z)
 		Kit.cylH(parent, 0.08, 0.9, x, 6 + k * 1.2, z, P.steel_dark, M.metal, NC(), k % 2 == 0 and "z" or nil)
 	end
 	Kit.box(parent, 0.5, 1.6, 0.66, x, 4, z, P.navy, M.smooth, NC())
-	Kit.cylH(parent, 0.25, 3, x, 14.5, z, P.wood_dark, M.wood, { collide = false })
-	Kit.cylH(parent, 0.25, 2.4, x, 13.2, z, P.wood_dark, M.wood, { collide = false })
-	Kit.cyl(parent, 0.8, 1.2, x + 0.6, 12, z + 0.5, P.metal, M.metal, { collide = false })
+	Kit.cylH(parent, 0.25 * k, 3 * k, x, 14.5 * k, z, P.wood_dark, M.wood, { collide = false })
+	Kit.cylH(parent, 0.25 * k, 2.4 * k, x, 13.2 * k, z, P.wood_dark, M.wood, { collide = false })
+	Kit.cyl(parent, 0.8 * k, 1.2 * k, x + 0.6 * k, 12 * k, z + 0.5 * k, P.metal, M.metal, { collide = false })
 end
 
 function S.wire(parent, a, b, sag)
@@ -9064,12 +9105,13 @@ function S.wire(parent, a, b, sag)
 	end
 end
 
-function S.planterTree(parent, x, z, color)
-	Kit.box(parent, 3, 0.8, 3, x, 0, z, P.stone, M.concrete)
-	Kit.box(parent, 2.6, 0.1, 2.6, x, 0.4, z, P.wood_dark, M.sand, { collide = false })
-	Kit.cyl(parent, 0.6, 6, x, 3.4, z, P.wood_dark, M.wood)
+function S.planterTree(parent, x, z, color, k)
+	k = k or 1
+	Kit.box(parent, 3 * k, 0.8, 3 * k, x, 0, z, P.stone, M.concrete)
+	Kit.box(parent, 2.6 * k, 0.1, 2.6 * k, x, 0.4, z, P.wood_dark, M.sand, { collide = false })
+	Kit.cyl(parent, 0.6 * k, 6 * k, x, 0.4 + 3 * k, z, P.wood_dark, M.wood)
 	for _, b in ipairs({ { 0, 7.5, 0, 5 }, { -1.4, 6.6, 0.6, 3.4 }, { 1.4, 6.8, -0.5, 3.6 }, { 0.4, 8.6, 0.4, 3 } }) do
-		Kit.blob(parent, b[4], b[4] * 0.7, b[4], x + b[1], b[2], z + b[3], color, M.leafy, { collide = false })
+		Kit.blob(parent, b[4] * k, b[4] * 0.7 * k, b[4] * k, x + b[1] * k, b[2] * k, z + b[3] * k, color, M.leafy, { collide = false })
 	end
 end
 
@@ -9966,53 +10008,70 @@ function Scene.street(street, cityId)
 	local S = Registry.Street
 	local r = S.rng(42)
 	local M = P.M
+	local L = Expansions.Street
+	local reach = L.reach
+	local curb, roadFar, farFront = L.curb, L.roadFar, L.farFront
+	local roadW = curb - roadFar
+	local roadZ = (curb + roadFar) / 2
+	local farW = roadFar - farFront
+	local farZ = (roadFar + farFront) / 2
+	local len = reach * 2 + 200
 	-- ground
-	Kit.box(street, 900, 1, 600, 0, -1.9, 40, city.snow and P.white or Color.hex("#4A5A3A"), city.snow and M.snow or M.grass)
-	-- road
-	Kit.box(street, 900, 0.6, 16, 0, -1.1, -22, Color.hex(pal.road), M.asphalt)
-	for x = -440, 440, 12 do
-		Kit.box(street, 5, 0.05, 0.4, x, -0.78, -22, P.road_line, M.smooth, { collide = false, shadow = false })
+	Kit.box(street, len + 400, 1, 900, 0, -1.9, 80, city.snow and P.white or Color.hex("#4A5A3A"), city.snow and M.snow or M.grass)
+	-- four-lane road: double centre line, dashed lane lines, solid edge lines
+	Kit.box(street, len, 0.6, roadW, 0, -1.1, roadZ, Color.hex(pal.road), M.asphalt)
+	for _, dz in ipairs({ -0.35, 0.35 }) do
+		Kit.box(street, len, 0.05, 0.3, 0, -0.78, roadZ + dz, P.neon_yellow, M.smooth, { collide = false, shadow = false })
 	end
-	-- solid edge lines, crossing, manholes (one steaming) and drain grates
-	for _, ez in ipairs({ -15, -29 }) do
-		Kit.box(street, 900, 0.05, 0.3, 0, -0.78, ez, P.road_line, M.smooth, { collide = false, shadow = false })
+	for _, lz in ipairs({ curb - L.lane, roadFar + L.lane }) do
+		for x = -reach - 80, reach + 80, 14 do
+			Kit.box(street, 6, 0.05, 0.35, x, -0.78, lz, P.road_line, M.smooth, { collide = false, shadow = false })
+		end
 	end
-	S.crosswalk(street, -26, -0.77, -22, 16)
-	for i, mx in ipairs({ -70, 30, 96, -130 }) do
-		S.manhole(street, mx, -0.77, i % 2 == 0 and -19 or -25, mx == 30)
+	for _, ez in ipairs({ curb - 0.7, roadFar + 0.7 }) do
+		Kit.box(street, len, 0.05, 0.3, 0, -0.78, ez, P.road_line, M.smooth, { collide = false, shadow = false })
 	end
-	for gx = -170, 170, 20 do
-		Kit.box(street, 1.6, 0.05, 0.6, gx + 7, -0.77, -14.7, P.steel_dark, M.metal, { collide = false, shadow = false })
+	S.crosswalk(street, -26, -0.77, roadZ, roadW, 7)
+	for i, mx in ipairs({ -70, 30, 96, -130, 160 }) do
+		S.manhole(street, mx, -0.77, curb - L.lane * (0.5 + (i % 4)), mx == 30)
 	end
-	-- sidewalks with yellow tactile paving
-	Kit.box(street, 900, 1, 14, 0, -0.9, -7, P.sidewalk, M.pavement)
-	Kit.box(street, 900, 0.5, 0.5, 0, -0.65, -14, P.stone_light, M.concrete)
-	Kit.box(street, 900, 1, 6, 0, -0.9, -33, P.sidewalk, M.pavement)
-	Kit.box(street, 900, 0.5, 0.5, 0, -0.65, -30, P.stone_light, M.concrete)
+	for gx = -reach, reach, 24 do
+		Kit.box(street, 1.6, 0.05, 0.6, gx + 7, -0.77, curb - 0.7, P.steel_dark, M.metal, { collide = false, shadow = false })
+		Kit.box(street, 1.6, 0.05, 0.6, gx + 19, -0.77, roadFar + 0.7, P.steel_dark, M.metal, { collide = false, shadow = false })
+	end
+	-- wide sidewalks with yellow tactile paving and kerbs
+	Kit.box(street, len, 1, -curb, 0, -0.9, curb / 2, P.sidewalk, M.pavement)
+	Kit.box(street, len, 0.5, 0.6, 0, -0.65, curb, P.stone_light, M.concrete)
+	Kit.box(street, len, 1, farW, 0, -0.9, farZ, P.sidewalk, M.pavement)
+	Kit.box(street, len, 0.5, 0.6, 0, -0.65, roadFar, P.stone_light, M.concrete)
 	local tactile = Color.hex("#E2B93B")
-	Kit.box(street, 900, 0.06, 1, 0, -0.38, -5.5, tactile, M.pavement, { collide = false, shadow = false })
-	Kit.box(street, 900, 0.06, 1, 0, -0.38, -32.2, tactile, M.pavement, { collide = false, shadow = false })
-	Kit.box(street, 1, 0.06, 7.2, -26, -0.38, -9.6, tactile, M.pavement, { collide = false, shadow = false })
-	Kit.box(street, 3, 0.06, 1, -26, -0.38, -13.2, tactile, M.cobble, { collide = false, shadow = false })
-	Kit.box(street, 3, 0.06, 1, -26, -0.38, -30.8, tactile, M.cobble, { collide = false, shadow = false })
+	Kit.box(street, len, 0.06, 1, 0, -0.38, -7, tactile, M.pavement, { collide = false, shadow = false })
+	Kit.box(street, len, 0.06, 1, 0, -0.38, roadFar - 4, tactile, M.pavement, { collide = false, shadow = false })
+	Kit.box(street, 1, 0.06, -curb - 8, -26, -0.38, (curb - 7.5) / 2 - 0.5, tactile, M.pavement, { collide = false, shadow = false })
+	Kit.box(street, 4, 0.06, 1, -26, -0.38, curb + 0.8, tactile, M.cobble, { collide = false, shadow = false })
+	Kit.box(street, 4, 0.06, 1, -26, -0.38, roadFar - 0.8, tactile, M.cobble, { collide = false, shadow = false })
 	S.manhole(street, -80, -0.37, -6.5, false)
 	-- street furniture near the crossing: signs, post box, bus stop
-	S.trafficSign(street, -29.5, -13.4, "walk")
-	S.trafficSign(street, -22.5, -30.6, "walk")
-	S.trafficSign(street, -92, -13.4, "stop")
-	S.postBox(street, -36, -13.2)
-	Kit.cyl(street, 0.2, 7, 64, 3.1, -13.4, P.metal, M.metal)
-	local bus = Kit.cylH(street, 1.6, 0.1, 64, 6.4, -13.4, P.white, M.smooth, { collide = false, shadow = false }, "z")
+	S.trafficSign(street, -31, curb + 0.6, "walk")
+	S.trafficSign(street, -21, roadFar - 0.6, "walk")
+	S.trafficSign(street, -92, curb + 0.6, "stop")
+	S.postBox(street, -36, curb + 0.8)
+	Kit.cyl(street, 0.2, 7, 64, 3.1, curb + 0.6, P.metal, M.metal)
+	local bus = Kit.cylH(street, 1.6, 0.1, 64, 6.4, curb + 0.6, P.white, M.smooth, { collide = false, shadow = false }, "z")
 	Kit.text(bus, Enum.NormalId.Left, "バス", { color = "#1E2A44" })
 	Kit.text(bus, Enum.NormalId.Right, "バス", { color = "#1E2A44" })
-	Kit.box(street, 0.9, 1.4, 0.12, 64, 4.6, -13.4, P.paper, M.smooth, { collide = false, shadow = false })
-	Kit.box(street, 4, 0.2, 1.2, 68, 1.3, -13.2, P.wood_light, M.wood)
-	for _, bx in ipairs({ 66.4, 69.6 }) do
-		Kit.box(street, 0.2, 1.2, 1, bx, 0.6, -13.2, P.steel_dark, M.metal)
+	Kit.box(street, 0.9, 1.4, 0.12, 64, 4.6, curb + 0.6, P.paper, M.smooth, { collide = false, shadow = false })
+	-- bus shelter with a bench
+	Kit.box(street, 8, 0.3, 3, 69, 7.6, curb + 2.2, P.steel_dark, M.metal, { collide = false })
+	for _, bx in ipairs({ 65.2, 72.8 }) do
+		Kit.box(street, 0.3, 7.6, 0.3, bx, 3.4, curb + 3.4, P.steel_dark, M.metal)
 	end
+	local glassBack = Kit.box(street, 7.6, 5, 0.1, 69, 3.4, curb + 3.6, P.glass, M.glass, { collide = false })
+	glassBack.Transparency = 0.6
+	Kit.box(street, 5, 0.3, 1.2, 69, 1.4, curb + 2.8, P.wood_light, M.wood)
 	-- bicycles parked on the far sidewalk
 	for _, bx in ipairs({ -44, -42.8, -41.6, 34, 35.2, 118, 119.2, -150 }) do
-		S.bicycle(street, bx, -34, 90, ({ P.white, P.navy, P.lacquer, P.matcha, P.sakura_dark })[r:NextInteger(1, 5)])
+		S.bicycle(street, bx, farFront + 2.2, 90, ({ P.white, P.navy, P.lacquer, P.matcha, P.sakura_dark })[r:NextInteger(1, 5)])
 	end
 	-- plot lot and loading bay
 	local pb = Expansions.PlotBounds
@@ -10022,27 +10081,27 @@ function Scene.street(street, cityId)
 	for _, x in ipairs({ bay.x - 5.7, bay.x + 5.7 }) do
 		Kit.box(street, 0.25, 0.05, 18, x, -0.33, bay.z, P.neon_yellow, M.smooth, { collide = false, shadow = false })
 	end
-	local reach = 260
-	-- opposite row
+	-- big buildings: the opposite row and the neighbours on our side, in scale with the restaurant
+	local K = 1.6
 	local x = -reach
 	while x < reach do
-		local w = r:NextInteger(10, 18)
-		S.building(street, x, x + w - 0.5, -36, 18, r:NextInteger(16, 34), -1, facadeColor(pal, r), r)
+		local w = r:NextInteger(34, 62)
+		local cx = x + w / 2
+		S.building(street, x, x + w - 1, farFront, r:NextInteger(36, 48), r:NextInteger(32, 70), -1, facadeColor(pal, r), r, K, math.abs(cx) < 200)
 		x += w
 	end
-	-- neighbours on our side
 	x = -reach
-	while x < pb[1] - 2 do
-		local w = math.min(r:NextInteger(10, 16), pb[1] - 2 - x)
-		if w >= 6 then
-			S.building(street, x, x + w - 0.5, 0, 30, r:NextInteger(16, 30), 1, facadeColor(pal, r), r)
+	while x < pb[1] - 4 do
+		local w = math.min(r:NextInteger(30, 54), pb[1] - 4 - x)
+		if w >= 16 then
+			S.building(street, x, x + w - 1, 0, 70, r:NextInteger(28, 52), 1, facadeColor(pal, r), r, K, x + w > -220)
 		end
-		x += math.max(w, 6)
+		x += math.max(w, 16)
 	end
-	x = pb[3] + 2
+	x = pb[3] + 4
 	while x < reach do
-		local w = r:NextInteger(10, 16)
-		S.building(street, x, x + w - 0.5, 0, 30, r:NextInteger(16, 30), 1, facadeColor(pal, r), r)
+		local w = r:NextInteger(30, 54)
+		S.building(street, x, x + w - 1, 0, 70, r:NextInteger(28, 52), 1, facadeColor(pal, r), r, K, x < 220)
 		x += w
 	end
 	-- back fence and trees
@@ -10052,40 +10111,42 @@ function Scene.street(street, cityId)
 	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 4.2, pb[4], P.bamboo, M.wood, { collide = false })
 	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 1.5, pb[4], P.bamboo, M.wood, { collide = false })
 	for _, tx in ipairs({ -100, -60, -20, 20, 60 }) do
-		S.planterTree(street, tx, pb[4] + 6, (tx % 40 == 0) and P.sakura or P.leaf)
+		S.planterTree(street, tx, pb[4] + 8, (tx % 40 == 0) and P.sakura or P.leaf, 1.6)
 	end
-	-- sidewalk lamps, poles, trees
-	for lx = -reach + 10, reach - 10, 30 do
-		if math.abs(lx) > 8 then
-			S.lamp(street, lx, -13, -1)
+	-- tall lamps on both kerbs, utility poles with wires on the far side
+	for lx = -reach + 10, reach - 10, 36 do
+		if math.abs(lx + 26) > 8 then
+			S.lamp(street, lx, curb + 1, -1, 1.5)
+			S.lamp(street, lx + 18, roadFar - 1, 1, 1.5)
 		end
 	end
 	local prev = nil
-	for px = -reach, reach, 40 do
-		S.pole(street, px, -34.5)
-		local top = Vector3.new(px, 14.5, -34.5)
+	local poleZ = farFront + 6
+	for px = -reach, reach, 48 do
+		S.pole(street, px, poleZ, 1.5)
+		local top = Vector3.new(px, 14.5 * 1.5, poleZ)
 		if prev then
-			S.wire(street, prev, top, 1.2)
-			S.wire(street, prev + Vector3.new(0, -1.3, 0), top + Vector3.new(0, -1.3, 0), 1.2)
+			S.wire(street, prev, top, 1.8)
+			S.wire(street, prev + Vector3.new(0, -1.9, 0), top + Vector3.new(0, -1.9, 0), 1.8)
 		end
 		prev = top
 	end
-	for _, tx in ipairs({ -230, -190, -150, 130, 170, 210 }) do
-		S.planterTree(street, tx, -10, (tx % 20 == 0) and P.sakura or P.leaf_light)
+	for _, tx in ipairs({ -330, -260, -190, -150, 130, 170, 230, 300 }) do
+		S.planterTree(street, tx, curb + 3, (tx % 20 == 0) and P.sakura or P.leaf_light, 1.5)
 	end
-	for _, tx in ipairs({ -210, -130, -60, 10, 80, 150, 220 }) do
-		S.planterTree(street, tx, -33, P.sakura)
+	for _, tx in ipairs({ -300, -210, -130, -60, 10, 80, 150, 220, 290 }) do
+		S.planterTree(street, tx, roadFar - 5, P.sakura, 1.5)
 	end
 	-- a few street vending machines next to the neighbours
-	for _, vx in ipairs({ pb[1] - 6, pb[3] + 6, pb[1] - 40 }) do
+	for _, vx in ipairs({ pb[1] - 7, pb[3] + 7, pb[1] - 48 }) do
 		local vm = Registry.build("vending_machine")
 		Registry.place(vm, vx, -0.4, -1.4, 180)
 		vm.Parent = street
 		S.bins(street, vx + (vx < 0 and -2.6 or 2.6), -1.3)
 	end
-	S.viaduct(street, -95, 22, -450, 450)
+	S.viaduct(street, L.railZ, L.railY, -reach - 300, reach + 300)
 	if city.snow then
-		local snow = Kit.box(street, 300, 1, 200, 0, 60, 0, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
+		local snow = Kit.box(street, 500, 1, 360, 0, 90, -20, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
 		snow.CanQuery = false
 		Kit.particles(snow, "snow", { rate = 60 })
 	end
@@ -11509,7 +11570,7 @@ local function dirtyNear(pos)
 end
 
 local function streetPoint(side)
-	return Vector3.new(side * (105 + rng:NextNumber() * 15), 0, Expansions.StreetWalkZ)
+	return Vector3.new(side * (125 + rng:NextNumber() * 25), 0, Expansions.StreetWalkZ)
 end
 
 local function entrance()
@@ -17253,8 +17314,9 @@ local function animateTruck(onArrive)
 	local truck = Registry.Street.truck()
 	truck.Parent = folders.dynamic
 	local bay = Expansions.LoadingBay
-	local startCf = CFrame.new(160, 2.1, -18) * CFrame.Angles(0, 0, 0)
-	local roadCf = CFrame.new(bay.x + 2, 2.1, -18)
+	local lane = Expansions.Street.truckLane
+	local startCf = CFrame.new(Expansions.Street.reach, 2.1, lane) * CFrame.Angles(0, 0, 0)
+	local roadCf = CFrame.new(bay.x + 2, 2.1, lane)
 	local bayCf = CFrame.new(bay.x, 2.1, bay.z) * CFrame.Angles(0, math.rad(90), 0)
 	local value = Instance.new("CFrameValue")
 	value.Value = startCf
@@ -17264,7 +17326,7 @@ local function animateTruck(onArrive)
 		end
 	end)
 	truck:PivotTo(startCf)
-	local t1 = TweenService:Create(value, TweenInfo.new(4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Value = roadCf })
+	local t1 = TweenService:Create(value, TweenInfo.new(7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Value = roadCf })
 	t1:Play()
 	t1.Completed:Wait()
 	local t2 = TweenService:Create(value, TweenInfo.new(1.6, Enum.EasingStyle.Sine), { Value = bayCf })
@@ -17274,10 +17336,10 @@ local function animateTruck(onArrive)
 	task.wait(1)
 	onArrive()
 	task.wait(1.5)
-	local t3 = TweenService:Create(value, TweenInfo.new(1.6, Enum.EasingStyle.Sine), { Value = CFrame.new(bay.x - 4, 2.1, -18) })
+	local t3 = TweenService:Create(value, TweenInfo.new(1.6, Enum.EasingStyle.Sine), { Value = CFrame.new(bay.x - 4, 2.1, lane) })
 	t3:Play()
 	t3.Completed:Wait()
-	local t4 = TweenService:Create(value, TweenInfo.new(4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Value = CFrame.new(-170, 2.1, -18) })
+	local t4 = TweenService:Create(value, TweenInfo.new(7, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Value = CFrame.new(-Expansions.Street.reach, 2.1, lane) })
 	t4:Play()
 	t4.Completed:Wait()
 	truck:Destroy()
@@ -17831,6 +17893,7 @@ local RunService = game:GetService("RunService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Registry = require(Shared.Models.Registry)
+local Expansions = require(Shared.Config.Expansions)
 
 local Ambient = {}
 local parts = {} -- [part] = { kind, base, last, phase }
@@ -17872,12 +17935,13 @@ local function runTrain()
 	train.Parent = workspace.CurrentCamera
 	while true do
 		local dir = rng:NextNumber() < 0.5 and 1 or -1
-		local x0, x1 = -520 * dir, 520 * dir
+		local x0, x1 = -(Expansions.Street.reach + 280) * dir, (Expansions.Street.reach + 280) * dir
 		local t0 = os.clock()
 		local duration = 22
 		while os.clock() - t0 < duration do
 			local k = (os.clock() - t0) / duration
-			train:PivotTo(CFrame.new(x0 + (x1 - x0) * k, 22 + 0.8 + 2.5, -95) * CFrame.Angles(0, dir > 0 and math.pi or 0, 0))
+			local L = Expansions.Street
+			train:PivotTo(CFrame.new(x0 + (x1 - x0) * k, L.railY + 0.8 + 2.5, L.railZ) * CFrame.Angles(0, dir > 0 and math.pi or 0, 0))
 			task.wait()
 		end
 		train:PivotTo(CFrame.new(0, -200, 0))
@@ -18615,6 +18679,7 @@ local UserInputService = game:GetService("UserInputService")
 local CollectionService = game:GetService("CollectionService")
 
 local Core = require(script.Parent.Parent.Core)
+local Footprint = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Logic.Footprint)
 
 local Camera = {}
 Camera.top = false
@@ -18718,6 +18783,21 @@ local function clearDistance(focus, dir, dist)
 	return dist
 end
 
+-- True when the player stands inside the restaurant (an indoor room of their storey)
+local function indoors(pos, floor)
+	local Build = Core.C.Build
+	local geo = Build and Build.geometry and Build.geometry()
+	if not geo then
+		return false
+	end
+	for _, z in ipairs(geo.zones) do
+		if z.floor == floor and not z.outdoor and Footprint.pointInRect(pos.X, pos.Z, z.rect) then
+			return true
+		end
+	end
+	return false
+end
+
 local function orbitLoop(dt)
 	local cam = workspace.CurrentCamera
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
@@ -18746,10 +18826,11 @@ local function orbitLoop(dt)
 	local pos = focus + dir * dist
 	cam.CFrame = cam.CFrame:Lerp(CFrame.lookAt(pos, focus), math.min(1, dt * 14))
 	cam.Focus = CFrame.new(focus)
-	-- roof off when the camera is above this storey's ceiling (dollhouse view of the kitchen)
+	-- roof off only when you are inside and the camera rises above this storey's ceiling
+	-- (dollhouse view of the kitchen); from outside the roof and the facade always show
 	if not Camera.build then
 		local f = Camera.currentFloor()
-		local above = pos.Y > f * FLOOR_HEIGHT + 13
+		local above = pos.Y > f * FLOOR_HEIGHT + 13 and indoors(root.Position, f)
 		if above ~= roofsHiddenByOrbit then
 			roofsHiddenByOrbit = above
 			Camera.applyRoofs(above, f)

@@ -506,7 +506,7 @@ def main():
     elif kind == "street":
         root = lua.eval("scene_street")()
         out = args[0]
-        bounds = lua.table_from([-70, 70, -60, 10])
+        bounds = lua.table_from([-160, 160, -130, 10])
         opts = {"elev": 12, "azim": 90, "zoom": 1.5} if "--view=" not in " ".join(sys.argv) else opts
     else:
         print(__doc__)

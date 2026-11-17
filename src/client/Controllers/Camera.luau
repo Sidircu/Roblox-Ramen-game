@@ -9,6 +9,7 @@ local UserInputService = game:GetService("UserInputService")
 local CollectionService = game:GetService("CollectionService")
 
 local Core = require(script.Parent.Parent.Core)
+local Footprint = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Logic.Footprint)
 
 local Camera = {}
 Camera.top = false
@@ -112,6 +113,21 @@ local function clearDistance(focus, dir, dist)
 	return dist
 end
 
+-- True when the player stands inside the restaurant (an indoor room of their storey)
+local function indoors(pos, floor)
+	local Build = Core.C.Build
+	local geo = Build and Build.geometry and Build.geometry()
+	if not geo then
+		return false
+	end
+	for _, z in ipairs(geo.zones) do
+		if z.floor == floor and not z.outdoor and Footprint.pointInRect(pos.X, pos.Z, z.rect) then
+			return true
+		end
+	end
+	return false
+end
+
 local function orbitLoop(dt)
 	local cam = workspace.CurrentCamera
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
@@ -140,10 +156,11 @@ local function orbitLoop(dt)
 	local pos = focus + dir * dist
 	cam.CFrame = cam.CFrame:Lerp(CFrame.lookAt(pos, focus), math.min(1, dt * 14))
 	cam.Focus = CFrame.new(focus)
-	-- roof off when the camera is above this storey's ceiling (dollhouse view of the kitchen)
+	-- roof off only when you are inside and the camera rises above this storey's ceiling
+	-- (dollhouse view of the kitchen); from outside the roof and the facade always show
 	if not Camera.build then
 		local f = Camera.currentFloor()
-		local above = pos.Y > f * FLOOR_HEIGHT + 13
+		local above = pos.Y > f * FLOOR_HEIGHT + 13 and indoors(root.Position, f)
 		if above ~= roofsHiddenByOrbit then
 			roofsHiddenByOrbit = above
 			Camera.applyRoofs(above, f)

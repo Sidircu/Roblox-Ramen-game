@@ -387,7 +387,7 @@ Il locale iniziale è spoglio. Ogni ristrutturazione si compra una volta; l'atmo
 
 Totale ¥231.000 e +122 atmosfera (circa un livello di ambiente in più a metà partita). Anche `sign_rooftop` e `facade_deluxe` stanno nella scheda Ristrutturazioni. Traguardo *Completa {n} ristrutturazioni*: 3 / 8 / 15 → 🌸5 / 15 / 40.
 
-Oggetti iniziali: bancone (3 moduli + 2 terminali), 6 sgabelli, postazioni sushi e ramen, 2 mensole, cuociriso, pentola del brodo, lavello, scaffale del magazzino e **una sola lanterna**: tutte le altre decorazioni si comprano.
+Oggetti iniziali: bancone (6 moduli + 2 terminali, 28 stud), 12 sgabelli, postazioni sushi e ramen, 2 mensole, cuociriso, pentola del brodo, lavello, scaffale del magazzino e **una sola lanterna**: tutte le altre decorazioni si comprano.
 
 ---
 

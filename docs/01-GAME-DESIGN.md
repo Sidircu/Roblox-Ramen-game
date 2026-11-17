@@ -27,7 +27,7 @@
 
 ## 1. Visione
 
-Apri un piccolo ramen-ya in un vicolo giapponese illuminato da lanterne. All'inizio hai un bancone con 6 sgabelli, due mensole e una pentola. Cucini tu ogni piatto, porti tu le scatole dal magazzino, lavi tu le ciotole. Ora dopo ora guadagni yen, sblocchi licenze per nuovi piatti, assumi personale che automatizza il lavoro, ingrandisci il locale stanza dopo stanza fino al secondo piano e alla terrazza sul tetto, e lo arredi come vuoi tu. Alla fine apri nuovi locali in altre città del Giappone (Franchise) e ricominci più forte.
+Apri un piccolo ramen-ya in un vicolo giapponese illuminato da lanterne. All'inizio hai un lungo bancone con 12 sgabelli, due mensole e una pentola. Cucini tu ogni piatto, porti tu le scatole dal magazzino, lavi tu le ciotole. Ora dopo ora guadagni yen, sblocchi licenze per nuovi piatti, assumi personale che automatizza il lavoro, ingrandisci il locale stanza dopo stanza fino al secondo piano e alla terrazza sul tetto, e lo arredi come vuoi tu. Alla fine apri nuovi locali in altre città del Giappone (Franchise) e ricominci più forte.
 
 ### Pilastri
 
@@ -63,8 +63,10 @@ Apri un piccolo ramen-ya in un vicolo giapponese illuminato da lanterne. All'ini
 
 ### 2.2 La strada (yokochō)
 
-Il ristorante si trova a metà di un vicolo giapponese, sempre visibile e decorativo:
-- Edifici vicini non accessibili (negozietti, una lavanderia, una casa con le luci accese), insegne verticali, pali della luce con i fili, distributori automatici luminosi, biciclette parcheggiate, vasi di piante.
+Il ristorante si trova a metà di una via giapponese, sempre visibile e decorativa. **Tutto è in proporzione al locale** (come in Supermarket Together): il quartiere è grande e il negozio ci sta dentro in modo credibile.
+- Davanti all'ingresso un marciapiede largo 20 stud, poi un **viale a 4 corsie** largo 36 stud (strisce gialle centrali, attraversamento pedonale, tombini, fermata dell'autobus) e un secondo marciapiede.
+- Di fronte, una fila di **palazzi di 3–6 piani** (alti 32–70 stud, il doppio o più del locale) con negozi al piano terra, insegne verticali, balconi, condizionatori, cartelloni e cisterne sui tetti. Ai lati del lotto, due edifici vicini più bassi.
+- Edifici vicini non accessibili (negozietti, una lavanderia, una casa con le luci accese), pali della luce con i fili, lampioni su entrambi i marciapiedi, distributori automatici luminosi, biciclette parcheggiate, vasi di piante.
 - Ciliegi lungo la strada, petali che cadono.
 - Un treno che passa su un cavalcavia sullo sfondo, soprattutto la sera.
 - Da entrambe le estremità del vicolo arrivano e se ne vanno i clienti.
@@ -80,7 +82,7 @@ Pianta indicativa (vista dall'alto):
   │                                                  │           │
   │   SALA        [lavagna menu]   [lanterna]        │ MAGAZZINO │
   │                                                  │  scaffale │
-  │   ( ) ( ) ( ) ( ) ( ) ( )     <- 6 sgabelli      │  scatole  │
+  │  ()()()()()()()()()()()()   <- 12 sgabelli       │  scatole  │
   │  ═══════════ BANCONE ═══════════ [vetrina pesce] │           │
   │   postazione sushi   postazione ramen  lavello   │  [porta]  │──► furgone
   │   [mensola] [mensola]  [rice cooker] [pentola]   │   carico  │
@@ -90,7 +92,7 @@ Pianta indicativa (vista dall'alto):
 
 - Il bancone separa la **sala clienti** dalla **zona di lavoro**. I clienti non entrano dietro il bancone.
 - Gli oggetti iniziali sono normali oggetti piazzabili: puoi spostarli tutti in modalità costruzione.
-- **In scala con gli avatar**: il locale base misura 72 × 56 stud (sala 72 × 32, cucina 72 × 24, magazzino 24 × 32). In cucina il bancone, le postazioni subito dietro e, oltre un corridoio largo 6 stud, scaffali, cuociriso, pentolone e lavello.
+- **In scala con gli avatar**: il locale base misura 72 × 56 stud (sala 72 × 32, cucina 72 × 24, magazzino 24 × 32). Il bancone è lungo 28 stud (6 moduli + 2 terminali) con 12 sgabelli; in cucina le postazioni subito dietro e, oltre un corridoio largo 6 stud, scaffali, cuociriso, pentolone e lavello.
 - **Si parte da un locale base**: pareti lisce, tettoia in lamiera, finestre semplici, bancone e postazioni essenziali, una sola lanterna. Tutto il resto (decorazioni e dettagli tradizionali) si compra col tempo: decorazioni piazzabili (§9) e **ristrutturazioni** (§8.5).
 
 ---

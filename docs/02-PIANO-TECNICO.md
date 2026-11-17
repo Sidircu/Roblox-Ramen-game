@@ -211,7 +211,7 @@ Il server manda una copia iniziale e poi solo i cambiamenti (`DataChanged(percor
 
 ## 8. Costruzione del mondo
 
-- **Strada**: generata una volta: asfalto con linee, marciapiedi, edifici di sfondo (facciate con finestre illuminate, insegne verticali con kanji, tende), pali e fili della luce, distributori, biciclette, ciliegi, cavalcavia con treno (animato dal client).
+- **Strada**: generata una volta, con le misure in `Expansions.Street` (marciapiede, viale a 4 corsie, palazzi di fronte, cavalcavia, corsia del furgone): asfalto con linee, marciapiedi, edifici di sfondo (facciate con finestre illuminate, insegne verticali con kanji, tende), pali e fili della luce, distributori, biciclette, ciliegi, cavalcavia con treno (animato dal client).
 - **Edificio a zone**: ogni zona è un rettangolo su una griglia di celle da 2 stud, con piano e tipo d'area. Algoritmo:
   1. Unione delle celle di tutte le zone sbloccate (per piano).
   2. Per ogni bordo tra una cella interna e una esterna (o tra due "stanze" diverse, es. magazzino) → segmento di muro; i segmenti allineati vengono uniti in parti lunghe.
@@ -311,7 +311,7 @@ Remoti principali: `Interact`, `OrderSupplies`, `PlaceItem`, `MoveItem`, `Remove
 |---|---|
 | NPC contemporanei | 40 (clienti + personale) |
 | Parti per oggetto decorativo | ≤ 60 (≤ 150 per alberi, laghetto, armatura) |
-| Parti della strada | ≤ 2.500 |
+| Parti della strada | ≤ 6.000 (tutte ancorate, costruite una volta) |
 | Luci attive | ≤ 40 vicine alla telecamera; modalità ridotta: ≤ 10 |
 | Ricalcolo percorsi | al massimo 10 al secondo (coda) |
 | `StreamingEnabled` | disattivato (mondo piccolo e privato) |

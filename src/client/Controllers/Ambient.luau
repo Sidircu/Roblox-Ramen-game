@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Registry = require(Shared.Models.Registry)
+local Expansions = require(Shared.Config.Expansions)
 
 local Ambient = {}
 local parts = {} -- [part] = { kind, base, last, phase }
@@ -46,12 +47,13 @@ local function runTrain()
 	train.Parent = workspace.CurrentCamera
 	while true do
 		local dir = rng:NextNumber() < 0.5 and 1 or -1
-		local x0, x1 = -520 * dir, 520 * dir
+		local x0, x1 = -(Expansions.Street.reach + 280) * dir, (Expansions.Street.reach + 280) * dir
 		local t0 = os.clock()
 		local duration = 22
 		while os.clock() - t0 < duration do
 			local k = (os.clock() - t0) / duration
-			train:PivotTo(CFrame.new(x0 + (x1 - x0) * k, 22 + 0.8 + 2.5, -95) * CFrame.Angles(0, dir > 0 and math.pi or 0, 0))
+			local L = Expansions.Street
+			train:PivotTo(CFrame.new(x0 + (x1 - x0) * k, L.railY + 0.8 + 2.5, L.railZ) * CFrame.Angles(0, dir > 0 and math.pi or 0, 0))
 			task.wait()
 		end
 		train:PivotTo(CFrame.new(0, -200, 0))

@@ -328,53 +328,70 @@ function Scene.street(street, cityId)
 	local S = Registry.Street
 	local r = S.rng(42)
 	local M = P.M
+	local L = Expansions.Street
+	local reach = L.reach
+	local curb, roadFar, farFront = L.curb, L.roadFar, L.farFront
+	local roadW = curb - roadFar
+	local roadZ = (curb + roadFar) / 2
+	local farW = roadFar - farFront
+	local farZ = (roadFar + farFront) / 2
+	local len = reach * 2 + 200
 	-- ground
-	Kit.box(street, 900, 1, 600, 0, -1.9, 40, city.snow and P.white or Color.hex("#4A5A3A"), city.snow and M.snow or M.grass)
-	-- road
-	Kit.box(street, 900, 0.6, 16, 0, -1.1, -22, Color.hex(pal.road), M.asphalt)
-	for x = -440, 440, 12 do
-		Kit.box(street, 5, 0.05, 0.4, x, -0.78, -22, P.road_line, M.smooth, { collide = false, shadow = false })
+	Kit.box(street, len + 400, 1, 900, 0, -1.9, 80, city.snow and P.white or Color.hex("#4A5A3A"), city.snow and M.snow or M.grass)
+	-- four-lane road: double centre line, dashed lane lines, solid edge lines
+	Kit.box(street, len, 0.6, roadW, 0, -1.1, roadZ, Color.hex(pal.road), M.asphalt)
+	for _, dz in ipairs({ -0.35, 0.35 }) do
+		Kit.box(street, len, 0.05, 0.3, 0, -0.78, roadZ + dz, P.neon_yellow, M.smooth, { collide = false, shadow = false })
 	end
-	-- solid edge lines, crossing, manholes (one steaming) and drain grates
-	for _, ez in ipairs({ -15, -29 }) do
-		Kit.box(street, 900, 0.05, 0.3, 0, -0.78, ez, P.road_line, M.smooth, { collide = false, shadow = false })
+	for _, lz in ipairs({ curb - L.lane, roadFar + L.lane }) do
+		for x = -reach - 80, reach + 80, 14 do
+			Kit.box(street, 6, 0.05, 0.35, x, -0.78, lz, P.road_line, M.smooth, { collide = false, shadow = false })
+		end
 	end
-	S.crosswalk(street, -26, -0.77, -22, 16)
-	for i, mx in ipairs({ -70, 30, 96, -130 }) do
-		S.manhole(street, mx, -0.77, i % 2 == 0 and -19 or -25, mx == 30)
+	for _, ez in ipairs({ curb - 0.7, roadFar + 0.7 }) do
+		Kit.box(street, len, 0.05, 0.3, 0, -0.78, ez, P.road_line, M.smooth, { collide = false, shadow = false })
 	end
-	for gx = -170, 170, 20 do
-		Kit.box(street, 1.6, 0.05, 0.6, gx + 7, -0.77, -14.7, P.steel_dark, M.metal, { collide = false, shadow = false })
+	S.crosswalk(street, -26, -0.77, roadZ, roadW, 7)
+	for i, mx in ipairs({ -70, 30, 96, -130, 160 }) do
+		S.manhole(street, mx, -0.77, curb - L.lane * (0.5 + (i % 4)), mx == 30)
 	end
-	-- sidewalks with yellow tactile paving
-	Kit.box(street, 900, 1, 14, 0, -0.9, -7, P.sidewalk, M.pavement)
-	Kit.box(street, 900, 0.5, 0.5, 0, -0.65, -14, P.stone_light, M.concrete)
-	Kit.box(street, 900, 1, 6, 0, -0.9, -33, P.sidewalk, M.pavement)
-	Kit.box(street, 900, 0.5, 0.5, 0, -0.65, -30, P.stone_light, M.concrete)
+	for gx = -reach, reach, 24 do
+		Kit.box(street, 1.6, 0.05, 0.6, gx + 7, -0.77, curb - 0.7, P.steel_dark, M.metal, { collide = false, shadow = false })
+		Kit.box(street, 1.6, 0.05, 0.6, gx + 19, -0.77, roadFar + 0.7, P.steel_dark, M.metal, { collide = false, shadow = false })
+	end
+	-- wide sidewalks with yellow tactile paving and kerbs
+	Kit.box(street, len, 1, -curb, 0, -0.9, curb / 2, P.sidewalk, M.pavement)
+	Kit.box(street, len, 0.5, 0.6, 0, -0.65, curb, P.stone_light, M.concrete)
+	Kit.box(street, len, 1, farW, 0, -0.9, farZ, P.sidewalk, M.pavement)
+	Kit.box(street, len, 0.5, 0.6, 0, -0.65, roadFar, P.stone_light, M.concrete)
 	local tactile = Color.hex("#E2B93B")
-	Kit.box(street, 900, 0.06, 1, 0, -0.38, -5.5, tactile, M.pavement, { collide = false, shadow = false })
-	Kit.box(street, 900, 0.06, 1, 0, -0.38, -32.2, tactile, M.pavement, { collide = false, shadow = false })
-	Kit.box(street, 1, 0.06, 7.2, -26, -0.38, -9.6, tactile, M.pavement, { collide = false, shadow = false })
-	Kit.box(street, 3, 0.06, 1, -26, -0.38, -13.2, tactile, M.cobble, { collide = false, shadow = false })
-	Kit.box(street, 3, 0.06, 1, -26, -0.38, -30.8, tactile, M.cobble, { collide = false, shadow = false })
+	Kit.box(street, len, 0.06, 1, 0, -0.38, -7, tactile, M.pavement, { collide = false, shadow = false })
+	Kit.box(street, len, 0.06, 1, 0, -0.38, roadFar - 4, tactile, M.pavement, { collide = false, shadow = false })
+	Kit.box(street, 1, 0.06, -curb - 8, -26, -0.38, (curb - 7.5) / 2 - 0.5, tactile, M.pavement, { collide = false, shadow = false })
+	Kit.box(street, 4, 0.06, 1, -26, -0.38, curb + 0.8, tactile, M.cobble, { collide = false, shadow = false })
+	Kit.box(street, 4, 0.06, 1, -26, -0.38, roadFar - 0.8, tactile, M.cobble, { collide = false, shadow = false })
 	S.manhole(street, -80, -0.37, -6.5, false)
 	-- street furniture near the crossing: signs, post box, bus stop
-	S.trafficSign(street, -29.5, -13.4, "walk")
-	S.trafficSign(street, -22.5, -30.6, "walk")
-	S.trafficSign(street, -92, -13.4, "stop")
-	S.postBox(street, -36, -13.2)
-	Kit.cyl(street, 0.2, 7, 64, 3.1, -13.4, P.metal, M.metal)
-	local bus = Kit.cylH(street, 1.6, 0.1, 64, 6.4, -13.4, P.white, M.smooth, { collide = false, shadow = false }, "z")
+	S.trafficSign(street, -31, curb + 0.6, "walk")
+	S.trafficSign(street, -21, roadFar - 0.6, "walk")
+	S.trafficSign(street, -92, curb + 0.6, "stop")
+	S.postBox(street, -36, curb + 0.8)
+	Kit.cyl(street, 0.2, 7, 64, 3.1, curb + 0.6, P.metal, M.metal)
+	local bus = Kit.cylH(street, 1.6, 0.1, 64, 6.4, curb + 0.6, P.white, M.smooth, { collide = false, shadow = false }, "z")
 	Kit.text(bus, Enum.NormalId.Left, "バス", { color = "#1E2A44" })
 	Kit.text(bus, Enum.NormalId.Right, "バス", { color = "#1E2A44" })
-	Kit.box(street, 0.9, 1.4, 0.12, 64, 4.6, -13.4, P.paper, M.smooth, { collide = false, shadow = false })
-	Kit.box(street, 4, 0.2, 1.2, 68, 1.3, -13.2, P.wood_light, M.wood)
-	for _, bx in ipairs({ 66.4, 69.6 }) do
-		Kit.box(street, 0.2, 1.2, 1, bx, 0.6, -13.2, P.steel_dark, M.metal)
+	Kit.box(street, 0.9, 1.4, 0.12, 64, 4.6, curb + 0.6, P.paper, M.smooth, { collide = false, shadow = false })
+	-- bus shelter with a bench
+	Kit.box(street, 8, 0.3, 3, 69, 7.6, curb + 2.2, P.steel_dark, M.metal, { collide = false })
+	for _, bx in ipairs({ 65.2, 72.8 }) do
+		Kit.box(street, 0.3, 7.6, 0.3, bx, 3.4, curb + 3.4, P.steel_dark, M.metal)
 	end
+	local glassBack = Kit.box(street, 7.6, 5, 0.1, 69, 3.4, curb + 3.6, P.glass, M.glass, { collide = false })
+	glassBack.Transparency = 0.6
+	Kit.box(street, 5, 0.3, 1.2, 69, 1.4, curb + 2.8, P.wood_light, M.wood)
 	-- bicycles parked on the far sidewalk
 	for _, bx in ipairs({ -44, -42.8, -41.6, 34, 35.2, 118, 119.2, -150 }) do
-		S.bicycle(street, bx, -34, 90, ({ P.white, P.navy, P.lacquer, P.matcha, P.sakura_dark })[r:NextInteger(1, 5)])
+		S.bicycle(street, bx, farFront + 2.2, 90, ({ P.white, P.navy, P.lacquer, P.matcha, P.sakura_dark })[r:NextInteger(1, 5)])
 	end
 	-- plot lot and loading bay
 	local pb = Expansions.PlotBounds
@@ -384,27 +401,27 @@ function Scene.street(street, cityId)
 	for _, x in ipairs({ bay.x - 5.7, bay.x + 5.7 }) do
 		Kit.box(street, 0.25, 0.05, 18, x, -0.33, bay.z, P.neon_yellow, M.smooth, { collide = false, shadow = false })
 	end
-	local reach = 260
-	-- opposite row
+	-- big buildings: the opposite row and the neighbours on our side, in scale with the restaurant
+	local K = 1.6
 	local x = -reach
 	while x < reach do
-		local w = r:NextInteger(10, 18)
-		S.building(street, x, x + w - 0.5, -36, 18, r:NextInteger(16, 34), -1, facadeColor(pal, r), r)
+		local w = r:NextInteger(34, 62)
+		local cx = x + w / 2
+		S.building(street, x, x + w - 1, farFront, r:NextInteger(36, 48), r:NextInteger(32, 70), -1, facadeColor(pal, r), r, K, math.abs(cx) < 200)
 		x += w
 	end
-	-- neighbours on our side
 	x = -reach
-	while x < pb[1] - 2 do
-		local w = math.min(r:NextInteger(10, 16), pb[1] - 2 - x)
-		if w >= 6 then
-			S.building(street, x, x + w - 0.5, 0, 30, r:NextInteger(16, 30), 1, facadeColor(pal, r), r)
+	while x < pb[1] - 4 do
+		local w = math.min(r:NextInteger(30, 54), pb[1] - 4 - x)
+		if w >= 16 then
+			S.building(street, x, x + w - 1, 0, 70, r:NextInteger(28, 52), 1, facadeColor(pal, r), r, K, x + w > -220)
 		end
-		x += math.max(w, 6)
+		x += math.max(w, 16)
 	end
-	x = pb[3] + 2
+	x = pb[3] + 4
 	while x < reach do
-		local w = r:NextInteger(10, 16)
-		S.building(street, x, x + w - 0.5, 0, 30, r:NextInteger(16, 30), 1, facadeColor(pal, r), r)
+		local w = r:NextInteger(30, 54)
+		S.building(street, x, x + w - 1, 0, 70, r:NextInteger(28, 52), 1, facadeColor(pal, r), r, K, x < 220)
 		x += w
 	end
 	-- back fence and trees
@@ -414,40 +431,42 @@ function Scene.street(street, cityId)
 	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 4.2, pb[4], P.bamboo, M.wood, { collide = false })
 	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 1.5, pb[4], P.bamboo, M.wood, { collide = false })
 	for _, tx in ipairs({ -100, -60, -20, 20, 60 }) do
-		S.planterTree(street, tx, pb[4] + 6, (tx % 40 == 0) and P.sakura or P.leaf)
+		S.planterTree(street, tx, pb[4] + 8, (tx % 40 == 0) and P.sakura or P.leaf, 1.6)
 	end
-	-- sidewalk lamps, poles, trees
-	for lx = -reach + 10, reach - 10, 30 do
-		if math.abs(lx) > 8 then
-			S.lamp(street, lx, -13, -1)
+	-- tall lamps on both kerbs, utility poles with wires on the far side
+	for lx = -reach + 10, reach - 10, 36 do
+		if math.abs(lx + 26) > 8 then
+			S.lamp(street, lx, curb + 1, -1, 1.5)
+			S.lamp(street, lx + 18, roadFar - 1, 1, 1.5)
 		end
 	end
 	local prev = nil
-	for px = -reach, reach, 40 do
-		S.pole(street, px, -34.5)
-		local top = Vector3.new(px, 14.5, -34.5)
+	local poleZ = farFront + 6
+	for px = -reach, reach, 48 do
+		S.pole(street, px, poleZ, 1.5)
+		local top = Vector3.new(px, 14.5 * 1.5, poleZ)
 		if prev then
-			S.wire(street, prev, top, 1.2)
-			S.wire(street, prev + Vector3.new(0, -1.3, 0), top + Vector3.new(0, -1.3, 0), 1.2)
+			S.wire(street, prev, top, 1.8)
+			S.wire(street, prev + Vector3.new(0, -1.9, 0), top + Vector3.new(0, -1.9, 0), 1.8)
 		end
 		prev = top
 	end
-	for _, tx in ipairs({ -230, -190, -150, 130, 170, 210 }) do
-		S.planterTree(street, tx, -10, (tx % 20 == 0) and P.sakura or P.leaf_light)
+	for _, tx in ipairs({ -330, -260, -190, -150, 130, 170, 230, 300 }) do
+		S.planterTree(street, tx, curb + 3, (tx % 20 == 0) and P.sakura or P.leaf_light, 1.5)
 	end
-	for _, tx in ipairs({ -210, -130, -60, 10, 80, 150, 220 }) do
-		S.planterTree(street, tx, -33, P.sakura)
+	for _, tx in ipairs({ -300, -210, -130, -60, 10, 80, 150, 220, 290 }) do
+		S.planterTree(street, tx, roadFar - 5, P.sakura, 1.5)
 	end
 	-- a few street vending machines next to the neighbours
-	for _, vx in ipairs({ pb[1] - 6, pb[3] + 6, pb[1] - 40 }) do
+	for _, vx in ipairs({ pb[1] - 7, pb[3] + 7, pb[1] - 48 }) do
 		local vm = Registry.build("vending_machine")
 		Registry.place(vm, vx, -0.4, -1.4, 180)
 		vm.Parent = street
 		S.bins(street, vx + (vx < 0 and -2.6 or 2.6), -1.3)
 	end
-	S.viaduct(street, -95, 22, -450, 450)
+	S.viaduct(street, L.railZ, L.railY, -reach - 300, reach + 300)
 	if city.snow then
-		local snow = Kit.box(street, 300, 1, 200, 0, 60, 0, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
+		local snow = Kit.box(street, 500, 1, 360, 0, 90, -20, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
 		snow.CanQuery = false
 		Kit.particles(snow, "snow", { rate = 60 })
 	end

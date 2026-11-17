@@ -147,7 +147,7 @@ local function dirtyNear(pos)
 end
 
 local function streetPoint(side)
-	return Vector3.new(side * (105 + rng:NextNumber() * 15), 0, Expansions.StreetWalkZ)
+	return Vector3.new(side * (125 + rng:NextNumber() * 25), 0, Expansions.StreetWalkZ)
 end
 
 local function entrance()

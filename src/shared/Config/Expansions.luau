@@ -130,8 +130,21 @@ return {
 	allStyles = allStyles,
 	-- Fixed points of the plot (relative to origin)
 	Entrance = { x = 0, z = -1.5 },
-	StreetWalkZ = -11.5,
+	StreetWalkZ = -14,
 	StreetEnds = { -150, 150 },
+	-- The town around the restaurant, at the same scale: a 20-stud sidewalk in front of the
+	-- restaurant (front wall at z = 0), a four-lane road (9 studs per lane), a wide far sidewalk
+	-- and big neighbour buildings, a raised railway behind them.
+	Street = {
+		curb = -20,
+		roadFar = -56,
+		farFront = -72,
+		lane = 9,
+		truckLane = -24.5,
+		railZ = -175,
+		railY = 46,
+		reach = 380,
+	},
 	LoadingBay = { x = 50, z = 12 },
 	Supplier = { x = 35.7, y = 5, z = 35 },
 	MenuBoard = { x = -12, z = -2.6 },
