@@ -31,7 +31,7 @@ NAMES = [
 ("rec.hakata_ramen","Hakata Ramen","Hakata Ramen"),("rec.yatai_gyoza","Yatai Gyoza","Gyoza dello yatai"),("rec.okinawa_soba","Okinawa Soba","Okinawa Soba"),
 ("rec.goya_champuru","Goya Champuru","Goya Champuru"),
 # licenses
-("lic.lic_base","Starter License","Licenza base"),("lic.lic_sushi1","Sushi I","Sushi I"),("lic.lic_ramen1","Ramen I","Ramen I"),
+("lic.lic_base","Starter License (ramen)","Licenza base (ramen)"),("lic.lic_sushi0","Basic sushi","Sushi di base"),("lic.lic_sushi1","Sushi I","Sushi I"),("lic.lic_ramen1","Ramen I","Ramen I"),
 ("lic.lic_sides","Sides & Tea","Contorni e tè"),("lic.lic_sushi2","Sushi II","Sushi II"),("lic.lic_ramen2","Ramen II","Ramen II"),
 ("lic.lic_griddle","Griddle","Piastra"),("lic.lic_sushi3","Sushi III","Sushi III"),("lic.lic_ramen3","Ramen III","Ramen III"),
 ("lic.lic_fryer","Fryer","Friggitrice"),("lic.lic_sushi4","Sushi IV","Sushi IV"),("lic.lic_street","Street Food","Street food"),

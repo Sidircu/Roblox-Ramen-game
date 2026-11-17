@@ -2,9 +2,9 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from data1 import NAMES
 from data2 import ITEMS, DYN
-from data3 import UI, MSG, HINT, TUT
+from data3 import UI, MSG, HINT, TUT, TUT_FIRST_DAY
 from data4 import NEW
-rows = list(NAMES) + [("item."+i, e, it) for i, e, it in ITEMS] + list(DYN) + list(UI) + list(MSG) + list(HINT) + list(TUT) + list(NEW)
+rows = list(NAMES) + [("item."+i, e, it) for i, e, it in ITEMS] + list(DYN) + list(UI) + list(MSG) + list(HINT) + list(TUT) + list(TUT_FIRST_DAY) + list(NEW)
 seen = {}
 for k, e, it in rows:
     if k in seen:

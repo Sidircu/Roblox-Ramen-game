@@ -460,6 +460,9 @@ return {
 		reach = 380,
 	},
 	LoadingBay = { x = 50, z = 12 },
+	-- the delivery truck leaves the boxes on the ground here, beside the storage room's loading door
+	-- (a grid of spots, two boxes high), and you carry them inside
+	DropZone = { x0 = 55.5, x1 = 64.5, z0 = 13.5, z1 = 22.8, layers = 2 },
 	Supplier = { x = 35.7, y = 5, z = 35 },
 	MenuBoard = { x = -12, z = -2.6 },
 	PlotBounds = { -110, -14, 96, 100 },
@@ -606,10 +609,10 @@ return {
 --          "rice" (poured into a rice cooker), "broth" (poured into a broth pot)
 -- shape: visual used on shelves/boards: fillet, veg, pack, sack, jar, bottle, noodle, egg, sheet, ball, leaf
 local list = {
-	{ id = "rice", units = 20, price = 60, storage = "rice", license = "lic_base", icon = "🍚", color = "#F4F1EA", shape = "sack" },
-	{ id = "nori", units = 30, price = 45, storage = "shelf", license = "lic_base", icon = "🟩", color = "#1E2B1E", shape = "sheet" },
-	{ id = "cucumber", units = 16, price = 32, storage = "shelf", license = "lic_base", icon = "🥒", color = "#4E8A3A", shape = "veg" },
-	{ id = "salmon", units = 12, price = 120, storage = "fish", license = "lic_base", icon = "🐟", color = "#F28C5A", shape = "fillet" },
+	{ id = "rice", units = 20, price = 60, storage = "rice", license = "lic_sushi0", icon = "🍚", color = "#F4F1EA", shape = "sack" },
+	{ id = "nori", units = 30, price = 45, storage = "shelf", license = "lic_sushi0", icon = "🟩", color = "#1E2B1E", shape = "sheet" },
+	{ id = "cucumber", units = 16, price = 32, storage = "shelf", license = "lic_sushi0", icon = "🥒", color = "#4E8A3A", shape = "veg" },
+	{ id = "salmon", units = 12, price = 120, storage = "fish", license = "lic_sushi0", icon = "🐟", color = "#F28C5A", shape = "fillet" },
 	{ id = "noodles", units = 20, price = 80, storage = "shelf", license = "lic_base", icon = "🍜", color = "#F2D27A", shape = "noodle" },
 	{ id = "broth_shoyu", units = 16, price = 96, storage = "broth", license = "lic_base", icon = "🥣", color = "#7A4A22", shape = "jar" },
 	{ id = "scallion", units = 30, price = 45, storage = "shelf", license = "lic_base", icon = "🌱", color = "#6DB33F", shape = "leaf" },
@@ -820,8 +823,10 @@ return {
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000014"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- License tree. Buying a license unlocks its recipes and station items.
 local list = {
-	{ id = "lic_base", branch = "base", level = 1, cost = 0, rating = 0, requires = {}, recipes = { "kappa_maki", "sake_nigiri", "shoyu_ramen" } },
-	{ id = "lic_sushi1", branch = "sushi", level = 3, cost = 2500, rating = 0, requires = { "lic_base" }, recipes = { "tekka_maki", "maguro_nigiri" } },
+	-- you start with shoyu ramen only; basic sushi comes with the first license
+	{ id = "lic_base", branch = "base", level = 1, cost = 0, rating = 0, requires = {}, recipes = { "shoyu_ramen" } },
+	{ id = "lic_sushi0", branch = "sushi", level = 2, cost = 800, rating = 0, requires = { "lic_base" }, recipes = { "kappa_maki", "sake_nigiri" } },
+	{ id = "lic_sushi1", branch = "sushi", level = 3, cost = 2500, rating = 0, requires = { "lic_sushi0" }, recipes = { "tekka_maki", "maguro_nigiri" } },
 	{ id = "lic_ramen1", branch = "ramen", level = 4, cost = 3000, rating = 0, requires = { "lic_base" }, recipes = { "shio_ramen" } },
 	{ id = "lic_sides", branch = "extra", level = 5, cost = 4000, rating = 0, requires = { "lic_base" }, recipes = { "edamame", "green_tea", "miso_soup" } },
 	{ id = "lic_sushi2", branch = "sushi", level = 8, cost = 12000, rating = 0, requires = { "lic_sushi1" }, recipes = { "california_roll", "ebi_nigiri" } },
@@ -928,8 +933,8 @@ return {
 -- dish: visual model used by Models/Builders/Food
 local list = {
 	-- Base
-	{ id = "kappa_maki", station = "sushi", ing = { "nori", "cucumber" }, rice = true, steps = { "combine", "roll", "cut" }, price = 25, xp = 8, cat = "sushi", license = "lic_base", icon = "🍣", dish = "maki" },
-	{ id = "sake_nigiri", station = "sushi", ing = { "salmon" }, rice = true, steps = { "cut", "combine" }, price = 40, xp = 10, cat = "sushi", license = "lic_base", icon = "🍣", dish = "nigiri" },
+	{ id = "kappa_maki", station = "sushi", ing = { "nori", "cucumber" }, rice = true, steps = { "combine", "roll", "cut" }, price = 25, xp = 8, cat = "sushi", license = "lic_sushi0", icon = "🍣", dish = "maki" },
+	{ id = "sake_nigiri", station = "sushi", ing = { "salmon" }, rice = true, steps = { "cut", "combine" }, price = 40, xp = 10, cat = "sushi", license = "lic_sushi0", icon = "🍣", dish = "nigiri" },
 	{ id = "shoyu_ramen", station = "ramen", ing = { "noodles", "scallion", "naruto" }, broth = "broth_shoyu", steps = { "boil", "pour", "top" }, price = 55, xp = 14, cat = "ramen", license = "lic_base", icon = "🍜", dish = "bowl" },
 	-- Sushi I
 	{ id = "tekka_maki", station = "sushi", ing = { "nori", "tuna" }, rice = true, steps = { "combine", "roll", "cut" }, price = 45, xp = 12, cat = "sushi", license = "lic_sushi1", icon = "🍣", dish = "maki" },
@@ -1130,10 +1135,9 @@ return {
 		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
 		{ i = "chochin_white", x = -6, z = 20, r = 0, s = "c" },
 	},
-	boxes = {
-		{ g = "rice", n = 2 }, { g = "nori", n = 2 }, { g = "cucumber", n = 2 }, { g = "salmon", n = 2 },
-		{ g = "noodles", n = 2 }, { g = "broth_shoyu", n = 2 }, { g = "scallion", n = 2 }, { g = "naruto", n = 2 },
-	},
+	-- the storage room starts empty: the tutorial has you order the ramen ingredients
+	boxes = {},
+
 }
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000023"><Properties><string name="Name">Surfaces</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Floor and wall styles, applied per zone.
@@ -1578,7 +1582,7 @@ return {
 	["item.zen_garden"] = "Zen sand garden",
 	["lb.dishes"] = "Most dishes served",
 	["lb.earned"] = "Most yen earned",
-	["lic.lic_base"] = "Starter License",
+	["lic.lic_base"] = "Starter License (ramen)",
 	["lic.lic_dessert"] = "Desserts & Matcha",
 	["lic.lic_fryer"] = "Fryer",
 	["lic.lic_grandmaster"] = "Grand Master",
@@ -1590,6 +1594,7 @@ return {
 	["lic.lic_ramen_master"] = "Ramen Master",
 	["lic.lic_sides"] = "Sides & Tea",
 	["lic.lic_street"] = "Street Food",
+	["lic.lic_sushi0"] = "Basic sushi",
 	["lic.lic_sushi1"] = "Sushi I",
 	["lic.lic_sushi2"] = "Sushi II",
 	["lic.lic_sushi3"] = "Sushi III",
@@ -1618,7 +1623,7 @@ return {
 	["msg.daily_done"] = "Already claimed today.",
 	["msg.day_closing"] = "🕚 Closing time: no new customers.",
 	["msg.day_open"] = "🏮 The restaurant is open!",
-	["msg.delivery_arrived"] = "🚚 Delivery arrived: {n} boxes in storage.",
+	["msg.delivery_arrived"] = "🚚 Delivery arrived: {n} boxes left on the ground outside the storage door.",
 	["msg.dev_done"] = "Dev: {cmd}",
 	["msg.dish_to_sink"] = "🍽️ The plate went to the sink.",
 	["msg.dishes_bought"] = "🍽️ +{n} dishes",
@@ -1810,19 +1815,22 @@ return {
 	["surf.wall_shoji"] = "Shoji",
 	["surf.wall_wood"] = "Wood panels",
 	["surf.wall_yakisugi"] = "Charred wood (yakisugi)",
-	["tut.broth"] = "Take a box of shoyu broth and click the broth pot.",
+	["tut.broth"] = "Now the shoyu broth: take its box and click the big pot on the range. The broth cooks by itself.",
 	["tut.build"] = "Open 🔨 Build to decorate: choose an object and place it on the 1/5/10 grid.",
+	["tut.buy"] = "Your storage room is empty! Open the supplier (📦, O or the tablet), press “🍜 All for the menu” and then “Order”: for now only the ramen ingredients are on sale.",
 	["tut.collect"] = "When they leave, click the dirty dishes to collect them.",
-	["tut.cook"] = "Click the right station to put the ingredients down, then click again for each step: the knife cuts, the ingredients combine!",
+	["tut.cook"] = "Click the ramen station: the ingredients fly onto their shapes. Then click again for each step: boil and drain the noodles, pour the broth, add the toppings!",
 	["tut.done"] = "You are ready! Earn yen, buy licenses, hire staff and grow your restaurant. がんばって!",
-	["tut.fill_shelf"] = "Carry the box to a shelf in the kitchen and click the shelf: the box fills every free spot. G (or ⬇) puts a box down.",
-	["tut.ingredients"] = "Tap the order on the left: the guide shows each step and the green arrow shows where to go. Take the highlighted ingredients from the shelves.",
+	["tut.fill_shelf"] = "Carry it to a shelf in the kitchen and click the shelf: the products jump onto the free spots of the grid (each box fills 2 slots). G puts a box down.",
+	["tut.ingredients"] = "Look at the ramen station: the see-through shapes on the board are what you need. Take noodles, scallion and naruto from the shelves (the tag says what is on each slot).",
+	["tut.more_boxes"] = "Put the other boxes on the shelves too: you need noodles, scallion and naruto.",
 	["tut.open"] = "Tap the red CLOSED switch at the top: it turns green (OPEN) and customers arrive.",
 	["tut.order"] = "A customer has a ❗: click them to take the order. The order appears on the left.",
 	["tut.rice"] = "Take a box of rice and click the rice cooker: the rice cooks by itself.",
 	["tut.serve"] = "Click the dish to pick it up and click the customer to serve it.",
 	["tut.step"] = "Tutorial {i}/{n}",
-	["tut.take_box"] = "Follow the yellow arrow to the storage room and click a box to pick it up.",
+	["tut.take_box"] = "The boxes are outside the storage door: follow the yellow arrow and click a box of noodles, scallion or naruto. In your hands it opens and you see what is inside.",
+	["tut.truck"] = "The delivery truck is coming: it leaves the boxes on the ground outside the storage door.",
 	["tut.wash"] = "Bring them to the sink, then hold the click (or E) on the sink: the sponge washes one plate at a time.",
 	["tut.welcome"] = "Welcome to your ramen-ya! Walk with WASD (Shift to run) and look around with the mouse or by dragging a finger. Aim at things with the dot in the middle and click or press E to use them. Hold Alt to click the buttons on screen; Enter shows the next tip.",
 	["ui.active"] = "Active",
@@ -1844,6 +1852,7 @@ return {
 	["ui.camera"] = "Camera",
 	["ui.can_place"] = "Can be placed here",
 	["ui.cancel"] = "Cancel",
+	["ui.cart_menu"] = "All for the menu",
 	["ui.claim"] = "Claim",
 	["ui.claimed"] = "Claimed",
 	["ui.close_early"] = "Close early",
@@ -2352,7 +2361,7 @@ return {
 	["item.zen_garden"] = "Giardino zen",
 	["lb.dishes"] = "Più piatti serviti",
 	["lb.earned"] = "Più yen guadagnati",
-	["lic.lic_base"] = "Licenza base",
+	["lic.lic_base"] = "Licenza base (ramen)",
 	["lic.lic_dessert"] = "Dolci e matcha",
 	["lic.lic_fryer"] = "Friggitrice",
 	["lic.lic_grandmaster"] = "Gran maestro",
@@ -2364,6 +2373,7 @@ return {
 	["lic.lic_ramen_master"] = "Maestro del ramen",
 	["lic.lic_sides"] = "Contorni e tè",
 	["lic.lic_street"] = "Street food",
+	["lic.lic_sushi0"] = "Sushi di base",
 	["lic.lic_sushi1"] = "Sushi I",
 	["lic.lic_sushi2"] = "Sushi II",
 	["lic.lic_sushi3"] = "Sushi III",
@@ -2392,7 +2402,7 @@ return {
 	["msg.daily_done"] = "Già riscosso oggi.",
 	["msg.day_closing"] = "🕚 Ora di chiusura: niente nuovi clienti.",
 	["msg.day_open"] = "🏮 Il ristorante è aperto!",
-	["msg.delivery_arrived"] = "🚚 Consegna arrivata: {n} scatole in magazzino.",
+	["msg.delivery_arrived"] = "🚚 Consegna arrivata: {n} scatole lasciate a terra fuori dalla porta del magazzino.",
 	["msg.dev_done"] = "Dev: {cmd}",
 	["msg.dish_to_sink"] = "🍽️ Il piatto è andato al lavello.",
 	["msg.dishes_bought"] = "🍽️ +{n} stoviglie",
@@ -2584,19 +2594,22 @@ return {
 	["surf.wall_shoji"] = "Shoji",
 	["surf.wall_wood"] = "Pannelli in legno",
 	["surf.wall_yakisugi"] = "Legno bruciato yakisugi",
-	["tut.broth"] = "Prendi una scatola di brodo shoyu e clicca il pentolone.",
+	["tut.broth"] = "Ora il brodo shoyu: prendi la sua scatola e clicca il pentolone sul fornello. Il brodo cuoce da solo.",
 	["tut.build"] = "Apri 🔨 Costruisci per arredare: scegli un oggetto e piazzalo sulla griglia 1/5/10.",
+	["tut.buy"] = "Il magazzino è vuoto! Apri il fornitore (📦, O o il tablet), premi «🍜 Tutto per il menu» e poi «Ordina»: per ora si vendono solo gli ingredienti del ramen.",
 	["tut.collect"] = "Quando se ne va, clicca le stoviglie sporche per raccoglierle.",
-	["tut.cook"] = "Clicca la postazione giusta per posare gli ingredienti, poi clicca di nuovo per ogni passaggio: il coltello taglia, gli ingredienti si uniscono!",
+	["tut.cook"] = "Clicca la postazione del ramen: gli ingredienti volano sulle loro sagome. Poi clicca di nuovo per ogni passaggio: cuoci e scola i noodles, versa il brodo, aggiungi i condimenti!",
 	["tut.done"] = "Sei pronto! Guadagna yen, compra licenze, assumi personale e fai crescere il tuo ristorante. がんばって!",
-	["tut.fill_shelf"] = "Porta la scatola a uno scaffale della cucina e clicca lo scaffale: la scatola riempie tutti gli spazi liberi. G (o ⬇) appoggia la scatola a terra.",
-	["tut.ingredients"] = "Tocca l'ordine a sinistra: la guida mostra ogni passaggio e la freccia verde ti dice dove andare. Prendi dagli scaffali gli ingredienti evidenziati.",
+	["tut.fill_shelf"] = "Portala a uno scaffale della cucina e clicca lo scaffale: i prodotti saltano nei posti liberi della griglia (ogni scatola riempie 2 ripiani). G posa la scatola.",
+	["tut.ingredients"] = "Guarda la postazione del ramen: le sagome trasparenti sul tagliere sono quello che serve. Prendi noodles, cipollotto e naruto dagli scaffali (il cartellino dice cosa c'è su ogni ripiano).",
+	["tut.more_boxes"] = "Metti sugli scaffali anche le altre scatole: servono noodles, cipollotto e naruto.",
 	["tut.open"] = "Tocca l'interruttore rosso CHIUSO in alto: diventa verde (APERTO) e arrivano i clienti.",
 	["tut.order"] = "Un cliente ha un ❗: cliccalo per prendere l'ordine. L'ordine compare a sinistra.",
 	["tut.rice"] = "Prendi una scatola di riso e clicca il rice cooker: il riso cuoce da solo.",
 	["tut.serve"] = "Clicca il piatto per prenderlo e clicca il cliente per servirlo.",
 	["tut.step"] = "Tutorial {i}/{n}",
-	["tut.take_box"] = "Segui la freccia gialla fino al magazzino e clicca una scatola per prenderla.",
+	["tut.take_box"] = "Le scatole sono fuori dalla porta del magazzino: segui la freccia gialla e clicca una scatola di noodles, cipollotto o naruto. In mano si apre e vedi cosa c'è dentro.",
+	["tut.truck"] = "Sta arrivando il furgone: lascerà le scatole a terra fuori dalla porta del magazzino.",
 	["tut.wash"] = "Portali al lavello, poi tieni premuto il clic (o E) sul lavello: la spugna lava un piatto alla volta.",
 	["tut.welcome"] = "Benvenuto nel tuo ramen-ya! Cammina con WASD (Shift per correre) e guardati intorno con il mouse o trascinando un dito. Punta le cose con il pallino al centro e clicca o premi E per usarle. Tieni premuto Alt per cliccare i pulsanti sullo schermo; Invio mostra il consiglio successivo.",
 	["ui.active"] = "Attivo",
@@ -2618,6 +2631,7 @@ return {
 	["ui.camera"] = "Telecamera",
 	["ui.can_place"] = "Si può piazzare qui",
 	["ui.cancel"] = "Annulla",
+	["ui.cart_menu"] = "Tutto per il menu",
 	["ui.claim"] = "Riscuoti",
 	["ui.claimed"] = "Ritirato",
 	["ui.close_early"] = "Chiudi prima",
@@ -7637,9 +7651,7 @@ local function shelfUnit(m, item)
 				local x = -w / 2 + 0.15 + cw * (c + 0.5)
 				local s = slot(m, idx, cw - 0.1, rowH - 0.2, d - 0.1, x, y + 0.06 + (rowH - 0.2) / 2, 0)
 				s:SetAttribute("Width", cw - 0.2)
-				-- paper price tag on the shelf lip
-				Kit.box(dk, 0.55, 0.13, 0.02, x, y + 0.02, -d / 2 - 0.055, P.paper, M.smooth, nc())
-				Kit.box(dk, 0.12, 0.13, 0.025, x - 0.2, y + 0.02, -d / 2 - 0.058, P.lacquer, M.smooth, nc())
+				-- the paper tag on the lip is drawn by each client in its language (ShelfTags)
 			end
 		end
 	end
@@ -12981,7 +12993,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 4
+local VERSION = 5
 local profiles = {} -- [player] = { data, key, loaded, saving }
 local store = nil
 local storeOk = false
@@ -13114,6 +13126,15 @@ local function migrate(d)
 		-- v4: fitted kitchen unit (rice cooker, gas range, worktops, sink) and grid shelves
 		rebuildLayout(d)
 		d.v = 4
+	end
+	if d.v < 5 then
+		-- v5: basic sushi moved from the starter license to lic_sushi0: players who already had it
+		-- keep it
+		d.licenses = d.licenses or {}
+		if d.licenses.lic_base then
+			d.licenses.lic_sushi0 = true
+		end
+		d.v = 5
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION
@@ -16616,7 +16637,7 @@ end
 return Seating
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000086"><Properties><string name="Name">SelfTest</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- End-to-end self test of the core loop, started from the dev panel. It drives the real services
--- with an invisible worker: restock, rice, cook a kappa maki, serve a customer, get paid, wash.
+-- with an invisible worker: restock, broth, cook a shoyu ramen, serve a customer, get paid, wash.
 -- Results go to the Output window and to a toast.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -16711,18 +16732,24 @@ function SelfTest.run(player)
 	end)
 
 	check("restock a shelf", function()
-		for _, g in ipairs({ "nori", "cucumber" }) do
+		for _, g in ipairs({ "noodles", "scallion", "naruto" }) do
 			local _, ent = ensureBox(g)
 			assert(S.Supply.takeBox(actor, ent), "could not take the box")
-			local shelf = firstOf("shelf", function(e)
-				return not e.item.fn.fishOnly
-			end)
-			local before = {}
-			for k, sl in pairs(d.shelves[shelf.uid] or {}) do
-				before[k] = sl.n
+			-- the first shelf with room for this ingredient
+			local shelf, before, ok, msg = nil, {}, false, "no shelf"
+			for _, e in ipairs(S.Entities.ofKind("shelf")) do
+				if not e.item.fn.fishOnly and not ok then
+					before = {}
+					for k, sl in pairs(d.shelves[e.uid] or {}) do
+						before[k] = sl.n
+					end
+					ok, msg = S.Supply.useShelf(actor, e, nil)
+					if ok then
+						shelf = e
+					end
+				end
 			end
-			local ok, msg = S.Supply.useShelf(actor, shelf, nil)
-			assert(ok, "useShelf: " .. tostring(msg))
+			assert(ok and shelf, "useShelf: " .. tostring(msg))
 			returnLeftover()
 			assert(S.Supply.shelfStock(g) > 0, g .. " not on the shelf")
 			local touched = 0
@@ -16735,33 +16762,36 @@ function SelfTest.run(player)
 		end
 	end)
 
-	check("cook rice", function()
-		local rc = firstOf("ricecooker")
-		if not S.Appliance.hasRice() then
-			local _, ent = ensureBox("rice")
-			assert(S.Supply.takeBox(actor, ent), "could not take the rice box")
-			local ok, msg = S.Appliance.load(actor, rc)
+	check("pour the shoyu broth", function()
+		local pot = firstOf("pot")
+		assert(pot, "no broth pot")
+		if not S.Appliance.hasBroth("broth_shoyu") then
+			local _, ent = ensureBox("broth_shoyu")
+			assert(S.Supply.takeBox(actor, ent), "could not take the broth box")
+			local ok, msg = S.Appliance.load(actor, pot)
 			assert(ok or msg == "msg.cooking_wait", "load: " .. tostring(msg))
 			returnLeftover()
-			local st = d.appliances[rc.uid]
+			local st = d.appliances[pot.uid]
 			if st and st.c > 0 then
 				st.t = workspace:GetServerTimeNow() - 1 -- fast-forward
 			end
-			assert(waitFor(S.Appliance.hasRice, 5), "rice never got ready")
+			assert(waitFor(function()
+				return S.Appliance.hasBroth("broth_shoyu")
+			end, 5), "the broth never got ready")
 		end
 	end)
 
-	check("cook a kappa maki with clicks", function()
-		for _, g in ipairs({ "nori", "cucumber" }) do
+	check("cook a shoyu ramen with clicks", function()
+		for _, g in ipairs({ "noodles", "scallion", "naruto" }) do
 			local shelf, slot = S.Supply.findShelfWith(g)
 			assert(shelf, "no " .. g .. " on the shelves")
 			local ok, msg = S.Supply.useShelf(actor, shelf, slot)
 			assert(ok, "take " .. g .. ": " .. tostring(msg))
 		end
 		local station = firstOf("station", function(e)
-			return e.item.fn.station == "sushi" and not S.Cooking.stationState(e).busy and not S.Cooking.stationState(e).ready
+			return e.item.fn.station == "ramen" and not S.Cooking.stationState(e).busy and not S.Cooking.stationState(e).ready
 		end)
-		assert(station, "no free sushi station")
+		assert(station, "no free ramen station")
 		local ok, msg = S.Cooking.use(actor, station, 4)
 		assert(ok, "deposit: " .. tostring(msg))
 		for _ = 1, 6 do
@@ -16798,8 +16828,8 @@ function SelfTest.run(player)
 			return nil
 		end, 75)
 		assert(c, "the customer never sat down to order")
-		c.order = "kappa_maki"
-		c.npc.model:SetAttribute("Order", "kappa_maki")
+		c.order = "shoyu_ramen"
+		c.npc.model:SetAttribute("Order", "shoyu_ramen")
 		local e = S.Entities.get(c.uid)
 		assert(S.Customers.use(actor, e), "could not take the order")
 		assert(c.state == "waiting", "state after order: " .. tostring(c.state))
@@ -17932,8 +17962,39 @@ local function overflowSlots()
 	return slots
 end
 
+-- spots on the ground where the truck leaves the boxes (Expansions.DropZone)
+local function dropSpots()
+	local zone = Expansions.DropZone
+	local out = {}
+	for layer = 0, zone.layers - 1 do
+		for x = zone.x0 + 1, zone.x1 - 0.9, 2.05 do
+			for z = zone.z0 + 0.8, zone.z1 - 0.75, 1.75 do
+				table.insert(out, { x = x, z = z, l = layer })
+			end
+		end
+	end
+	return out
+end
+
+local function freeDropSpot(d)
+	for _, sp in ipairs(dropSpots()) do
+		local taken = false
+		for _, b in ipairs(d.storage) do
+			if b.px and (b.pf or 0) == 0 and (b.pl or 0) == sp.l and math.abs(b.px - sp.x) < 0.6 and math.abs(b.pz - sp.z) < 0.6 then
+				taken = true
+				break
+			end
+		end
+		if not taken then
+			return sp
+		end
+	end
+	return nil
+end
+
+-- boxes the restaurant can hold: rack slots in the storage room plus the drop zone outside
 function Supply.capacity()
-	return #rackSlots() + math.min(#overflowSlots(), GameConfig.DeliveryOverflowBoxes)
+	return #rackSlots() + #dropSpots()
 end
 
 local function boxModel(entry)
@@ -17952,12 +18013,30 @@ function Supply.layout()
 	end
 	local idx = 0
 	local keep = {}
+	-- boxes on the floor at the same spot stack up (a box taken from the bottom lets the others drop)
+	local stacks, level = {}, {}
+	for _, entry in ipairs(d.storage) do
+		if not entry.h and entry.px then
+			local key = math.floor(entry.px * 2 + 0.5) .. ":" .. math.floor(entry.pz * 2 + 0.5) .. ":" .. (entry.pf or 0)
+			stacks[key] = stacks[key] or {}
+			table.insert(stacks[key], entry)
+		end
+	end
+	for _, list in pairs(stacks) do
+		table.sort(list, function(a, b)
+			return (a.pl or 0) < (b.pl or 0)
+		end)
+		for i, entry in ipairs(list) do
+			level[entry] = i - 1
+		end
+	end
 	for _, entry in ipairs(d.storage) do
 		if not entry.h then
 			local cf
 			if entry.px then
-				-- box put down on the floor by a player: it stays exactly there
-				cf = CFrame.new(entry.px, Core.S.World.floorY(entry.pf or 0) + 0.65, entry.pz) * CFrame.Angles(0, math.rad(entry.pr or 0), 0)
+				-- box on the floor (left by the truck or put down by a player): it stays exactly there
+				local y = Core.S.World.floorY(entry.pf or 0) + 0.65 + (level[entry] or 0) * 1.32
+				cf = CFrame.new(entry.px, y, entry.pz) * CFrame.Angles(0, math.rad(entry.pr or 0), 0)
 			else
 				idx += 1
 				cf = slots[idx] or CFrame.new(Expansions.LoadingBay.x, 0.65 + idx * 0.05, Expansions.LoadingBay.z)
@@ -18040,7 +18119,7 @@ function Supply.takeBox(actor, e)
 	local entry = e.box
 	local pos = Core.S.Entities.position(e)
 	entry.h = true
-	entry.px, entry.pz, entry.pf, entry.pr = nil, nil, nil, nil
+	entry.px, entry.pz, entry.pf, entry.pr, entry.pl = nil, nil, nil, nil, nil
 	Hands.set(actor, "box", { entry })
 	Supply.layout()
 	if pos then
@@ -18084,6 +18163,7 @@ function Supply.dropBox(entry, pos, look, floor)
 	end
 	entry.px, entry.pz, entry.pf = math.floor(target.X * 10) / 10, math.floor(target.Z * 10) / 10, floor or 0
 	entry.pr = math.floor(math.deg(math.atan2(-look.X, -look.Z)))
+	entry.pl = 9 -- on top of anything already there
 	Supply.layout()
 	Core.S.Data.changed(Core.S.Session.owner, "storage")
 	return "floor"
@@ -18520,6 +18600,7 @@ function Supply.order(player, cart)
 	end
 	table.insert(pending, { t = os.clock() + deliveryTime(), boxes = boxes })
 	Net.notifyAll("msg.order_placed", { n = #boxes, seconds = math.floor(deliveryTime()) }, "success")
+	Net.fxTo(player, "action", { kind = "order" })
 	return true
 end
 
@@ -18531,7 +18612,8 @@ local function animateTruck(onArrive)
 	local lane = Expansions.Street.truckLane
 	local startCf = CFrame.new(Expansions.Street.reach, 2.1, lane) * CFrame.Angles(0, 0, 0)
 	local roadCf = CFrame.new(bay.x + 2, 2.1, lane)
-	local bayCf = CFrame.new(bay.x, 2.1, bay.z) * CFrame.Angles(0, math.rad(90), 0)
+	-- backs into the bay: the cargo door faces the storage room
+	local bayCf = CFrame.new(bay.x, 2.1, bay.z) * CFrame.Angles(0, math.rad(-90), 0)
 	local value = Instance.new("CFrameValue")
 	value.Value = startCf
 	value.Changed:Connect(function(cf)
@@ -18552,7 +18634,7 @@ local function animateTruck(onArrive)
 	end)
 	task.wait(1)
 	onArrive()
-	task.wait(1.5)
+	task.wait(1)
 	local t3 = TweenService:Create(value, TweenInfo.new(1.6, Enum.EasingStyle.Sine), { Value = CFrame.new(bay.x - 4, 2.1, lane) })
 	t3:Play()
 	t3.Completed:Wait()
@@ -18579,10 +18661,17 @@ local function deliveryLoop()
 				local ok, err = pcall(animateTruck, function()
 					local d = data()
 					if d then
+						-- the driver puts the boxes down on the ground one by one
 						for _, b in ipairs(batch) do
+							local sp = freeDropSpot(d)
+							if sp then
+								b.px, b.pz, b.pf, b.pr, b.pl = sp.x, sp.z, 0, 0, sp.l
+							end
 							table.insert(d.storage, b)
+							Supply.layout()
+							Core.S.Net.fx("sfx", { name = "box", pos = Vector3.new(b.px or Expansions.LoadingBay.x, 1, b.pz or Expansions.LoadingBay.z) })
+							task.wait(0.2)
 						end
-						Supply.layout()
 						Core.S.Data.changed(Core.S.Session.owner, "storage")
 						Core.S.Net.notifyAll("msg.delivery_arrived", { n = #batch }, "success")
 					end
@@ -19103,7 +19192,7 @@ function World.Start()
 end
 
 return World
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000137"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000136"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000135"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000108"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000138"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000137"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000136"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000109"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client-only animations: swaying lanterns and noren, maneki-neko paws, koi, shishi-odoshi,
 -- streamers, and the evening train on the viaduct.
 local RunService = game:GetService("RunService")
@@ -21686,7 +21775,137 @@ function LightingC.Start()
 end
 
 return LightingC
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">Sink</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">ShelfTags</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Shelf tags (as in shop games): a small paper tag on the front edge of every shelf slot with the
+-- icon and the name of the product it holds, written in your language. Empty slots get a blank
+-- tag. Tags are local parts, rebuilt only when a slot changes product.
+local CollectionService = game:GetService("CollectionService")
+
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Locale = require(Shared.Locale)
+local Ingredients = require(Shared.Config.Ingredients)
+
+local ShelfTags = {}
+local tags = {} -- [slot part] = { part, icon, name, g }
+local folder
+local RANGE = 70
+
+local function makeTag()
+	local p = Instance.new("Part")
+	p.Name = "ShelfTag"
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	p.CastShadow = false
+	p.Material = Enum.Material.SmoothPlastic
+	p.Color = Color3.fromRGB(250, 246, 236)
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Front
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 90
+	gui.LightInfluence = 1
+	gui.Parent = p
+	-- red band on the left like a price tag, icon, then the name
+	local band = Instance.new("Frame")
+	band.Size = UDim2.new(0, 10, 1, 0)
+	band.BackgroundColor3 = Color3.fromRGB(179, 38, 46)
+	band.BorderSizePixel = 0
+	band.Parent = gui
+	local icon = Instance.new("TextLabel")
+	icon.Position = UDim2.new(0, 14, 0, 2)
+	icon.Size = UDim2.new(0.28, -14, 1, -4)
+	icon.BackgroundTransparency = 1
+	icon.TextScaled = true
+	icon.AutoLocalize = false
+	icon.Parent = gui
+	local name = Instance.new("TextLabel")
+	name.Position = UDim2.new(0.28, 2, 0, 2)
+	name.Size = UDim2.new(0.72, -6, 1, -4)
+	name.BackgroundTransparency = 1
+	name.TextScaled = true
+	name.TextXAlignment = Enum.TextXAlignment.Left
+	name.TextColor3 = Color3.fromRGB(43, 35, 32)
+	name.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
+	name.AutoLocalize = false
+	name.Parent = gui
+	return { part = p, icon = icon, name = name, g = nil }
+end
+
+local function place(tag, slot)
+	-- on the front edge of the shelf board, just under the slot
+	local w = math.clamp(slot.Size.X * 0.42, 1.0, 1.7)
+	tag.part.Size = Vector3.new(w, 0.34, 0.04)
+	tag.part.CFrame = slot.CFrame * CFrame.new(0, -slot.Size.Y / 2 - 0.03, -slot.Size.Z / 2 - 0.1)
+end
+
+local function setText(tag, g)
+	tag.g = g
+	local ing = Ingredients.byId[g or ""]
+	if ing then
+		tag.icon.Text = ing.icon
+		tag.name.Text = Locale.t("ing." .. g)
+	else
+		tag.icon.Text = ""
+		tag.name.Text = "—"
+	end
+end
+
+local function update()
+	local cam = workspace.CurrentCamera
+	local origin = cam and cam.CFrame.Position or Vector3.new()
+	local seen = {}
+	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
+		if m:GetAttribute("Kind") == "shelf" and m:IsDescendantOf(workspace) and m.PrimaryPart then
+			if (m.PrimaryPart.Position - origin).Magnitude < RANGE then
+				for _, slot in ipairs(m:GetChildren()) do
+					if slot:IsA("BasePart") and slot:GetAttribute("Slot") then
+						seen[slot] = true
+						local tag = tags[slot]
+						if not tag then
+							tag = makeTag()
+							tags[slot] = tag
+							tag.part.Parent = folder
+						end
+						place(tag, slot)
+						local g = slot:GetAttribute("G") or ""
+						if tag.g ~= g then
+							setText(tag, g)
+						end
+					end
+				end
+			end
+		end
+	end
+	for slot, tag in pairs(tags) do
+		if not seen[slot] then
+			tag.part:Destroy()
+			tags[slot] = nil
+		end
+	end
+end
+
+function ShelfTags.Init()
+	folder = Instance.new("Folder")
+	folder.Name = "ShelfTags"
+	folder.Parent = workspace.CurrentCamera
+	Locale.Changed:Connect(function()
+		for _, tag in pairs(tags) do
+			setText(tag, tag.g)
+		end
+	end)
+end
+
+function ShelfTags.Start()
+	while true do
+		update()
+		task.wait(0.4)
+	end
+end
+
+
+return ShelfTags
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">Sink</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Washing the dishes at the sink. While a sink has Washing = true (set by ApplianceService) every
 -- client shows a dirty plate under the running tap with a sponge scrubbing it in circles while the
 -- dirt fades away; each clean plate slides to the left, towards the drying rack, fading out.
@@ -21896,7 +22115,7 @@ function Sink.Start()
 end
 
 return Sink
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Guided first day: step panel, arrow beam to the target and a floating marker.
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
@@ -21913,13 +22132,74 @@ local player = Players.LocalPlayer
 local t = Locale.t
 local T = Kit.Theme
 
--- target(kind) finds the model to point at; done = action kind or a check function
+-- The first day, guided step by step (ramen only, the storage room starts empty):
+-- target = what the arrow points at (a kind, or a function returning kind and box filter);
+-- done = action (sent by the server after an interaction) or check function, or a timer
+local RAMEN_SHELF = { noodles = true, scallion = true, naruto = true }
+
+local function heldBox()
+	if player:GetAttribute("HandsKind") ~= "box" then
+		return nil
+	end
+	local ok, list = pcall(function()
+		return game:GetService("HttpService"):JSONDecode(player:GetAttribute("Hands") or "[]")
+	end)
+	return ok and list and list[1] or nil
+end
+
+-- ramen ingredients not yet on any shelf
+local function missingOnShelves()
+	local have = {}
+	for _, slots in pairs(Core.C.Data.w("shelves") or {}) do
+		for _, sl in pairs(slots) do
+			if (sl.n or 0) > 0 then
+				have[sl.g] = true
+			end
+		end
+	end
+	local missing = {}
+	for g in pairs(RAMEN_SHELF) do
+		if not have[g] then
+			missing[g] = true
+		end
+	end
+	return missing
+end
+
+local function anyBox()
+	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
+		if m:GetAttribute("Kind") == "box" and m:IsDescendantOf(workspace) then
+			return true
+		end
+	end
+	return false
+end
+
 local STEPS = {
-	{ key = "tut.welcome", timer = 7 },
-	{ key = "tut.take_box", target = "box", action = "take_box" },
+	{ key = "tut.welcome", timer = 8 },
+	{ key = "tut.buy", target = "supplier", action = "order" },
+	{ key = "tut.truck", target = "box", check = anyBox },
+	-- a box for the shelves (noodles, scallion or naruto), then the shelf
+	{ key = "tut.take_box", target = function()
+		return "box", RAMEN_SHELF
+	end, action = "take_box" },
 	{ key = "tut.fill_shelf", target = "shelf", action = "shelf", hands = "box_done" },
-	{ key = "tut.rice", target = "ricecooker", action = "rice", needBox = "rice" },
-	{ key = "tut.broth", target = "pot", action = "broth", needBox = "broth_shoyu" },
+	-- the other two boxes until the three ramen toppings are all on the shelves
+	{ key = "tut.more_boxes", target = function()
+		if RAMEN_SHELF[heldBox() or ""] then
+			return "shelf"
+		end
+		return "box", missingOnShelves()
+	end, check = function()
+		return next(missingOnShelves()) == nil
+	end },
+	-- the broth box into the pot on the range
+	{ key = "tut.broth", target = function()
+		if heldBox() == "broth_shoyu" then
+			return "pot"
+		end
+		return "box", { broth_shoyu = true }
+	end, action = "broth" },
 	{ key = "tut.open", check = function()
 		return Core.C.Data.day.phase ~= "prep"
 	end },
@@ -21953,18 +22233,28 @@ local function save()
 	NetDef.event("TutorialStep"):FireServer(index)
 end
 
-local function findTarget(kind)
+local function findTarget(target)
+	local kind, filter = target, nil
+	if type(target) == "function" then
+		kind, filter = target()
+	end
+	if not kind then
+		return nil
+	end
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 	local best, bestD = nil, math.huge
 	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
 		if m:GetAttribute("Kind") == kind and m:IsDescendantOf(workspace) then
-			local st = STEPS[index]
 			local ok = true
-			if st and st.needBox and kind == "box" then
-				ok = m:GetAttribute("Ingredient") == st.needBox
+			if filter and kind == "box" then
+				ok = filter[m:GetAttribute("Ingredient") or ""] == true
 			end
 			if kind == "customer" then
 				ok = m:GetAttribute("State") == "order" or m:GetAttribute("State") == "waiting"
+			end
+			if kind == "station" then
+				-- the ramen station while the first day is ramen only
+				ok = m.Name ~= "sushi_station"
 			end
 			if ok then
 				local d = root and (m:GetPivot().Position - root.Position).Magnitude or 0
@@ -21975,6 +22265,12 @@ local function findTarget(kind)
 		end
 	end
 	return best
+end
+
+-- key of the step on screen (the supplier highlights its menu button during "tut.buy")
+function Tutorial.currentKey()
+	local st = STEPS[index]
+	return st and st.key or nil
 end
 
 local function show()
@@ -22153,7 +22449,7 @@ function Tutorial.Start()
 end
 
 return Tutorial
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Screen manager, toasts and shared UI helpers.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -22356,7 +22652,7 @@ function UI.Start()
 end
 
 return UI
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000108"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Localized billboards over customers (order + patience), stations (board / next step),
 -- rice cookers & pots, shelf slots, dirty dishes and staff name tags.
 local Players = game:GetService("Players")
@@ -22595,13 +22891,13 @@ function WorldUI.Start()
 end
 
 return WorldUI
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of client controllers and UI screens.
 return {
 	C = {},
 	Screens = {},
 }
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000110"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000111"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client entry point.
 if not game:IsLoaded() then
 	game.Loaded:Wait()
@@ -22611,7 +22907,7 @@ local Core = require(script.Parent.Core)
 local Controllers = script.Parent.Controllers
 
 local ORDER = {
-	"Data", "Audio", "UI", "Lighting", "Ambient", "WorldUI", "Camera", "Interaction", "FirstPerson", "Sink", "Build", "Tutorial", "Effects",
+	"Data", "Audio", "UI", "Lighting", "Ambient", "WorldUI", "Camera", "Interaction", "FirstPerson", "Sink", "ShelfTags", "Build", "Tutorial", "Effects",
 }
 
 for _, name in ipairs(ORDER) do
@@ -22647,7 +22943,7 @@ for _, name in ipairs(ORDER) do
 		end)
 	end
 end
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000134"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000135"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Helper to build standard modal screens: Base.make(name, titleKey, size, render)
 -- render(content, screen) rebuilds the content each refresh.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -22692,7 +22988,7 @@ function Base.make(name, titleKey, size, render)
 end
 
 return Base
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Emoji icons for catalog cards (no image assets needed).
 local Icons = {
 	cat = {
@@ -22736,7 +23032,7 @@ function Icons.forItem(item)
 end
 
 return Icons
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Tiny declarative UI toolkit + the visual theme (washi paper, dark wood, lacquer red, gold).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Color = require(Shared.Util.Color)
@@ -23046,7 +23342,7 @@ function Kit.row(icon, titleText, subtitle, height)
 end
 
 return Kit
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000133"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000134"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build panel: catalog by category, inventory, floor/wall styles, grid & rotation tools,
 -- selection actions (move / rotate / store / sell).
 local Players = game:GetService("Players")
@@ -23337,7 +23633,7 @@ function Screen.close()
 end
 
 return Screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Codes</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Codes</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Redeem a code (Config/Rewards.Codes): each code works once per player.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -23368,7 +23664,7 @@ return Base.make("Codes", "ui.codes", UDim2.fromScale(0.4, 0.42), function(conte
 	end)
 	Kit.button(t("ui.redeem"), { parent = content, size = UDim2.new(1, 0, 0, 46), position = UDim2.new(0, 0, 1, -48), style = "green", onClick = redeem })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -23416,7 +23712,7 @@ screen = Base.make("DayReport", "ui.report", UDim2.fromScale(0.42, 0.74), functi
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Kit = require(script.Parent.Parent.Kit)
@@ -23438,7 +23734,7 @@ return Base.make("Dev", "ui.dev", UDim2.fromScale(0.5, 0.6), function(content)
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Expansions screen: new rooms and floors ("zones" tab) and renovations that turn the plain
 -- starting restaurant into the detailed one ("reno" tab, grouped by exterior/interior/furniture).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -23530,7 +23826,7 @@ screen = Base.make("Expansions", "ui.expansions", UDim2.fromScale(0.66, 0.76), f
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Gifts</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Gifts</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Free gifts for the minutes played in this session (Config/Rewards.Gifts). Timers tick every
 -- second without rebuilding the list.
 local Players = game:GetService("Players")
@@ -23654,7 +23950,7 @@ player:GetAttributeChangedSignal("GiftsClaimed"):Connect(function()
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login calendar, leaderboards and franchise.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -23816,7 +24112,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Order guide: tapping an order ticket (left) shows what to do, in a few short lines with live
 -- ticks, highlights the shelf slots and the station to use and draws a glowing arrow from you to
 -- the next thing to click.
@@ -24202,7 +24498,7 @@ function Guide.close()
 end
 
 return Guide
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000123"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Always-visible HUD, kept small: wallet and level (top-left), day bar with an open / closed
 -- switch (top-centre), rating line (top-right), order tickets (left), what you hold (bottom),
 -- build / supplier / phone (bottom-left).
@@ -24525,7 +24821,7 @@ function HUD.open() end
 function HUD.close() end
 
 return HUD
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000123"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Invite friends to the personal world and set their permissions.
 local Players = game:GetService("Players")
 local SocialService = game:GetService("SocialService")
@@ -24572,7 +24868,7 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.66), function(con
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000125"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -24624,7 +24920,7 @@ return Base.make("Licenses", "ui.licenses", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000125"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000126"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Menu board: enable dishes, set prices (-30%..+30%), recipe book with mastery.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -24717,7 +25013,7 @@ screen = Base.make("Menu", "ui.menu", UDim2.fromScale(0.66, 0.76), function(cont
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000126"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000127"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -24738,7 +25034,7 @@ return Base.make("Offline", "ui.offline", UDim2.fromScale(0.36, 0.4), function(c
 		Core.C.UI.close("Offline")
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000127"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000128"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Phone: every secondary screen is an app, ordered by how often it is needed. Opens from the
 -- 📱 button at the bottom-left and closes when an app is opened.
 local Players = game:GetService("Players")
@@ -24846,7 +25142,7 @@ function Phone.close()
 end
 
 return Phone
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000128"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000129"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -24899,7 +25195,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 		end
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000129"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000130"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -24940,7 +25236,7 @@ return Base.make("Shop", "ui.shop", UDim2.fromScale(0.6, 0.72), function(content
 		Kit.label("🛒 " .. t("ui.shop_soon"), { Parent = scroll, Size = UDim2.new(1, 0, 0, 80), TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000130"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000131"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -25006,7 +25302,7 @@ return Base.make("Staff", "ui.staff", UDim2.fromScale(0.66, 0.78), function(cont
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000131"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000132"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier tablet: order boxes of ingredients and dish sets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -25053,6 +25349,33 @@ local function stock(w, g)
 	return shelf, boxes
 end
 
+-- one box of every ingredient the dishes on the menu need and that is running low
+local function cartForMenu(w)
+	for id, m in pairs(w.menu or {}) do
+		local r = Recipes.byId[id]
+		if r and m.on then
+			local need = table.clone(r.ing)
+			if r.broth then
+				table.insert(need, r.broth)
+			end
+			if r.rice then
+				table.insert(need, "rice")
+			end
+			for _, g in ipairs(need) do
+				local ing = Ingredients.byId[g]
+				if ing and unlocked(w, ing) then
+					local shelf, boxes = stock(w, g)
+					if shelf + boxes * ing.units < ing.units / 2 then
+						local q = cart[g] or { small = 0, big = 0 }
+						q.small = math.max(q.small, 1)
+						cart[g] = q
+					end
+				end
+			end
+		end
+	end
+end
+
 local screen
 screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), function(content)
 	local w = Core.C.Data.world or {}
@@ -25094,7 +25417,20 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 		end
 	end
 	local footer = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.new(0, 0, 1, -58), Size = UDim2.new(1, 0, 0, 56), Parent = content })
-	Kit.label(t("ui.total") .. ": " .. Format.yen(total, L), { Parent = footer, Size = UDim2.new(0.4, 0, 1, 0), TextSize = 22, FontFace = T.title })
+	Kit.label(t("ui.total") .. ": " .. Format.yen(total, L), { Parent = footer, Size = UDim2.new(0.3, 0, 1, 0), TextSize = 22, FontFace = T.title })
+	-- the easy way: everything the menu needs (the tutorial points at this button)
+	local tut = Core.C.Tutorial
+	local guided = tut and tut.currentKey and tut.currentKey() == "tut.buy"
+	local menuBtn = Kit.button((guided and "👉 " or "") .. "🍜 " .. t("ui.cart_menu"), {
+		parent = footer, size = UDim2.fromOffset(190, 46), position = UDim2.new(1, -600, 0, 5), style = guided and "gold" or "plain", textSize = 15,
+		onClick = function()
+			cartForMenu(w)
+			screen.refresh()
+		end,
+	})
+	if guided then
+		Kit.stroke(T.red, 3).Parent = menuBtn
+	end
 	Kit.button("🍽️ " .. t("ui.buy_dishes", { n = GameConfig.DishSetSize, price = GameConfig.DishSetPrice }), {
 		parent = footer, size = UDim2.fromOffset(220, 46), position = UDim2.new(1, -400, 0, 5), style = "gold", textSize = 15,
 		onClick = function()
@@ -25112,7 +25448,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000132"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000133"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -25184,4 +25520,4 @@ return Base.make("Upgrades", "ui.upgrades", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000138"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000139"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000140"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000139"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000140"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000141"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

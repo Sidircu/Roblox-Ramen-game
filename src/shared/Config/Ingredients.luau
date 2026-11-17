@@ -4,10 +4,10 @@
 --          "rice" (poured into a rice cooker), "broth" (poured into a broth pot)
 -- shape: visual used on shelves/boards: fillet, veg, pack, sack, jar, bottle, noodle, egg, sheet, ball, leaf
 local list = {
-	{ id = "rice", units = 20, price = 60, storage = "rice", license = "lic_base", icon = "🍚", color = "#F4F1EA", shape = "sack" },
-	{ id = "nori", units = 30, price = 45, storage = "shelf", license = "lic_base", icon = "🟩", color = "#1E2B1E", shape = "sheet" },
-	{ id = "cucumber", units = 16, price = 32, storage = "shelf", license = "lic_base", icon = "🥒", color = "#4E8A3A", shape = "veg" },
-	{ id = "salmon", units = 12, price = 120, storage = "fish", license = "lic_base", icon = "🐟", color = "#F28C5A", shape = "fillet" },
+	{ id = "rice", units = 20, price = 60, storage = "rice", license = "lic_sushi0", icon = "🍚", color = "#F4F1EA", shape = "sack" },
+	{ id = "nori", units = 30, price = 45, storage = "shelf", license = "lic_sushi0", icon = "🟩", color = "#1E2B1E", shape = "sheet" },
+	{ id = "cucumber", units = 16, price = 32, storage = "shelf", license = "lic_sushi0", icon = "🥒", color = "#4E8A3A", shape = "veg" },
+	{ id = "salmon", units = 12, price = 120, storage = "fish", license = "lic_sushi0", icon = "🐟", color = "#F28C5A", shape = "fillet" },
 	{ id = "noodles", units = 20, price = 80, storage = "shelf", license = "lic_base", icon = "🍜", color = "#F2D27A", shape = "noodle" },
 	{ id = "broth_shoyu", units = 16, price = 96, storage = "broth", license = "lic_base", icon = "🥣", color = "#7A4A22", shape = "jar" },
 	{ id = "scallion", units = 30, price = 45, storage = "shelf", license = "lic_base", icon = "🌱", color = "#6DB33F", shape = "leaf" },

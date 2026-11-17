@@ -1,6 +1,6 @@
 --!nonstrict
 -- End-to-end self test of the core loop, started from the dev panel. It drives the real services
--- with an invisible worker: restock, rice, cook a kappa maki, serve a customer, get paid, wash.
+-- with an invisible worker: restock, broth, cook a shoyu ramen, serve a customer, get paid, wash.
 -- Results go to the Output window and to a toast.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -95,18 +95,24 @@ function SelfTest.run(player)
 	end)
 
 	check("restock a shelf", function()
-		for _, g in ipairs({ "nori", "cucumber" }) do
+		for _, g in ipairs({ "noodles", "scallion", "naruto" }) do
 			local _, ent = ensureBox(g)
 			assert(S.Supply.takeBox(actor, ent), "could not take the box")
-			local shelf = firstOf("shelf", function(e)
-				return not e.item.fn.fishOnly
-			end)
-			local before = {}
-			for k, sl in pairs(d.shelves[shelf.uid] or {}) do
-				before[k] = sl.n
+			-- the first shelf with room for this ingredient
+			local shelf, before, ok, msg = nil, {}, false, "no shelf"
+			for _, e in ipairs(S.Entities.ofKind("shelf")) do
+				if not e.item.fn.fishOnly and not ok then
+					before = {}
+					for k, sl in pairs(d.shelves[e.uid] or {}) do
+						before[k] = sl.n
+					end
+					ok, msg = S.Supply.useShelf(actor, e, nil)
+					if ok then
+						shelf = e
+					end
+				end
 			end
-			local ok, msg = S.Supply.useShelf(actor, shelf, nil)
-			assert(ok, "useShelf: " .. tostring(msg))
+			assert(ok and shelf, "useShelf: " .. tostring(msg))
 			returnLeftover()
 			assert(S.Supply.shelfStock(g) > 0, g .. " not on the shelf")
 			local touched = 0
@@ -119,33 +125,36 @@ function SelfTest.run(player)
 		end
 	end)
 
-	check("cook rice", function()
-		local rc = firstOf("ricecooker")
-		if not S.Appliance.hasRice() then
-			local _, ent = ensureBox("rice")
-			assert(S.Supply.takeBox(actor, ent), "could not take the rice box")
-			local ok, msg = S.Appliance.load(actor, rc)
+	check("pour the shoyu broth", function()
+		local pot = firstOf("pot")
+		assert(pot, "no broth pot")
+		if not S.Appliance.hasBroth("broth_shoyu") then
+			local _, ent = ensureBox("broth_shoyu")
+			assert(S.Supply.takeBox(actor, ent), "could not take the broth box")
+			local ok, msg = S.Appliance.load(actor, pot)
 			assert(ok or msg == "msg.cooking_wait", "load: " .. tostring(msg))
 			returnLeftover()
-			local st = d.appliances[rc.uid]
+			local st = d.appliances[pot.uid]
 			if st and st.c > 0 then
 				st.t = workspace:GetServerTimeNow() - 1 -- fast-forward
 			end
-			assert(waitFor(S.Appliance.hasRice, 5), "rice never got ready")
+			assert(waitFor(function()
+				return S.Appliance.hasBroth("broth_shoyu")
+			end, 5), "the broth never got ready")
 		end
 	end)
 
-	check("cook a kappa maki with clicks", function()
-		for _, g in ipairs({ "nori", "cucumber" }) do
+	check("cook a shoyu ramen with clicks", function()
+		for _, g in ipairs({ "noodles", "scallion", "naruto" }) do
 			local shelf, slot = S.Supply.findShelfWith(g)
 			assert(shelf, "no " .. g .. " on the shelves")
 			local ok, msg = S.Supply.useShelf(actor, shelf, slot)
 			assert(ok, "take " .. g .. ": " .. tostring(msg))
 		end
 		local station = firstOf("station", function(e)
-			return e.item.fn.station == "sushi" and not S.Cooking.stationState(e).busy and not S.Cooking.stationState(e).ready
+			return e.item.fn.station == "ramen" and not S.Cooking.stationState(e).busy and not S.Cooking.stationState(e).ready
 		end)
-		assert(station, "no free sushi station")
+		assert(station, "no free ramen station")
 		local ok, msg = S.Cooking.use(actor, station, 4)
 		assert(ok, "deposit: " .. tostring(msg))
 		for _ = 1, 6 do
@@ -182,8 +191,8 @@ function SelfTest.run(player)
 			return nil
 		end, 75)
 		assert(c, "the customer never sat down to order")
-		c.order = "kappa_maki"
-		c.npc.model:SetAttribute("Order", "kappa_maki")
+		c.order = "shoyu_ramen"
+		c.npc.model:SetAttribute("Order", "shoyu_ramen")
 		local e = S.Entities.get(c.uid)
 		assert(S.Customers.use(actor, e), "could not take the order")
 		assert(c.state == "waiting", "state after order: " .. tostring(c.state))

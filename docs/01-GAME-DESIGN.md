@@ -141,14 +141,15 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 - Carrello → "Ordina". Con l'upgrade **Fornitore premium** compaiono le scatole grandi scontate.
 
 ### 4.2 Consegna
-- Il furgoncino arriva alla porta di carico dopo un tempo di consegna (45 s all'inizio, si riduce con gli upgrade).
-- Il corriere scarica le scatole sugli **scaffali del magazzino** (o a terra davanti, se gli scaffali sono pieni).
+- Il furgoncino arriva alla porta di carico dopo un tempo di consegna (45 s all'inizio, si riduce con gli upgrade), entra in retromarcia e il corriere **lascia le scatole a terra**, una alla volta, in un'area accanto alla porta del magazzino (fino a due scatole impilate per posto). Le porti dentro tu: direttamente sugli scaffali della cucina o sugli scaffali del magazzino.
 - Ogni scatola ha un'etichetta con icona e nome dell'ingrediente e il numero di porzioni rimaste.
+- Nel fornitore il pulsante **«🍜 Tutto per il menu»** mette nel carrello una scatola di ogni ingrediente che serve ai piatti del menu e che sta finendo.
 
 ### 4.3 Dal magazzino alle mensole
 - Clicchi una scatola → la prendi in mano: la scatola **si apre** (alette piegate in fuori) e dentro si vedono alcuni prodotti, come in Pet Store Tycoon e Supermarket Together; sulla faccia verso di te c'è l'icona e quanti pezzi restano (es. 7/20).
 - Clicchi una **mensola** dietro il bancone → i prodotti **volano fuori dalla scatola uno alla volta** (un piccolo arco e un "toc" quando si posano) nel ripiano cliccato e, se avanza, nel ripiano libero successivo. Prendendo un prodotto dalla mensola, quello vola nelle tue mani.
 - Le mensole sono **grandi** (la piccola è alta 7,4 stud e larga 5,6).
+- Sul bordo di ogni ripiano c'è un **cartellino** (come nei giochi di negozi) con icona e nome del prodotto, scritto nella lingua di ogni giocatore; i ripiani vuoti hanno il cartellino bianco.
 - Ogni mensola ha dei **ripiani** (slot); ogni ripiano contiene un solo tipo di ingrediente, disposto **a scacchiera** (2×3, 2×4, 2×5, 3×5…): ogni casella è un prodotto e le **caselle libere sono segnate** da un quadratino chiaro, così si vede a colpo d'occhio quanti ne entrano e quanti mancano (niente numeri "10/10"). Un ripiano contiene **mezza scatola**: **una scatola riempie al massimo 2 ripiani**. Il miglioramento *Mensole rinforzate* aggiunge file di prodotti verso il fondo; la mensola grande ha più ripiani.
 - Se avanzano porzioni (ripiano già mezzo pieno, mensola piena o scatola grande, che riempie 2 ripiani alla volta), la scatola resta in mano con le porzioni avanzate; una scatola vuota si butta automaticamente.
 - La **vetrina refrigerata del pesce** (sul bancone, come nei veri sushi bar) funziona come una mensola per il pesce e dà un bonus di freschezza (qualità).
@@ -430,7 +431,7 @@ Stile: carta washi color crema, bordi in legno scuro, accenti rosso lacca e oro,
 Altre schermate: inventario decorazioni, ricettario, obiettivi, premio giornaliero, guadagni offline, impostazioni (lingua, griglia, rotazione, volume musica/effetti, qualità grafica ridotta per dispositivi deboli).
 
 ### Tutorial
-La prima giornata è guidata da una scheda grande a destra e da una freccia luminosa gialla con un indicatore ⬇ sull'oggetto da cliccare: prendi la scatola → riempi lo scaffale → cuoci il riso → prepara il brodo → apri → prendi l'ordine → (si apre la guida dell'ordine) → prepara e servi → raccogli e lava le stoviglie → arreda. Si può saltare e rivedere dal telefono (❓ Come si gioca).
+Si parte con il **magazzino vuoto** e **solo il ramen shoyu** (il sushi di base è la prima licenza, al livello 2). La prima giornata è guidata passo passo da una scheda grande a destra e da una freccia luminosa gialla con un indicatore ⬇ sull'oggetto da cliccare: apri il fornitore e compra gli ingredienti del ramen (il pulsante «Tutto per il menu» è evidenziato) → arriva il furgone e lascia le scatole a terra → prendi una scatola → riempi lo scaffale → metti sugli scaffali anche le altre (noodles, cipollotto, naruto) → versa il brodo shoyu nel pentolone → apri → prendi l'ordine → (si apre la guida dell'ordine, le sagome sul tagliere mostrano cosa serve) → prepara e servi → raccogli e lava le stoviglie → arreda. Invio passa al consiglio successivo. Si può saltare e rivedere dal telefono (❓ Come si gioca).
 
 ### Guida dell'ordine
 Toccando un ordine a sinistra si apre una scheda con pochi passaggi brevi, ognuno con la spunta ✅ quando è fatto e il dito 👉 su quello da fare ora: riso o brodo pronti → ingredienti da prendere (con la spunta su quelli che hai in mano) → clicca la postazione per posarli → cliccala ancora per ogni passaggio (es. Unisci → Arrotola → Taglia, con il contatore) → prendi il piatto → servilo al cliente. Gli spazi degli scaffali con gli ingredienti giusti e la postazione da usare si illuminano, e una freccia verde va da te alla prossima cosa da cliccare (anche al cliente giusto quando hai il piatto in mano).

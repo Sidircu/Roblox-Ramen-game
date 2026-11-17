@@ -15,13 +15,74 @@ local player = Players.LocalPlayer
 local t = Locale.t
 local T = Kit.Theme
 
--- target(kind) finds the model to point at; done = action kind or a check function
+-- The first day, guided step by step (ramen only, the storage room starts empty):
+-- target = what the arrow points at (a kind, or a function returning kind and box filter);
+-- done = action (sent by the server after an interaction) or check function, or a timer
+local RAMEN_SHELF = { noodles = true, scallion = true, naruto = true }
+
+local function heldBox()
+	if player:GetAttribute("HandsKind") ~= "box" then
+		return nil
+	end
+	local ok, list = pcall(function()
+		return game:GetService("HttpService"):JSONDecode(player:GetAttribute("Hands") or "[]")
+	end)
+	return ok and list and list[1] or nil
+end
+
+-- ramen ingredients not yet on any shelf
+local function missingOnShelves()
+	local have = {}
+	for _, slots in pairs(Core.C.Data.w("shelves") or {}) do
+		for _, sl in pairs(slots) do
+			if (sl.n or 0) > 0 then
+				have[sl.g] = true
+			end
+		end
+	end
+	local missing = {}
+	for g in pairs(RAMEN_SHELF) do
+		if not have[g] then
+			missing[g] = true
+		end
+	end
+	return missing
+end
+
+local function anyBox()
+	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
+		if m:GetAttribute("Kind") == "box" and m:IsDescendantOf(workspace) then
+			return true
+		end
+	end
+	return false
+end
+
 local STEPS = {
-	{ key = "tut.welcome", timer = 7 },
-	{ key = "tut.take_box", target = "box", action = "take_box" },
+	{ key = "tut.welcome", timer = 8 },
+	{ key = "tut.buy", target = "supplier", action = "order" },
+	{ key = "tut.truck", target = "box", check = anyBox },
+	-- a box for the shelves (noodles, scallion or naruto), then the shelf
+	{ key = "tut.take_box", target = function()
+		return "box", RAMEN_SHELF
+	end, action = "take_box" },
 	{ key = "tut.fill_shelf", target = "shelf", action = "shelf", hands = "box_done" },
-	{ key = "tut.rice", target = "ricecooker", action = "rice", needBox = "rice" },
-	{ key = "tut.broth", target = "pot", action = "broth", needBox = "broth_shoyu" },
+	-- the other two boxes until the three ramen toppings are all on the shelves
+	{ key = "tut.more_boxes", target = function()
+		if RAMEN_SHELF[heldBox() or ""] then
+			return "shelf"
+		end
+		return "box", missingOnShelves()
+	end, check = function()
+		return next(missingOnShelves()) == nil
+	end },
+	-- the broth box into the pot on the range
+	{ key = "tut.broth", target = function()
+		if heldBox() == "broth_shoyu" then
+			return "pot"
+		end
+		return "box", { broth_shoyu = true }
+	end, action = "broth" },
 	{ key = "tut.open", check = function()
 		return Core.C.Data.day.phase ~= "prep"
 	end },
@@ -55,18 +116,28 @@ local function save()
 	NetDef.event("TutorialStep"):FireServer(index)
 end
 
-local function findTarget(kind)
+local function findTarget(target)
+	local kind, filter = target, nil
+	if type(target) == "function" then
+		kind, filter = target()
+	end
+	if not kind then
+		return nil
+	end
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 	local best, bestD = nil, math.huge
 	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
 		if m:GetAttribute("Kind") == kind and m:IsDescendantOf(workspace) then
-			local st = STEPS[index]
 			local ok = true
-			if st and st.needBox and kind == "box" then
-				ok = m:GetAttribute("Ingredient") == st.needBox
+			if filter and kind == "box" then
+				ok = filter[m:GetAttribute("Ingredient") or ""] == true
 			end
 			if kind == "customer" then
 				ok = m:GetAttribute("State") == "order" or m:GetAttribute("State") == "waiting"
+			end
+			if kind == "station" then
+				-- the ramen station while the first day is ramen only
+				ok = m.Name ~= "sushi_station"
 			end
 			if ok then
 				local d = root and (m:GetPivot().Position - root.Position).Magnitude or 0
@@ -77,6 +148,12 @@ local function findTarget(kind)
 		end
 	end
 	return best
+end
+
+-- key of the step on screen (the supplier highlights its menu button during "tut.buy")
+function Tutorial.currentKey()
+	local st = STEPS[index]
+	return st and st.key or nil
 end
 
 local function show()

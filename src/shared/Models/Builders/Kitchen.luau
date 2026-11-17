@@ -219,9 +219,7 @@ local function shelfUnit(m, item)
 				local x = -w / 2 + 0.15 + cw * (c + 0.5)
 				local s = slot(m, idx, cw - 0.1, rowH - 0.2, d - 0.1, x, y + 0.06 + (rowH - 0.2) / 2, 0)
 				s:SetAttribute("Width", cw - 0.2)
-				-- paper price tag on the shelf lip
-				Kit.box(dk, 0.55, 0.13, 0.02, x, y + 0.02, -d / 2 - 0.055, P.paper, M.smooth, nc())
-				Kit.box(dk, 0.12, 0.13, 0.025, x - 0.2, y + 0.02, -d / 2 - 0.058, P.lacquer, M.smooth, nc())
+				-- the paper tag on the lip is drawn by each client in its language (ShelfTags)
 			end
 		end
 	end

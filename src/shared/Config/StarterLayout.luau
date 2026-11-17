@@ -42,8 +42,7 @@ return {
 		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
 		{ i = "chochin_white", x = -6, z = 20, r = 0, s = "c" },
 	},
-	boxes = {
-		{ g = "rice", n = 2 }, { g = "nori", n = 2 }, { g = "cucumber", n = 2 }, { g = "salmon", n = 2 },
-		{ g = "noodles", n = 2 }, { g = "broth_shoyu", n = 2 }, { g = "scallion", n = 2 }, { g = "naruto", n = 2 },
-	},
+	-- the storage room starts empty: the tutorial has you order the ramen ingredients
+	boxes = {},
+
 }

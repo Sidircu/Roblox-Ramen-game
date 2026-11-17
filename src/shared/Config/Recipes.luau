@@ -7,8 +7,8 @@
 -- dish: visual model used by Models/Builders/Food
 local list = {
 	-- Base
-	{ id = "kappa_maki", station = "sushi", ing = { "nori", "cucumber" }, rice = true, steps = { "combine", "roll", "cut" }, price = 25, xp = 8, cat = "sushi", license = "lic_base", icon = "🍣", dish = "maki" },
-	{ id = "sake_nigiri", station = "sushi", ing = { "salmon" }, rice = true, steps = { "cut", "combine" }, price = 40, xp = 10, cat = "sushi", license = "lic_base", icon = "🍣", dish = "nigiri" },
+	{ id = "kappa_maki", station = "sushi", ing = { "nori", "cucumber" }, rice = true, steps = { "combine", "roll", "cut" }, price = 25, xp = 8, cat = "sushi", license = "lic_sushi0", icon = "🍣", dish = "maki" },
+	{ id = "sake_nigiri", station = "sushi", ing = { "salmon" }, rice = true, steps = { "cut", "combine" }, price = 40, xp = 10, cat = "sushi", license = "lic_sushi0", icon = "🍣", dish = "nigiri" },
 	{ id = "shoyu_ramen", station = "ramen", ing = { "noodles", "scallion", "naruto" }, broth = "broth_shoyu", steps = { "boil", "pour", "top" }, price = 55, xp = 14, cat = "ramen", license = "lic_base", icon = "🍜", dish = "bowl" },
 	-- Sushi I
 	{ id = "tekka_maki", station = "sushi", ing = { "nori", "tuna" }, rice = true, steps = { "combine", "roll", "cut" }, price = 45, xp = 12, cat = "sushi", license = "lic_sushi1", icon = "🍣", dish = "maki" },

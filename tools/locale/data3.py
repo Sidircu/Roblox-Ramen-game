@@ -52,7 +52,7 @@ MSG = [
 ("msg.customer_reading","They are still reading the menu.","Sta ancora leggendo il menu."),("msg.customer_waits","They are waiting for: {dish}","Sta aspettando: {dish}"),
 ("msg.daily_claimed","🎁 Daily reward, day {day}!","🎁 Premio giornaliero, giorno {day}!"),("msg.daily_done","Already claimed today.","Già riscosso oggi."),
 ("msg.day_closing","🕚 Closing time: no new customers.","🕚 Ora di chiusura: niente nuovi clienti."),("msg.day_open","🏮 The restaurant is open!","🏮 Il ristorante è aperto!"),
-("msg.delivery_arrived","🚚 Delivery arrived: {n} boxes in storage.","🚚 Consegna arrivata: {n} scatole in magazzino."),("msg.dev_done","Dev: {cmd}","Dev: {cmd}"),
+("msg.delivery_arrived","🚚 Delivery arrived: {n} boxes left on the ground outside the storage door.","🚚 Consegna arrivata: {n} scatole lasciate a terra fuori dalla porta del magazzino."),("msg.dev_done","Dev: {cmd}","Dev: {cmd}"),
 ("msg.dishes_bought","🍽️ +{n} dishes","🍽️ +{n} stoviglie"),("msg.empty_first","Empty it first.","Prima svuotalo."),
 ("msg.event_over","This event is over.","Questo evento è finito."),("msg.expansion_bought","🏗️ New: {name}!","🏗️ Nuovo: {name}!"),
 ("msg.fish_only","Only fish goes in the display case.","Nella vetrina va solo il pesce."),("msg.franchise_done","You opened every franchise!","Hai aperto tutti i franchise!"),
@@ -111,14 +111,14 @@ HINT = [
 TUT = [
 ("tut.step","Tutorial {i}/{n}","Tutorial {i}/{n}"),
 ("tut.welcome","Welcome to your ramen-ya! Walk with WASD (Shift to run) and look around with the mouse or by dragging a finger. Aim at things with the dot in the middle and click or press E to use them. Hold Alt to click the buttons on screen; Enter shows the next tip.","Benvenuto nel tuo ramen-ya! Cammina con WASD (Shift per correre) e guardati intorno con il mouse o trascinando un dito. Punta le cose con il pallino al centro e clicca o premi E per usarle. Tieni premuto Alt per cliccare i pulsanti sullo schermo; Invio mostra il consiglio successivo."),
-("tut.take_box","Follow the yellow arrow to the storage room and click a box to pick it up.","Segui la freccia gialla fino al magazzino e clicca una scatola per prenderla."),
-("tut.fill_shelf","Carry the box to a shelf in the kitchen and click the shelf: the box fills every free spot. G (or ⬇) puts a box down.","Porta la scatola a uno scaffale della cucina e clicca lo scaffale: la scatola riempie tutti gli spazi liberi. G (o ⬇) appoggia la scatola a terra."),
+("tut.take_box","The boxes are outside the storage door: follow the yellow arrow and click a box of noodles, scallion or naruto. In your hands it opens and you see what is inside.","Le scatole sono fuori dalla porta del magazzino: segui la freccia gialla e clicca una scatola di noodles, cipollotto o naruto. In mano si apre e vedi cosa c'è dentro."),
+("tut.fill_shelf","Carry it to a shelf in the kitchen and click the shelf: the products jump onto the free spots of the grid (each box fills 2 slots). G puts a box down.","Portala a uno scaffale della cucina e clicca lo scaffale: i prodotti saltano nei posti liberi della griglia (ogni scatola riempie 2 ripiani). G posa la scatola."),
 ("tut.rice","Take a box of rice and click the rice cooker: the rice cooks by itself.","Prendi una scatola di riso e clicca il rice cooker: il riso cuoce da solo."),
-("tut.broth","Take a box of shoyu broth and click the broth pot.","Prendi una scatola di brodo shoyu e clicca il pentolone."),
+("tut.broth","Now the shoyu broth: take its box and click the big pot on the range. The broth cooks by itself.","Ora il brodo shoyu: prendi la sua scatola e clicca il pentolone sul fornello. Il brodo cuoce da solo."),
 ("tut.open","Tap the red CLOSED switch at the top: it turns green (OPEN) and customers arrive.","Tocca l'interruttore rosso CHIUSO in alto: diventa verde (APERTO) e arrivano i clienti."),
 ("tut.order","A customer has a ❗: click them to take the order. The order appears on the left.","Un cliente ha un ❗: cliccalo per prendere l'ordine. L'ordine compare a sinistra."),
-("tut.ingredients","Tap the order on the left: the guide shows each step and the green arrow shows where to go. Take the highlighted ingredients from the shelves.","Tocca l'ordine a sinistra: la guida mostra ogni passaggio e la freccia verde ti dice dove andare. Prendi dagli scaffali gli ingredienti evidenziati."),
-("tut.cook","Click the right station to put the ingredients down, then click again for each step: the knife cuts, the ingredients combine!","Clicca la postazione giusta per posare gli ingredienti, poi clicca di nuovo per ogni passaggio: il coltello taglia, gli ingredienti si uniscono!"),
+("tut.ingredients","Look at the ramen station: the see-through shapes on the board are what you need. Take noodles, scallion and naruto from the shelves (the tag says what is on each slot).","Guarda la postazione del ramen: le sagome trasparenti sul tagliere sono quello che serve. Prendi noodles, cipollotto e naruto dagli scaffali (il cartellino dice cosa c'è su ogni ripiano)."),
+("tut.cook","Click the ramen station: the ingredients fly onto their shapes. Then click again for each step: boil and drain the noodles, pour the broth, add the toppings!","Clicca la postazione del ramen: gli ingredienti volano sulle loro sagome. Poi clicca di nuovo per ogni passaggio: cuoci e scola i noodles, versa il brodo, aggiungi i condimenti!"),
 ("tut.serve","Click the dish to pick it up and click the customer to serve it.","Clicca il piatto per prenderlo e clicca il cliente per servirlo."),
 ("tut.collect","When they leave, click the dirty dishes to collect them.","Quando se ne va, clicca le stoviglie sporche per raccoglierle."),
 ("tut.wash","Bring them to the sink, then hold the click (or E) on the sink: the sponge washes one plate at a time.","Portali al lavello, poi tieni premuto il clic (o E) sul lavello: la spugna lava un piatto alla volta."),
@@ -208,4 +208,11 @@ UI += [
 ("guide.no_station","Buy this station in 🔨 Build","Compra questa postazione in 🔨 Costruisci"),
 ("guide.pick","Take the dish from the station","Prendi il piatto dalla postazione"),
 ("guide.serve","Click the customer to serve it","Clicca il cliente per servirlo"),
+]
+
+TUT_FIRST_DAY = [
+("tut.buy","Your storage room is empty! Open the supplier (📦, O or the tablet), press “🍜 All for the menu” and then “Order”: for now only the ramen ingredients are on sale.","Il magazzino è vuoto! Apri il fornitore (📦, O o il tablet), premi «🍜 Tutto per il menu» e poi «Ordina»: per ora si vendono solo gli ingredienti del ramen."),
+("tut.truck","The delivery truck is coming: it leaves the boxes on the ground outside the storage door.","Sta arrivando il furgone: lascerà le scatole a terra fuori dalla porta del magazzino."),
+("tut.more_boxes","Put the other boxes on the shelves too: you need noodles, scallion and naruto.","Metti sugli scaffali anche le altre scatole: servono noodles, cipollotto e naruto."),
+("ui.cart_menu","All for the menu","Tutto per il menu"),
 ]

@@ -19,7 +19,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 4
+local VERSION = 5
 local profiles = {} -- [player] = { data, key, loaded, saving }
 local store = nil
 local storeOk = false
@@ -152,6 +152,15 @@ local function migrate(d)
 		-- v4: fitted kitchen unit (rice cooker, gas range, worktops, sink) and grid shelves
 		rebuildLayout(d)
 		d.v = 4
+	end
+	if d.v < 5 then
+		-- v5: basic sushi moved from the starter license to lic_sushi0: players who already had it
+		-- keep it
+		d.licenses = d.licenses or {}
+		if d.licenses.lic_base then
+			d.licenses.lic_sushi0 = true
+		end
+		d.v = 5
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION

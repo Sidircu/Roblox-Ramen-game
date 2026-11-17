@@ -118,8 +118,39 @@ local function overflowSlots()
 	return slots
 end
 
+-- spots on the ground where the truck leaves the boxes (Expansions.DropZone)
+local function dropSpots()
+	local zone = Expansions.DropZone
+	local out = {}
+	for layer = 0, zone.layers - 1 do
+		for x = zone.x0 + 1, zone.x1 - 0.9, 2.05 do
+			for z = zone.z0 + 0.8, zone.z1 - 0.75, 1.75 do
+				table.insert(out, { x = x, z = z, l = layer })
+			end
+		end
+	end
+	return out
+end
+
+local function freeDropSpot(d)
+	for _, sp in ipairs(dropSpots()) do
+		local taken = false
+		for _, b in ipairs(d.storage) do
+			if b.px and (b.pf or 0) == 0 and (b.pl or 0) == sp.l and math.abs(b.px - sp.x) < 0.6 and math.abs(b.pz - sp.z) < 0.6 then
+				taken = true
+				break
+			end
+		end
+		if not taken then
+			return sp
+		end
+	end
+	return nil
+end
+
+-- boxes the restaurant can hold: rack slots in the storage room plus the drop zone outside
 function Supply.capacity()
-	return #rackSlots() + math.min(#overflowSlots(), GameConfig.DeliveryOverflowBoxes)
+	return #rackSlots() + #dropSpots()
 end
 
 local function boxModel(entry)
@@ -138,12 +169,30 @@ function Supply.layout()
 	end
 	local idx = 0
 	local keep = {}
+	-- boxes on the floor at the same spot stack up (a box taken from the bottom lets the others drop)
+	local stacks, level = {}, {}
+	for _, entry in ipairs(d.storage) do
+		if not entry.h and entry.px then
+			local key = math.floor(entry.px * 2 + 0.5) .. ":" .. math.floor(entry.pz * 2 + 0.5) .. ":" .. (entry.pf or 0)
+			stacks[key] = stacks[key] or {}
+			table.insert(stacks[key], entry)
+		end
+	end
+	for _, list in pairs(stacks) do
+		table.sort(list, function(a, b)
+			return (a.pl or 0) < (b.pl or 0)
+		end)
+		for i, entry in ipairs(list) do
+			level[entry] = i - 1
+		end
+	end
 	for _, entry in ipairs(d.storage) do
 		if not entry.h then
 			local cf
 			if entry.px then
-				-- box put down on the floor by a player: it stays exactly there
-				cf = CFrame.new(entry.px, Core.S.World.floorY(entry.pf or 0) + 0.65, entry.pz) * CFrame.Angles(0, math.rad(entry.pr or 0), 0)
+				-- box on the floor (left by the truck or put down by a player): it stays exactly there
+				local y = Core.S.World.floorY(entry.pf or 0) + 0.65 + (level[entry] or 0) * 1.32
+				cf = CFrame.new(entry.px, y, entry.pz) * CFrame.Angles(0, math.rad(entry.pr or 0), 0)
 			else
 				idx += 1
 				cf = slots[idx] or CFrame.new(Expansions.LoadingBay.x, 0.65 + idx * 0.05, Expansions.LoadingBay.z)
@@ -226,7 +275,7 @@ function Supply.takeBox(actor, e)
 	local entry = e.box
 	local pos = Core.S.Entities.position(e)
 	entry.h = true
-	entry.px, entry.pz, entry.pf, entry.pr = nil, nil, nil, nil
+	entry.px, entry.pz, entry.pf, entry.pr, entry.pl = nil, nil, nil, nil, nil
 	Hands.set(actor, "box", { entry })
 	Supply.layout()
 	if pos then
@@ -270,6 +319,7 @@ function Supply.dropBox(entry, pos, look, floor)
 	end
 	entry.px, entry.pz, entry.pf = math.floor(target.X * 10) / 10, math.floor(target.Z * 10) / 10, floor or 0
 	entry.pr = math.floor(math.deg(math.atan2(-look.X, -look.Z)))
+	entry.pl = 9 -- on top of anything already there
 	Supply.layout()
 	Core.S.Data.changed(Core.S.Session.owner, "storage")
 	return "floor"
@@ -706,6 +756,7 @@ function Supply.order(player, cart)
 	end
 	table.insert(pending, { t = os.clock() + deliveryTime(), boxes = boxes })
 	Net.notifyAll("msg.order_placed", { n = #boxes, seconds = math.floor(deliveryTime()) }, "success")
+	Net.fxTo(player, "action", { kind = "order" })
 	return true
 end
 
@@ -717,7 +768,8 @@ local function animateTruck(onArrive)
 	local lane = Expansions.Street.truckLane
 	local startCf = CFrame.new(Expansions.Street.reach, 2.1, lane) * CFrame.Angles(0, 0, 0)
 	local roadCf = CFrame.new(bay.x + 2, 2.1, lane)
-	local bayCf = CFrame.new(bay.x, 2.1, bay.z) * CFrame.Angles(0, math.rad(90), 0)
+	-- backs into the bay: the cargo door faces the storage room
+	local bayCf = CFrame.new(bay.x, 2.1, bay.z) * CFrame.Angles(0, math.rad(-90), 0)
 	local value = Instance.new("CFrameValue")
 	value.Value = startCf
 	value.Changed:Connect(function(cf)
@@ -738,7 +790,7 @@ local function animateTruck(onArrive)
 	end)
 	task.wait(1)
 	onArrive()
-	task.wait(1.5)
+	task.wait(1)
 	local t3 = TweenService:Create(value, TweenInfo.new(1.6, Enum.EasingStyle.Sine), { Value = CFrame.new(bay.x - 4, 2.1, lane) })
 	t3:Play()
 	t3.Completed:Wait()
@@ -765,10 +817,17 @@ local function deliveryLoop()
 				local ok, err = pcall(animateTruck, function()
 					local d = data()
 					if d then
+						-- the driver puts the boxes down on the ground one by one
 						for _, b in ipairs(batch) do
+							local sp = freeDropSpot(d)
+							if sp then
+								b.px, b.pz, b.pf, b.pr, b.pl = sp.x, sp.z, 0, 0, sp.l
+							end
 							table.insert(d.storage, b)
+							Supply.layout()
+							Core.S.Net.fx("sfx", { name = "box", pos = Vector3.new(b.px or Expansions.LoadingBay.x, 1, b.pz or Expansions.LoadingBay.z) })
+							task.wait(0.2)
 						end
-						Supply.layout()
 						Core.S.Data.changed(Core.S.Session.owner, "storage")
 						Core.S.Net.notifyAll("msg.delivery_arrived", { n = #batch }, "success")
 					end
