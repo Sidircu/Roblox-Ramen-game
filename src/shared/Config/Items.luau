@@ -36,10 +36,10 @@ local list = {
 	{ id = "shelf_small", cat = "kitchen", price = 400, lv = 1, place = "floor", areas = KITCHEN, size = { 5.6, 7.4, 2 }, amb = 0, fn = { type = "shelf", slots = 4 } },
 	{ id = "shelf_large", cat = "kitchen", price = 1500, lv = 7, place = "floor", areas = KITCHEN, size = { 7.8, 8.4, 2 }, amb = 0, fn = { type = "shelf", slots = 6 } },
 	{ id = "neta_case", cat = "kitchen", price = 3000, lv = 5, place = "floor", areas = KITCHEN, size = { 5, 3.2, 2.2 }, amb = 3, fn = { type = "shelf", slots = 4, fishOnly = true, fresh = true } },
-	{ id = "rice_cooker", cat = "kitchen", price = 600, lv = 1, place = "floor", areas = KITCHEN, size = { 2.6, 4.9, 2.5 }, amb = 0, fn = { type = "ricecooker", batch = 10, time = 30 } },
-	{ id = "rice_cooker_pro", cat = "kitchen", price = 5000, lv = 11, place = "floor", areas = KITCHEN, size = { 3, 5.1, 2.5 }, amb = 0, fn = { type = "ricecooker", batch = 25, time = 20 } },
-	{ id = "broth_pot", cat = "kitchen", price = 900, lv = 1, place = "floor", areas = KITCHEN, size = { 4, 4.6, 2.5 }, amb = 0, fn = { type = "pot", batch = 8, time = 60 } },
-	{ id = "broth_pot_large", cat = "kitchen", price = 7500, lv = 13, place = "floor", areas = KITCHEN, size = { 4.6, 4.8, 2.5 }, amb = 0, fn = { type = "pot", batch = 20, time = 45 } },
+	{ id = "rice_cooker", cat = "kitchen", price = 600, lv = 1, place = "floor", areas = KITCHEN, size = { 2.6, 4.9, 2.5 }, amb = 0, fn = { type = "ricecooker", batch = 10, time = 20 } },
+	{ id = "rice_cooker_pro", cat = "kitchen", price = 5000, lv = 11, place = "floor", areas = KITCHEN, size = { 3, 5.1, 2.5 }, amb = 0, fn = { type = "ricecooker", batch = 25, time = 15 } },
+	{ id = "broth_pot", cat = "kitchen", price = 900, lv = 1, place = "floor", areas = KITCHEN, size = { 4, 4.6, 2.5 }, amb = 0, fn = { type = "pot", batch = 16, time = 30 } },
+	{ id = "broth_pot_large", cat = "kitchen", price = 7500, lv = 13, place = "floor", areas = KITCHEN, size = { 4.6, 4.8, 2.5 }, amb = 0, fn = { type = "pot", batch = 32, time = 25 } },
 	{ id = "sushi_station", cat = "kitchen", price = 800, lv = 1, place = "floor", areas = KITCHEN, size = { 5, 3.5, 2.5 }, amb = 0, fn = { type = "station", station = "sushi" } },
 	{ id = "ramen_station", cat = "kitchen", price = 1500, lv = 1, place = "floor", areas = KITCHEN, size = { 5, 3.5, 2.5 }, amb = 0, fn = { type = "station", station = "ramen" } },
 	{ id = "drink_station", cat = "kitchen", price = 2000, lv = 5, place = "floor", areas = KITCHEN, size = { 4, 3.5, 2.5 }, amb = 0, license = "lic_sides", fn = { type = "station", station = "drink" } },
@@ -96,6 +96,7 @@ local list = {
 
 	-- Statues & objects --------------------------------------------------------------------------
 	{ id = "water_pitcher", cat = "tabletop", price = 120, lv = 1, place = "top", areas = DECOR, size = { 1.0, 1.3, 1.1 }, amb = 1, set = "ramenya" },
+	{ id = "tip_jar", cat = "tabletop", price = 150, lv = 1, place = "top", areas = DECOR, size = { 0.9, 1.3, 0.9 }, amb = 1, fn = { type = "tipjar" } },
 	{ id = "condiment_caddy", cat = "tabletop", price = 180, lv = 1, place = "top", areas = DECOR, size = { 1.6, 1.1, 0.7 }, amb = 2 },
 	{ id = "counter_posters", cat = "tabletop", price = 650, lv = 4, place = "top", areas = DECOR, size = { 3.8, 1.4, 0.5 }, amb = 5 },
 	{ id = "maneki_neko", cat = "statues", price = 500, lv = 2, place = "top", areas = DECOR, size = { 0.9, 1.3, 0.8 }, amb = 6, tipBonus = 0.01, tipMax = 3 },

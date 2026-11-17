@@ -35,9 +35,11 @@ function Interaction.perform(actor, e, extra)
 	elseif kind == "rack" then
 		local hands = S.Hands.get(actor)
 		if hands.kind == "box" then
-			local entry = hands.items[1]
+			local items = hands.items
 			S.Hands.clear(actor)
-			S.Supply.returnBox(entry)
+			for _, entry in ipairs(items) do
+				S.Supply.returnBox(entry)
+			end
 			return true
 		end
 		return false, "msg.rack_hint"
@@ -56,6 +58,8 @@ function Interaction.perform(actor, e, extra)
 		return S.Customers.use(actor, e)
 	elseif kind == "dirty" then
 		return S.Customers.collectDirty(actor, e)
+	elseif kind == "tipjar" then
+		return S.Economy.collectTips(actor)
 	end
 	return false, nil
 end

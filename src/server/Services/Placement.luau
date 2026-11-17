@@ -29,7 +29,7 @@ local vetoes = {} -- functions(entity) -> ok, reason
 local FN_KIND = {
 	seat = "seat", counter = "counter", table = "table", booth = "booth", shelf = "shelf",
 	ricecooker = "ricecooker", pot = "pot", station = "station", sink = "sink", dishwasher = "dishwasher",
-	rack = "rack", bench = "bench", fridge = "fridge",
+	rack = "rack", bench = "bench", fridge = "fridge", tipjar = "tipjar",
 }
 
 function Placement.kindOf(itemId)

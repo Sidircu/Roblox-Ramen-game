@@ -563,6 +563,16 @@ local function slices(m, x, z, y, col, fat, n, yaw)
 end
 
 local function dishSashimi(m, recipe)
+	if #recipe.ing <= 2 then
+		-- salmon sashimi: five slices fanned on daikon and shiso, wasabi and a lemon wedge
+		local y0 = plateRound(m, 1.3, F.porcelain, F.indigo)
+		Kit.blob(m, 0.55, 0.2, 0.45, 0, y0 + 0.07, 0.25, F.daikon, M.fabric, nc())
+		Kit.blob(m, 0.42, 0.03, 0.28, -0.25, y0 + 0.04, 0.05, F.shiso, M.smooth, nc({ rot = CFrame.Angles(0, math.rad(25), math.rad(8)) }))
+		slices(m, 0, -0.08, y0, F.salmon, F.salmonFat, 5, 0)
+		Kit.blob(m, 0.14, 0.12, 0.12, 0.4, y0 + 0.06, 0.3, F.wasabi, M.sand, nc())
+		Kit.cyl(m, 0.28, 0.04, 0.42, y0 + 0.05, 0.05, F.lemon, M.smooth, nc({ rot = CFrame.Angles(math.rad(70), 0, 0) }))
+		return
+	end
 	local y = plateRound(m, 1.55, F.indigo, F.porcelain)
 	-- shredded daikon mound and shiso leaves under the fish
 	Kit.blob(m, 0.6, 0.22, 0.5, -0.05, y + 0.08, 0.28, F.daikon, M.fabric, nc())

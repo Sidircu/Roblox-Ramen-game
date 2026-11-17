@@ -146,9 +146,9 @@ return {
 		reach = 380,
 	},
 	LoadingBay = { x = 50, z = 12 },
-	-- the delivery truck leaves the boxes on the ground here, beside the storage room's loading door
-	-- (a grid of spots, two boxes high), and you carry them inside
-	DropZone = { x0 = 55.5, x1 = 64.5, z0 = 13.5, z1 = 22.8, layers = 2 },
+	-- the delivery driver leaves the boxes on the floor here: inside the storage room, between the
+	-- loading door and the kitchen door (a grid of spots, two boxes high), short way to the shelves
+	DropZone = { x0 = 37, x1 = 44.5, z0 = 25, z1 = 33.5, layers = 2 },
 	Supplier = { x = 35.7, y = 5, z = 35 },
 	MenuBoard = { x = -12, z = -2.6 },
 	PlotBounds = { -110, -14, 96, 100 },

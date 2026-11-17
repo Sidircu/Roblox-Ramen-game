@@ -78,31 +78,38 @@ function Appliance.load(actor, e)
 		end
 		return false, e.kind == "ricecooker" and "msg.need_rice_box" or "msg.need_broth_box"
 	end
-	local entry = hands.items[1]
-	local ing = Ingredients.byId[entry.g]
-	if e.kind == "ricecooker" and ing.storage ~= "rice" then
-		return false, "msg.need_rice_box"
-	elseif e.kind == "pot" and ing.storage ~= "broth" then
-		return false, "msg.need_broth_box"
+	-- with a cart you may hold several boxes: use the first one that fits this appliance
+	local index = nil
+	for i, it in ipairs(hands.items) do
+		local ig = Ingredients.byId[it.g]
+		if not index and ig and ((e.kind == "ricecooker" and ig.storage == "rice") or (e.kind == "pot" and ig.storage == "broth")) then
+			index = i
+		end
 	end
-	if st.c > 0 then
-		return false, "msg.cooking_wait"
+	if not index then
+		return false, e.kind == "ricecooker" and "msg.need_rice_box" or "msg.need_broth_box"
 	end
-	if st.n > 0 and st.g ~= entry.g then
+	local entry = hands.items[index]
+	if (st.n > 0 or st.c > 0) and st.g ~= entry.g then
 		return false, "msg.pot_other_broth"
 	end
 	local batch = e.item.fn.batch
-	local amount = math.min(entry.n, batch - st.n)
+	local amount = math.min(entry.n, batch - st.n - st.c)
 	if amount <= 0 then
 		return false, "msg.appliance_full"
 	end
 	st.g = entry.g
-	st.c = amount
-	st.t = workspace:GetServerTimeNow() + e.item.fn.time
+	if st.c > 0 then
+		-- topping up while it cooks: joins the batch on the fire (same timer)
+		st.c += amount
+	else
+		st.c = amount
+		st.t = workspace:GetServerTimeNow() + e.item.fn.time
+	end
 	entry.n -= amount
 	if entry.n <= 0 then
 		Core.S.Supply.removeBox(entry)
-		Hands.clear(actor)
+		Hands.removeAt(actor, index)
 	else
 		Hands.refresh(actor)
 	end

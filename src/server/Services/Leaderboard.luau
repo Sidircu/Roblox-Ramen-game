@@ -1,5 +1,5 @@
 --!nonstrict
--- Global leaderboards (dishes served, yen earned) with a small cache.
+-- Global leaderboards (dishes served, yen earned, likes from visitors) with a small cache.
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 
@@ -10,7 +10,7 @@ local stores = {}
 local cache = { t = 0, data = nil }
 local names = {}
 
-local BOARDS = { dishes = "LB_Dishes_v1", earned = "LB_Earned_v1" }
+local BOARDS = { dishes = "LB_Dishes_v1", earned = "LB_Earned_v1", likes = "LB_Likes_v1" }
 
 local function nameOf(userId)
 	if names[userId] then

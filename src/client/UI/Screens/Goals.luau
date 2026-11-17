@@ -126,7 +126,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 				end
 			end)
 		end
-		for _, stat in ipairs({ "dishes", "earned" }) do
+		for _, stat in ipairs({ "likes", "dishes", "earned" }) do
 			Kit.title(t("lb." .. stat), { Parent = scroll, Size = UDim2.new(1, 0, 0, 30) })
 			for _, entry in ipairs(board and board[stat] or {}) do
 				local row = Kit.card({ Size = UDim2.new(1, -8, 0, 34), Parent = scroll })

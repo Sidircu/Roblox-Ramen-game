@@ -8,7 +8,7 @@ local Core = require(script.Parent.Core)
 local Controllers = script.Parent.Controllers
 
 local ORDER = {
-	"Data", "Audio", "UI", "Lighting", "Ambient", "WorldUI", "Camera", "Interaction", "FirstPerson", "Sink", "ShelfTags", "Build", "Tutorial", "Effects",
+	"Data", "Audio", "UI", "Lighting", "Ambient", "WorldUI", "Camera", "Interaction", "FirstPerson", "Sink", "ShelfTags", "Timing", "Build", "Tutorial", "Effects",
 }
 
 for _, name in ipairs(ORDER) do

@@ -26,6 +26,8 @@ return {
 		PrepClock = 9.5,
 		Peaks = { { 12, 14 }, { 19, 21 } },
 		PeakFactor = 0.6,
+		EarlyPeakFactor = 0.85, -- peaks are lighter for the first EarlyDays days
+		EarlyDays = 2,
 		ReportAutoClose = 15,
 		ManagerAutoOpenDelay = 20,
 	},
@@ -57,7 +59,7 @@ return {
 		cut = { time = 1.0, tool = "up_knife" },
 		roll = { time = 1.1, tool = "up_mat" },
 		mold = { time = 1.0, tool = "up_mat" },
-		boil = { time = 1.4, tool = "up_strainer" },
+		boil = { time = 1.8, tool = "up_strainer" },
 		pour = { time = 0.9, tool = "up_strainer" },
 		top = { time = 0.9, tool = "up_strainer" },
 		batter = { time = 0.8, tool = "up_strainer" },
@@ -67,6 +69,12 @@ return {
 
 	-- Supply
 	DeliveryOverflowBoxes = 30,
+	TruckDrive = 4.5, -- seconds the delivery truck drives in (about 6 s from order to boxes)
+	-- optional noodle timing: stop the needle inside the green part of the bar while the noodles
+	-- boil (From..To of the step) for a perfect bowl and a bigger tip
+	NoodleTiming = { From = 0.5, To = 0.8, TipBonus = 0.2 },
+	TipJarFull = 600, -- yen that fill the tip jar to the top (only the look: it never overflows)
+	RescueCooldown = 600, -- free kit when broke and out of ingredients, at most every 10 minutes
 	BigBoxMultiplier = 3,
 	-- A box fills at most this many shelf slots: a base slot holds 1/BoxShelfSlots of a box
 	-- (bigger shelves and the shelf upgrade make slots roomier); big boxes fill this many per use

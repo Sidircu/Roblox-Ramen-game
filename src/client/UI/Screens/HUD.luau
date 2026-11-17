@@ -91,6 +91,25 @@ function HUD.create(root)
 	refs.rating = Kit.label("", { Parent = info, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -24, 1, 0), TextSize = 14, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
 	refs.ambience = refs.rating
 	refs.dishes = refs.rating
+	-- ❤️ likes of this restaurant (top-right, under the rating); visitors can like it once a day
+	refs.like = Kit.new("TextButton", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 48), Size = UDim2.fromOffset(150, 28), BackgroundColor3 = T.paper, Text = "", Parent = top }, { Kit.corner(14), Kit.stroke(T.red, 2, 0.2) })
+	refs.likeLabel = Kit.label("", { Parent = refs.like, Size = UDim2.fromScale(1, 1), TextSize = 14, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center })
+	refs.like.MouseButton1Click:Connect(function()
+		if Core.C.Data.role() ~= "owner" then
+			NetDef.event("Like"):FireServer()
+		end
+	end)
+	-- today's objective (first daily quest not claimed yet) under the day bar
+	refs.goal = Kit.new("TextButton", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 48), Size = UDim2.fromOffset(330, 28), BackgroundColor3 = T.paper, Text = "", Visible = false, Parent = top }, { Kit.corner(14), Kit.stroke(T.wood, 2, 0.2) })
+	refs.goalLabel = Kit.label("", { Parent = refs.goal, Position = UDim2.fromOffset(10, 0), Size = UDim2.new(1, -20, 1, 0), TextSize = 14, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
+	refs.goal.MouseButton1Click:Connect(function()
+		local q = HUD.currentGoal and HUD.currentGoal()
+		if q and q.progress >= q.target then
+			NetDef.event("ClaimQuest"):FireServer(q.id)
+		else
+			Core.C.UI.toggle("Goals")
+		end
+	end)
 	-- free gift for minutes played (Screens/Gifts): countdown, then "claim!"
 	refs.gift = Kit.new("TextButton", { Position = UDim2.fromOffset(10, 68), Size = UDim2.fromOffset(150, 30), BackgroundColor3 = T.paper, Text = "", Visible = false, Parent = top }, { Kit.corner(15), Kit.stroke(T.wood, 2, 0.2), Kit.sheen(0.9) })
 	refs.giftLabel = Kit.label("🎁", { Parent = refs.gift, Size = UDim2.fromScale(1, 1), TextSize = 15, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center })
@@ -145,9 +164,49 @@ function HUD.create(root)
 			HUD.refreshTickets()
 			HUD.refreshInfo()
 			HUD.refreshGift()
+			HUD.refreshGoal()
+			HUD.refreshLike()
 		end
 	end)
 	Core.C.Data.TicketsChanged:Connect(HUD.refreshTickets)
+end
+
+-- first daily quest that is not claimed yet
+function HUD.currentGoal()
+	local meta = Core.C.Data.m("meta") or {}
+	for _, q in ipairs(meta.quests or {}) do
+		if not q.claimed then
+			return q
+		end
+	end
+	return nil
+end
+
+function HUD.refreshLike()
+	local n = workspace:GetAttribute("Likes") or 0
+	if Core.C.Data.role() == "owner" then
+		refs.likeLabel.Text = "❤️ " .. n
+		refs.like.AutoButtonColor = false
+	else
+		refs.likeLabel.Text = "❤️ " .. t("ui.like") .. "  " .. n
+	end
+end
+
+function HUD.refreshGoal()
+	local q = HUD.currentGoal()
+	if not q then
+		refs.goal.Visible = false
+		return
+	end
+	refs.goal.Visible = true
+	local text = t("quest." .. q.id, { n = q.target })
+	if q.progress >= q.target then
+		refs.goalLabel.Text = "🎯 " .. text .. "  ·  ✅ " .. t("ui.objective_claim")
+		refs.goal.BackgroundColor3 = T.gold
+	else
+		refs.goalLabel.Text = "🎯 " .. text .. "  ·  " .. math.floor(q.progress) .. "/" .. q.target
+		refs.goal.BackgroundColor3 = T.paper
+	end
 end
 
 local giftToasted = {}

@@ -16,7 +16,8 @@ local list = {
 	{ id = "up_mat", icon = "🎋", max = 3, costs = { 3000, 25000, 150000 }, levels = { 3, 10, 20 }, values = { 1, 0.88, 0.77, 0.68 }, effect = "step" },
 	{ id = "up_strainer", icon = "🥢", max = 3, costs = { 3000, 25000, 150000 }, levels = { 3, 10, 20 }, values = { 1, 0.88, 0.77, 0.68 }, effect = "step" },
 	{ id = "up_shelf", icon = "🗄️", max = 3, costs = { 5000, 30000, 200000 }, levels = { 4, 12, 24 }, values = { 1, 1.25, 1.5, 1.75 }, effect = "shelf" },
-	{ id = "up_delivery", icon = "🚚", max = 3, costs = { 4000, 40000, 250000 }, levels = { 3, 12, 24 }, values = { 45, 30, 15, 5 }, effect = "delivery" },
+	-- deliveries are immediate (the truck takes a few seconds): this upgrade is a box cart instead
+	{ id = "up_cart", icon = "🛒", max = 2, costs = { 2500, 15000 }, levels = { 3, 10 }, values = { 1, 2, 3 }, effect = "cart" },
 	{ id = "up_supplier", icon = "📦", max = 2, costs = { 20000, 200000 }, levels = { 10, 25 }, values = { 0, 0.10, 0.20 }, effect = "discount" },
 	{ id = "up_sign", icon = "🏮", max = 5, costs = geometric(2000, 4, 5), levels = { 2, 6, 12, 20, 30 }, values = { 0, 0.08, 0.16, 0.24, 0.32, 0.40 }, effect = "popularity" },
 	{ id = "up_ticket", icon = "🧾", max = 2, costs = { 6000, 60000 }, levels = { 5, 15 }, values = { 6, 8, 10 }, effect = "tickets" },

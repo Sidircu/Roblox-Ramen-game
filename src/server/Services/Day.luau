@@ -68,6 +68,8 @@ local function finish()
 		return
 	end
 	local owner = Core.S.Session.owner
+	-- tips left in the jar go to the wallet before the day's report
+	pcall(Core.S.Economy.collectTips, owner)
 	local L = Core.S.Economy.ledger
 	-- salaries
 	local salaries = 0

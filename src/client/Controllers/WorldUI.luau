@@ -114,6 +114,12 @@ local function updateEntity(model, b)
 		end
 		setBar(b, model:GetAttribute("Patience") or 1, state == "order" or state == "waiting")
 		b.gui.StudsOffsetWorldSpace = Vector3.new(0, 3.6, 0)
+	elseif (kind == "station" or kind == "ricecooker") and Core.C.Interaction and Core.C.Interaction.lockOf(model, kind) then
+		-- not usable yet: name the license that unlocks it
+		local lock = Core.C.Interaction.lockOf(model, kind)
+		b.title.Text = "🔒 " .. t("lic." .. lock.id)
+		b.sub.Text = t("ui.locked_level", { level = lock.level })
+		b.bar.Visible = false
 	elseif kind == "station" then
 		local ready = model:GetAttribute("Ready") or ""
 		local board = model:GetAttribute("Board") or ""
@@ -149,6 +155,12 @@ local function updateEntity(model, b)
 			b.sub.Text = n .. " / " .. batch .. (n == 0 and ("  ·  " .. t("ui.empty")) or "")
 			setBar(b, n / math.max(1, batch), true)
 		end
+	elseif kind == "tipjar" then
+		local tips = model:GetAttribute("Tips") or 0
+		b.gui.Enabled = tips > 0
+		b.title.Text = "🫙 ¥" .. tips
+		b.sub.Text = t("ui.tipjar_collect")
+		b.bar.Visible = false
 	elseif kind == "dirty" then
 		b.title.Text = "🧽"
 		b.sub.Text = t("hint.collect")
@@ -198,7 +210,7 @@ function WorldUI.Start()
 				local pos = model:GetPivot().Position
 				local near = (pos - origin).Magnitude < RANGE
 				-- shelves need no label: their products stand in a grid with the free spots marked
-				if near and (kind == "customer" or kind == "station" or kind == "ricecooker" or kind == "pot" or kind == "dirty" or kind == "dishwasher") then
+				if near and (kind == "customer" or kind == "station" or kind == "ricecooker" or kind == "pot" or kind == "dirty" or kind == "dishwasher" or kind == "tipjar") then
 					local b = boards[model]
 					if not b then
 						local adornee = model:FindFirstChild("Head") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")

@@ -225,6 +225,27 @@ function Effects.Init()
 			if Audio then
 				Audio.play("beep", data.pos)
 			end
+		elseif kind == "timing" and Core.C.Timing then
+			Core.C.Timing.start(data)
+		elseif kind == "timingResult" and Core.C.Timing then
+			Core.C.Timing.result(data)
+			if data.ok and data.pos then
+				burst(data.pos + Vector3.new(0, 3, 0), "sparkle", 18, "#FFD23B")
+			end
+		elseif kind == "coins" then
+			-- the tip jar is emptied: a shower of coins and the amount
+			if data.pos then
+				for _, c in ipairs({ "#FFD23B", "#F4C430", "#FFE08A" }) do
+					burst(data.pos + Vector3.new(0, 1, 0), "sparkle", 16, c)
+				end
+				popup(data.pos + Vector3.new(0, 2, 0), "+" .. Format.yen(data.amount or 0, Locale.get()), Color.hex("#FFD23B"), 4)
+			end
+			if Audio then
+				Audio.play("tip", data.pos)
+				task.delay(0.25, function()
+					Audio.play("tip", data.pos)
+				end)
+			end
 		elseif kind == "stock" then
 			stock(data)
 		elseif kind == "take" then

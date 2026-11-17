@@ -3,6 +3,7 @@
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Franchise = require(Shared.Config.Franchise)
 local Formulas = require(Shared.Logic.Formulas)
+local GameConfig = require(Shared.Config.GameConfig)
 local Core = require(script.Parent.Parent.Core)
 
 local Economy = {}
@@ -108,6 +109,68 @@ function Economy.charge(player, amount, reason)
 	return paid
 end
 
+------------------------------------------------------------------ tip jar
+
+local function jars()
+	return Core.S.Entities.ofKind("tipjar")
+end
+
+-- shows the coins of every jar (height grows with the amount, full at TipJarFull)
+local function drawJars(amount)
+	for _, e in ipairs(jars()) do
+		local coins = e.model and e.model:FindFirstChild("Coins")
+		if coins then
+			local base = coins:GetAttribute("Base") or 0.09
+			local h = 0.05 + 0.9 * math.clamp(amount / (GameConfig.TipJarFull or 600), 0, 1)
+			local root = e.model.PrimaryPart
+			coins.Size = Vector3.new(h, coins.Size.Y, coins.Size.Z)
+			if root then
+				coins.CFrame = root.CFrame * CFrame.new(0, base + h / 2 - 0.025 - root.Size.Y / 2, 0) * CFrame.Angles(0, 0, math.rad(90))
+			end
+			e.model:SetAttribute("Tips", amount)
+		end
+	end
+end
+
+-- a tip goes into the jar when the restaurant has one; returns true if it did
+function Economy.tipToJar(amount)
+	local d = Core.S.Session.ownerData()
+	if not d or amount <= 0 or #jars() == 0 then
+		return false
+	end
+	d.tipJar = (d.tipJar or 0) + amount
+	drawJars(d.tipJar)
+	Core.S.Data.changed(Core.S.Session.owner, "tipJar")
+	return true
+end
+
+-- empties the jar into the owner's wallet (click on the jar, or automatically at closing time)
+function Economy.collectTips(player)
+	local d = Core.S.Session.ownerData()
+	local owner = Core.S.Session.owner
+	if not d or not owner or (d.tipJar or 0) <= 0 then
+		return false, "msg.tipjar_empty"
+	end
+	local amount = d.tipJar
+	d.tipJar = 0
+	drawJars(0)
+	local got = Economy.add(owner, amount, "tip")
+	local pos = nil
+	local jar = jars()[1]
+	if jar and jar.model and jar.model.PrimaryPart then
+		pos = jar.model.PrimaryPart.Position
+	end
+	Core.S.Net.fx("coins", { amount = got, pos = pos })
+	Core.S.Net.fx("sfx", { name = "coin", pos = pos })
+	local _ = player
+	return true
+end
+
+function Economy.redrawJars()
+	local d = Core.S.Session.ownerData()
+	drawJars(d and d.tipJar or 0)
+end
+
 function Economy.addSakura(player, n)
 	local data = Core.S.Data.get(player)
 	if not data or n <= 0 then
@@ -129,6 +192,18 @@ end
 
 function Economy.Init()
 	Economy.resetLedger()
+end
+
+function Economy.Start()
+	-- a jar placed (or rebuilt after a move) shows the tips it holds
+	Core.S.Placement.ItemAdded:Connect(function(e)
+		if e.kind == "tipjar" then
+			task.defer(Economy.redrawJars)
+		end
+	end)
+	Core.S.Session.OwnerReady:Connect(function()
+		task.defer(Economy.redrawJars)
+	end)
 end
 
 return Economy

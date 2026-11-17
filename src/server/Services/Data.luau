@@ -19,7 +19,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 5
+local VERSION = 6
 local profiles = {} -- [player] = { data, key, loaded, saving }
 local store = nil
 local storeOk = false
@@ -57,6 +57,7 @@ function Data.newProfile()
 		appliances = {},
 		dishes = { clean = GameConfig.StartDishes, total = GameConfig.StartDishes },
 		staff = {},
+		tipJar = 0,
 		ads = {},
 		boosts = {},
 		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0, codes = {} },
@@ -82,6 +83,15 @@ function Data.newProfile()
 		table.insert(d.placed, e)
 	end
 	local ItemsCfg = require(Shared.Config.Items)
+	-- the first time the broth is already in the pot and the rice in the cooker
+	for idx, s in ipairs(StarterLayout.items) do
+		local fn = ItemsCfg.byId[s.i].fn
+		if fn and fn.type == "pot" then
+			d.appliances[uids[idx]] = { g = StarterLayout.broth or "broth_shoyu", n = fn.batch, c = 0, t = 0 }
+		elseif fn and fn.type == "ricecooker" then
+			d.appliances[uids[idx]] = { g = "rice", n = fn.batch, c = 0, t = 0 }
+		end
+	end
 	for idx, s in ipairs(StarterLayout.items) do
 		if s.p then
 			d.placed[idx].p = uids[s.p]
@@ -126,9 +136,10 @@ local function rebuildLayout(d)
 		for _, b in ipairs(d.storage) do
 			b.px, b.pz, b.pf, b.pr, b.h = nil, nil, nil, nil, nil
 		end
-		d.placed = Data.newProfile().placed
+		local fresh = Data.newProfile()
+		d.placed = fresh.placed
 		d.shelves = {}
-		d.appliances = {}
+		d.appliances = fresh.appliances
 	end
 end
 
@@ -161,6 +172,15 @@ local function migrate(d)
 			d.licenses.lic_sushi0 = true
 		end
 		d.v = 5
+	end
+	if d.v < 6 then
+		-- v6: shelves next to the storage door, tip jar on the counter, salmon sashimi license
+		-- (whoever had basic sushi gets it too), broth and rice ready in the new kitchen
+		rebuildLayout(d)
+		if d.licenses and d.licenses.lic_sushi0 then
+			d.licenses.lic_sashimi = true
+		end
+		d.v = 6
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION

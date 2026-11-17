@@ -12,6 +12,9 @@ local Locale = require(Shared.Locale)
 local GameConfig = require(Shared.Config.GameConfig)
 local Recipes = require(Shared.Config.Recipes)
 local Ingredients = require(Shared.Config.Ingredients)
+local Items = require(Shared.Config.Items)
+local Licenses = require(Shared.Config.Licenses)
+local Locks = require(Shared.Logic.Locks)
 local Color = require(Shared.Util.Color)
 local Core = require(script.Parent.Parent.Core)
 
@@ -69,9 +72,26 @@ local function stepName(name)
 	return t("step." .. name)
 end
 
+-- 🔒 license still needed by a station or the rice cooker (nil when it can be used)
+function Interaction.lockOf(model, kind)
+	local owned = Core.C.Data and Core.C.Data.w("licenses") or {}
+	if kind == "station" then
+		local item = Items.byId[model.Name]
+		local st = item and item.fn and item.fn.station
+		return st and Locks.station(st, owned, Recipes, Licenses) or nil
+	elseif kind == "ricecooker" then
+		return Locks.rice(owned, Recipes, Licenses)
+	end
+	return nil
+end
+
 -- Text shown above the hovered object
 local function actionText(model, kind, slot)
 	local hands = handsKind()
+	local lock = Interaction.lockOf(model, kind)
+	if lock then
+		return "🔒 " .. t("hint.locked", { name = "lic." .. lock.id, level = lock.level })
+	end
 	if kind == "box" then
 		local g = model:GetAttribute("Ingredient")
 		return hands and t("hint.hands_full") or t("hint.take_box", { name = "ing." .. (g or "rice") })
@@ -146,6 +166,9 @@ local function actionText(model, kind, slot)
 		return hands == "dirty" and t("hint.load_dishwasher") or t("hint.dishwasher", { n = model:GetAttribute("Queue") or 0 })
 	elseif kind == "rack" then
 		return hands == "box" and t("hint.put_back") or t("hint.rack")
+	elseif kind == "tipjar" then
+		local tips = model:GetAttribute("Tips") or 0
+		return tips > 0 and t("hint.tipjar", { yen = tips }) or t("hint.tipjar_empty")
 	elseif kind == "supplier" then
 		return t("hint.supplier")
 	elseif kind == "menuboard" then
@@ -232,6 +255,12 @@ local function washHold(tap)
 end
 
 local function act(tap)
+	-- while the noodles boil, the click stops the timing needle
+	local Timing = Core.C.Timing
+	if Timing and Timing.active() then
+		Timing.hit()
+		return
+	end
 	if not current then
 		return
 	end

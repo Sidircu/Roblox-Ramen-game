@@ -76,13 +76,8 @@ local STEPS = {
 	end, check = function()
 		return next(missingOnShelves()) == nil
 	end },
-	-- the broth box into the pot on the range
-	{ key = "tut.broth", target = function()
-		if heldBox() == "broth_shoyu" then
-			return "pot"
-		end
-		return "box", { broth_shoyu = true }
-	end, action = "broth" },
+	-- the first time the broth is already in the pot (and the rice in the cooker): just show it
+	{ key = "tut.broth_ready", target = "pot", timer = 9 },
 	{ key = "tut.open", check = function()
 		return Core.C.Data.day.phase ~= "prep"
 	end },
@@ -218,7 +213,7 @@ end
 function Tutorial.Init()
 	local gui = Core.C.UI.root()
 	-- big card on the right (the left side holds the orders and their guide)
-	panel = Kit.panel({ AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 52), Size = UDim2.fromOffset(340, 168), Visible = false, Parent = gui })
+	panel = Kit.panel({ AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 84), Size = UDim2.fromOffset(340, 168), Visible = false, Parent = gui })
 	local stroke = panel:FindFirstChildOfClass("UIStroke")
 	if stroke then
 		stroke.Color = T.gold

@@ -5,7 +5,7 @@ return {
 		{ id = "gp_vip", assetId = 0, effect = { yenMult = 1.25, item = "maneki_gold" } },
 		{ id = "gp_double_yen", assetId = 0, effect = { yenMult = 2 } },
 		{ id = "gp_big_tray", assetId = 0, effect = { tray = 2 } },
-		{ id = "gp_express", assetId = 0, effect = { delivery = 1 } },
+		{ id = "gp_express", assetId = 0, effect = { cart = 1 } }, -- big cart: one more box at a time
 		{ id = "gp_starter", assetId = 0, effect = { yen = 10000, items = { stool_cushion = 6, neon_ramen = 1, maneki_neko = 1, sakura_tree = 1 } } },
 	},
 	Products = {

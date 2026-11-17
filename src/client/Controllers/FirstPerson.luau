@@ -3,7 +3,8 @@
 --   * a crosshair in the middle of the screen (the mouse arrow is hidden meanwhile); under it, what
 --     clicking / E does on the object you look at (gold when close enough)
 --   * what you hold is shown in front of the camera, with a light walking sway
---   * the mouse is freed while a menu is open, while building or while Alt is held
+--   * the mouse is freed while a menu is open, while building, while Alt is held or after Q
+--     (Q again to look around); the first time a toast explains it
 --   * keyboard shortcuts for the bottom buttons: B build, O supplier, P phone (all camera modes)
 --   * on touch screens a big ✋ button uses what is under the crosshair (tapping things works too)
 --   * running: hold Shift, or the 🏃 button on touch screens (every camera mode)
@@ -24,6 +25,8 @@ local T = Kit.Theme
 
 local gui, dot, hintPill, hintText, modal, keysLabel, useButton, runButton
 local altHeld = false
+local cursorToggle = false
+local toldAboutCursor = false
 local shiftHeld = false
 local runToggle = false
 local views = {} -- [held model on the character] = { clone, rel }
@@ -36,7 +39,7 @@ end
 
 -- true while the mouse must move freely (menus, building, Alt)
 function FirstPerson.cursorFree()
-	if altHeld then
+	if altHeld or cursorToggle then
 		return true
 	end
 	local UI = Core.C.UI
@@ -132,6 +135,14 @@ end
 
 local function updateCrosshair()
 	local fp = active()
+	if fp and not toldAboutCursor and UserInputService.KeyboardEnabled then
+		toldAboutCursor = true
+		task.delay(2, function()
+			if Core.C.UI then
+				Core.C.UI.toast("🖱️ " .. t("msg.fp_cursor"), "info")
+			end
+		end)
+	end
 	local free = FirstPerson.cursorFree()
 	modal.Visible = fp and free
 	local show = fp and not free
@@ -177,6 +188,12 @@ local function shortcut(key)
 			return
 		end
 		UI.toggle("Gifts")
+	elseif key == Enum.KeyCode.Q then
+		-- (Q cancels in build mode)
+		if Core.C.Build and Core.C.Build.active then
+			return
+		end
+		cursorToggle = not cursorToggle
 	end
 end
 

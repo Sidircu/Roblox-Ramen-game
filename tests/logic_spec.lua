@@ -15,6 +15,7 @@ local Licenses = require(Shared.Config.Licenses)
 local Surfaces = require(Shared.Config.Surfaces)
 local Sets = require(Shared.Config.Sets)
 local ShelfGrid = require(Shared.Logic.ShelfGrid)
+local Locks = require(Shared.Logic.Locks)
 
 local function starterPlaced()
   local placed, uids = {}, {}
@@ -266,4 +267,21 @@ test("shelf slots are product grids, a box fills two slots", function()
   local x2, z2 = ShelfGrid.cell(2, 5, 2, 5, 2)
   local x6, z6 = ShelfGrid.cell(6, 5, 2, 5, 2)
   expect(x1 > x2 and z1 == z2 and z6 > z1, "fill order")
+end)
+
+test("the first day is ramen only, locks name the license to buy", function()
+  local owned = { lic_base = true }
+  expect(Locks.station("ramen", owned, Recipes, Licenses) == nil, "ramen is open from the start")
+  local sushi = Locks.station("sushi", owned, Recipes, Licenses)
+  expect(sushi and sushi.level <= 3, "the sushi station names an early license")
+  local rice = Locks.rice(owned, Recipes, Licenses)
+  expect(rice ~= nil, "the rice cooker is locked at the start")
+  owned[sushi.id] = true
+  expect(Locks.station("sushi", owned, Recipes, Licenses) == nil, "buying it unlocks the station")
+  -- only the ramen ingredients can be bought at the start
+  for _, ing in ipairs(Ingredients.list) do
+    if ing.license == "lic_base" then
+      expect(ing.id == "noodles" or ing.id == "scallion" or ing.id == "naruto" or ing.id == "broth_shoyu", ing.id .. " on sale at the start")
+    end
+  end
 end)

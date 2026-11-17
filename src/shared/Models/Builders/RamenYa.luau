@@ -281,6 +281,17 @@ return function(Registry)
 		end
 	end)
 
+	-- Tip jar: tips pile up inside (the "Coins" part grows, set by EconomyService); click to collect
+	Registry.register("tip_jar", function(m, item)
+		Kit.finish(m, size(item))
+		Kit.cyl(m, 0.8, 0.06, 0, 0.03, 0, P.wood_dark, M.wood, nc())
+		Kit.cyl(m, 0.72, 1.0, 0, 0.56, 0, P.glass, M.glass, { collide = false, shadow = false, transparency = 0.6, reflectance = 0.2 })
+		Kit.cyl(m, 0.76, 0.08, 0, 1.08, 0, P.brass, M.metal, nc())
+		local coins = Kit.cyl(m, 0.66, 0.05, 0, 0.09, 0, P.gold, M.metal, { collide = false, name = "Coins", reflectance = 0.25 })
+		coins:SetAttribute("Base", 0.09)
+		label(m, 0.5, 0.26, 0, 0.62, -0.37, "チップ", "#B3262E")
+	end)
+
 	Registry.register("condiment_caddy", function(m, item)
 		Kit.finish(m, size(item))
 		Kit.box(m, 1.5, 0.08, 0.6, 0, 0.04, 0, P.steel, M.metal, { reflectance = 0.1 })

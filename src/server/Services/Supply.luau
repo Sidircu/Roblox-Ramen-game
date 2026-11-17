@@ -93,6 +93,8 @@ local function overflowSlots()
 	for _, fx in ipairs(World.fixedRects()) do
 		table.insert(blocked, Footprint.rectToFp(fx.rect))
 	end
+	local dz = Expansions.DropZone
+	table.insert(blocked, Footprint.rectToFp({ dz.x0, dz.z0, dz.x1, dz.z1 }))
 	for _, z in ipairs(World.zones) do
 		if z.area == "storage" then
 			local r = z.rect
@@ -269,14 +271,18 @@ end
 
 function Supply.takeBox(actor, e)
 	local Hands = Core.S.Hands
-	if not Hands.isEmpty(actor) then
+	local hands = Hands.get(actor)
+	if hands.kind ~= nil and (hands.kind ~= "box" or #hands.items >= Hands.capacity(actor, "box")) then
 		return false, "msg.hands_full"
 	end
 	local entry = e.box
 	local pos = Core.S.Entities.position(e)
+	local ok, reason = Hands.add(actor, "box", entry)
+	if not ok then
+		return false, reason
+	end
 	entry.h = true
 	entry.px, entry.pz, entry.pf, entry.pr, entry.pl = nil, nil, nil, nil, nil
-	Hands.set(actor, "box", { entry })
 	Supply.layout()
 	if pos then
 		Core.S.Net.fx("sfx", { name = "box", pos = pos })
@@ -600,14 +606,30 @@ function Supply.useShelf(actor, e, slot)
 	local hands = Hands.get(actor)
 	local st = shelfState(e.uid)
 	if hands.kind == "box" then
-		local entry = hands.items[1]
-		local ing = Ingredients.byId[entry.g]
-		if ing.storage == "rice" or ing.storage == "broth" then
-			return false, "msg.use_appliance"
+		-- with a cart you may hold several boxes: use one that fits this shelf, preferring the
+		-- ingredient of the clicked slot
+		local clicked = slot and st[tostring(slot)]
+		local index, firstError = nil, nil
+		for i, it in ipairs(hands.items) do
+			local ing = Ingredients.byId[it.g]
+			local err = nil
+			if ing.storage == "rice" or ing.storage == "broth" then
+				err = "msg.use_appliance"
+			elseif e.item.fn.fishOnly and ing.storage ~= "fish" then
+				err = "msg.fish_only"
+			end
+			if err then
+				firstError = firstError or err
+			elseif clicked and clicked.g == it.g and (not index or hands.items[index].g ~= it.g) then
+				index = i
+			elseif not index then
+				index = i
+			end
 		end
-		if e.item.fn.fishOnly and ing.storage ~= "fish" then
-			return false, "msg.fish_only"
+		if not index then
+			return false, firstError
 		end
+		local entry = hands.items[index]
 		local cap = Supply.slotCap(e, entry.g)
 		local placed, filled = 0, 0
 		local target = chooseSlot(e, entry.g, slot)
@@ -639,7 +661,7 @@ function Supply.useShelf(actor, e, slot)
 		local left = entry.n
 		if entry.n <= 0 then
 			Supply.removeBox(entry)
-			Hands.clear(actor)
+			Hands.removeAt(actor, index)
 		else
 			Hands.refresh(actor)
 			updateBoxLabel(entry)
@@ -706,12 +728,9 @@ end
 
 ------------------------------------------------------------------ orders & delivery
 
+-- orders leave right away: only the truck's short drive is left
 local function deliveryTime()
-	local d = data()
-	if Core.S.Monetization.ownerHas("gp_express") then
-		return 1
-	end
-	return Upgrades.value(d.upgrades, "up_delivery")
+	return 0
 end
 
 function Supply.order(player, cart)
@@ -778,17 +797,17 @@ local function animateTruck(onArrive)
 		end
 	end)
 	truck:PivotTo(startCf)
-	local t1 = TweenService:Create(value, TweenInfo.new(7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Value = roadCf })
+	local t1 = TweenService:Create(value, TweenInfo.new(GameConfig.TruckDrive or 4.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Value = roadCf })
 	t1:Play()
 	t1.Completed:Wait()
-	local t2 = TweenService:Create(value, TweenInfo.new(1.6, Enum.EasingStyle.Sine), { Value = bayCf })
+	local t2 = TweenService:Create(value, TweenInfo.new(1.3, Enum.EasingStyle.Sine), { Value = bayCf })
 	t2:Play()
 	t2.Completed:Wait()
 	Core.S.Net.fx("sfx", { name = "truck", pos = bayCf.Position })
 	task.delay(0.8, function()
 		Core.S.Net.fx("sfx", { name = "bell", pos = bayCf.Position })
 	end)
-	task.wait(1)
+	task.wait(0.4)
 	onArrive()
 	task.wait(1)
 	local t3 = TweenService:Create(value, TweenInfo.new(1.6, Enum.EasingStyle.Sine), { Value = CFrame.new(bay.x - 4, 2.1, lane) })
@@ -799,6 +818,81 @@ local function animateTruck(onArrive)
 	t4.Completed:Wait()
 	truck:Destroy()
 	value:Destroy()
+end
+
+------------------------------------------------------------------ rescue kit
+
+-- ingredients of recipe r that are nowhere (shelves, boxes, hands, pot, rice cooker)
+local function missingFor(d, r)
+	local need = table.clone(r.ing)
+	if r.broth then
+		table.insert(need, r.broth)
+	end
+	if r.rice then
+		table.insert(need, "rice")
+	end
+	local missing = {}
+	for _, g in ipairs(need) do
+		local have = Supply.shelfStock(g) > 0
+		if not have then
+			for _, b in ipairs(d.storage) do
+				if b.g == g and b.n > 0 then
+					have = true
+					break
+				end
+			end
+		end
+		if not have and g == r.broth then
+			have = Core.S.Appliance.hasBroth(g) or Core.S.Appliance.willHave("pot", g)
+		elseif not have and g == "rice" then
+			have = Core.S.Appliance.hasRice() or Core.S.Appliance.willHave("ricecooker")
+		end
+		if not have then
+			table.insert(missing, g)
+		end
+	end
+	return missing
+end
+
+-- Safety net: no dish of the menu can be made and there is not enough money to buy what is
+-- missing (spent it all on decorations, for example): the supplier sends a free kit for the
+-- cheapest dish, at most once every GameConfig.RescueCooldown seconds
+local function rescueCheck()
+	local d = data()
+	local owner = Core.S.Session.owner
+	if not d or not owner or truckBusy or #pending > 0 then
+		return
+	end
+	if os.time() - (d.meta.rescueAt or 0) < (GameConfig.RescueCooldown or 600) then
+		return
+	end
+	local cheapest, cheapestCost = nil, math.huge
+	for id, m in pairs(d.menu or {}) do
+		local r = Recipes.byId[id]
+		if r and m.on then
+			local missing = missingFor(d, r)
+			if #missing == 0 then
+				return -- something can still be cooked
+			end
+			local cost = 0
+			for _, g in ipairs(missing) do
+				cost += Ingredients.byId[g] and Ingredients.byId[g].price or 0
+			end
+			if cost < cheapestCost then
+				cheapest, cheapestCost = missing, cost
+			end
+		end
+	end
+	if not cheapest or d.yen >= cheapestCost then
+		return
+	end
+	local boxes = {}
+	for _, g in ipairs(cheapest) do
+		table.insert(boxes, { u = Uid.new("b"), g = g, n = Ingredients.byId[g].units })
+	end
+	d.meta.rescueAt = os.time()
+	table.insert(pending, { t = os.clock(), boxes = boxes })
+	Core.S.Net.notify(owner, "msg.rescue_kit", nil, "success")
 end
 
 local function deliveryLoop()
@@ -954,6 +1048,12 @@ function Supply.Start()
 		task.delay(0.5, Supply.layout)
 	end)
 	task.spawn(deliveryLoop)
+	task.spawn(function()
+		while true do
+			task.wait(15)
+			pcall(rescueCheck)
+		end
+	end)
 	task.spawn(autoRestock)
 	local _ = updateBoxLabel
 end

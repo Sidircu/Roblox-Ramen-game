@@ -13,6 +13,8 @@ return {
 		{ i = "counter_straight", x = -2, z = 30.4, r = 0, s = "f" },
 		{ i = "counter_straight", x = 2, z = 30.4, r = 0, s = "f" },
 		{ i = "counter_end", x = 5, z = 30.4, r = 0, s = "f" },
+		-- tip jar at the end of the counter: tips wait in it until you click it (index 8 = that end)
+		{ i = "tip_jar", x = 5, z = 30.4, r = 0, s = "t", p = 8 },
 		{ i = "stool_wood", x = -19, z = 27.8, r = 0, s = "f" },
 		{ i = "stool_wood", x = -17, z = 27.8, r = 0, s = "f" },
 		{ i = "stool_wood", x = -15, z = 27.8, r = 0, s = "f" },
@@ -28,11 +30,11 @@ return {
 		-- stations right behind the counter, the cook works facing it
 		{ i = "sushi_station", x = -11, z = 33.3, r = 180, s = "f" },
 		{ i = "ramen_station", x = -3, z = 33.3, r = 180, s = "f" },
-		-- back line across a wide aisle: two shelves, then one fitted kitchen unit (same height,
-		-- depth and tiles) with the rice cooker, the gas range with the stock pot, a worktop, the
-		-- sink and another worktop, fronts aligned with the shelves
-		{ i = "shelf_small", x = -22, z = 42.2, r = 0, s = "f" },
-		{ i = "shelf_small", x = -15.5, z = 42.2, r = 0, s = "f" },
+		-- back line across a wide aisle: one fitted kitchen unit (same height, depth and tiles) with
+		-- the rice cooker, the gas range with the stock pot, a worktop, the sink and another worktop,
+		-- then two shelves on the side of the storage door (short walk with the boxes)
+		{ i = "shelf_small", x = 7.4, z = 42.2, r = 0, s = "f" },
+		{ i = "shelf_small", x = 13.9, z = 42.2, r = 0, s = "f" },
 		{ i = "rice_cooker", x = -10.7, z = 42.45, r = 0, s = "f" },
 		{ i = "broth_pot", x = -7.4, z = 42.45, r = 0, s = "f" },
 		{ i = "kitchen_counter", x = -4.1, z = 42.45, r = 0, s = "f" },
@@ -42,7 +44,9 @@ return {
 		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
 		{ i = "chochin_white", x = -6, z = 20, r = 0, s = "c" },
 	},
-	-- the storage room starts empty: the tutorial has you order the ramen ingredients
+	-- the storage room starts empty: the tutorial has you order the ramen ingredients; the pot
+	-- starts full of this broth and the rice cooker full of rice
 	boxes = {},
+	broth = "broth_shoyu",
 
 }

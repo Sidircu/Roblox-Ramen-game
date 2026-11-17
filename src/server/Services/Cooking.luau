@@ -341,7 +341,7 @@ local function isFresh(e, st)
 end
 
 -- Runs the next step. Returns ok, messageKey, params
-function Cooking.step(e, speed)
+function Cooking.step(e, speed, actor)
 	local st = station(e)
 	local recipe = Cooking.match(e)
 	if not recipe then
@@ -370,11 +370,20 @@ function Cooking.step(e, speed)
 		end
 		Appliance.takeCleanDish()
 		st.recipe = recipe.id
+		st.perfect = false
 	end
 	st.busy = true
 	publish(e)
 	local stepName = recipe.steps[st.step + 1]
-	animateStep(e, stepName, stepDuration(e, stepName, recipe, speed))
+	local duration = stepDuration(e, stepName, recipe, speed)
+	-- noodles boiling: the player may stop a needle in the green part for a perfect bowl
+	local NT = GameConfig.NoodleTiming
+	if stepName == "boil" and NT and typeof(actor) == "Instance" then
+		st.timing = { player = actor, start = os.clock(), dur = duration }
+		Core.S.Net.fxTo(actor, "timing", { uid = e.uid, dur = duration, a = NT.From, b = NT.To })
+	end
+	animateStep(e, stepName, duration)
+	st.timing = nil
 	st.step += 1
 	st.busy = false
 	if st.step >= #recipe.steps then
@@ -383,7 +392,7 @@ function Cooking.step(e, speed)
 		clearBoardModels(st)
 		st.step = 0
 		st.recipe = nil
-		st.ready = { recipe = recipe.id, fresh = fresh }
+		st.ready = { recipe = recipe.id, fresh = fresh, perfect = st.perfect == true }
 		showDish(e, recipe.id)
 		Core.S.Net.fx("dishReady", { pos = e.model.PrimaryPart.Position + Vector3.new(0, 4, 0), recipe = recipe.id })
 	end
@@ -443,7 +452,7 @@ function Cooking.use(actor, e, speed)
 		return true
 	elseif hands.kind == "dish" or hands.kind == nil then
 		if st.ready then
-			local ok, reason = Hands.add(actor, "dish", { recipe = st.ready.recipe, fresh = st.ready.fresh })
+			local ok, reason = Hands.add(actor, "dish", { recipe = st.ready.recipe, fresh = st.ready.fresh, perfect = st.ready.perfect })
 			if not ok then
 				return false, reason
 			end
@@ -460,7 +469,7 @@ function Cooking.use(actor, e, speed)
 		end
 		if #st.board > 0 then
 			if Cooking.match(e) then
-				return Cooking.step(e, speed)
+				return Cooking.step(e, speed, actor)
 			end
 			-- not a recipe (yet): put the ingredients back in hand
 			if st.step == 0 then
@@ -554,7 +563,33 @@ function Cooking.isRecipeInProgress(recipeId)
 	return n
 end
 
+-- the player stopped the needle: k = where (0..1 of the boil step) as the client saw it
+local function timingHit(player, uid, k)
+	if type(uid) ~= "string" or type(k) ~= "number" then
+		return
+	end
+	local e = Core.S.Entities.get(uid)
+	if not e or e.kind ~= "station" then
+		return
+	end
+	local st = station(e)
+	local tm = st.timing
+	if not tm or tm.player ~= player or tm.hit then
+		return
+	end
+	tm.hit = true
+	local elapsed = (os.clock() - tm.start) / tm.dur
+	local NT = GameConfig.NoodleTiming
+	-- trust the client's needle (latency) as long as it is close to what the server saw
+	local ok = k >= NT.From and k <= NT.To and math.abs(elapsed - k) < 0.35
+	if ok then
+		st.perfect = true
+	end
+	Core.S.Net.fxTo(player, "timingResult", { ok = ok, pos = e.model and e.model.PrimaryPart and e.model.PrimaryPart.Position })
+end
+
 function Cooking.Init()
+	Core.S.Net.on("TimingHit", timingHit, 6)
 	local Placement = Core.S.Placement
 	Placement.ItemAdded:Connect(function(e)
 		if e.kind == "station" then

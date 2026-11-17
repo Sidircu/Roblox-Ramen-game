@@ -122,10 +122,38 @@ local function onPlayer(player)
 	leaderstats(player)
 end
 
+-- ❤️ a visitor likes the restaurant they are in: once a day per restaurant, counts for the
+-- owner's likes (shown on the restaurant and on the leaderboard)
+local function like(player)
+	local owner = Core.S.Session.owner
+	if not owner or owner == player then
+		return
+	end
+	local od, pd = Core.S.Data.get(owner), Core.S.Data.get(player)
+	if not od or not pd then
+		return
+	end
+	pd.meta.liked = pd.meta.liked or {}
+	local key = tostring(owner.UserId)
+	local today = math.floor(os.time() / 86400)
+	if pd.meta.liked[key] == today then
+		return Core.S.Net.notify(player, "msg.like_done", nil, "info")
+	end
+	pd.meta.liked[key] = today
+	od.stats.likes = (od.stats.likes or 0) + 1
+	workspace:SetAttribute("Likes", od.stats.likes)
+	Core.S.Data.changed(owner, "stats")
+	Core.S.Data.changed(player, "meta")
+	Core.S.Net.notify(owner, "msg.liked", { name = player.DisplayName }, "success")
+	Core.S.Net.notify(player, "msg.like_sent", nil, "success")
+	Core.S.Net.fx("sparkle", {})
+end
+
 function Rewards.Init()
 	local Net = Core.S.Net
 	Net.on("ClaimGift", claimGift, 4)
 	Net.on("RedeemCode", redeemCode, 2)
+	Net.on("Like", like, 2)
 end
 
 function Rewards.Start()
@@ -133,6 +161,9 @@ function Rewards.Start()
 		onPlayer(p)
 	end
 	Players.PlayerAdded:Connect(onPlayer)
+	Core.S.Session.OwnerReady:Connect(function(_, d)
+		workspace:SetAttribute("Likes", d and d.stats.likes or 0)
+	end)
 	Players.PlayerRemoving:Connect(function(p)
 		claimed[p] = nil
 	end)

@@ -141,8 +141,10 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 - Carrello → "Ordina". Con l'upgrade **Fornitore premium** compaiono le scatole grandi scontate.
 
 ### 4.2 Consegna
-- Il furgoncino arriva alla porta di carico dopo un tempo di consegna (45 s all'inizio, si riduce con gli upgrade), entra in retromarcia e il corriere **lascia le scatole a terra**, una alla volta, in un'area accanto alla porta del magazzino (fino a due scatole impilate per posto). Le porti dentro tu: direttamente sugli scaffali della cucina o sugli scaffali del magazzino.
+- La consegna è **immediata**: il furgoncino arriva in circa 6 secondi, entra in retromarcia e il corriere **lascia le scatole a terra**, una alla volta, dentro il magazzino fra la porta di carico e la porta della cucina (fino a due scatole impilate per posto). Le porti tu sugli scaffali, che stanno subito oltre la porta della cucina.
+- Il miglioramento **Carrello per scatole** permette di portare 2 e poi 3 scatole insieme (+1 con il pass Carrello grande); usi quella giusta per lo scaffale o il pentolone che clicchi.
 - Ogni scatola ha un'etichetta con icona e nome dell'ingrediente e il numero di porzioni rimaste.
+- **Kit di soccorso**: se resti senza soldi e senza ingredienti per qualsiasi piatto, il fornitore ti regala quelli del piatto più economico (al massimo ogni 10 minuti), così non resti mai bloccato.
 - Nel fornitore il pulsante **«🍜 Tutto per il menu»** mette nel carrello una scatola di ogni ingrediente che serve ai piatti del menu e che sta finendo.
 
 ### 4.3 Dal magazzino alle mensole
@@ -171,6 +173,9 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 ### 5.1 bis Il tagliere ti dice cosa portare
 - Sul tagliere di ogni postazione compaiono le **sagome trasparenti** degli ingredienti dell'ordine più vecchio per quella postazione (una per pezzo, al loro posto). Guardando la postazione compare "Porta qui: 🍙 🥒 🟩".
 - Quando posi gli ingredienti, volano dalle tue mani alla loro sagoma e la riempiono; le sagome che restano sono quelle che mancano. Senza ordini il tagliere è vuoto; con ingredienti già posati, le sagome seguono la ricetta che stai facendo.
+
+### 5.1 ter Noodles perfetti (facoltativo)
+- Mentre i noodles bollono compare una barra con una parte verde e un ago che scorre: clicca (o E, o ✋) quando l'ago è nel verde e la ciotola è **perfetta** (+20% di mancia). Se sbagli o non clicchi, la ciotola è buona lo stesso.
 
 ### 5.2 Preparare il sushi (postazione sushi / tagliere)
 Esempio *Sake Nigiri*:
@@ -224,6 +229,7 @@ Non esistono errori né tempismo: ogni piatto riesce sempre. Il guadagno dipende
 1. Arrivano dalla strada. Se non c'è un posto libero adatto, aspettano sulla **panchina d'attesa** (se c'è) o se ne vanno (recensione persa).
 2. Scelgono un posto: i clienti singoli preferiscono il **bancone**, coppie e gruppi hanno bisogno di **tavoli**.
 3. Si siedono, guardano il menu (2–4 s), mostrano l'ordine.
+4. Nei **primi 2 giorni** i picchi di pranzo e cena sono leggeri.
 4. **Barra della pazienza** sopra la testa (verde → gialla → rossa). Se finisce, se ne vanno arrabbiati senza pagare (recensione 1 ★). **Difficoltà bassa**: i clienti aspettano molto (1,8 volte la pazienza del loro tipo) e, quando prendi l'ordine, il tempo **riparte da pieno**, così hai tutto il tempo per cucinare.
 5. Mangiano, pagano, lasciano una **recensione** (stelle + commento breve, es. "Il brodo era perfetto!").
 6. A volte ordinano un secondo piatto o una bevanda dopo il primo.
@@ -358,6 +364,9 @@ Con la **Cassaforte** il ristorante produce una parte del guadagno anche quando 
 - **Codici**: nell'app 🎟️ Codici del telefono si scrive un codice (annunciato sui social o nel gruppo) per ricevere un premio; ogni codice vale una volta per giocatore.
 - **Combo di servizio**: servire piatti a meno di 30 secondi l'uno dall'altro fa salire la combo (scritta grande "🔥 COMBO x3!" e suono che sale): ogni passo dà +5% di mancia a quel cliente, fino a +50%.
 - **Classifica nella lista giocatori** (leaderstats): ¥ e livello ⭐ di ognuno.
+- **Obiettivo del giorno** sempre visibile sotto la barra del giorno (la prima missione non ancora ritirata, es. «🎯 Servi 8 ramen · 3/8»); quando è completo diventa dorato e un clic lo ritira.
+- **Barattolo delle mance** sul bancone: le mance si accumulano dentro (le monete salgono); un clic le ritira con una pioggia di monete, a fine giornata si ritirano da sole.
+- **❤️ Mi piace**: chi visita il ristorante di un amico può mettergli Mi piace (una volta al giorno); il numero si vede in alto a destra e c'è la classifica dei ristoranti più amati.
 
 ### 8.9 Franchise (rinascita / prestigio)
 Disponibile al livello 40 con valutazione ≥ 4,5 e tutte le espansioni principali.
@@ -431,7 +440,7 @@ Stile: carta washi color crema, bordi in legno scuro, accenti rosso lacca e oro,
 Altre schermate: inventario decorazioni, ricettario, obiettivi, premio giornaliero, guadagni offline, impostazioni (lingua, griglia, rotazione, volume musica/effetti, qualità grafica ridotta per dispositivi deboli).
 
 ### Tutorial
-Si parte con il **magazzino vuoto** e **solo il ramen shoyu** (il sushi di base è la prima licenza, al livello 2). La prima giornata è guidata passo passo da una scheda grande a destra e da una freccia luminosa gialla con un indicatore ⬇ sull'oggetto da cliccare: apri il fornitore e compra gli ingredienti del ramen (il pulsante «Tutto per il menu» è evidenziato) → arriva il furgone e lascia le scatole a terra → prendi una scatola → riempi lo scaffale → metti sugli scaffali anche le altre (noodles, cipollotto, naruto) → versa il brodo shoyu nel pentolone → apri → prendi l'ordine → (si apre la guida dell'ordine, le sagome sul tagliere mostrano cosa serve) → prepara e servi → raccogli e lava le stoviglie → arreda. Invio passa al consiglio successivo. Si può saltare e rivedere dal telefono (❓ Come si gioca).
+Si parte con il **magazzino vuoto** e **solo il ramen shoyu**, ma con brodo e riso già pronti. Al livello 2 la licenza **Sashimi** (¥300) aggiunge un secondo piatto facilissimo (due fette di salmone, un taglio); il sushi con il riso arriva al livello 3. Postazione sushi e cuociriso mostrano un 🔒 con la licenza e il livello che servono. La prima giornata è guidata passo passo da una scheda grande a destra e da una freccia luminosa gialla con un indicatore ⬇ sull'oggetto da cliccare: apri il fornitore e compra gli ingredienti del ramen (il pulsante «Tutto per il menu» è evidenziato) → arriva il furgone e lascia le scatole a terra → prendi una scatola → riempi lo scaffale → metti sugli scaffali anche le altre (noodles, cipollotto, naruto) → versa il brodo shoyu nel pentolone → apri → prendi l'ordine → (si apre la guida dell'ordine, le sagome sul tagliere mostrano cosa serve) → prepara e servi → raccogli e lava le stoviglie → arreda. Invio passa al consiglio successivo. Si può saltare e rivedere dal telefono (❓ Come si gioca).
 
 ### Guida dell'ordine
 Toccando un ordine a sinistra si apre una scheda con pochi passaggi brevi, ognuno con la spunta ✅ quando è fatto e il dito 👉 su quello da fare ora: riso o brodo pronti → ingredienti da prendere (con la spunta su quelli che hai in mano) → clicca la postazione per posarli → cliccala ancora per ogni passaggio (es. Unisci → Arrotola → Taglia, con il contatore) → prendi il piatto → servilo al cliente. Gli spazi degli scaffali con gli ingredienti giusti e la postazione da usare si illuminano, e una freccia verde va da te alla prossima cosa da cliccare (anche al cliente giusto quando hai il piatto in mano).
@@ -440,7 +449,7 @@ Toccando un ordine a sinistra si apre una scheda con pochi passaggi brevi, ognun
 Un clic con una scatola su uno scaffale riempie **tutti** gli spazi liberi adatti, e un messaggio dice quante porzioni restano nella scatola. **Posa** (tasto G o ⬇) appoggia la scatola a terra davanti a te, visibile e da riprendere, oppure sulla scaffalatura se sei in magazzino. Gli ingredienti in mano tornano sullo scaffale più vicino, i piatti vanno al lavello. Un messaggio dice sempre dove è finito l'oggetto.
 
 ### Telecamera e comandi
-**Prima persona** (predefinita, come in Supermarket Together): ci si guarda intorno con il mouse o trascinando un dito; un **pallino al centro** dello schermo indica cosa si sta puntando e sotto compare cosa succede cliccando (dorato quando sei abbastanza vicino). Clic o **E** per usare, **G** per posare, **Shift** per correre, **Alt** tenuto premuto per usare il mouse sui pulsanti (il mouse si libera da solo quando si apre un menu o in costruzione, dove la vista passa dall'alto). Scorciatoie: **B** costruisci, **O** fornitore, **P** telefono, **R** regali, **Invio** per il consiglio successivo del tutorial. Quello che hai in mano si vede davanti alla telecamera. Su telefono e tablet ci sono i pulsanti **✋ Usa** e **🏃 Corri**.
+**Prima persona** (predefinita, come in Supermarket Together): ci si guarda intorno con il mouse o trascinando un dito; un **pallino al centro** dello schermo indica cosa si sta puntando e sotto compare cosa succede cliccando (dorato quando sei abbastanza vicino). Clic o **E** per usare, **G** per posare, **Shift** per correre, **Q** per liberare il mouse e usare i pulsanti (di nuovo Q per tornare a guardarti intorno; funziona anche Alt tenuto premuto (il mouse si libera da solo quando si apre un menu o in costruzione, dove la vista passa dall'alto). Scorciatoie: **B** costruisci, **O** fornitore, **P** telefono, **R** regali, **Invio** per il consiglio successivo del tutorial. Quello che hai in mano si vede davanti alla telecamera. Su telefono e tablet ci sono i pulsanti **✋ Usa** e **🏃 Corri**.
 
 Nelle impostazioni si può scegliere anche la **terza persona** (telecamera morbida e lenta: tasto destro o un dito per girare, ← →, rotellina o due dita per lo zoom; non finisce dietro i muri e, se sei dentro e sale sopra il soffitto, il tetto sparisce) o la telecamera classica di Roblox, con velocità lenta, media o veloce.
 

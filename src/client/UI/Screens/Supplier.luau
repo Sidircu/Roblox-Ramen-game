@@ -78,7 +78,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 	local discount = Upgrades.value(w.upgrades, "up_supplier")
 	local L = Locale.get()
 	local header = Kit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 30), Parent = content })
-	Kit.label(t("ui.supplier_info", { seconds = Upgrades.value(w.upgrades, "up_delivery"), boxes = #(w.storage or {}) }), { Parent = header, Size = UDim2.new(1, 0, 1, 0), TextSize = 16, TextColor3 = T.muted })
+	Kit.label(t("ui.supplier_info", { boxes = #(w.storage or {}) }), { Parent = header, Size = UDim2.new(1, 0, 1, 0), TextSize = 16, TextColor3 = T.muted })
 	local scroll = Kit.scroll({ Position = UDim2.fromOffset(0, 34), Size = UDim2.new(1, 0, 1, -100), Parent = content }, Kit.grid(200, discount > 0 and 170 or 140, 8))
 	local total = 0
 	for _, ing in ipairs(Ingredients.list) do

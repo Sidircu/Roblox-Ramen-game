@@ -35,7 +35,7 @@ UI = [
 ("ui.sell","Sell","Vendi"),("ui.settings","Settings","Impostazioni"),("ui.sfx","Sound effects","Effetti sonori"),("ui.shop","Shop","Negozio"),
 ("ui.shop_soon","Coming soon!","In arrivo!"),("ui.skip","Skip","Salta"),("ui.staff","Staff","Personale"),("ui.staff_team","Your team ({n}/{max})","La tua squadra ({n}/{max})"),
 ("ui.stand_in_zone","Stand inside a room to change its floor and walls.","Mettiti dentro una stanza per cambiarne pavimento e pareti."),("ui.store","Store","Metti via"),
-("ui.supplier","Supplier","Fornitore"),("ui.supplier_info","Delivery in {seconds}s · boxes in storage: {boxes}","Consegna in {seconds}s · scatole in magazzino: {boxes}"),
+("ui.supplier","Supplier","Fornitore"),("ui.supplier_info","Immediate delivery: the truck arrives in a few seconds · boxes: {boxes}","Consegna immediata: il furgone arriva in pochi secondi · scatole: {boxes}"),
 ("ui.surfaces","Floors & walls","Pavimenti e pareti"),("ui.tab_achievements","Achievements","Traguardi"),("ui.tab_book","Recipe book","Ricettario"),
 ("ui.tab_daily","Daily","Giornaliero"),("ui.tab_franchise","Franchise","Franchise"),("ui.tab_leaderboard","Leaderboard","Classifiche"),
 ("ui.tab_menu","Menu","Menu"),("ui.tab_quests","Quests","Missioni"),("ui.top_view","Top view","Vista dall'alto"),("ui.total","Total","Totale"),
@@ -110,7 +110,7 @@ HINT = [
 ]
 TUT = [
 ("tut.step","Tutorial {i}/{n}","Tutorial {i}/{n}"),
-("tut.welcome","Welcome to your ramen-ya! Walk with WASD (Shift to run) and look around with the mouse or by dragging a finger. Aim at things with the dot in the middle and click or press E to use them. Hold Alt to click the buttons on screen; Enter shows the next tip.","Benvenuto nel tuo ramen-ya! Cammina con WASD (Shift per correre) e guardati intorno con il mouse o trascinando un dito. Punta le cose con il pallino al centro e clicca o premi E per usarle. Tieni premuto Alt per cliccare i pulsanti sullo schermo; Invio mostra il consiglio successivo."),
+("tut.welcome","Welcome to your ramen-ya! Walk with WASD (Shift to run) and look around with the mouse or by dragging a finger. Aim at things with the dot in the middle and click or press E to use them. Press Q to use the mouse on the buttons (Q again to look around); Enter shows the next tip.","Benvenuto nel tuo ramen-ya! Cammina con WASD (Shift per correre) e guardati intorno con il mouse o trascinando un dito. Punta le cose con il pallino al centro e clicca o premi E per usarle. Premi Q per usare il mouse sui pulsanti (di nuovo Q per tornare a guardare); Invio mostra il consiglio successivo."),
 ("tut.take_box","The boxes are outside the storage door: follow the yellow arrow and click a box of noodles, scallion or naruto. In your hands it opens and you see what is inside.","Le scatole sono fuori dalla porta del magazzino: segui la freccia gialla e clicca una scatola di noodles, cipollotto o naruto. In mano si apre e vedi cosa c'è dentro."),
 ("tut.fill_shelf","Carry it to a shelf in the kitchen and click the shelf: the products jump onto the free spots of the grid (each box fills 2 slots). G puts a box down.","Portala a uno scaffale della cucina e clicca lo scaffale: i prodotti saltano nei posti liberi della griglia (ogni scatola riempie 2 ripiani). G posa la scatola."),
 ("tut.rice","Take a box of rice and click the rice cooker: the rice cooks by itself.","Prendi una scatola di riso e clicca il rice cooker: il riso cuoce da solo."),
@@ -215,4 +215,6 @@ TUT_FIRST_DAY = [
 ("tut.truck","The delivery truck is coming: it leaves the boxes on the ground outside the storage door.","Sta arrivando il furgone: lascerà le scatole a terra fuori dalla porta del magazzino."),
 ("tut.more_boxes","Put the other boxes on the shelves too: you need noodles, scallion and naruto.","Metti sugli scaffali anche le altre scatole: servono noodles, cipollotto e naruto."),
 ("ui.cart_menu","All for the menu","Tutto per il menu"),
+("tut.broth_ready","The shoyu broth is already hot in the big pot (and the rice is in the cooker). When the pot runs out, pour a box of broth into it: you can also top it up while it cooks.","Il brodo shoyu è già caldo nel pentolone (e il riso nel cuociriso). Quando il pentolone si svuota, versaci una scatola di brodo: puoi rabboccarlo anche mentre cuoce."),
+("msg.rescue_kit","🎁 The supplier saw you were out of money and ingredients: a free kit is on its way!","🎁 Il fornitore ha visto che eri senza soldi e senza ingredienti: ti regala un kit, sta arrivando!"),
 ]

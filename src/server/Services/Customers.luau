@@ -261,10 +261,15 @@ local function pay(c, recipe)
 		comfort = c.seat and c.seat.comfort or 0,
 		patienceLeft = c.patience / c.patienceMax,
 		customerTip = c.cfg.tip,
-		extraTip = c.comboBonus or 0,
+		extraTip = (c.comboBonus or 0) + (c.perfect and GameConfig.NoodleTiming.TipBonus or 0),
 	})
 	local got = Economy.add(owner, price, "sale")
-	local gotTip = Economy.add(owner, tip, "tip")
+	-- with a tip jar on the counter the tip waits there until you collect it
+	local gotTip = 0
+	local inJar = Economy.tipToJar(tip)
+	if not inJar then
+		gotTip = Economy.add(owner, tip, "tip")
+	end
 	local helper = c.servedBy
 	if helper and typeof(helper) == "Instance" and helper ~= owner and helper.Parent then
 		local share = math.floor((price + tip) * GameConfig.HelperRewardShare + 0.5)
@@ -630,6 +635,7 @@ function Service.serve(c, dish, actor)
 		c.ticket = nil
 	end
 	c.fresh = dish.fresh == true
+	c.perfect = dish.perfect == true
 	c.servedBy = actor
 	local served = data().mastery[dish.recipe] or 0
 	local m = Registry.food("dish", dish.recipe, Formulas.masteryLevel(served) >= #Formulas.MasteryThresholds)
@@ -706,7 +712,9 @@ local function spawnLoop()
 		if Day and Day.phase == "open" and Core.S.Session.owner then
 			timer += dt
 			local pop = Core.S.Progression.popularity()
-			local interval = Formulas.customerInterval(CFG.BaseInterval, CFG.MinInterval, pop, Day.isPeak(), GameConfig.Day.PeakFactor, Core.S.Economy.boostActive("rush"))
+			local days = (data() and data().stats.days) or 0
+			local peakFactor = days < (GameConfig.Day.EarlyDays or 0) and GameConfig.Day.EarlyPeakFactor or GameConfig.Day.PeakFactor
+			local interval = Formulas.customerInterval(CFG.BaseInterval, CFG.MinInterval, pop, Day.isPeak(), peakFactor, Core.S.Economy.boostActive("rush"))
 			if Core.S.Seating.freeCount() == 0 then
 				interval = interval * 1.5
 			end

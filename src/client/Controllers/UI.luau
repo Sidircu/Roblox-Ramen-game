@@ -132,7 +132,7 @@ function UI.Init()
 	if workspace.CurrentCamera then
 		workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(rescale)
 	end
-	toastHolder = Kit.new("Frame", { Name = "Toasts", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 52), Size = UDim2.fromOffset(460, 300), Parent = UI.gui }, { Kit.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Center) })
+	toastHolder = Kit.new("Frame", { Name = "Toasts", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 84), Size = UDim2.fromOffset(460, 300), Parent = UI.gui }, { Kit.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Center) })
 	local screens = script.Parent.Parent.UI.Screens
 	for _, m in ipairs(screens:GetChildren()) do
 		if m:IsA("ModuleScript") then

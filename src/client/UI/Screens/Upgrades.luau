@@ -15,6 +15,8 @@ local function effectText(u, value, lvl)
 	local L = Locale.get()
 	if u.effect == "step" or u.effect == "walk" or u.effect == "shelf" then
 		return math.floor(value * 100 + 0.5) .. "%"
+	elseif u.effect == "cart" then
+		return t("ui.cart_boxes", { n = value })
 	elseif u.effect == "delivery" then
 		return value .. "s"
 	elseif u.effect == "discount" then

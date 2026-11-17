@@ -95,7 +95,8 @@ Passaggi (un clic ciascuno, nessun tempismo): **U** = unisci, **A** = arrotola, 
 | ID | Piatto | Postazione | Ingredienti | Passaggi | Prezzo base | XP | Licenza |
 |---|---|---|---|---|---|---|---|
 | `kappa_maki` | Kappa Maki | sushi | riso, nori, cetriolo | U, A, T | ¥25 | 8 | base |
-| `sake_nigiri` | Sake Nigiri | sushi | riso, salmone | T, U | ¥40 | 10 | base |
+| `sake_nigiri` | Sake Nigiri | sushi | riso, salmone | T, U | ¥40 | 10 | Sushi di base |
+| `sake_sashimi` | Sashimi di salmone | sushi | salmone ×2 | T (un taglio) | ¥45 | 9 | Sashimi |
 | `shoyu_ramen` | Shoyu Ramen | ramen | noodles, brodo shoyu, cipollotto, naruto | N, B, C | ¥55 | 14 | base |
 | `tekka_maki` | Tekka Maki | sushi | riso, nori, tonno | U, A, T | ¥45 | 12 | Sushi I |
 | `maguro_nigiri` | Maguro Nigiri | sushi | riso, tonno | T, U | ¥50 | 13 | Sushi I |
@@ -143,8 +144,9 @@ Riso cotto: il rice cooker trasforma 1 porzione di riso crudo in 1 porzione di r
 | ID | Licenza | Livello | Costo | Requisiti extra | Sblocca |
 |---|---|---|---|---|---|
 | `lic_base` | Base (ramen) | 1 | gratis | — | Shoyu Ramen |
-| `lic_sushi0` | Sushi di base | 2 | ¥800 | — | Kappa Maki, Sake Nigiri (riso, nori, cetriolo, salmone) |
-| `lic_sushi1` | Sushi I | 3 | ¥2.500 | — | Tekka Maki, Maguro Nigiri |
+| `lic_sashimi` | Sashimi | 2 | ¥300 | — | Sashimi di salmone (il salmone): il secondo piatto, facilissimo |
+| `lic_sushi0` | Sushi di base | 3 | ¥800 | Sashimi | Kappa Maki, Sake Nigiri (riso, nori, cetriolo) |
+| `lic_sushi1` | Sushi I | 4 | ¥2.500 | — | Tekka Maki, Maguro Nigiri |
 | `lic_ramen1` | Ramen I | 4 | ¥3.000 | — | Shio Ramen |
 | `lic_sides` | Contorni & tè | 5 | ¥4.000 | — | Edamame, Tè verde, Zuppa di miso, postazione bevande |
 | `lic_sushi2` | Sushi II | 8 | ¥12.000 | Sushi I | California Roll, Ebi Nigiri |
@@ -194,10 +196,10 @@ Colonne: prezzo, punti ambiente (Amb.), livello di sblocco, tipo di piazzamento,
 | `shelf_small` | Mensola piccola | ¥400 | 1 | 4 ripiani a scacchiera da ½ scatola |
 | `shelf_large` | Mensola grande | ¥1.500 | 7 | 6 ripiani a scacchiera da ½ scatola |
 | `neta_case` | Vetrina refrigerata del pesce | ¥3.000 | 5 | 4 ripiani a scacchiera da ½ scatola di pesce, +10% qualità ai piatti di pesce |
-| `rice_cooker` | Rice cooker | ¥600 | 1 | lotto 10, 30 s |
-| `rice_cooker_pro` | Rice cooker professionale | ¥5.000 | 11 | lotto 25, 20 s |
-| `broth_pot` | Pentolone | ¥900 | 1 | lotto 8, 60 s |
-| `broth_pot_large` | Pentolone grande | ¥7.500 | 13 | lotto 20, 45 s |
+| `rice_cooker` | Rice cooker | ¥600 | 1 | lotto 10, 20 s |
+| `rice_cooker_pro` | Rice cooker professionale | ¥5.000 | 11 | lotto 25, 15 s |
+| `broth_pot` | Fornello con pentolone | ¥900 | 1 | lotto 16 (una scatola), 30 s; si può rabboccare mentre cuoce |
+| `broth_pot_large` | Fornello con pentolone grande | ¥7.500 | 13 | lotto 32, 25 s |
 | `sushi_station` | Postazione sushi | ¥800 | 1 | tagliere |
 | `ramen_station` | Postazione ramen | ¥1.500 | 1 | bollitore noodles |
 | `drink_station` | Postazione bevande | ¥2.000 | 5 | tè, bevande |
@@ -206,6 +208,7 @@ Colonne: prezzo, punti ambiente (Amb.), livello di sblocco, tipo di piazzamento,
 | `takoyaki_stove` | Fornello takoyaki | ¥9.000 | 24 | takoyaki |
 | `dessert_station` | Postazione dolci | ¥10.000 | 28 | dolci |
 | `kitchen_counter` | Piano di lavoro (modulo della cucina componibile) | ¥250 | 1 | decorativo, ci si appoggiano oggetti |
+| `tip_jar` | Barattolo delle mance (sul bancone) | ¥150 | 1 | le mance si accumulano dentro; un clic le ritira con una pioggia di monete; a fine giornata si ritirano da sole |
 | `sink` | Lavello | ¥500 | 1 | lavaggio a mano tenendo premuto: 1,6 s a piatto (`GameConfig.Washing`), si vedono fino a 12 piatti sporchi nella vasca; il personale ne lava fino a 8 a giro |
 | `dishwasher` | Lavastoviglie | ¥12.000 | 13 | lava 6 stoviglie ogni 20 s da sola |
 | `dish_set` | Set stoviglie (+6) | ¥300 | 1 | aumenta le stoviglie totali |
@@ -319,7 +322,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `up_mat` | Stuoia makisu | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | −12% durata del passaggio A |
 | `up_strainer` | Scolapasta tebo | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | −12% durata dei passaggi N, B, C, F |
 | `up_shelf` | Mensole rinforzate | 0→3 | ¥5.000 · ¥30.000 · ¥200.000 | file di prodotti × 1,25 / 1,5 / 1,75 (arrotondate) |
-| `up_delivery` | Consegna | 0→3 | ¥4.000 · ¥40.000 · ¥250.000 | 45 s → 30 s → 15 s → 5 s |
+| `up_cart` | Carrello per scatole | 0→2 | ¥2.500 (L3) · ¥15.000 (L10) | scatole portate insieme 1 → 2 → 3 (il pass Carrello grande +1). Le consegne sono immediate: il furgone arriva in circa 6 s |
 | `up_supplier` | Fornitore premium | 0→2 | ¥20.000 (L10) · ¥200.000 (L25) | scatole grandi −10% / −20% |
 | `up_sign` | Insegna luminosa | 0→5 | ¥2.000 × 4^n | +0,08 popolarità per livello |
 | `up_ticket` | Barra ordini | 0→2 | ¥6.000 · ¥60.000 | 6 → 8 → 10 biglietti |
@@ -391,7 +394,7 @@ Il locale iniziale è spoglio. Ogni ristrutturazione si compra una volta; l'atmo
 
 Totale ¥231.000 e +122 atmosfera (circa un livello di ambiente in più a metà partita). Anche `sign_rooftop` e `facade_deluxe` stanno nella scheda Ristrutturazioni. Traguardo *Completa {n} ristrutturazioni*: 3 / 8 / 15 → 🌸5 / 15 / 40.
 
-**Si parte con il magazzino vuoto** (¥500 per il primo ordine: gli ingredienti del ramen costano ¥281). Oggetti iniziali: bancone (6 moduli + 2 terminali, 28 stud), 12 sgabelli, postazioni sushi e ramen, 2 mensole, cucina componibile (cuociriso, fornello con pentolone, 2 piani di lavoro, lavello), scaffale del magazzino e **una sola lanterna**: tutte le altre decorazioni si comprano.
+**Si parte con il magazzino vuoto** (¥500 per il primo ordine: gli ingredienti del ramen costano ¥281), ma con il **pentolone già pieno di brodo shoyu** e il **cuociriso pieno**. Oggetti iniziali: bancone (6 moduli + 2 terminali, 28 stud), 12 sgabelli, postazioni sushi e ramen, 2 mensole, cucina componibile (cuociriso, fornello con pentolone, 2 piani di lavoro, lavello), scaffale del magazzino e **una sola lanterna**: tutte le altre decorazioni si comprano.
 
 ---
 
@@ -410,6 +413,7 @@ Totale ¥231.000 e +122 atmosfera (circa un livello di ambiente in più a metà 
 | `cust_vip` | Ospite VIP | 18 | 3 | 2–4 | 150 | 2,5 | solo sala tatami, 3 piatti a testa |
 | `cust_celebrity` | Celebrità | 30 | 0,3 | 1 | 90 | 5,0 | evento |
 
+- **Primi giorni** (`GameConfig.Day.EarlyPeakFactor = 0,85`, `EarlyDays = 2`): nei primi 2 giorni i picchi di pranzo e cena sono leggeri (intervallo × 0,85 invece di × 0,6).
 - **Difficoltà bassa** (`GameConfig.Customers.PatienceMult = 1,8`): la pazienza reale è quella della tabella × 1,8 (× il bonus dell'ambiente); quando prendi l'ordine il timer riparte da pieno per la cottura.
 - Piatti per cliente: 1 principale; 40% di probabilità di contorno o bevanda se sbloccati; 15% di un secondo ordine.
 - Tempo per mangiare: 12 s (sushi), 18 s (ramen), 6 s (bevande).
@@ -437,6 +441,9 @@ Totale ¥231.000 e +122 atmosfera (circa un livello di ambiente in più a metà 
 | Regali a tempo (`Config/Rewards.luau`) | minuti di gioco nella sessione: 2 → ¥250 · 5 → 🌸2 · 9 → salmone + noodles · 14 → ¥900 · 20 → 🌸5 · 28 → ¥2.200 · 38 → 2 brodo shoyu + riso · 50 → 🌸10 · 65 → ¥6.000; gli yen × (1 + livello × 0,12); agli aiutanti ¥400 al posto delle scatole |
 | Codici | RAMEN ¥500 · SAKURA 🌸5 · ITADAKIMASU ¥1.500 · OISHII 🌸10 · NEWSHOP ¥3.000 (yen × (1 + livello × 0,12)); una volta per giocatore |
 | Combo di servizio | piatti serviti entro 30 s l'uno dall'altro: +5% di mancia per passo, massimo +50% |
+| Noodles perfetti | barra del tempismo durante la cottura dei noodles (passaggio di 1,8 s): fermare l'ago tra il 50% e l'80% dà +20% di mancia per quella ciotola; sbagliare non toglie niente |
+| Kit di soccorso | se nessun piatto del menu si può fare e i soldi non bastano per gli ingredienti mancanti, il fornitore regala quelli del piatto più economico (al massimo ogni 10 minuti) |
+| Mi piace | chi visita può mettere ❤️ una volta al giorno per ristorante; i Mi piace hanno una classifica globale |
 | Corsa | Shift o 🏃: velocità × 1,45 |
 
 ---

@@ -117,10 +117,10 @@ Un test controlla l'integrità: ogni ingrediente usato esiste, ogni licenza punt
 | `StaffService` | assunzione, stipendi, addestramento, intelligenza del personale tramite bacheca dei compiti (§10) |
 | `TaskBoard` | elenco dei lavori da fare (prendere ordine, servire, raccogliere, lavare, rifornire, cucinare) usato dal personale e dai suggerimenti al giocatore |
 | `DayCycleService` | fasi della giornata, orologio, picchi, resoconto, giornata automatica |
-| `EconomyService` | yen, gettoni, moltiplicatori (VIP, franchise, eventi), registro delle transazioni del giorno |
+| `EconomyService` | yen, gettoni, moltiplicatori (VIP, franchise, eventi), registro delle transazioni del giorno; barattolo delle mance (`tipJar` nei dati, parte `Coins` che cresce, ritiro con clic o a fine giornata) |
 | `ProgressionService` | XP, livelli, licenze, upgrade, espansioni, maestrie, valutazione |
 | `MetaService` | missioni giornaliere, obiettivi, premio giornaliero, guadagni offline, set di decorazioni |
-| `RewardsService` | regali a tempo della sessione (`JoinedAt`, `GiftsClaimed` come attributi del giocatore, `ClaimGift`), codici (`RedeemCode`, usati in `meta.codes`), leaderstats ¥ e ⭐ |
+| `RewardsService` | Mi piace dei visitatori (remote `Like`, una volta al giorno per ristorante, `stats.likes`, attributo `Likes` del workspace, classifica `LB_Likes_v1`), regali a tempo della sessione (`JoinedAt`, `GiftsClaimed` come attributi del giocatore, `ClaimGift`), codici (`RedeemCode`, usati in `meta.codes`), leaderstats ¥ e ⭐ |
 | `FranchiseService` | rinascita e città |
 | `MonetizationService` | gamepass, `ProcessReceipt` con registro anti-doppio-acquisto |
 | `LeaderboardService` | classifiche globali (OrderedDataStore) mostrate su una bacheca in strada |
@@ -135,6 +135,7 @@ Un test controlla l'integrità: ogni ingrediente usato esiste, ogni licenza punt
 | `DataController` | copia locale dei dati del giocatore + eventi di cambiamento |
 | `InteractionController` | raggio dal cursore/tocco (dal centro dello schermo in prima persona), evidenziazione (`Highlight`) ed etichetta sull'oggetto se il giocatore è abbastanza vicino, clic/tocco/E → richiesta al server |
 | `ShelfTagsController` | cartellini locali sul bordo di ogni ripiano (icona e nome del prodotto nella lingua del giocatore), aggiornati quando cambia l'attributo `G` dello slot |
+| `TimingController` | barra del tempismo dei noodles (`Fx("timing")` durante il passaggio "boil" di chi cucina; il clic invia `TimingHit(uid, k)`, il server accetta k nella parte verde se vicino al suo tempo e segna la ciotola come perfetta) |
 | `FirstPersonController` | mirino e testo dell'azione al centro, oggetti in mano copiati davanti alla telecamera (attributo `Held` sui modelli in mano), mouse libero con un `GuiButton.Modal` visibile (menu aperto, costruzione, Alt), scorciatoie B/O/P/R, corsa (Shift o 🏃, attributo `WalkSpeed`), pulsante ✋ su touch |
 | `CarryVisualController` | posa delle braccia quando si porta qualcosa, pila di oggetti in mano |
 | `BuildController` | modalità costruzione: anteprima, griglia 1/5/10, rotazione, colori valido/non valido, vista dall'alto |
@@ -204,7 +205,7 @@ Permessi (salvati nei dati del proprietario): `helper` (cucina, serve, pulisce, 
 - DataStore `Profiles_v1`, chiave `u_<userId>`; scrittura sempre con `UpdateAsync`.
 - **Blocco di sessione**: il salvataggio contiene `{ jobId, time }`; un altro server non lo usa finché il blocco è recente (< 10 min), poi lo considera abbandonato. Evita duplicazioni.
 - Autosalvataggio ogni 120 s, all'uscita e in `game:BindToClose`; tentativi con attesa crescente; controllo del budget delle richieste.
-- `migrate(data)` porta i salvataggi vecchi alla versione corrente; i campi mancanti si riempiono dai valori predefiniti. Versione 2: locale ingrandito; versione 3: bancone da 12 sgabelli, mensole grandi e prima persona; versione 4: cucina componibile e mensole a scacchiera; versione 5: il sushi di base passa alla licenza `lic_sushi0` (chi aveva già giocato la riceve) (gli oggetti comprati tornano nell'inventario, le scorte delle mensole tornano nelle scatole).
+- `migrate(data)` porta i salvataggi vecchi alla versione corrente; i campi mancanti si riempiono dai valori predefiniti. Versione 2: locale ingrandito; versione 3: bancone da 12 sgabelli, mensole grandi e prima persona; versione 4: cucina componibile e mensole a scacchiera; versione 5: il sushi di base passa alla licenza `lic_sushi0` (chi aveva già giocato la riceve); versione 6: mensole vicino alla porta del magazzino, barattolo delle mance, licenza `lic_sashimi`, pentolone e cuociriso pieni nella cucina ricostruita (gli oggetti comprati tornano nell'inventario, le scorte delle mensole tornano nelle scatole).
 - Lo stato "in corso" (clienti seduti, piatti in mano) **non** si salva: alla riapertura il locale riparte pulito in fase di preparazione; le scorte (scatole, mensole, lotti pronti) invece si salvano.
 
 ### Replica al client

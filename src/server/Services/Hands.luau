@@ -47,6 +47,15 @@ end
 -- Capacity for a kind of item
 function Hands.capacity(actor, kind)
 	if kind == "box" then
+		-- the cart upgrade (and the big cart pass) lets players carry more boxes at once
+		if typeof(actor) == "Instance" and actor:IsA("Player") then
+			local od = Core.S.Session.ownerData()
+			local n = od and Upgrades.value(od.upgrades, "up_cart") or 1
+			if Core.S.Monetization and Core.S.Monetization.ownerHas("gp_express") then
+				n += 1
+			end
+			return n
+		end
 		return 1
 	elseif kind == "ing" then
 		return GameConfig.IngredientHandCapacity

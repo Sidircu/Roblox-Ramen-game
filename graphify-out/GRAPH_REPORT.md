@@ -1,17 +1,17 @@
 # Graph Report - Roblox-Ramen-game  (2026-11-17)
 
 ## Corpus Check
-- 140 files · ~177,057 words
+- 142 files · ~181,907 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: (none) 1)
 
 ## Summary
-- 1423 nodes · 3744 edges · 91 communities (58 shown, 33 thin omitted)
-- Extraction: 77% EXTRACTED · 23% INFERRED · 0% AMBIGUOUS · INFERRED: 857 edges (avg confidence: 0.85)
+- 1450 nodes · 3805 edges · 93 communities (59 shown, 34 thin omitted)
+- Extraction: 77% EXTRACTED · 23% INFERRED · 0% AMBIGUOUS · INFERRED: 865 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `25d6ca21`
+- Built from commit: `25f570e0`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -19,17 +19,17 @@
 - Controllers/Audio.luau
 - Appliance.luau
 - Cooking.luau
-- Services/Placement.luau
+- Progression.luau
 - Supply.luau
 - Scene.shell
-- Day.luau
+- Services/Placement.luau
 - Kit.new
 - re
 - mock.lua
 - shared_locale
 - Controllers/Build.luau
 - shared_config_ingredients
-- Food.luau
+- Kit.box
 - Services/Data.luau
 - Piano tecnico — architettura e implementazione
 - Bilanciamento — numeri, prezzi e sblocchi
@@ -42,7 +42,7 @@
 - 9. Costruzione e decorazione
 - 10. Sistemi di gioco
 - 5. Catalogo oggetti piazzabili
-- Controllers/Interaction.luau
+- script_parent_parent_core
 - 4. Rifornimento: tablet, consegne, magazzino, mensole
 - 2. Il mondo
 - 3. Ciclo di gioco
@@ -53,30 +53,32 @@
 - Tutorial.luau
 - Events.luau
 - Seating.luau
-- Kit.cyl
-- Street.luau
+- Controllers/Interaction.luau
+- Economy.luau
 - People.luau
 - Gifts.luau
 - Sakura Ramen & Sushi Tycoon (titolo provvisorio)
-- Kit.box
+- Formulas.luau
 - preview.py
-- Kitchen.luau
+- Services/Customers.luau
 - check_luau.py
 - build_place.py
-- shared_models_registry
+- run
 - sys
-- script_parent_parent_core
+- Session.luau
 - Placement.validate
 - HUD.luau
 - check_scopes
 - build_tree
-- Meta.luau
+- Net.luau
 - Footprint.luau
-- Services/Customers.luau
-- RamenYa.luau
-- Furniture.luau
+- Npc.luau
+- data
+- Registry.luau
 - Walls.luau
-- FirstPerson.luau
+- Services/Rewards.luau
+- Net.on
+- Ambience.compute
 - 10. Interfaccia
 
 ## God Nodes (most connected - your core abstractions)
@@ -94,51 +96,51 @@
 ## Surprising Connections (you probably didn't know these)
 - `12. Interfaccia e lingue` --references--> `refresh()`  [INFERRED]
   docs/02-PIANO-TECNICO.md → src/server/Services/Appliance.luau
-- `speed()` --calls--> `Formulas.staffSpeed()`  [INFERRED]
-  src/server/Services/Staff.luau → src/shared/Logic/Formulas.luau
-- `frame()` --calls--> `Kit.box()`  [INFERRED]
-  src/shared/Models/Builders/Decor.luau → src/shared/Models/Kit.luau
-- `review()` --calls--> `Economy.addSakura()`  [INFERRED]
-  src/server/Services/Customers.luau → src/server/Services/Economy.luau
-- `Placement.place()` --calls--> `Economy.spendSakura()`  [INFERRED]
-  src/server/Services/Placement.luau → src/server/Services/Economy.luau
+- `Interaction.highlightRecipe()` --calls--> `Color.hex()`  [INFERRED]
+  src/client/Controllers/Interaction.luau → src/shared/Util/Color.luau
+- `Interaction.Init()` --calls--> `Color.hex()`  [INFERRED]
+  src/client/Controllers/Interaction.luau → src/shared/Util/Color.luau
+- `Timing.result()` --calls--> `Audio.play()`  [INFERRED]
+  src/client/Controllers/Timing.luau → src/client/Controllers/Audio.luau
+- `run()` --calls--> `Npc.sit()`  [INFERRED]
+  src/server/Services/Customers.luau → src/server/Services/Npc.luau
 
 ## Import Cycles
 - None detected.
 
-## Communities (91 total, 33 thin omitted)
+## Communities (93 total, 34 thin omitted)
 
 ### Community 0 - "Controllers/Audio.luau"
 Cohesion: 0.13
-Nodes (27): runTrain(), ambienceLoop(), Audio.attachTrain(), Audio.play(), Audio.Start(), Audio.step(), Audio.trainVolume(), customersInside() (+19 more)
+Nodes (26): runTrain(), ambienceLoop(), Audio.attachTrain(), Audio.play(), Audio.Start(), Audio.step(), Audio.trainVolume(), customersInside() (+18 more)
 
 ### Community 1 - "Appliance.luau"
-Cohesion: 0.05
-Nodes (91): 12. Interfaccia e lingue, Appliance.addDirtyToSink(), Appliance.hasBroth(), Appliance.hasRice(), Appliance.hold(), Appliance.Init(), Appliance.load(), Appliance.needsRefill() (+83 more)
+Cohesion: 0.06
+Nodes (88): 12. Interfaccia e lingue, Appliance.addDirtyToSink(), Appliance.hasBroth(), Appliance.hasRice(), Appliance.hold(), Appliance.Init(), Appliance.load(), Appliance.needsRefill() (+80 more)
 
 ### Community 2 - "Cooking.luau"
-Cohesion: 0.22
-Nodes (13): broadcast(), Cooking.addTicket(), Cooking.clearTickets(), Cooking.isRecipeInProgress(), Cooking.maxTickets(), Cooking.readyDishes(), Cooking.removeTicket(), Cooking.stationState() (+5 more)
+Cohesion: 0.20
+Nodes (15): broadcast(), Cooking.addTicket(), Cooking.clearTickets(), Cooking.Init(), Cooking.isRecipeInProgress(), Cooking.maxTickets(), Cooking.readyDishes(), Cooking.removeTicket() (+7 more)
 
-### Community 3 - "Services/Placement.luau"
-Cohesion: 0.06
-Nodes (59): open(), Service.check(), Net.fire(), Net.fireAll(), Net.fx(), Net.fxTo(), Net.notify(), Net.notifyAll() (+51 more)
+### Community 3 - "Progression.luau"
+Cohesion: 0.14
+Nodes (25): open(), Service.check(), Net.fireAll(), Net.fx(), Net.notify(), Net.notifyAll(), Placement.revalidate(), buyAd() (+17 more)
 
 ### Community 4 - "Supply.luau"
-Cohesion: 0.12
-Nodes (39): autoRestock(), boxModel(), cellFloor(), chooseSlot(), data(), deliveryLoop(), deliveryTime(), dropSpots() (+31 more)
+Cohesion: 0.11
+Nodes (41): autoRestock(), boxModel(), cellFloor(), chooseSlot(), data(), deliveryLoop(), deliveryTime(), dropSpots() (+33 more)
 
 ### Community 5 - "Scene.shell"
-Cohesion: 0.06
-Nodes (13): World.surfaceOf(), Footprint.subtractRect(), fitOverride(), override(), Registry.build(), facadeColor(), floorY(), holesFor() (+5 more)
+Cohesion: 0.07
+Nodes (31): World.surfaceOf(), Footprint.subtractRect(), B.doorFrame(), B.eave(), B.entranceNoren(), B.facadeDetail(), B.floorSkin(), B.openSign() (+23 more)
 
-### Community 6 - "Day.luau"
-Cohesion: 0.40
-Nodes (11): data(), Day.broadcast(), Day.closeEarly(), Day.Init(), Day.next(), Day.open(), Day.Start(), finish() (+3 more)
+### Community 6 - "Services/Placement.luau"
+Cohesion: 0.22
+Nodes (22): Economy.spendSakura(), canAfford(), changed(), checkVetoes(), children(), despawn(), findEntry(), itemUnlocked() (+14 more)
 
 ### Community 7 - "Kit.new"
-Cohesion: 0.06
-Nodes (75): Build.Init(), FirstPerson.Init(), Interaction.highlightRecipe(), Interaction.Init(), Tutorial.Init(), UI.close(), UI.Init(), UI.open() (+67 more)
+Cohesion: 0.05
+Nodes (83): FirstPerson.Init(), blend(), LightingC.Init(), LightingC.Start(), look(), track(), Tutorial.Init(), UI.close() (+75 more)
 
 ### Community 8 - "re"
 Cohesion: 0.25
@@ -154,19 +156,19 @@ Nodes (3): cartForMenu(), stock(), unlocked()
 
 ### Community 11 - "Controllers/Build.luau"
 Cohesion: 0.10
-Nodes (41): Build.cancel(), Build.cycleGrid(), Build.enter(), Build.exit(), Build.geometry(), Build.place(), Build.removeSelected(), Build.rotate() (+33 more)
+Nodes (42): Build.cancel(), Build.cycleGrid(), Build.enter(), Build.exit(), Build.geometry(), Build.Init(), Build.place(), Build.removeSelected() (+34 more)
 
 ### Community 12 - "shared_config_ingredients"
-Cohesion: 0.25
-Nodes (5): allowed(), Dev.Init(), run(), SelfTest.run(), waitFor()
+Cohesion: 0.16
+Nodes (8): Ambient.Start(), offset(), track(), allowed(), Dev.Init(), run(), SelfTest.run(), waitFor()
 
-### Community 13 - "Food.luau"
-Cohesion: 0.14
-Nodes (63): baran(), blobAt(), box(), boxContents(), boxLabel(), c(), cabbage(), chashuSlice() (+55 more)
+### Community 13 - "Kit.box"
+Cohesion: 0.06
+Nodes (158): makeScene(), B.entranceDetail(), bonsai(), chochin(), foliage(), frame(), lanternString(), maneki() (+150 more)
 
 ### Community 14 - "Services/Data.luau"
 Cohesion: 0.07
-Nodes (41): Data.changed(), Data.get(), Data.Init(), Data.isLoaded(), Data.newProfile(), Data.reset(), Data.save(), Data.saveNow() (+33 more)
+Nodes (42): Data.Init(), Data.isLoaded(), Data.newProfile(), Data.reset(), Data.save(), Data.saveNow(), Data.snapshot(), Data.Start() (+34 more)
 
 ### Community 15 - "Piano tecnico — architettura e implementazione"
 Cohesion: 0.12
@@ -177,8 +179,8 @@ Cohesion: 0.12
 Nodes (16): 10. Ricompense e meta, 11. Monetizzazione (valori predefiniti, prezzi in Robux da decidere), 1. Formule principali, 2. Ingredienti (scatole del fornitore), 3. Ricette, 4. Licenze, 6. Miglioramenti, 7. Personale (+8 more)
 
 ### Community 17 - "World.luau"
-Cohesion: 0.16
-Nodes (10): buildShell(), buildStreet(), folder(), geo(), World.floorY(), World.Init(), World.rebuild(), World.recompute() (+2 more)
+Cohesion: 0.15
+Nodes (11): buildShell(), buildStreet(), folder(), geo(), World.floorY(), World.Init(), World.rebuild(), World.recompute() (+3 more)
 
 ### Community 18 - "8. Progressione"
 Cohesion: 0.17
@@ -189,12 +191,12 @@ Cohesion: 0.20
 Nodes (10): 0. Decisioni già prese, 11. Grafica e atmosfera, 12. Monetizzazione (predisposta), 13. Priorità di realizzazione, 14. Da decidere più avanti (non blocca lo sviluppo), 1. Visione, 7. Menu e prezzi, Durata prevista (+2 more)
 
 ### Community 21 - "Camera.luau"
-Cohesion: 0.25
-Nodes (17): Camera.apply(), Camera.applyRoofs(), Camera.currentFloor(), Camera.isFirstPerson(), Camera.isIndoors(), Camera.mode(), Camera.setBuildView(), Camera.setTop() (+9 more)
+Cohesion: 0.15
+Nodes (27): Camera.apply(), Camera.applyRoofs(), Camera.currentFloor(), Camera.isFirstPerson(), Camera.isIndoors(), Camera.mode(), Camera.setBuildView(), Camera.setTop() (+19 more)
 
 ### Community 22 - "5. Cucina"
-Cohesion: 0.25
-Nodes (8): 5.1 bis Il tagliere ti dice cosa portare, 5.1 Ordini, 5.2 Preparare il sushi (postazione sushi / tagliere), 5.3 Preparare il ramen (postazione ramen), 5.4 Altre postazioni (sbloccate con licenze), 5.5 Velocità e freschezza, 5.6 Servire, pagare, pulire, 5. Cucina
+Cohesion: 0.22
+Nodes (9): 5.1 bis Il tagliere ti dice cosa portare, 5.1 Ordini, 5.1 ter Noodles perfetti (facoltativo), 5.2 Preparare il sushi (postazione sushi / tagliere), 5.3 Preparare il ramen (postazione ramen), 5.4 Altre postazioni (sbloccate con licenze), 5.5 Velocità e freschezza, 5.6 Servire, pagare, pulire (+1 more)
 
 ### Community 24 - "Signal.luau"
 Cohesion: 0.38
@@ -212,9 +214,9 @@ Nodes (6): 10. Sistemi di gioco, Clienti (macchina a stati), Giornata ed economi
 Cohesion: 0.29
 Nodes (7): 5.1 Sedute, tavoli e bancone, 5.2 Cucina e magazzino, 5.3 Decorazioni, 5.4 Pavimenti e pareti (per zona), 5.5 Livelli di ambiente, 5. Catalogo oggetti piazzabili, Pacchetto Ramen-ya (ispirato ai banconi dei ramen-ya veri)
 
-### Community 28 - "Controllers/Interaction.luau"
-Cohesion: 0.13
-Nodes (20): act(), actionText(), aimingCenter(), castAt(), findTarget(), handsKind(), hrp(), inRange() (+12 more)
+### Community 28 - "script_parent_parent_core"
+Cohesion: 0.07
+Nodes (34): act(), washHold(), noQuery(), plateCf(), progressOf(), Sink.beginHold(), Sink.endHold(), Sink.toggle() (+26 more)
 
 ### Community 29 - "4. Rifornimento: tablet, consegne, magazzino, mensole"
 Cohesion: 0.40
@@ -246,15 +248,15 @@ Nodes (37): Data.applyLanguage(), Data.canBuild(), Data.Init(), Data.m(), Data.r
 
 ### Community 48 - "Seating.luau"
 Cohesion: 0.17
-Nodes (11): busy(), closestPoint(), free(), gap(), Seating.benchSpot(), Seating.find(), Seating.freeBench(), Seating.freeCount() (+3 more)
+Nodes (10): Placement.addVeto(), busy(), closestPoint(), free(), gap(), Seating.find(), Seating.freeCount(), Seating.Init() (+2 more)
 
-### Community 64 - "Kit.cyl"
-Cohesion: 0.17
-Nodes (29): makeScene(), bonsai(), chochin(), foliage(), frame(), lanternString(), maneki(), neon() (+21 more)
+### Community 64 - "Controllers/Interaction.luau"
+Cohesion: 0.16
+Nodes (16): actionText(), aimingCenter(), castAt(), findTarget(), handsKind(), hrp(), inRange(), Interaction.highlightRecipe() (+8 more)
 
-### Community 65 - "Street.luau"
-Cohesion: 0.20
-Nodes (26): acUnit(), aframe(), balcony(), lp(), NC(), rng(), S.bicycle(), S.bins() (+18 more)
+### Community 65 - "Economy.luau"
+Cohesion: 0.22
+Nodes (14): pay(), Data.changed(), Data.get(), drawJars(), Economy.add(), Economy.boostActive(), Economy.charge(), Economy.collectTips() (+6 more)
 
 ### Community 66 - "People.luau"
 Cohesion: 0.22
@@ -268,17 +270,17 @@ Nodes (4): claimedSet(), elapsed(), nextGift(), screen.tick()
 Cohesion: 0.29
 Nodes (7): Anteprima dei modelli (senza Studio), Aprire il gioco in Roblox Studio, Controlli, Documenti, Robux, suoni, modelli, Sakura Ramen & Sushi Tycoon (titolo provvisorio), Struttura
 
-### Community 70 - "Kit.box"
-Cohesion: 0.24
-Nodes (23): B.doorFrame(), B.eave(), B.entranceDetail(), B.entranceNoren(), B.facadeDetail(), B.floorSkin(), B.openSign(), B.parapet() (+15 more)
+### Community 70 - "Formulas.luau"
+Cohesion: 0.20
+Nodes (15): Progression.addXp(), Progression.priceOf(), Formulas.addXp(), Formulas.dishPrice(), Formulas.levelReward(), Formulas.masteryLevel(), Formulas.offlineEarnings(), Formulas.questTarget() (+7 more)
 
 ### Community 71 - "preview.py"
 Cohesion: 0.17
 Nodes (7): list_dir(), luau_to_lua(), main(), part_faces(), read_module(), render(), to_plot()
 
-### Community 72 - "Kitchen.luau"
-Cohesion: 0.32
-Nodes (17): backsplash(), bowlStack(), brothPot(), cabinet(), fittedBase(), hood(), knobs(), nc() (+9 more)
+### Community 72 - "Services/Customers.luau"
+Cohesion: 0.18
+Nodes (11): bumpCombo(), dishKind(), eat(), serveQueue(), Service.collectDirty(), Service.serve(), Service.use(), setState() (+3 more)
 
 ### Community 73 - "check_luau.py"
 Cohesion: 0.24
@@ -288,75 +290,79 @@ Nodes (8): check_blocks(), check_locale(), check_requires(), load_locale(), long
 Cohesion: 0.32
 Nodes (8): cdata(), from_fs(), from_node(), item(), main(), prop_xml(), ref(), script_class()
 
-### Community 75 - "shared_models_registry"
-Cohesion: 0.47
-Nodes (4): Ambient.Start(), offset(), track(), Registry.load()
+### Community 75 - "run"
+Cohesion: 0.17
+Nodes (14): entrance(), floorPos(), leaveDirty(), leaveRestaurant(), patienceTick(), release(), run(), setOrder() (+6 more)
 
-### Community 77 - "script_parent_parent_core"
-Cohesion: 0.09
-Nodes (34): blend(), LightingC.Init(), LightingC.Start(), look(), track(), icons(), make(), setBar() (+26 more)
+### Community 77 - "Session.luau"
+Cohesion: 0.32
+Nodes (16): allowedGuest(), becomeOwner(), broadcastInfo(), onLobbyPlayer(), onWorldPlayer(), safe(), Session.canBuild(), Session.canWork() (+8 more)
 
 ### Community 78 - "Placement.validate"
 Cohesion: 0.25
 Nodes (11): Footprint.new(), Pathgrid.check(), boxesOverlap(), contains(), Placement.box(), Placement.floorY(), Placement.footprint(), Placement.pathOk() (+3 more)
 
 ### Community 79 - "HUD.luau"
-Cohesion: 0.28
-Nodes (5): HUD.refreshGift(), HUD.refreshHands(), HUD.setBuilding(), keyHint(), Format.duration()
+Cohesion: 0.21
+Nodes (8): HUD.currentGoal(), HUD.refreshGift(), HUD.refreshGoal(), HUD.refreshHands(), HUD.refreshLike(), HUD.setBuilding(), keyHint(), Format.duration()
 
 ### Community 81 - "build_tree"
 Cohesion: 0.50
 Nodes (4): build_tree(), add_path(), walk(), rojo_name()
 
-### Community 82 - "Meta.luau"
-Cohesion: 0.19
-Nodes (12): checkAchievements(), claimAchievement(), claimDaily(), claimQuest(), computeOffline(), dayIndex(), ensureQuests(), Meta.dayEnded() (+4 more)
+### Community 82 - "Net.luau"
+Cohesion: 0.24
+Nodes (5): Net.fire(), Net.fxTo(), Net.num(), Net.str(), parseReq()
 
 ### Community 83 - "Footprint.luau"
 Cohesion: 0.25
 Nodes (13): overflowSlots(), World.fixedRects(), Footprint.axes(), Footprint.bounds(), Footprint.corners(), Footprint.inflate(), Footprint.insideRects(), Footprint.overlaps() (+5 more)
 
-### Community 84 - "Services/Customers.luau"
-Cohesion: 0.06
-Nodes (57): bumpCombo(), chooseOrder(), data(), dirtyNear(), dishKind(), eat(), entrance(), floorPos() (+49 more)
+### Community 84 - "Npc.luau"
+Cohesion: 0.16
+Nodes (12): describe(), loadAnims(), moveTo(), Npc.acquireCustomer(), Npc.create(), Npc.release(), Npc.sit(), Npc.spawn() (+4 more)
 
-### Community 85 - "RamenYa.luau"
-Cohesion: 0.26
-Nodes (9): banner(), bowlArt(), high(), label(), nc(), pendant(), point(), posterRow() (+1 more)
+### Community 85 - "data"
+Cohesion: 0.27
+Nodes (10): chooseOrder(), data(), dirtyNear(), pickType(), review(), Service.availableMenu(), Service.trySpawn(), Economy.addSakura() (+2 more)
 
-### Community 86 - "Furniture.luau"
-Cohesion: 0.44
-Nodes (11): chair(), condiments(), counter(), cushion(), nc(), point(), rack(), size() (+3 more)
+### Community 86 - "Registry.luau"
+Cohesion: 0.32
+Nodes (3): fitOverride(), override(), Registry.build()
 
 ### Community 87 - "Walls.luau"
 Cohesion: 0.29
 Nodes (8): Geometry.compute(), Geometry.stairs(), cut(), floorCells(), key(), merge(), Walls.along(), Walls.compute()
 
-### Community 89 - "FirstPerson.luau"
-Cohesion: 0.18
-Nodes (17): active(), clearViews(), FirstPerson.cursorFree(), FirstPerson.Start(), setHeldLabels(), shortcut(), syncViews(), updateCrosshair() (+9 more)
+### Community 89 - "Services/Rewards.luau"
+Cohesion: 0.33
+Nodes (7): claimGift(), grant(), leaderstats(), onPlayer(), publishClaimed(), redeemCode(), Rewards.Start()
+
+### Community 90 - "Net.on"
+Cohesion: 0.29
+Nodes (4): Net.on(), Progression.Init(), Rewards.Init(), RateLimit.new()
 
 ### Community 98 - "10. Interfaccia"
 Cohesion: 0.40
 Nodes (5): 10. Interfaccia, Guida dell'ordine, Oggetti in mano, Telecamera e comandi, Tutorial
 
 ## Knowledge Gaps
-- **33 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **34 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `refresh()` connect `Appliance.luau` to `Kit.new`?**
-  _High betweenness centrality (0.163) - this node is a cross-community bridge._
+  _High betweenness centrality (0.157) - this node is a cross-community bridge._
 - **Are the 94 inferred relationships involving `Kit.box()` (e.g. with `makeScene()` and `B.doorFrame()`) actually correct?**
   _`Kit.box()` has 94 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Controllers/Audio.luau` be split into smaller, more focused modules?**
-  _Cohesion score 0.12688172043010754 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
 - **Why does `Piano tecnico — architettura e implementazione` connect `Piano tecnico — architettura e implementazione` to `Appliance.luau`, `10. Sistemi di gioco`, `01-GAME-DESIGN.md`, `7. Salvataggi`?**
-  _High betweenness centrality (0.162) - this node is a cross-community bridge._
+  _High betweenness centrality (0.154) - this node is a cross-community bridge._
 - **Are the 57 inferred relationships involving `Kit.cyl()` (e.g. with `makeScene()` and `B.entranceDetail()`) actually correct?**
   _`Kit.cyl()` has 57 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Appliance.luau` be split into smaller, more focused modules?**
-  _Cohesion score 0.0547680412371134 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05765271105010295 - nodes in this community are weakly interconnected._
 - **Why does `12. Interfaccia e lingue` connect `Appliance.luau` to `Piano tecnico — architettura e implementazione`?**
-  _High betweenness centrality (0.158) - this node is a cross-community bridge._
+  _High betweenness centrality (0.151) - this node is a cross-community bridge._

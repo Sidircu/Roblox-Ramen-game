@@ -30,6 +30,8 @@ Net.Events = {
 	"ClaimDaily",
 	"ClaimOffline",
 	"Wash", -- (sinkUid, holding) hold to wash dishes at the sink
+	"TimingHit", -- (stationUid, k) noodle timing bar stopped at k (0..1)
+	"Like", -- like the restaurant you are visiting
 	"ClaimGift", -- (index) free gift for minutes played
 	"RedeemCode", -- (code)
 	"SetSetting", -- (key, value)

@@ -1,10 +1,12 @@
 --!nonstrict
 -- License tree. Buying a license unlocks its recipes and station items.
 local list = {
-	-- you start with shoyu ramen only; basic sushi comes with the first license
+	-- you start with shoyu ramen only; a very easy second dish (salmon sashimi: one cut) comes
+	-- cheap at level 2, then basic sushi with rice
 	{ id = "lic_base", branch = "base", level = 1, cost = 0, rating = 0, requires = {}, recipes = { "shoyu_ramen" } },
-	{ id = "lic_sushi0", branch = "sushi", level = 2, cost = 800, rating = 0, requires = { "lic_base" }, recipes = { "kappa_maki", "sake_nigiri" } },
-	{ id = "lic_sushi1", branch = "sushi", level = 3, cost = 2500, rating = 0, requires = { "lic_sushi0" }, recipes = { "tekka_maki", "maguro_nigiri" } },
+	{ id = "lic_sashimi", branch = "sushi", level = 2, cost = 300, rating = 0, requires = { "lic_base" }, recipes = { "sake_sashimi" } },
+	{ id = "lic_sushi0", branch = "sushi", level = 3, cost = 800, rating = 0, requires = { "lic_sashimi" }, recipes = { "kappa_maki", "sake_nigiri" } },
+	{ id = "lic_sushi1", branch = "sushi", level = 4, cost = 2500, rating = 0, requires = { "lic_sushi0" }, recipes = { "tekka_maki", "maguro_nigiri" } },
 	{ id = "lic_ramen1", branch = "ramen", level = 4, cost = 3000, rating = 0, requires = { "lic_base" }, recipes = { "shio_ramen" } },
 	{ id = "lic_sides", branch = "extra", level = 5, cost = 4000, rating = 0, requires = { "lic_base" }, recipes = { "edamame", "green_tea", "miso_soup" } },
 	{ id = "lic_sushi2", branch = "sushi", level = 8, cost = 12000, rating = 0, requires = { "lic_sushi1" }, recipes = { "california_roll", "ebi_nigiri" } },

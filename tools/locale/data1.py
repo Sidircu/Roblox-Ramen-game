@@ -16,7 +16,7 @@ NAMES = [
 ("ing.tsukemen_noodles","Thick noodles","Noodles spessi"),("ing.mochi","Mochi","Mochi"),("ing.matcha","Matcha","Matcha"),
 ("ing.ramune","Ramune","Ramune"),("ing.otoro","Otoro","Otoro"),("ing.black_garlic","Black garlic oil","Olio d'aglio nero"),
 # recipes
-("rec.kappa_maki","Kappa Maki","Kappa Maki"),("rec.sake_nigiri","Salmon Nigiri","Nigiri al salmone"),("rec.shoyu_ramen","Shoyu Ramen","Shoyu Ramen"),
+("rec.kappa_maki","Kappa Maki","Kappa Maki"),("rec.sake_nigiri","Salmon Nigiri","Nigiri al salmone"),("rec.sake_sashimi","Salmon Sashimi","Sashimi di salmone"),("rec.shoyu_ramen","Shoyu Ramen","Shoyu Ramen"),
 ("rec.tekka_maki","Tekka Maki","Tekka Maki"),("rec.maguro_nigiri","Tuna Nigiri","Nigiri al tonno"),("rec.shio_ramen","Shio Ramen","Shio Ramen"),
 ("rec.edamame","Edamame","Edamame"),("rec.green_tea","Green Tea","Tè verde"),("rec.miso_soup","Miso Soup","Zuppa di miso"),
 ("rec.california_roll","California Roll","California Roll"),("rec.ebi_nigiri","Shrimp Nigiri","Nigiri al gambero"),("rec.miso_ramen","Miso Ramen","Miso Ramen"),
@@ -31,7 +31,7 @@ NAMES = [
 ("rec.hakata_ramen","Hakata Ramen","Hakata Ramen"),("rec.yatai_gyoza","Yatai Gyoza","Gyoza dello yatai"),("rec.okinawa_soba","Okinawa Soba","Okinawa Soba"),
 ("rec.goya_champuru","Goya Champuru","Goya Champuru"),
 # licenses
-("lic.lic_base","Starter License (ramen)","Licenza base (ramen)"),("lic.lic_sushi0","Basic sushi","Sushi di base"),("lic.lic_sushi1","Sushi I","Sushi I"),("lic.lic_ramen1","Ramen I","Ramen I"),
+("lic.lic_base","Starter License (ramen)","Licenza base (ramen)"),("lic.lic_sushi0","Basic sushi","Sushi di base"),("lic.lic_sashimi","Sashimi","Sashimi"),("lic.lic_sushi1","Sushi I","Sushi I"),("lic.lic_ramen1","Ramen I","Ramen I"),
 ("lic.lic_sides","Sides & Tea","Contorni e tè"),("lic.lic_sushi2","Sushi II","Sushi II"),("lic.lic_ramen2","Ramen II","Ramen II"),
 ("lic.lic_griddle","Griddle","Piastra"),("lic.lic_sushi3","Sushi III","Sushi III"),("lic.lic_ramen3","Ramen III","Ramen III"),
 ("lic.lic_fryer","Fryer","Friggitrice"),("lic.lic_sushi4","Sushi IV","Sushi IV"),("lic.lic_street","Street Food","Street food"),
@@ -46,7 +46,7 @@ NAMES = [
 # upgrades
 ("upg.up_tray","Tray","Vassoio"),("upg.up_shoes","Kitchen shoes","Scarpe da cucina"),("upg.up_knife","Knife","Coltello"),
 ("upg.up_mat","Makisu mat","Stuoia makisu"),("upg.up_strainer","Tebo strainer","Scolapasta tebo"),("upg.up_shelf","Reinforced shelves","Mensole rinforzate"),
-("upg.up_delivery","Delivery","Consegna"),("upg.up_supplier","Premium supplier","Fornitore premium"),("upg.up_sign","Lit sign","Insegna luminosa"),
+("upg.up_cart","Box cart","Carrello per scatole"),("upg.up_supplier","Premium supplier","Fornitore premium"),("upg.up_sign","Lit sign","Insegna luminosa"),
 ("upg.up_ticket","Order rail","Barra degli ordini"),("upg.up_jukebox","Jukebox","Jukebox"),("upg.up_safe","Safe (offline earnings)","Cassaforte (guadagni offline)"),
 ("upg.up_autorestock","Auto restock","Riordino automatico"),
 # ads
