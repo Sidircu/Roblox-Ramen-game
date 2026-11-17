@@ -263,7 +263,13 @@ local function doRestock(a)
 		return false
 	end
 	return carryBoxTo(a, box, target, function()
-		Core.S.Supply.useShelf(a, target, nil)
+		-- one slot per click: keep going while the box has products and the shelf has room
+		for _ = 1, 4 do
+			local h = Core.S.Hands.get(a)
+			if h.kind ~= "box" or not Core.S.Supply.useShelf(a, target, nil) then
+				break
+			end
+		end
 	end)
 end
 

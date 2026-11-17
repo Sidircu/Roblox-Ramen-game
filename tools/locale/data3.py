@@ -112,7 +112,7 @@ TUT = [
 ("tut.step","Tutorial {i}/{n}","Tutorial {i}/{n}"),
 ("tut.welcome","Welcome to your ramen-ya! Walk with WASD (Shift to run) and look around with the mouse or by dragging a finger. Aim at things with the dot in the middle and click or press E to use them. Press Q to use the mouse on the buttons (Q again to look around); Enter shows the next tip.","Benvenuto nel tuo ramen-ya! Cammina con WASD (Shift per correre) e guardati intorno con il mouse o trascinando un dito. Punta le cose con il pallino al centro e clicca o premi E per usarle. Premi Q per usare il mouse sui pulsanti (di nuovo Q per tornare a guardare); Invio mostra il consiglio successivo."),
 ("tut.take_box","The boxes are outside the storage door: follow the yellow arrow and click a box of noodles, scallion or naruto. In your hands it opens and you see what is inside.","Le scatole sono fuori dalla porta del magazzino: segui la freccia gialla e clicca una scatola di noodles, cipollotto o naruto. In mano si apre e vedi cosa c'è dentro."),
-("tut.fill_shelf","Carry it to a shelf in the kitchen and click the shelf: the products jump onto the free spots of the grid (each box fills 2 slots). Right click (or G) puts a box down.","Portala a uno scaffale della cucina e clicca lo scaffale: i prodotti saltano nei posti liberi della griglia (ogni scatola riempie 2 ripiani). Il tasto destro (o G) posa la scatola."),
+("tut.fill_shelf","Carry it to a shelf in the kitchen and click a slot: the products jump onto its free spots. What is left stays in the box: click another slot. Right click (or G) puts a box down.","Portala a uno scaffale della cucina e clicca un ripiano: i prodotti saltano nei suoi posti liberi. Quelli che avanzano restano nella scatola: clicca un altro ripiano. Il tasto destro (o G) posa la scatola."),
 ("tut.rice","Take a box of rice and click the rice cooker: the rice cooks by itself.","Prendi una scatola di riso e clicca il rice cooker: il riso cuoce da solo."),
 ("tut.broth","Now the shoyu broth: take its box and click the big pot on the range. The broth cooks by itself.","Ora il brodo shoyu: prendi la sua scatola e clicca il pentolone sul fornello. Il brodo cuoce da solo."),
 ("tut.open","Tap the red CLOSED switch at the top: it turns green (OPEN) and customers arrive.","Tocca l'interruttore rosso CHIUSO in alto: diventa verde (APERTO) e arrivano i clienti."),
@@ -169,7 +169,7 @@ MSG += [
 # Boxes and products: always say where things went
 MSG += [
 ("msg.restocked","📦 +{n} {name} on the shelf. Box empty!","📦 +{n} {name} sullo scaffale. Scatola finita!"),
-("msg.restocked_left","📦 +{n} {name} on the shelf. {left} left in the box: fill another shelf.","📦 +{n} {name} sullo scaffale. Nella scatola ne restano {left}: riempi un altro scaffale."),
+("msg.restocked_left","📦 +{n} {name} on the shelf. {left} left in the box: click another slot.","📦 +{n} {name} sullo scaffale. Nella scatola ne restano {left}: clicca un altro ripiano."),
 ("msg.box_on_floor","📦 Box put down in front of you. Click it to pick it up again.","📦 Scatola appoggiata a terra davanti a te. Cliccala per riprenderla."),
 ("msg.box_on_rack","📦 Box put back on the storage rack.","📦 Scatola rimessa sulla scaffalatura del magazzino."),
 ("msg.ing_returned","↩️ Put back on the shelf ({n}).","↩️ Rimesso sullo scaffale ({n})."),

@@ -631,14 +631,28 @@ function Supply.useShelf(actor, e, slot)
 		end
 		local entry = hands.items[index]
 		local cap = Supply.slotCap(e, entry.g)
-		local placed, filled = 0, 0
-		local target = chooseSlot(e, entry.g, slot)
-		if not target then
-			return false, "msg.shelf_full"
+		local placed = 0
+		local target
+		if slot and slot >= 1 and slot <= e.item.fn.slots then
+			-- the slot you clicked, and only that one
+			local s = st[tostring(slot)]
+			if s and s.n > 0 and s.g ~= entry.g then
+				return false, "msg.slot_other", { name = "ing." .. s.g }
+			end
+			if s and s.n >= cap then
+				return false, "msg.slot_full"
+			end
+			target = slot
+		else
+			-- clicked the shelf itself: the slot that already holds this product, else an empty one
+			target = chooseSlot(e, entry.g, nil)
+			if not target then
+				return false, "msg.shelf_full"
+			end
 		end
-		-- fill the clicked slot first, then the next free one: at most BoxShelfSlots slots per box
+		-- one slot per click: what does not fit stays in the box for the slot you click next
 		local flights, touched = {}, {}
-		while target and entry.n > 0 and filled < GameConfig.BoxShelfSlots do
+		do
 			local s = st[tostring(target)]
 			if not s or s.n == 0 then
 				s = { g = entry.g, n = 0 }
@@ -654,9 +668,7 @@ function Supply.useShelf(actor, e, slot)
 			s.n += amount
 			entry.n -= amount
 			placed += amount
-			filled += 1
 			table.insert(touched, target)
-			target = entry.n > 0 and chooseSlot(e, entry.g, nil) or nil
 		end
 		local left = entry.n
 		if entry.n <= 0 then

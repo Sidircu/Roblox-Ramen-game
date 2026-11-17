@@ -1437,6 +1437,10 @@ return {
 	["hint.shelf_empty"] = "Empty slot",
 	["hint.sink"] = "Sink",
 	["hint.sink_drop"] = "Put the dirty dishes here",
+	["hint.slot_add"] = "Add {name}: {free} free spots",
+	["hint.slot_full"] = "This slot is full: pick another one",
+	["hint.slot_other"] = "{name} is here: pick an empty slot",
+	["hint.slot_put"] = "Put the products on this slot",
 	["hint.station"] = "Bring ingredients",
 	["hint.supplier"] = "Order ingredients",
 	["hint.take_box"] = "Take box: {name}",
@@ -1719,12 +1723,14 @@ return {
 	["msg.reno_bought"] = "🪚 Renovation done: {name}!",
 	["msg.rescue_kit"] = "🎁 The supplier saw you were out of money and ingredients: a free kit is on its way!",
 	["msg.restocked"] = "📦 +{n} {name} on the shelf. Box empty!",
-	["msg.restocked_left"] = "📦 +{n} {name} on the shelf. {left} left in the box: fill another shelf.",
+	["msg.restocked_left"] = "📦 +{n} {name} on the shelf. {left} left in the box: click another slot.",
 	["msg.seat_busy"] = "Someone is using it.",
 	["msg.selftest_result"] = "🧪 Self-test: {passed}/{total} passed. Failed: {failed} (details in Output)",
 	["msg.shelf_empty"] = "The shelf is empty.",
 	["msg.shelf_full"] = "The shelf is full.",
 	["msg.sink_hint"] = "Bring dirty dishes here.",
+	["msg.slot_full"] = "This slot is full: click another one.",
+	["msg.slot_other"] = "{name} is on this slot: put your box on an empty slot.",
 	["msg.staff_full"] = "No free staff slots: expand the restaurant.",
 	["msg.staff_hired"] = "👋 {name} the {role} joined the team!",
 	["msg.staff_one_manager"] = "You can have only one manager.",
@@ -1852,7 +1858,7 @@ return {
 	["tut.collect"] = "When they leave, click the dirty dishes to collect them.",
 	["tut.cook"] = "Click the ramen station: the ingredients fly onto their shapes. Then click again for each step: boil and drain the noodles, pour the broth, add the toppings!",
 	["tut.done"] = "You are ready! Earn yen, buy licenses, hire staff and grow your restaurant. がんばって!",
-	["tut.fill_shelf"] = "Carry it to a shelf in the kitchen and click the shelf: the products jump onto the free spots of the grid (each box fills 2 slots). Right click (or G) puts a box down.",
+	["tut.fill_shelf"] = "Carry it to a shelf in the kitchen and click a slot: the products jump onto its free spots. What is left stays in the box: click another slot. Right click (or G) puts a box down.",
 	["tut.ingredients"] = "Look at the ramen station: the see-through shapes on the board are what you need. Take noodles, scallion and naruto from the shelves (the tag says what is on each slot).",
 	["tut.more_boxes"] = "Put the other boxes on the shelves too: you need noodles, scallion and naruto.",
 	["tut.open"] = "Tap the red CLOSED switch at the top: it turns green (OPEN) and customers arrive.",
@@ -2238,6 +2244,10 @@ return {
 	["hint.shelf_empty"] = "Slot vuoto",
 	["hint.sink"] = "Lavello",
 	["hint.sink_drop"] = "Posa qui i piatti sporchi",
+	["hint.slot_add"] = "Aggiungi {name}: {free} posti liberi",
+	["hint.slot_full"] = "Ripiano pieno: scegline un altro",
+	["hint.slot_other"] = "Qui c'è {name}: scegli un ripiano vuoto",
+	["hint.slot_put"] = "Metti i prodotti su questo ripiano",
 	["hint.station"] = "Porta gli ingredienti",
 	["hint.supplier"] = "Ordina ingredienti",
 	["hint.take_box"] = "Prendi scatola: {name}",
@@ -2520,12 +2530,14 @@ return {
 	["msg.reno_bought"] = "🪚 Ristrutturazione completata: {name}!",
 	["msg.rescue_kit"] = "🎁 Il fornitore ha visto che eri senza soldi e senza ingredienti: ti regala un kit, sta arrivando!",
 	["msg.restocked"] = "📦 +{n} {name} sullo scaffale. Scatola finita!",
-	["msg.restocked_left"] = "📦 +{n} {name} sullo scaffale. Nella scatola ne restano {left}: riempi un altro scaffale.",
+	["msg.restocked_left"] = "📦 +{n} {name} sullo scaffale. Nella scatola ne restano {left}: clicca un altro ripiano.",
 	["msg.seat_busy"] = "Qualcuno lo sta usando.",
 	["msg.selftest_result"] = "🧪 Autotest: {passed}/{total} superati. Falliti: {failed} (dettagli nell'Output)",
 	["msg.shelf_empty"] = "La mensola è vuota.",
 	["msg.shelf_full"] = "La mensola è piena.",
 	["msg.sink_hint"] = "Porta qui le stoviglie sporche.",
+	["msg.slot_full"] = "Questo ripiano è pieno: clicca un altro ripiano.",
+	["msg.slot_other"] = "Su questo ripiano c'è {name}: metti la scatola su un ripiano vuoto.",
 	["msg.staff_full"] = "Niente posti liberi per il personale: amplia il locale.",
 	["msg.staff_hired"] = "👋 {name} ({role}) è entrato nella squadra!",
 	["msg.staff_one_manager"] = "Puoi avere un solo manager.",
@@ -2653,7 +2665,7 @@ return {
 	["tut.collect"] = "Quando se ne va, clicca le stoviglie sporche per raccoglierle.",
 	["tut.cook"] = "Clicca la postazione del ramen: gli ingredienti volano sulle loro sagome. Poi clicca di nuovo per ogni passaggio: cuoci e scola i noodles, versa il brodo, aggiungi i condimenti!",
 	["tut.done"] = "Sei pronto! Guadagna yen, compra licenze, assumi personale e fai crescere il tuo ristorante. がんばって!",
-	["tut.fill_shelf"] = "Portala a uno scaffale della cucina e clicca lo scaffale: i prodotti saltano nei posti liberi della griglia (ogni scatola riempie 2 ripiani). Il tasto destro (o G) posa la scatola.",
+	["tut.fill_shelf"] = "Portala a uno scaffale della cucina e clicca un ripiano: i prodotti saltano nei suoi posti liberi. Quelli che avanzano restano nella scatola: clicca un altro ripiano. Il tasto destro (o G) posa la scatola.",
 	["tut.ingredients"] = "Guarda la postazione del ramen: le sagome trasparenti sul tagliere sono quello che serve. Prendi noodles, cipollotto e naruto dagli scaffali (il cartellino dice cosa c'è su ogni ripiano).",
 	["tut.more_boxes"] = "Metti sugli scaffali anche le altre scatole: servono noodles, cipollotto e naruto.",
 	["tut.open"] = "Tocca l'interruttore rosso CHIUSO in alto: diventa verde (APERTO) e arrivano i clienti.",
@@ -17863,7 +17875,13 @@ local function doRestock(a)
 		return false
 	end
 	return carryBoxTo(a, box, target, function()
-		Core.S.Supply.useShelf(a, target, nil)
+		-- one slot per click: keep going while the box has products and the shelf has room
+		for _ = 1, 4 do
+			local h = Core.S.Hands.get(a)
+			if h.kind ~= "box" or not Core.S.Supply.useShelf(a, target, nil) then
+				break
+			end
+		end
 	end)
 end
 
@@ -18785,14 +18803,28 @@ function Supply.useShelf(actor, e, slot)
 		end
 		local entry = hands.items[index]
 		local cap = Supply.slotCap(e, entry.g)
-		local placed, filled = 0, 0
-		local target = chooseSlot(e, entry.g, slot)
-		if not target then
-			return false, "msg.shelf_full"
+		local placed = 0
+		local target
+		if slot and slot >= 1 and slot <= e.item.fn.slots then
+			-- the slot you clicked, and only that one
+			local s = st[tostring(slot)]
+			if s and s.n > 0 and s.g ~= entry.g then
+				return false, "msg.slot_other", { name = "ing." .. s.g }
+			end
+			if s and s.n >= cap then
+				return false, "msg.slot_full"
+			end
+			target = slot
+		else
+			-- clicked the shelf itself: the slot that already holds this product, else an empty one
+			target = chooseSlot(e, entry.g, nil)
+			if not target then
+				return false, "msg.shelf_full"
+			end
 		end
-		-- fill the clicked slot first, then the next free one: at most BoxShelfSlots slots per box
+		-- one slot per click: what does not fit stays in the box for the slot you click next
 		local flights, touched = {}, {}
-		while target and entry.n > 0 and filled < GameConfig.BoxShelfSlots do
+		do
 			local s = st[tostring(target)]
 			if not s or s.n == 0 then
 				s = { g = entry.g, n = 0 }
@@ -18808,9 +18840,7 @@ function Supply.useShelf(actor, e, slot)
 			s.n += amount
 			entry.n -= amount
 			placed += amount
-			filled += 1
 			table.insert(touched, target)
-			target = entry.n > 0 and chooseSlot(e, entry.g, nil) or nil
 		end
 		local left = entry.n
 		if entry.n <= 0 then
@@ -21826,6 +21856,26 @@ local function actionText(model, kind, slot)
 		return hands and t("hint.hands_full") or t("hint.take_box", { name = "ing." .. (g or "rice") })
 	elseif kind == "shelf" then
 		if hands == "box" then
+			-- what happens on this very slot (each click fills only the slot you point at)
+			local part = slot and model:FindFirstChild("Slot" .. slot)
+			if part then
+				local g = part:GetAttribute("G") or ""
+				local n, cap = part:GetAttribute("N") or 0, part:GetAttribute("Cap") or 0
+				if g == "" then
+					return t("hint.slot_put")
+				end
+				local raw = player:GetAttribute("Hands") or "[]"
+				local okList, held = pcall(function()
+					return game:GetService("HttpService"):JSONDecode(raw)
+				end)
+				if okList and type(held) == "table" and not table.find(held, g) then
+					return t("hint.slot_other", { name = "ing." .. g })
+				end
+				if n >= cap then
+					return t("hint.slot_full")
+				end
+				return t("hint.slot_add", { name = "ing." .. g, free = cap - n })
+			end
 			return t("hint.restock")
 		end
 		local part = slot and model:FindFirstChild("Slot" .. slot)

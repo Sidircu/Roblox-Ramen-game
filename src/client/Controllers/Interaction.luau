@@ -97,6 +97,26 @@ local function actionText(model, kind, slot)
 		return hands and t("hint.hands_full") or t("hint.take_box", { name = "ing." .. (g or "rice") })
 	elseif kind == "shelf" then
 		if hands == "box" then
+			-- what happens on this very slot (each click fills only the slot you point at)
+			local part = slot and model:FindFirstChild("Slot" .. slot)
+			if part then
+				local g = part:GetAttribute("G") or ""
+				local n, cap = part:GetAttribute("N") or 0, part:GetAttribute("Cap") or 0
+				if g == "" then
+					return t("hint.slot_put")
+				end
+				local raw = player:GetAttribute("Hands") or "[]"
+				local okList, held = pcall(function()
+					return game:GetService("HttpService"):JSONDecode(raw)
+				end)
+				if okList and type(held) == "table" and not table.find(held, g) then
+					return t("hint.slot_other", { name = "ing." .. g })
+				end
+				if n >= cap then
+					return t("hint.slot_full")
+				end
+				return t("hint.slot_add", { name = "ing." .. g, free = cap - n })
+			end
 			return t("hint.restock")
 		end
 		local part = slot and model:FindFirstChild("Slot" .. slot)

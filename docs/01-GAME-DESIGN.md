@@ -149,11 +149,11 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 
 ### 4.3 Dal magazzino alle mensole
 - Clicchi una scatola → la prendi in mano: la scatola **si apre** (alette piegate in fuori) e dentro si vedono alcuni prodotti, come in Pet Store Tycoon e Supermarket Together; sulla faccia verso di te c'è l'icona e quanti pezzi restano (es. 7/20).
-- Clicchi una **mensola** dietro il bancone → i prodotti **volano fuori dalla scatola uno alla volta** (un piccolo arco e un "toc" quando si posano) nel ripiano cliccato e, se avanza, nel ripiano libero successivo. Prendendo un prodotto dalla mensola, quello vola nelle tue mani.
+- Clicchi un **ripiano** di una mensola → i prodotti **volano fuori dalla scatola uno alla volta** (un piccolo arco e un "toc" quando si posano) **solo in quel ripiano**. Quelli che non ci stanno restano nella scatola: scegli tu il prossimo ripiano. Mirando un ripiano il suggerimento dice cosa succede ("Aggiungi noodles: 4 posti liberi", "Ripiano pieno", "Qui c'è cipollotto"). Prendendo un prodotto dalla mensola, quello vola nelle tue mani.
 - Le mensole sono **grandi** (la piccola è alta 7,4 stud e larga 5,6).
 - Sul bordo di ogni ripiano c'è un **cartellino** (come nei giochi di negozi) con icona e nome del prodotto, scritto nella lingua di ogni giocatore; i ripiani vuoti hanno il cartellino bianco.
 - Ogni mensola ha dei **ripiani** (slot); ogni ripiano contiene un solo tipo di ingrediente, disposto **a scacchiera** (2×3, 2×4, 2×5, 3×5…): ogni casella è un prodotto e le **caselle libere sono segnate** da un quadratino chiaro, così si vede a colpo d'occhio quanti ne entrano e quanti mancano (niente numeri "10/10"). Un ripiano contiene **mezza scatola**: **una scatola riempie al massimo 2 ripiani**. Il miglioramento *Mensole rinforzate* aggiunge file di prodotti verso il fondo; la mensola grande ha più ripiani.
-- Se avanzano porzioni (ripiano già mezzo pieno, mensola piena o scatola grande, che riempie 2 ripiani alla volta), la scatola resta in mano con le porzioni avanzate; una scatola vuota si butta automaticamente.
+- Se avanzano porzioni la scatola resta in mano con quelle che mancano; una scatola vuota si butta automaticamente. Il personale magazziniere riempie un ripiano dopo l'altro finché la scatola è vuota.
 - La **vetrina refrigerata del pesce** (sul bancone, come nei veri sushi bar) funziona come una mensola per il pesce e dà un bonus di freschezza (qualità).
 
 ### 4.4 Preparazioni di base

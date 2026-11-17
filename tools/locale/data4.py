@@ -39,4 +39,10 @@ NEW = [
 ("msg.like_sent","❤️ Thanks! The owner will see it.","❤️ Grazie! Il proprietario lo vedrà."),
 ("msg.like_done","You already liked this restaurant today.","Oggi hai già messo Mi piace a questo ristorante."),
 ("lb.likes","❤️ Most liked restaurants","❤️ Ristoranti più amati"),
+("hint.slot_put","Put the products on this slot","Metti i prodotti su questo ripiano"),
+("hint.slot_add","Add {name}: {free} free spots","Aggiungi {name}: {free} posti liberi"),
+("hint.slot_full","This slot is full: pick another one","Ripiano pieno: scegline un altro"),
+("hint.slot_other","{name} is here: pick an empty slot","Qui c'è {name}: scegli un ripiano vuoto"),
+("msg.slot_full","This slot is full: click another one.","Questo ripiano è pieno: clicca un altro ripiano."),
+("msg.slot_other","{name} is on this slot: put your box on an empty slot.","Su questo ripiano c'è {name}: metti la scatola su un ripiano vuoto."),
 ]

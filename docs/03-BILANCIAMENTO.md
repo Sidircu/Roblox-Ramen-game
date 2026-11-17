@@ -84,7 +84,7 @@
 
 Scatole grandi (Fornitore premium): ×3 porzioni, −10% (livello 1) o −20% (livello 2) sul prezzo.
 
-**Scatole e ripiani** (`GameConfig.BoxShelfSlots = 2`, `Logic/ShelfGrid.luau`): un ripiano contiene **mezza scatola** disposta a scacchiera, al massimo 5 colonne, nella forma più quadrata: 6 → 3×2, 8 → 4×2, 10 → 5×2, 12 → 4×3, 15 → 5×3, 20 → 5×4, 5 → 5×1. Tutte le scatole hanno un numero pari di porzioni (cetriolo e surimi passano da 15 a 16), così una scatola riempie **esattamente 2 ripiani**. *Mensole rinforzate* moltiplica le file (righe verso il fondo) per 1,25 / 1,5 / 1,75 arrotondando alla fila (es. 5×2 → 5×3 → 5×3 → 5×4). Una scatola grande riempie 2 ripiani per volta e tiene il resto.
+**Scatole e ripiani** (`GameConfig.BoxShelfSlots = 2`, `Logic/ShelfGrid.luau`): un ripiano contiene **mezza scatola** disposta a scacchiera, al massimo 5 colonne, nella forma più quadrata: 6 → 3×2, 8 → 4×2, 10 → 5×2, 12 → 4×3, 15 → 5×3, 20 → 5×4, 5 → 5×1. Tutte le scatole hanno un numero pari di porzioni (cetriolo e surimi passano da 15 a 16), così una scatola riempie **esattamente 2 ripiani**. Ogni clic riempie **solo il ripiano cliccato**: il resto rimane nella scatola. *Mensole rinforzate* moltiplica le file (righe verso il fondo) per 1,25 / 1,5 / 1,75 arrotondando alla fila (es. 5×2 → 5×3 → 5×3 → 5×4). Una scatola grande riempie un ripiano per clic e tiene il resto.
 
 ---
 
