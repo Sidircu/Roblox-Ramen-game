@@ -1879,7 +1879,7 @@ return {
 	["ui.buy_dishes"] = "Buy {n} dishes · ¥{price}",
 	["ui.cam_first"] = "First person",
 	["ui.cam_game"] = "Third person",
-	["ui.cam_speed"] = "Camera speed",
+	["ui.cam_speed"] = "Mouse / camera sensitivity",
 	["ui.camera"] = "Camera",
 	["ui.can_place"] = "Can be placed here",
 	["ui.cancel"] = "Cancel",
@@ -2680,7 +2680,7 @@ return {
 	["ui.buy_dishes"] = "Compra {n} stoviglie · ¥{price}",
 	["ui.cam_first"] = "Prima persona",
 	["ui.cam_game"] = "Terza persona",
-	["ui.cam_speed"] = "Velocità telecamera",
+	["ui.cam_speed"] = "Sensibilità mouse / telecamera",
 	["ui.camera"] = "Telecamera",
 	["ui.can_place"] = "Si può piazzare qui",
 	["ui.cancel"] = "Annulla",
@@ -20640,7 +20640,7 @@ return Build
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000099"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Game camera, three modes (Settings → Camera):
 --   "first"  first person (default): mouse look, a crosshair in the middle, click / E on what you
---            look at (see Controllers/FirstPerson)
+--            look at (see Controllers/FirstPerson); Camera speed scales the mouse sensitivity
 --   "game"   a smooth orbit camera that rotates slowly (right mouse drag, one-finger drag, ← →),
 --            zooms with the wheel or a pinch, never ends up behind walls and hides the roof when
 --            it rises above the ceiling while you are inside
@@ -20993,6 +20993,12 @@ function Camera.Start()
 	while true do
 		task.wait(1)
 		Camera.apply()
+		-- Settings → Camera speed also scales the mouse in first person and with the Roblox
+		-- camera (on top of Roblox's own sensitivity); the orbit camera applies it itself
+		local want = Camera.mode() == "game" and 1 or (settings().camSpeed or 1)
+		if UserInputService.MouseDeltaSensitivity ~= want then
+			UserInputService.MouseDeltaSensitivity = want
+		end
 		if Camera.build then
 			local f = Camera.currentFloor()
 			if f ~= Camera.floor then

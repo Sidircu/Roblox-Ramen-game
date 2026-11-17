@@ -191,7 +191,7 @@ UI += [
 ]
 # Camera settings
 UI += [
-("ui.camera","Camera","Telecamera"),("ui.cam_game","Third person","Terza persona"),("ui.cam_speed","Camera speed","Velocità telecamera"),
+("ui.camera","Camera","Telecamera"),("ui.cam_game","Third person","Terza persona"),("ui.cam_speed","Mouse / camera sensitivity","Sensibilità mouse / telecamera"),
 ("ui.slow","Slow","Lenta"),("ui.medium","Medium","Media"),("ui.fast","Fast","Veloce"),
 ]
 # Order guide (left, opened from an order ticket)

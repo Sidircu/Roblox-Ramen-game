@@ -451,7 +451,7 @@ Un clic con una scatola su uno scaffale riempie **tutti** gli spazi liberi adatt
 ### Telecamera e comandi
 **Prima persona** (predefinita, come in Supermarket Together): ci si guarda intorno con il mouse o trascinando un dito; un **pallino al centro** dello schermo indica cosa si sta puntando e sotto compare cosa succede cliccando (dorato quando sei abbastanza vicino). Clic o **E** per usare, **G** per posare, **Shift** per correre, **Q** per liberare il mouse e usare i pulsanti (di nuovo Q per tornare a guardarti intorno; funziona anche Alt tenuto premuto (il mouse si libera da solo quando si apre un menu o in costruzione, dove la vista passa dall'alto). Scorciatoie: **B** costruisci, **O** fornitore, **P** telefono, **R** regali, **Invio** per il consiglio successivo del tutorial. Quello che hai in mano si vede davanti alla telecamera. Su telefono e tablet ci sono i pulsanti **✋ Usa** e **🏃 Corri**.
 
-Nelle impostazioni si può scegliere anche la **terza persona** (telecamera morbida e lenta: tasto destro o un dito per girare, ← →, rotellina o due dita per lo zoom; non finisce dietro i muri e, se sei dentro e sale sopra il soffitto, il tetto sparisce) o la telecamera classica di Roblox, con velocità lenta, media o veloce.
+Nelle impostazioni si può scegliere anche la **terza persona** (telecamera morbida e lenta: tasto destro o un dito per girare, ← →, rotellina o due dita per lo zoom; non finisce dietro i muri e, se sei dentro e sale sopra il soffitto, il tetto sparisce) o la telecamera classica di Roblox. **Impostazioni → Sensibilità mouse / telecamera** (lenta, media, veloce) vale in tutte le modalità: in prima persona si somma alla sensibilità del menu di Roblox (Esc → Impostazioni).
 
 ---
 

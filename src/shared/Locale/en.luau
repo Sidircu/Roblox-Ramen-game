@@ -570,7 +570,7 @@ return {
 	["ui.buy_dishes"] = "Buy {n} dishes · ¥{price}",
 	["ui.cam_first"] = "First person",
 	["ui.cam_game"] = "Third person",
-	["ui.cam_speed"] = "Camera speed",
+	["ui.cam_speed"] = "Mouse / camera sensitivity",
 	["ui.camera"] = "Camera",
 	["ui.can_place"] = "Can be placed here",
 	["ui.cancel"] = "Cancel",

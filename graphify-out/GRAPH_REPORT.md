@@ -1,17 +1,17 @@
 # Graph Report - Roblox-Ramen-game  (2026-11-17)
 
 ## Corpus Check
-- 142 files · ~181,907 words
+- 142 files · ~181,994 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: (none) 1)
 
 ## Summary
-- 1450 nodes · 3805 edges · 93 communities (59 shown, 34 thin omitted)
+- 1450 nodes · 3807 edges · 93 communities (59 shown, 34 thin omitted)
 - Extraction: 77% EXTRACTED · 23% INFERRED · 0% AMBIGUOUS · INFERRED: 865 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `25f570e0`
+- Built from commit: `4553c670`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -87,8 +87,8 @@
 3. `nc()` - 53 edges
 4. `Kit.blob()` - 35 edges
 5. `Kit.part()` - 35 edges
-6. `Color.hex()` - 34 edges
-7. `Scene.shell()` - 34 edges
+6. `Scene.shell()` - 34 edges
+7. `Color.hex()` - 34 edges
 8. `Kit.finish()` - 32 edges
 9. `Kit.new()` - 31 edges
 10. `add()` - 29 edges
@@ -96,14 +96,14 @@
 ## Surprising Connections (you probably didn't know these)
 - `12. Interfaccia e lingue` --references--> `refresh()`  [INFERRED]
   docs/02-PIANO-TECNICO.md → src/server/Services/Appliance.luau
-- `Interaction.highlightRecipe()` --calls--> `Color.hex()`  [INFERRED]
-  src/client/Controllers/Interaction.luau → src/shared/Util/Color.luau
-- `Interaction.Init()` --calls--> `Color.hex()`  [INFERRED]
-  src/client/Controllers/Interaction.luau → src/shared/Util/Color.luau
 - `Timing.result()` --calls--> `Audio.play()`  [INFERRED]
   src/client/Controllers/Timing.luau → src/client/Controllers/Audio.luau
-- `run()` --calls--> `Npc.sit()`  [INFERRED]
-  src/server/Services/Customers.luau → src/server/Services/Npc.luau
+- `Service.collectDirty()` --calls--> `Hands.add()`  [INFERRED]
+  src/server/Services/Customers.luau → src/server/Services/Hands.luau
+- `speed()` --calls--> `Formulas.staffSpeed()`  [INFERRED]
+  src/server/Services/Staff.luau → src/shared/Logic/Formulas.luau
+- `Build.Init()` --calls--> `Color.hex()`  [INFERRED]
+  src/client/Controllers/Build.luau → src/shared/Util/Color.luau
 
 ## Import Cycles
 - None detected.
@@ -352,17 +352,17 @@ Nodes (5): 10. Interfaccia, Guida dell'ordine, Oggetti in mano, Telecamera e com
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `refresh()` connect `Appliance.luau` to `Kit.new`?**
-  _High betweenness centrality (0.157) - this node is a cross-community bridge._
+- **Why does `Piano tecnico — architettura e implementazione` connect `Piano tecnico — architettura e implementazione` to `Appliance.luau`, `10. Sistemi di gioco`, `01-GAME-DESIGN.md`, `7. Salvataggi`?**
+  _High betweenness centrality (0.141) - this node is a cross-community bridge._
 - **Are the 94 inferred relationships involving `Kit.box()` (e.g. with `makeScene()` and `B.doorFrame()`) actually correct?**
   _`Kit.box()` has 94 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Controllers/Audio.luau` be split into smaller, more focused modules?**
   _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
-- **Why does `Piano tecnico — architettura e implementazione` connect `Piano tecnico — architettura e implementazione` to `Appliance.luau`, `10. Sistemi di gioco`, `01-GAME-DESIGN.md`, `7. Salvataggi`?**
-  _High betweenness centrality (0.154) - this node is a cross-community bridge._
+- **Why does `refresh()` connect `Appliance.luau` to `Kit.new`?**
+  _High betweenness centrality (0.141) - this node is a cross-community bridge._
 - **Are the 57 inferred relationships involving `Kit.cyl()` (e.g. with `makeScene()` and `B.entranceDetail()`) actually correct?**
   _`Kit.cyl()` has 57 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Appliance.luau` be split into smaller, more focused modules?**
   _Cohesion score 0.05765271105010295 - nodes in this community are weakly interconnected._
 - **Why does `12. Interfaccia e lingue` connect `Appliance.luau` to `Piano tecnico — architettura e implementazione`?**
-  _High betweenness centrality (0.151) - this node is a cross-community bridge._
+  _High betweenness centrality (0.137) - this node is a cross-community bridge._

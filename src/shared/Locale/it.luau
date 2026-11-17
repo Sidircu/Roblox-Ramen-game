@@ -570,7 +570,7 @@ return {
 	["ui.buy_dishes"] = "Compra {n} stoviglie · ¥{price}",
 	["ui.cam_first"] = "Prima persona",
 	["ui.cam_game"] = "Terza persona",
-	["ui.cam_speed"] = "Velocità telecamera",
+	["ui.cam_speed"] = "Sensibilità mouse / telecamera",
 	["ui.camera"] = "Telecamera",
 	["ui.can_place"] = "Si può piazzare qui",
 	["ui.cancel"] = "Annulla",

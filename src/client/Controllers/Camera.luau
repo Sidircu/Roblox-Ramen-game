@@ -1,7 +1,7 @@
 --!nonstrict
 -- Game camera, three modes (Settings → Camera):
 --   "first"  first person (default): mouse look, a crosshair in the middle, click / E on what you
---            look at (see Controllers/FirstPerson)
+--            look at (see Controllers/FirstPerson); Camera speed scales the mouse sensitivity
 --   "game"   a smooth orbit camera that rotates slowly (right mouse drag, one-finger drag, ← →),
 --            zooms with the wheel or a pinch, never ends up behind walls and hides the roof when
 --            it rises above the ceiling while you are inside
@@ -354,6 +354,12 @@ function Camera.Start()
 	while true do
 		task.wait(1)
 		Camera.apply()
+		-- Settings → Camera speed also scales the mouse in first person and with the Roblox
+		-- camera (on top of Roblox's own sensitivity); the orbit camera applies it itself
+		local want = Camera.mode() == "game" and 1 or (settings().camSpeed or 1)
+		if UserInputService.MouseDeltaSensitivity ~= want then
+			UserInputService.MouseDeltaSensitivity = want
+		end
 		if Camera.build then
 			local f = Camera.currentFloor()
 			if f ~= Camera.floor then
