@@ -3,7 +3,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from data1 import NAMES
 from data2 import ITEMS, DYN
 from data3 import UI, MSG, HINT, TUT
-rows = list(NAMES) + [("item."+i, e, it) for i, e, it in ITEMS] + list(DYN) + list(UI) + list(MSG) + list(HINT) + list(TUT)
+from data4 import NEW
+rows = list(NAMES) + [("item."+i, e, it) for i, e, it in ITEMS] + list(DYN) + list(UI) + list(MSG) + list(HINT) + list(TUT) + list(NEW)
 seen = {}
 for k, e, it in rows:
     if k in seen:

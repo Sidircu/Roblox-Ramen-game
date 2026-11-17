@@ -141,6 +141,8 @@ local function refreshVisual(actor)
 					w.Parent = d
 				end
 			end
+			-- the client shows held items in front of the camera in first person
+			m:SetAttribute("Held", true)
 			m.Parent = char
 			table.insert(s.visuals, m)
 		end

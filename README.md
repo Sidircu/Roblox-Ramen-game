@@ -10,6 +10,8 @@ Gioco Roblox tycoon: gestisci un ristorante giapponese di ramen e sushi, cucini 
 5. **Game Settings → Places → Max Players: 6**. Lascia disattivati i server privati Roblox.
 6. Premi **Play**. In Studio il server è direttamente il tuo mondo (i teletrasporti al mondo personale funzionano solo nel gioco pubblicato).
 
+**Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, G posa, Shift corri, Alt tenuto premuto per cliccare i pulsanti, B costruisci, O fornitore, P telefono, R regali.
+
 Pannello sviluppatore (pulsante 🛠️, solo in Studio o per il creatore del gioco): yen, livelli, licenze, zone, scorte, clienti, chiusura della giornata.
 
 **🧪 Autotest**: nel pannello sviluppatore, esegue da solo tutto il ciclo di gioco (mensola, riso, kappa maki a clic, cliente servito e pagante, stoviglie lavate, regole di piazzamento) e scrive il risultato di ogni passaggio nella finestra Output (`[SelfTest] PASS/FAIL ...`). È il primo pulsante da premere dopo aver aperto il gioco.
@@ -18,7 +20,8 @@ In alternativa puoi usare [Rojo](https://rojo.space) (`rojo serve` con `default.
 
 ## Robux, suoni, modelli
 - ID di gamepass e prodotti: `src/shared/Config/Monetization.luau` (0 = disattivato, il pulsante non compare).
-- Musica e suoni: `src/shared/Config/Audio.luau` (ID dalla libreria audio di Roblox).
+- Musica e suoni: `src/shared/Config/Audio.luau` (ID della libreria pubblica di Roblox: Pro Sound Effects, APM Music, suoni UI di Roblox; funzionano in qualsiasi gioco).
+- Regali a tempo, codici, combo e corsa: `src/shared/Config/Rewards.luau`.
 - Modelli migliori: metti un Model chiamato come l'ID dell'oggetto (es. `sakura_tree`) in `ReplicatedStorage/AssetOverrides`.
 
 ## Documenti

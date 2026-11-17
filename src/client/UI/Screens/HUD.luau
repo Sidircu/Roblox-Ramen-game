@@ -24,13 +24,21 @@ local player = Players.LocalPlayer
 -- Always on screen: the two most used actions and the phone (bottom-left). Everything else is an
 -- app on the phone, ordered by how often it is needed (see Screens/Phone).
 local BUTTONS = {
-	{ id = "Build", icon = "🔨", key = "ui.build", build = true },
-	{ id = "Supplier", icon = "📦", key = "ui.supplier", build = true },
-	{ id = "Phone", icon = "📱", key = "ui.phone" },
+	{ id = "Build", icon = "🔨", key = "ui.build", build = true, hotkey = "B" },
+	{ id = "Supplier", icon = "📦", key = "ui.supplier", build = true, hotkey = "O" },
+	{ id = "Phone", icon = "📱", key = "ui.phone", hotkey = "P" },
 }
 
 local function lang()
 	return Locale.get()
+end
+
+-- " [R]" after a label on keyboards (shortcuts in Controllers/FirstPerson)
+local function keyHint(key)
+	if game:GetService("UserInputService").KeyboardEnabled then
+		return " [" .. key .. "]"
+	end
+	return ""
 end
 
 local function open(id)
@@ -83,8 +91,17 @@ function HUD.create(root)
 	refs.rating = Kit.label("", { Parent = info, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -24, 1, 0), TextSize = 14, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
 	refs.ambience = refs.rating
 	refs.dishes = refs.rating
+	-- free gift for minutes played (Screens/Gifts): countdown, then "claim!"
+	refs.gift = Kit.new("TextButton", { Position = UDim2.fromOffset(10, 68), Size = UDim2.fromOffset(150, 30), BackgroundColor3 = T.paper, Text = "", Visible = false, Parent = top }, { Kit.corner(15), Kit.stroke(T.wood, 2, 0.2), Kit.sheen(0.9) })
+	refs.giftLabel = Kit.label("🎁", { Parent = refs.gift, Size = UDim2.fromScale(1, 1), TextSize = 15, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center })
+	refs.gift.MouseButton1Click:Connect(function()
+		if Core.C.Audio then
+			Core.C.Audio.play("ui")
+		end
+		Core.C.UI.toggle("Gifts")
+	end)
 	-- order tickets (left, under the wallet): click one to see how to make it
-	refs.tickets = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 70), Size = UDim2.fromOffset(196, 420), Parent = top }, { Kit.list(Enum.FillDirection.Vertical, 5) })
+	refs.tickets = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 104), Size = UDim2.fromOffset(196, 420), Parent = top }, { Kit.list(Enum.FillDirection.Vertical, 5) })
 	-- what you are holding (bottom-centre) with a put-down button
 	refs.hands = pill({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Size = UDim2.fromOffset(360, 40), Visible = false, Parent = top })
 	refs.handsLabel = Kit.label("", { Parent = refs.hands, Position = UDim2.fromOffset(14, 0), Size = UDim2.new(1, -130, 1, 0), TextSize = 15, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
@@ -101,6 +118,11 @@ function HUD.create(root)
 		local btn = Kit.new("TextButton", { Size = UDim2.fromOffset(66, 66), BackgroundColor3 = T.paper, Text = "", LayoutOrder = i, Parent = dock }, { Kit.corner(16), Kit.stroke(T.wood, 2, 0.1), Kit.sheen(0.88) })
 		Kit.label(b.icon, { Parent = btn, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromOffset(0, 5), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
 		local lbl = Kit.label("", { Parent = btn, Size = UDim2.new(1, -4, 0, 18), Position = UDim2.fromOffset(2, 43), TextSize = 12, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
+		if b.hotkey and game:GetService("UserInputService").KeyboardEnabled then
+			-- keyboard shortcut (see Controllers/FirstPerson)
+			local key = Kit.new("Frame", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, 4, 0, -4), Size = UDim2.fromOffset(20, 20), BackgroundColor3 = T.wood, Parent = btn }, { Kit.corner(6) })
+			Kit.label(b.hotkey, { Parent = key, Size = UDim2.fromScale(1, 1), TextSize = 13, FontFace = T.bold, TextColor3 = T.white, TextXAlignment = Enum.TextXAlignment.Center })
+		end
 		btn.MouseButton1Click:Connect(function()
 			if Core.C.Audio then
 				Core.C.Audio.play("ui")
@@ -122,9 +144,39 @@ function HUD.create(root)
 			task.wait(1)
 			HUD.refreshTickets()
 			HUD.refreshInfo()
+			HUD.refreshGift()
 		end
 	end)
 	Core.C.Data.TicketsChanged:Connect(HUD.refreshTickets)
+end
+
+local giftToasted = {}
+function HUD.refreshGift()
+	local screen = Core.C.UI and Core.C.UI.screens.Gifts
+	local idx, left = nil, nil
+	if screen and screen.nextGift then
+		idx, left = screen.nextGift()
+	end
+	if not idx then
+		refs.gift.Visible = false
+		return
+	end
+	refs.gift.Visible = true
+	if left <= 0 then
+		local hot = keyHint("R")
+		refs.giftLabel.Text = "🎁 " .. t("ui.gift_ready") .. hot
+		refs.gift.BackgroundColor3 = T.gold
+		if not giftToasted[idx] then
+			giftToasted[idx] = true
+			Core.C.UI.toast("🎁 " .. t("msg.gift_ready"), "success")
+			if Core.C.Audio then
+				Core.C.Audio.play("gift")
+			end
+		end
+	else
+		refs.giftLabel.Text = "🎁 " .. Format.duration(left)
+		refs.gift.BackgroundColor3 = T.paper
+	end
 end
 
 function HUD.refreshHands()

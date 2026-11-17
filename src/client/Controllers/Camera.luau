@@ -1,7 +1,11 @@
 --!nonstrict
--- Game camera: a smooth orbit camera that rotates slowly (right mouse drag, one-finger drag on
--- the world, ← → keys), zooms with the wheel or a pinch, never ends up behind walls and hides the
--- roof when it rises above the ceiling, so the kitchen is always visible from above.
+-- Game camera, three modes (Settings → Camera):
+--   "first"  first person (default): mouse look, a crosshair in the middle, click / E on what you
+--            look at (see Controllers/FirstPerson)
+--   "game"   a smooth orbit camera that rotates slowly (right mouse drag, one-finger drag, ← →),
+--            zooms with the wheel or a pinch, never ends up behind walls and hides the roof when
+--            it rises above the ceiling while you are inside
+--   "roblox" the standard Roblox camera
 -- Also the build-mode top view and hiding roofs/ceilings while building.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -74,8 +78,21 @@ local function settings()
 	return s or {}
 end
 
+function Camera.mode()
+	local m = settings().cam
+	if m == "game" or m == "roblox" then
+		return m
+	end
+	return "first"
+end
+
+-- the orbit camera drives the view (not in first person, not while building in first person)
 local function useGameCamera()
-	return settings().cam ~= "roblox"
+	return Camera.mode() == "game"
+end
+
+function Camera.isFirstPerson()
+	return Camera.mode() == "first" and not Camera.build and not Camera.top
 end
 
 local function sensitivity()
@@ -126,6 +143,42 @@ local function indoors(pos, floor)
 		end
 	end
 	return false
+end
+
+function Camera.isIndoors()
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	return root ~= nil and indoors(root.Position, Camera.currentFloor())
+end
+
+-- Applies the camera mode to the player (first person lock, zoom limits, camera type)
+local applied = nil
+function Camera.apply()
+	local mode = Camera.mode()
+	local key = mode .. (Camera.build and ":build" or "") .. (Camera.top and ":top" or "")
+	if key == applied then
+		return
+	end
+	applied = key
+	local cam = workspace.CurrentCamera
+	if mode == "first" and not Camera.build and not Camera.top then
+		player.CameraMinZoomDistance = 0.5
+		player.CameraMaxZoomDistance = 0.5
+		player.CameraMode = Enum.CameraMode.LockFirstPerson
+		cam.CameraType = Enum.CameraType.Custom
+		cam.FieldOfView = 74
+	else
+		player.CameraMode = Enum.CameraMode.Classic
+		player.CameraMaxZoomDistance = 60
+		player.CameraMinZoomDistance = 6
+		cam.FieldOfView = 70
+		if not Camera.top then
+			cam.CameraType = useGameCamera() and Enum.CameraType.Scriptable or Enum.CameraType.Custom
+		end
+	end
+	if roofsHiddenByOrbit and not useGameCamera() and not Camera.build then
+		roofsHiddenByOrbit = false
+		setRoofs(false, nil)
+	end
 end
 
 local function orbitLoop(dt)
@@ -198,6 +251,7 @@ function Camera.setTop(on)
 		end
 		cam.CameraType = useGameCamera() and Enum.CameraType.Scriptable or Enum.CameraType.Custom
 	end
+	Camera.apply()
 end
 
 function Camera.toggleTop()
@@ -209,22 +263,26 @@ function Camera.setBuildView(on)
 	roofsHiddenByOrbit = nil
 	Camera.floor = Camera.currentFloor()
 	setRoofs(on, Camera.floor)
-	if not on and Camera.top then
+	if on and Camera.mode() == "first" then
+		-- building needs the mouse and a view from above
+		Camera.setTop(true)
+	elseif not on and Camera.top then
 		Camera.setTop(false)
 	end
+	Camera.apply()
 end
 
 function Camera.Start()
 	RunService:BindToRenderStep("RamenCamera", Enum.RenderPriority.Camera.Value + 1, orbitLoop)
+	Camera.apply()
 	player.CharacterAdded:Connect(function(char)
 		local root = char:WaitForChild("HumanoidRootPart", 10)
 		if root then
 			local _, y = root.CFrame:ToEulerAnglesYXZ()
 			orbit.yaw = math.deg(y)
 		end
-		if not useGameCamera() then
-			workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
-		end
+		applied = nil
+		Camera.apply()
 	end)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed or not useGameCamera() then
@@ -292,9 +350,10 @@ function Camera.Start()
 			p.LocalTransparencyModifier = 1
 		end
 	end)
-	-- follow the player up and down the stairs while building
+	-- follow the player up and down the stairs while building; pick up camera setting changes
 	while true do
 		task.wait(1)
+		Camera.apply()
 		if Camera.build then
 			local f = Camera.currentFloor()
 			if f ~= Camera.floor then

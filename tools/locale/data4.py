@@ -1,0 +1,20 @@
+# First person, gifts, codes, combo (texts added with the Roblox-style update)
+NEW = [
+("ui.cam_first","First person","Prima persona"),
+("ui.fp_keys","Click / E: use · G: put down · Shift: run · Alt: mouse · B build · O supplier · P phone · R gifts","Clic / E: usa · G: posa · Shift: corri · Alt: mouse · B costruisci · O fornitore · P telefono · R regali"),
+("ui.combo","🔥 COMBO x{n}!  +{pct}% tips","🔥 COMBO x{n}!  +{pct}% mance"),
+("ui.gifts","Gifts","Regali"),
+("ui.gifts_hint","Free gifts for playing: a new one every few minutes!","Regali gratis mentre giochi: uno nuovo ogni pochi minuti!"),
+("ui.gift_ready","Claim!","Ritira!"),
+("ui.claimed","Claimed","Ritirato"),
+("ui.codes","Codes","Codici"),
+("ui.codes_hint","Got a code? Type it here to get a reward.","Hai un codice? Scrivilo qui per ricevere un premio."),
+("ui.codes_placeholder","Type a code…","Scrivi un codice…"),
+("ui.redeem","Redeem","Riscatta"),
+("msg.gift_ready","A free gift is ready! Click 🎁 under your money.","Un regalo gratis è pronto! Clicca 🎁 sotto i tuoi soldi."),
+("msg.gift_claimed","🎁 Gift claimed!","🎁 Regalo ritirato!"),
+("msg.gift_wait","This gift is not ready yet.","Questo regalo non è ancora pronto."),
+("msg.code_ok","🎟️ Code {code} redeemed!","🎟️ Codice {code} riscattato!"),
+("msg.code_used","You already used this code.","Hai già usato questo codice."),
+("msg.code_invalid","This code does not exist.","Questo codice non esiste."),
+]

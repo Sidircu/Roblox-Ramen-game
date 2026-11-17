@@ -408,6 +408,7 @@ Oggetti iniziali: bancone (6 moduli + 2 terminali, 28 stud), 12 sgabelli, postaz
 | `cust_vip` | Ospite VIP | 18 | 3 | 2–4 | 150 | 2,5 | solo sala tatami, 3 piatti a testa |
 | `cust_celebrity` | Celebrità | 30 | 0,3 | 1 | 90 | 5,0 | evento |
 
+- **Difficoltà bassa** (`GameConfig.Customers.PatienceMult = 1,8`): la pazienza reale è quella della tabella × 1,8 (× il bonus dell'ambiente); quando prendi l'ordine il timer riparte da pieno per la cottura.
 - Piatti per cliente: 1 principale; 40% di probabilità di contorno o bevanda se sbloccati; 15% di un secondo ordine.
 - Tempo per mangiare: 12 s (sushi), 18 s (ramen), 6 s (bevande).
 - Numero massimo di clienti contemporanei: posti disponibili + coda (massimo 40 NPC in totale, personale incluso, per non pesare sul server).
@@ -431,6 +432,10 @@ Oggetti iniziali: bancone (6 moduli + 2 terminali, 28 stud), 12 sgabelli, postaz
 | Obiettivi | traguardi a livelli (piatti, clienti, yen, decorazioni, personale, maestrie, licenze, zone, ristrutturazioni…) con 🌸3–100 |
 | Set di decorazioni | Matsuri, Giardino zen, Samurai, Neon di Tokyo, Ciliegi: +5% mance o +0,1 popolarità ciascuno; Ramen-ya (tettoia, striscione, poster del menù, sgabello rosso, brocca): +4% mance e +0,06 popolarità |
 | Franchise | ogni stella: +25% yen, +10% XP; ¥2.000 iniziali nella nuova città |
+| Regali a tempo (`Config/Rewards.luau`) | minuti di gioco nella sessione: 2 → ¥250 · 5 → 🌸2 · 9 → salmone + noodles · 14 → ¥900 · 20 → 🌸5 · 28 → ¥2.200 · 38 → 2 brodo shoyu + riso · 50 → 🌸10 · 65 → ¥6.000; gli yen × (1 + livello × 0,12); agli aiutanti ¥400 al posto delle scatole |
+| Codici | RAMEN ¥500 · SAKURA 🌸5 · ITADAKIMASU ¥1.500 · OISHII 🌸10 · NEWSHOP ¥3.000 (yen × (1 + livello × 0,12)); una volta per giocatore |
+| Combo di servizio | piatti serviti entro 30 s l'uno dall'altro: +5% di mancia per passo, massimo +50% |
+| Corsa | Shift o 🏃: velocità × 1,45 |
 
 ---
 

@@ -110,7 +110,7 @@ HINT = [
 ]
 TUT = [
 ("tut.step","Tutorial {i}/{n}","Tutorial {i}/{n}"),
-("tut.welcome","Welcome to your ramen-ya! Walk with WASD or the joystick, hold the right mouse button (or drag a finger) to turn the camera, and click things close to you.","Benvenuto nel tuo ramen-ya! Cammina con WASD o il joystick, tieni premuto il tasto destro (o trascina un dito) per girare la telecamera e clicca le cose vicine a te."),
+("tut.welcome","Welcome to your ramen-ya! Walk with WASD (Shift to run) and look around with the mouse or by dragging a finger. Aim at things with the dot in the middle and click or press E to use them. Hold Alt to click the buttons on screen; Enter shows the next tip.","Benvenuto nel tuo ramen-ya! Cammina con WASD (Shift per correre) e guardati intorno con il mouse o trascinando un dito. Punta le cose con il pallino al centro e clicca o premi E per usarle. Tieni premuto Alt per cliccare i pulsanti sullo schermo; Invio mostra il consiglio successivo."),
 ("tut.take_box","Follow the yellow arrow to the storage room and click a box to pick it up.","Segui la freccia gialla fino al magazzino e clicca una scatola per prenderla."),
 ("tut.fill_shelf","Carry the box to a shelf in the kitchen and click the shelf: the box fills every free spot. G (or ⬇) puts a box down.","Porta la scatola a uno scaffale della cucina e clicca lo scaffale: la scatola riempie tutti gli spazi liberi. G (o ⬇) appoggia la scatola a terra."),
 ("tut.rice","Take a box of rice and click the rice cooker: the rice cooks by itself.","Prendi una scatola di riso e clicca il rice cooker: il riso cuoce da solo."),
@@ -191,7 +191,7 @@ UI += [
 ]
 # Camera settings
 UI += [
-("ui.camera","Camera","Telecamera"),("ui.cam_game","Smooth","Morbida"),("ui.cam_speed","Camera speed","Velocità telecamera"),
+("ui.camera","Camera","Telecamera"),("ui.cam_game","Third person","Terza persona"),("ui.cam_speed","Camera speed","Velocità telecamera"),
 ("ui.slow","Slow","Lenta"),("ui.medium","Medium","Media"),("ui.fast","Fast","Veloce"),
 ]
 # Order guide (left, opened from an order ticket)

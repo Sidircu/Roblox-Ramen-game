@@ -44,6 +44,9 @@ function UI.open(name, arg)
 	end
 	if s.modal ~= false then
 		UI.current = name
+		if Core.C.Audio then
+			Core.C.Audio.play("open")
+		end
 	end
 	local ok, err = pcall(s.open, arg)
 	if not ok then

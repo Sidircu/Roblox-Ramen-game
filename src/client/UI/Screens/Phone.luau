@@ -17,6 +17,7 @@ local player = Players.LocalPlayer
 
 local APPS = {
 	{ id = "Menu", icon = "📜", key = "ui.menu", color = "#B3262E" },
+	{ id = "Gifts", icon = "🎁", key = "ui.gifts", color = "#E0405A" },
 	{ id = "Staff", icon = "👥", key = "ui.staff", color = "#2E5A8C" },
 	{ id = "Upgrades", icon = "⬆️", key = "ui.upgrades", color = "#5E8F3A" },
 	{ id = "Expansions", icon = "🏗️", key = "ui.expansions", color = "#8A5A36" },
@@ -24,6 +25,7 @@ local APPS = {
 	{ id = "Goals", icon = "🎯", key = "ui.goals", color = "#F27A2E" },
 	{ id = "Help", icon = "❓", key = "ui.howto", color = "#2EA3B3" },
 	{ id = "Shop", icon = "🛒", key = "ui.shop", color = "#F25A9A" },
+	{ id = "Codes", icon = "🎟️", key = "ui.codes", color = "#3A8F8A" },
 	{ id = "Invite", icon = "👋", key = "ui.invite", color = "#7F3AB3" },
 	{ id = "Settings", icon = "⚙️", key = "ui.settings", color = "#5A5A64" },
 	{ id = "Dev", icon = "🛠️", key = "ui.dev", color = "#1E1E22", dev = true },

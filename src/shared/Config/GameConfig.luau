@@ -32,6 +32,9 @@ return {
 
 	-- Customers
 	Customers = {
+		-- easy mode: every customer type waits this many times its base patience, and the timer
+		-- starts again from full when you take the order (full time to cook it)
+		PatienceMult = 1.8,
 		MaxNpcs = 40,
 		BaseInterval = 18,
 		MinInterval = 2.5,
@@ -68,6 +71,7 @@ return {
 	-- A box fills at most this many shelf slots: a base slot holds 1/BoxShelfSlots of a box
 	-- (bigger shelves and the shelf upgrade make slots roomier); big boxes fill this many per use
 	BoxShelfSlots = 2,
+	ShelfItemScale = 1.3, -- size of the products shown on shelf slots
 
 	-- Dishes (plates and bowls)
 	StartDishes = 12,

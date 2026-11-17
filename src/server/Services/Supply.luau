@@ -208,10 +208,14 @@ function Supply.takeBox(actor, e)
 		return false, "msg.hands_full"
 	end
 	local entry = e.box
+	local pos = Core.S.Entities.position(e)
 	entry.h = true
 	entry.px, entry.pz, entry.pf, entry.pr = nil, nil, nil, nil
 	Hands.set(actor, "box", { entry })
 	Supply.layout()
+	if pos then
+		Core.S.Net.fx("sfx", { name = "box", pos = pos })
+	end
 	return true
 end
 
@@ -219,6 +223,7 @@ end
 -- of the actor. Returns "rack" or "floor".
 function Supply.dropBox(entry, pos, look, floor)
 	entry.h = nil
+	Core.S.Net.fx("sfx", { name = "box", pos = pos })
 	if entry.n <= 0 then
 		Supply.returnBox(entry)
 		return "gone"
@@ -345,11 +350,15 @@ function Supply.refreshShelf(e)
 			local holder = Instance.new("Model")
 			holder.Name = "SlotItems"
 			local width = part:GetAttribute("Width") or 3
-			local shown = math.min(5, math.max(1, math.ceil(s.n / math.max(1, cap) * 5)))
+			local shown = math.min(6, math.max(1, math.ceil(s.n / math.max(1, cap) * 6)))
 			for k = 1, shown do
 				local m = Registry.food("ingredient", s.g)
+				-- the shelves are big: show the products a little bigger too
+				pcall(function()
+					m:ScaleTo(GameConfig.ShelfItemScale or 1)
+				end)
 				local x = -width / 2 + width * (k - 0.5) / shown
-				m:PivotTo(part.CFrame * CFrame.new(x, -part.Size.Y / 2 + 0.32, 0))
+				m:PivotTo(part.CFrame * CFrame.new(x, -part.Size.Y / 2 + 0.32 * (GameConfig.ShelfItemScale or 1), 0))
 				for _, dsc in ipairs(m:GetDescendants()) do
 					if dsc:IsA("BasePart") then
 						dsc.CanQuery = false
@@ -465,7 +474,7 @@ function Supply.useShelf(actor, e, slot)
 		Supply.refreshShelf(e)
 		Core.S.Data.changed(Core.S.Session.owner, "shelves")
 		Core.S.Meta.event(Core.S.Session.owner, "restock", 1)
-		Core.S.Net.fx("sfx", { name = "place", pos = e.model.PrimaryPart.Position })
+		Core.S.Net.fx("sfx", { name = "restock", pos = e.model.PrimaryPart.Position })
 		return true
 	elseif hands.kind == nil or hands.kind == "ing" then
 		local s = slot and st[tostring(slot)]
@@ -573,7 +582,10 @@ local function animateTruck(onArrive)
 	local t2 = TweenService:Create(value, TweenInfo.new(1.6, Enum.EasingStyle.Sine), { Value = bayCf })
 	t2:Play()
 	t2.Completed:Wait()
-	Core.S.Net.fx("sfx", { name = "bell", pos = bayCf.Position })
+	Core.S.Net.fx("sfx", { name = "truck", pos = bayCf.Position })
+	task.delay(0.8, function()
+		Core.S.Net.fx("sfx", { name = "bell", pos = bayCf.Position })
+	end)
 	task.wait(1)
 	onArrive()
 	task.wait(1.5)

@@ -110,7 +110,7 @@ if workspace:GetAttribute("SessionMode") ~= "lobby" then
 	spin:Disconnect()
 	gui:Destroy()
 end
-]]></ProtectedString></Properties></Item></Item><Item class="ReplicatedStorage" referent="RBX000061"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000059"><Properties><string name="Name">Shared</string></Properties><Item class="Folder" referent="RBX000024"><Properties><string name="Name">Config</string></Properties><Item class="ModuleScript" referent="RBX000003"><Properties><string name="Name">Achievements</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ReplicatedStorage" referent="RBX000062"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000060"><Properties><string name="Name">Shared</string></Properties><Item class="Folder" referent="RBX000025"><Properties><string name="Name">Config</string></Properties><Item class="ModuleScript" referent="RBX000003"><Properties><string name="Name">Achievements</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Achievements are generated from tiered templates. Name key: "ach.<stat>" with {n}.
 local templates = {
 	{ stat = "dishes", tiers = { 10, 100, 1000, 10000, 100000 }, sakura = { 5, 10, 20, 35, 50 } },
@@ -154,30 +154,93 @@ for i, a in ipairs(list) do
 end
 return { list = list, byId = byId }
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000005"><Properties><string name="Name">Audio</string><ProtectedString name="Source"><![CDATA[--!nonstrict
--- Sound ids. Replace with tracks from the Roblox audio library ("rbxassetid://123").
--- Empty strings are silent. The rbxasset:// ones ship with the Roblox client.
+-- Sounds. Every id comes from the public Roblox Creator Store library (Pro Sound Effects, APM Music
+-- and Roblox UI sounds), so it plays in any experience. Each effect lists one or more takes: one is
+-- picked at random and slightly re-pitched so repeated actions never sound identical.
+--   ids    takes to choose from
+--   volume base volume (multiplied by the player's sfx setting)
+--   pitch  { min, max } PlaybackSpeed range
+--   len    stop after this many seconds (with a short fade) for long recordings
+--   start  start this many seconds into the recording
+--   range  hearing distance in studs for positional sounds
+local function a(id)
+	return "rbxassetid://" .. id
+end
+
+local CHOP = {}
+for _, id in ipairs({
+	9113800103, 9113800168, 9113800170, 9113800257, 9113800310, 9113800372, 9113800368,
+	9113800380, 9113800479, 9113800491, 9113800677, 9113800686, 9113800857, 9113801019,
+	9113801156, 9113801563,
+}) do
+	table.insert(CHOP, a(id))
+end
+
 return {
+	-- background music: a calm playlist for the day and one for the evening
 	Music = {
-		day = "",
-		night = "",
+		day = { a(1846310773), a(1838606941), a(135844487150341) }, -- Minimal Koto, Asian Lounge, Under The Cherry Blossoms
+		night = { a(1837510751), a(1841374108) }, -- Kyoto In The Snow, Cherry Blossom After Frost
 	},
+	-- loops mixed by the client from where you are and what happens around you
 	Ambience = {
-		street = "",
+		street = { id = a(9112798079), volume = 0.32 }, -- Japanese traffic (louder outside)
+		restaurant = { id = a(9112862817), volume = 0.3 }, -- restaurant chatter (grows with customers)
+		boil = { id = a(9120500149), volume = 0.4, range = 26 }, -- bubbling broth pot
+		cooker = { id = a(9120500158), volume = 0.18, range = 18 }, -- rice cooker simmering
+		train = { id = a(9112798561), volume = 0.7, range = 320 }, -- train on the viaduct
 	},
 	Sfx = {
-		click = "rbxasset://sounds/clickfast.wav",
-		ui = "rbxasset://sounds/button.wav",
-		coin = "rbxasset://sounds/electronicpingshort.wav",
-		cut = "rbxasset://sounds/swordslash.wav",
-		place = "rbxasset://sounds/snap.wav",
-		level = "rbxasset://sounds/victory.wav",
-		bell = "rbxasset://sounds/electronicpingshort.wav",
-		error = "rbxasset://sounds/button.wav",
-		pour = "",
-		sizzle = "",
-		truck = "",
+		-- interface
+		click = { ids = { a(15675032796) }, volume = 0.45 },
+		ui = { ids = { a(15675059323) }, volume = 0.45 },
+		open = { ids = { a(15675037413) }, volume = 0.4 },
+		error = { ids = { a(15675075163) }, volume = 0.45 },
+		gift = { ids = { a(15675055424) }, volume = 0.6, len = 1.5 },
+		level = { ids = { a(15675043410) }, volume = 0.7 },
+		sparkle = { ids = { a(9126073001), a(9126073318) }, volume = 0.4 },
+		combo = { ids = { a(9126076030) }, volume = 0.45, pitch = { 1, 1 } },
+		-- money
+		coin = { ids = { a(9113728042), a(9113728049) }, volume = 0.55 }, -- cash register
+		tip = { ids = { a(9113848943), a(9113849011) }, volume = 0.45 }, -- coins on a wooden counter
+		-- kitchen
+		chop = { ids = CHOP, volume = 0.85, pitch = { 0.94, 1.1 }, len = 0.7, range = 50 }, -- knife on a cutting board
+		pour = { ids = { a(9114612188), a(9114612102) }, volume = 0.75, len = 2.6, range = 50 }, -- broth poured into a bowl
+		drain = { ids = { a(9120589761) }, volume = 0.75, range = 50 }, -- noodles shaken dry in the strainer
+		boilstep = { ids = { a(9120500158) }, volume = 0.5, len = 1.6, start = 2, range = 40 }, -- noodles in boiling water
+		sizzle = { ids = { a(9114542867) }, volume = 0.6, len = 2.4, start = 4, range = 50 }, -- frying
+		spatula = { ids = { a(9125594711), a(9119452055), a(9119448503) }, volume = 0.45, range = 40 },
+		utensil = { ids = { a(9120969635), a(9120969740) }, volume = 0.5, range = 40 }, -- wooden tools, rolling mat
+		batter = { ids = { a(9117142914) }, volume = 0.5, len = 1.2, start = 1, range = 40 },
+		plate = { ids = { a(9117654146), a(9117654198), a(9117654476), a(9117654482) }, volume = 0.5, range = 50 },
+		rice = { ids = { a(9118770347) }, volume = 0.45, len = 2, range = 40 }, -- rice poured into the cooker
+		wash = { ids = { a(9125619398) }, volume = 0.45, len = 3, range = 40 },
+		beep = { ids = { a(9118776841) }, volume = 0.4, range = 40 }, -- appliance ready
+		bell = { ids = { a(9114058445), a(9114058446) }, volume = 0.5, len = 2.5, range = 80 }, -- dish ready / day opens
+		-- storage
+		box = { ids = { a(9113720101) }, volume = 0.55, range = 40 }, -- cardboard box picked up / put down
+		restock = { ids = { a(9113578540), a(9113579415) }, volume = 0.5, range = 40 }, -- box slid onto a shelf
+		place = { ids = { a(9120880067), a(9120880071) }, volume = 0.5, range = 40 },
+		truck = { ids = { a(9114075649) }, volume = 0.3, range = 200 },
+		-- customers
+		ticket = { ids = { a(15675037413) }, volume = 0.45, range = 50 }, -- order written on a ticket
+		chime = { ids = { a(9120749869) }, volume = 0.4, len = 3, range = 70 }, -- furin wind chime at the door
+		slurp = { ids = { a(9117020558), a(9117020823), a(9117021097) }, volume = 0.45, range = 35 },
 	},
-	Volume = { music = 0.4, sfx = 0.7 },
+	-- which effects play during each cooking step (see Audio.step)
+	Steps = {
+		cut = { hit = "chop", hits = 5 },
+		combine = { first = "utensil", last = "plate" },
+		roll = { first = "utensil", last = "utensil" },
+		mold = { first = "utensil", last = "plate" },
+		boil = { first = "boilstep", last = "drain" },
+		pour = { first = "pour" },
+		top = { first = "utensil", last = "plate" },
+		batter = { first = "batter" },
+		fry = { first = "sizzle" },
+		flip = { first = "spatula", last = "sizzle" },
+	},
+	Volume = { music = 0.35, sfx = 0.8, ambience = 0.7 },
 }
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000006"><Properties><string name="Name">Customers</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Customer types. prefer: recipe categories or tags with doubled order probability.
@@ -462,6 +525,9 @@ return {
 
 	-- Customers
 	Customers = {
+		-- easy mode: every customer type waits this many times its base patience, and the timer
+		-- starts again from full when you take the order (full time to cook it)
+		PatienceMult = 1.8,
 		MaxNpcs = 40,
 		BaseInterval = 18,
 		MinInterval = 2.5,
@@ -498,6 +564,7 @@ return {
 	-- A box fills at most this many shelf slots: a base slot holds 1/BoxShelfSlots of a box
 	-- (bigger shelves and the shelf upgrade make slots roomier); big boxes fill this many per use
 	BoxShelfSlots = 2,
+	ShelfItemScale = 1.3, -- size of the products shown on shelf slots
 
 	-- Dishes (plates and bowls)
 	StartDishes = 12,
@@ -622,8 +689,8 @@ local list = {
 	{ id = "waiting_bench", cat = "seating", price = 500, lv = 2, place = "floor", areas = { "dining", "outdoor" }, size = { 5, 2, 1.5 }, amb = 1, fn = { type = "bench", queue = 3 } },
 
 	-- Kitchen ------------------------------------------------------------------------------------
-	{ id = "shelf_small", cat = "kitchen", price = 400, lv = 1, place = "floor", areas = KITCHEN, size = { 4, 6, 1.5 }, amb = 0, fn = { type = "shelf", slots = 4, size = 1 } },
-	{ id = "shelf_large", cat = "kitchen", price = 1500, lv = 7, place = "floor", areas = KITCHEN, size = { 6, 7, 1.5 }, amb = 0, fn = { type = "shelf", slots = 6, size = 1.6 } },
+	{ id = "shelf_small", cat = "kitchen", price = 400, lv = 1, place = "floor", areas = KITCHEN, size = { 5.6, 7.4, 2 }, amb = 0, fn = { type = "shelf", slots = 4, size = 1 } },
+	{ id = "shelf_large", cat = "kitchen", price = 1500, lv = 7, place = "floor", areas = KITCHEN, size = { 7.8, 8.4, 2 }, amb = 0, fn = { type = "shelf", slots = 6, size = 1.6 } },
 	{ id = "neta_case", cat = "kitchen", price = 3000, lv = 5, place = "floor", areas = KITCHEN, size = { 5, 3.2, 2.2 }, amb = 3, fn = { type = "shelf", slots = 4, size = 1.2, fishOnly = true, fresh = true } },
 	{ id = "rice_cooker", cat = "kitchen", price = 600, lv = 1, place = "floor", areas = KITCHEN, size = { 2, 2.6, 2 }, amb = 0, fn = { type = "ricecooker", batch = 10, time = 30 } },
 	{ id = "rice_cooker_pro", cat = "kitchen", price = 5000, lv = 11, place = "floor", areas = KITCHEN, size = { 2.6, 3, 2.6 }, amb = 0, fn = { type = "ricecooker", batch = 25, time = 20 } },
@@ -930,7 +997,41 @@ return {
 	byStation = byStation,
 	Stations = { "sushi", "ramen", "drink", "griddle", "fryer", "takoyaki", "dessert" },
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000019"><Properties><string name="Name">Sets</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000019"><Properties><string name="Name">Rewards</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Roblox-style rewards: free gifts for the minutes played in a session, redeemable codes, the
+-- serving combo and running. See docs/03-BILANCIAMENTO.md §11.
+return {
+	-- free gifts unlocked by minutes played in this session (they start again when you rejoin)
+	-- yen grow with the level: yen * (1 + level * GiftYenPerLevel); boxes go to the storage room
+	Gifts = {
+		{ min = 2, yen = 250 },
+		{ min = 5, sakura = 2 },
+		{ min = 9, boxes = { salmon = 1, noodles = 1 } },
+		{ min = 14, yen = 900 },
+		{ min = 20, sakura = 5 },
+		{ min = 28, yen = 2200 },
+		{ min = 38, boxes = { broth_shoyu = 2, rice = 1 } },
+		{ min = 50, sakura = 10 },
+		{ min = 65, yen = 6000 },
+	},
+	GiftYenPerLevel = 0.12,
+	-- yen given instead of boxes to a helper (boxes belong to the owner's storage room)
+	GiftBoxYen = 400,
+	-- codes (case does not matter), each works once per player
+	Codes = {
+		RAMEN = { yen = 500 },
+		SAKURA = { sakura = 5 },
+		ITADAKIMASU = { yen = 1500 },
+		OISHII = { sakura = 10 },
+		NEWSHOP = { yen = 3000 },
+	},
+	-- serving combo: each dish served within Window seconds of the previous one raises the tip
+	-- of that customer by Step, up to Max steps
+	Combo = { Window = 30, Step = 0.05, Max = 10 },
+	-- running: hold Shift (the 🏃 button on phones and tablets)
+	RunMultiplier = 1.45,
+}
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000020"><Properties><string name="Name">Sets</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Decoration sets: placing every item of a set grants its bonus.
 local list = {
 	{ id = "matsuri", items = { "lantern_string", "nobori", "taiko", "yatai", "koinobori" }, bonus = { tip = 0.05 } },
@@ -946,7 +1047,7 @@ for i, s in ipairs(list) do
 	byId[s.id] = s
 end
 return { list = list, byId = byId }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000020"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000021"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Staff roles. Training levels 1..5: cost = hire * 0.8 * 2.2^(level-1), +15% speed per level.
 local list = {
 	{ id = "staff_waiter", icon = "🧑‍🍳", lv = 6, hire = 5000, salary = 300, tasks = { "order", "serve", "collect", "wash" }, shirt = "#2E3A5C" },
@@ -978,7 +1079,7 @@ return {
 	BaseSlots = 2,
 	SlotsByZone = { zone_east = 1, zone_west = 1, zone_terrace = 1, zone_kitchen_pro = 3, zone_floor2 = 3 },
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000021"><Properties><string name="Name">StarterLayout</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000022"><Properties><string name="Name">StarterLayout</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Objects placed in a brand-new restaurant (all can be moved later). The start is plain on
 -- purpose: decorations and renovations (Config/Expansions) are bought over time.
 -- s: "f" floor, "w" wall (y = height of the object's center), "c" ceiling, "t" on top of item index p
@@ -1009,8 +1110,8 @@ return {
 		{ i = "sushi_station", x = -11, z = 33.3, r = 180, s = "f" },
 		{ i = "ramen_station", x = -3, z = 33.3, r = 180, s = "f" },
 		-- back line across a wide aisle: shelves, rice cooker, broth pot, sink
-		{ i = "shelf_small", x = -15, z = 42, r = 0, s = "f" },
-		{ i = "shelf_small", x = -10, z = 42, r = 0, s = "f" },
+		{ i = "shelf_small", x = -22, z = 42.2, r = 0, s = "f" },
+		{ i = "shelf_small", x = -15.5, z = 42.2, r = 0, s = "f" },
 		{ i = "rice_cooker", x = -5.5, z = 42, r = 0, s = "f" },
 		{ i = "broth_pot", x = -1.5, z = 42, r = 0, s = "f" },
 		{ i = "sink", x = 4, z = 42, r = 0, s = "f" },
@@ -1023,7 +1124,7 @@ return {
 		{ g = "noodles", n = 2 }, { g = "broth_shoyu", n = 2 }, { g = "scallion", n = 2 }, { g = "naruto", n = 2 },
 	},
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000022"><Properties><string name="Name">Surfaces</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000023"><Properties><string name="Name">Surfaces</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Floor and wall styles, applied per zone.
 local list = {
 	{ id = "floor_wood_light", kind = "floor", price = 0, lv = 1, color = "#C8A27A", material = "WoodPlanks" },
@@ -1056,7 +1157,7 @@ return {
 	DefaultWall = "wall_plaster",
 	OutdoorFloor = "deck",
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000023"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000024"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Upgrades: costs[n] buys level n, levels[n] is the required restaurant level,
 -- values[n + 1] is the effect at level n (values[1] = level 0).
 local function geometric(base, factor, count)
@@ -1100,7 +1201,7 @@ return {
 	byId = byId,
 	value = value,
 }
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000027"><Properties><string name="Name">Locale</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000028"><Properties><string name="Name">Locale</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Localization: Locale.t("key", { param = value }). Languages: en (base), it.
 local Signal = require(script.Parent.Util.Signal)
 local Format = require(script.Parent.Util.Format)
@@ -1174,7 +1275,7 @@ function Locale.name(prefix, id)
 end
 
 return Locale
-]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX000025"><Properties><string name="Name">en</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX000026"><Properties><string name="Name">en</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- English texts. Every key must exist in both en.luau and it.luau.
 return {
 	["ach.customers"] = "Welcome {n} customers",
@@ -1487,6 +1588,9 @@ return {
 	["msg.box_on_rack"] = "📦 Box put back on the storage rack.",
 	["msg.busy"] = "Busy, wait a moment.",
 	["msg.celebrity"] = "⭐ A celebrity is coming! Fans are on their way!",
+	["msg.code_invalid"] = "This code does not exist.",
+	["msg.code_ok"] = "🎟️ Code {code} redeemed!",
+	["msg.code_used"] = "You already used this code.",
 	["msg.construction"] = "Building works…",
 	["msg.cooking_wait"] = "Still cooking, wait until it's ready.",
 	["msg.critic_happy"] = "🧐 The food critic loved it! +3 🌸",
@@ -1509,6 +1613,9 @@ return {
 	["msg.franchise_done"] = "You opened every franchise!",
 	["msg.franchise_opened"] = "🗾 New restaurant in {city}!",
 	["msg.friend_offline"] = "Your friend is not in their restaurant right now.",
+	["msg.gift_claimed"] = "🎁 Gift claimed!",
+	["msg.gift_ready"] = "A free gift is ready! Click 🎁 under your money.",
+	["msg.gift_wait"] = "This gift is not ready yet.",
 	["msg.hands_busy"] = "Your hands are busy.",
 	["msg.hands_dropped"] = "Hands emptied.",
 	["msg.hands_full"] = "Your hands are full.",
@@ -1700,7 +1807,7 @@ return {
 	["tut.step"] = "Tutorial {i}/{n}",
 	["tut.take_box"] = "Follow the yellow arrow to the storage room and click a box to pick it up.",
 	["tut.wash"] = "Click the sink to wash them.",
-	["tut.welcome"] = "Welcome to your ramen-ya! Walk with WASD or the joystick, hold the right mouse button (or drag a finger) to turn the camera, and click things close to you.",
+	["tut.welcome"] = "Welcome to your ramen-ya! Walk with WASD (Shift to run) and look around with the mouse or by dragging a finger. Aim at things with the dot in the middle and click or press E to use them. Hold Alt to click the buttons on screen; Enter shows the next tip.",
 	["ui.active"] = "Active",
 	["ui.ad_desc"] = "+{pop} popularity today",
 	["ui.ads"] = "Advertising (1 day)",
@@ -1714,15 +1821,21 @@ return {
 	["ui.build"] = "Build",
 	["ui.build_hint"] = "Pick an object below, or click a placed object to move, rotate, store or sell it.",
 	["ui.buy_dishes"] = "Buy {n} dishes · ¥{price}",
-	["ui.cam_game"] = "Smooth",
+	["ui.cam_first"] = "First person",
+	["ui.cam_game"] = "Third person",
 	["ui.cam_speed"] = "Camera speed",
 	["ui.camera"] = "Camera",
 	["ui.can_place"] = "Can be placed here",
 	["ui.cancel"] = "Cancel",
 	["ui.claim"] = "Claim",
+	["ui.claimed"] = "Claimed",
 	["ui.close_early"] = "Close early",
 	["ui.closed_tap"] = "CLOSED",
 	["ui.closing"] = "Closing…",
+	["ui.codes"] = "Codes",
+	["ui.codes_hint"] = "Got a code? Type it here to get a reward.",
+	["ui.codes_placeholder"] = "Type a code…",
+	["ui.combo"] = "🔥 COMBO x{n}!  +{pct}% tips",
 	["ui.daily_tomorrow"] = "Come back tomorrow!",
 	["ui.day_n"] = "Day {n}",
 	["ui.dev"] = "Dev",
@@ -1732,10 +1845,14 @@ return {
 	["ui.exit_build"] = "Exit",
 	["ui.expansions"] = "Expansions",
 	["ui.fast"] = "Fast",
+	["ui.fp_keys"] = "Click / E: use · G: put down · Shift: run · Alt: mouse · B build · O supplier · P phone · R gifts",
 	["ui.franchise_info"] = "Franchise stars: {stars} · permanent bonus +{yen}% yen and +{xp}% XP.",
 	["ui.franchise_open"] = "Open a restaurant in {city}",
 	["ui.franchise_req"] = "Requires level {level}, rating {rating}★ and all main expansions. Your decorations go to the inventory.",
 	["ui.free"] = "Free",
+	["ui.gift_ready"] = "Claim!",
+	["ui.gifts"] = "Gifts",
+	["ui.gifts_hint"] = "Free gifts for playing: a new one every few minutes!",
 	["ui.goals"] = "Goals",
 	["ui.grid"] = "Grid",
 	["ui.grid_size"] = "Grid size",
@@ -1791,6 +1908,7 @@ return {
 	["ui.r_tips"] = "Tips",
 	["ui.r_walkouts"] = "Customers who left",
 	["ui.ready_to_serve"] = "Ready to serve",
+	["ui.redeem"] = "Redeem",
 	["ui.regional"] = "Regional dish of {city}",
 	["ui.reno_amb"] = "+{n} ambience",
 	["ui.reno_exterior"] = "Exterior",
@@ -1925,7 +2043,7 @@ return {
 	["zonedesc.zone_terrace"] = "Outdoor seats with lanterns",
 	["zonedesc.zone_west"] = "A big new dining hall",
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000026"><Properties><string name="Name">it</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000027"><Properties><string name="Name">it</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Italian texts. Every key must exist in both en.luau and it.luau.
 return {
 	["ach.customers"] = "Accogli {n} clienti",
@@ -2238,6 +2356,9 @@ return {
 	["msg.box_on_rack"] = "📦 Scatola rimessa sulla scaffalatura del magazzino.",
 	["msg.busy"] = "Occupato, aspetta un attimo.",
 	["msg.celebrity"] = "⭐ Arriva una celebrità! I fan sono in arrivo!",
+	["msg.code_invalid"] = "Questo codice non esiste.",
+	["msg.code_ok"] = "🎟️ Codice {code} riscattato!",
+	["msg.code_used"] = "Hai già usato questo codice.",
 	["msg.construction"] = "Lavori in corso…",
 	["msg.cooking_wait"] = "Sta ancora cuocendo, aspetta che sia pronto.",
 	["msg.critic_happy"] = "🧐 Il critico ha adorato il piatto! +3 🌸",
@@ -2260,6 +2381,9 @@ return {
 	["msg.franchise_done"] = "Hai aperto tutti i franchise!",
 	["msg.franchise_opened"] = "🗾 Nuovo locale a {city}!",
 	["msg.friend_offline"] = "Il tuo amico non è nel suo ristorante adesso.",
+	["msg.gift_claimed"] = "🎁 Regalo ritirato!",
+	["msg.gift_ready"] = "Un regalo gratis è pronto! Clicca 🎁 sotto i tuoi soldi.",
+	["msg.gift_wait"] = "Questo regalo non è ancora pronto.",
 	["msg.hands_busy"] = "Hai le mani occupate.",
 	["msg.hands_dropped"] = "Mani svuotate.",
 	["msg.hands_full"] = "Hai le mani piene.",
@@ -2451,7 +2575,7 @@ return {
 	["tut.step"] = "Tutorial {i}/{n}",
 	["tut.take_box"] = "Segui la freccia gialla fino al magazzino e clicca una scatola per prenderla.",
 	["tut.wash"] = "Clicca il lavello per lavarle.",
-	["tut.welcome"] = "Benvenuto nel tuo ramen-ya! Cammina con WASD o il joystick, tieni premuto il tasto destro (o trascina un dito) per girare la telecamera e clicca le cose vicine a te.",
+	["tut.welcome"] = "Benvenuto nel tuo ramen-ya! Cammina con WASD (Shift per correre) e guardati intorno con il mouse o trascinando un dito. Punta le cose con il pallino al centro e clicca o premi E per usarle. Tieni premuto Alt per cliccare i pulsanti sullo schermo; Invio mostra il consiglio successivo.",
 	["ui.active"] = "Attivo",
 	["ui.ad_desc"] = "+{pop} popolarità oggi",
 	["ui.ads"] = "Pubblicità (1 giorno)",
@@ -2465,15 +2589,21 @@ return {
 	["ui.build"] = "Costruisci",
 	["ui.build_hint"] = "Scegli un oggetto qui sotto, oppure clicca un oggetto piazzato per spostarlo, ruotarlo, metterlo via o venderlo.",
 	["ui.buy_dishes"] = "Compra {n} stoviglie · ¥{price}",
-	["ui.cam_game"] = "Morbida",
+	["ui.cam_first"] = "Prima persona",
+	["ui.cam_game"] = "Terza persona",
 	["ui.cam_speed"] = "Velocità telecamera",
 	["ui.camera"] = "Telecamera",
 	["ui.can_place"] = "Si può piazzare qui",
 	["ui.cancel"] = "Annulla",
 	["ui.claim"] = "Riscuoti",
+	["ui.claimed"] = "Ritirato",
 	["ui.close_early"] = "Chiudi prima",
 	["ui.closed_tap"] = "CHIUSO",
 	["ui.closing"] = "Chiusura…",
+	["ui.codes"] = "Codici",
+	["ui.codes_hint"] = "Hai un codice? Scrivilo qui per ricevere un premio.",
+	["ui.codes_placeholder"] = "Scrivi un codice…",
+	["ui.combo"] = "🔥 COMBO x{n}!  +{pct}% mance",
 	["ui.daily_tomorrow"] = "Torna domani!",
 	["ui.day_n"] = "Giorno {n}",
 	["ui.dev"] = "Dev",
@@ -2483,10 +2613,14 @@ return {
 	["ui.exit_build"] = "Esci",
 	["ui.expansions"] = "Espansioni",
 	["ui.fast"] = "Veloce",
+	["ui.fp_keys"] = "Clic / E: usa · G: posa · Shift: corri · Alt: mouse · B costruisci · O fornitore · P telefono · R regali",
 	["ui.franchise_info"] = "Stelle franchise: {stars} · bonus permanente +{yen}% yen e +{xp}% XP.",
 	["ui.franchise_open"] = "Apri un locale a {city}",
 	["ui.franchise_req"] = "Serve il livello {level}, valutazione {rating}★ e tutte le espansioni principali. Le decorazioni vanno nell'inventario.",
 	["ui.free"] = "Gratis",
+	["ui.gift_ready"] = "Ritira!",
+	["ui.gifts"] = "Regali",
+	["ui.gifts_hint"] = "Regali gratis mentre giochi: uno nuovo ogni pochi minuti!",
 	["ui.goals"] = "Obiettivi",
 	["ui.grid"] = "Griglia",
 	["ui.grid_size"] = "Dimensione griglia",
@@ -2542,6 +2676,7 @@ return {
 	["ui.r_tips"] = "Mance",
 	["ui.r_walkouts"] = "Clienti andati via",
 	["ui.ready_to_serve"] = "Pronto da servire",
+	["ui.redeem"] = "Riscatta",
 	["ui.regional"] = "Piatto regionale di {city}",
 	["ui.reno_amb"] = "+{n} atmosfera",
 	["ui.reno_exterior"] = "Esterno",
@@ -2676,7 +2811,7 @@ return {
 	["zonedesc.zone_terrace"] = "Posti all'aperto con le lanterne",
 	["zonedesc.zone_west"] = "Una nuova sala grande",
 }
-]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000036"><Properties><string name="Name">Logic</string></Properties><Item class="ModuleScript" referent="RBX000028"><Properties><string name="Name">Ambience</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000037"><Properties><string name="Name">Logic</string></Properties><Item class="ModuleScript" referent="RBX000029"><Properties><string name="Name">Ambience</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Ambience score, tiers and decoration set bonuses (pure).
 local Ambience = {}
 
@@ -2755,7 +2890,7 @@ function Ambience.compute(placed, items, surfaces, zoneSurfaces, extra, sets)
 end
 
 return Ambience
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000029"><Properties><string name="Name">Footprint</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000030"><Properties><string name="Name">Footprint</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- 2D oriented rectangles on the XZ plane (pure). A footprint is {x, z, w, d, r} (r in degrees).
 local Footprint = {}
 
@@ -2901,7 +3036,7 @@ function Footprint.subtractRect(r, hole)
 end
 
 return Footprint
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000030"><Properties><string name="Name">Formulas</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000031"><Properties><string name="Name">Formulas</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Pure game formulas (no Roblox APIs). See docs/03-BILANCIAMENTO.md §1.
 local Formulas = {}
 
@@ -3060,7 +3195,7 @@ function Formulas.incomeMultiplier(opts)
 end
 
 return Formulas
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000031"><Properties><string name="Name">Geometry</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000032"><Properties><string name="Name">Geometry</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Unlocked restaurant geometry (zones, openings, stairs, walls, door clearances) computed from
 -- the owner's `zones` map. Shared by the server world builder and the client build preview.
 local Walls = require(script.Parent.Walls)
@@ -3157,7 +3292,7 @@ function Geometry.ctx(geo, items, placed, cfg)
 end
 
 return Geometry
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000032"><Properties><string name="Name">Grid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000033"><Properties><string name="Name">Grid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Grid snapping helpers (pure).
 local Grid = {}
 
@@ -3200,7 +3335,7 @@ function Grid.nextRotation(deg, step)
 end
 
 return Grid
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000033"><Properties><string name="Name">Pathgrid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000034"><Properties><string name="Name">Pathgrid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Walkability check used when placing objects: every seat must stay reachable from the
 -- entrance, the kitchen and the storage must stay reachable, stairs must stay usable.
 -- Works on a 0.5-stud grid per floor (pure).
@@ -3417,7 +3552,7 @@ function Pathgrid.check(ctx, obstacles, targets, clearance)
 end
 
 return Pathgrid
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000034"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000035"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Placement validation shared by the client preview and the server (pure).
 --
 -- ctx = {
@@ -3710,7 +3845,7 @@ function Placement.validate(ctx, req, skipPath)
 end
 
 return Placement
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000035"><Properties><string name="Name">Walls</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000036"><Properties><string name="Name">Walls</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Computes wall and railing segments from the unlocked zones (pure).
 -- Segment: { axis = "z" (runs along X at z = line) | "x" (runs along Z at x = line), line, a, b, floor, kind }
 -- Wall segments separate indoor cells from outside or from another room.
@@ -3899,7 +4034,7 @@ function Walls.along(seg, x, z)
 end
 
 return Walls
-]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000050"><Properties><string name="Name">Models</string></Properties><Item class="Folder" referent="RBX000045"><Properties><string name="Name">Builders</string></Properties><Item class="ModuleScript" referent="RBX000037"><Properties><string name="Name">Building</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000051"><Properties><string name="Name">Models</string></Properties><Item class="Folder" referent="RBX000046"><Properties><string name="Name">Builders</string></Properties><Item class="ModuleScript" referent="RBX000038"><Properties><string name="Name">Building</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Building shell pieces used by the server WorldService (floors, walls, roof, stairs, facade).
 -- All coordinates are world coordinates (the plot origin is the world origin).
 local CollectionService = game:GetService("CollectionService")
@@ -4484,7 +4619,7 @@ end
 return function(Registry)
 	Registry.Building = B
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000038"><Properties><string name="Name">Decor</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000039"><Properties><string name="Name">Decor</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Decorations: lighting, plants, art, statues, garden, festival, seasonal and city items.
 -- Parts with the attribute "Animate" are animated by the client (AmbientController).
 local Kit = require(script.Parent.Parent.Kit)
@@ -5301,7 +5436,7 @@ return function(Registry)
 		end
 	end)
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000039"><Properties><string name="Name">Food</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000040"><Properties><string name="Name">Food</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Food visuals: dishes (per recipe), ingredients, supplier boxes, dirty dishes, cooking tools.
 -- Everything is built from primitives with real-world proportions and colours: curved bowls
 -- with a glazed band, glossy broth with fat drops, wavy noodles, chashu with a browned edge and a
@@ -6662,7 +6797,7 @@ return function(Registry)
 	Registry.registerFood("tool", tool)
 	Registry.Food.BrothColors = BROTH
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000040"><Properties><string name="Name">Furniture</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000041"><Properties><string name="Name">Furniture</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Seating, counters, tables, benches and storage racks.
 local Kit = require(script.Parent.Parent.Kit)
 local P = require(script.Parent.Parent.Palette)
@@ -7023,7 +7158,7 @@ return function(Registry)
 	Registry.register("storage_rack", rack)
 	Registry.register("storage_rack_large", rack)
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000041"><Properties><string name="Name">Kitchen</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000042"><Properties><string name="Name">Kitchen</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Kitchen equipment: shelves, neta case, rice cookers, broth pots, stations, sink, dishwasher, fridge.
 -- Functional points (on Root): SlotN parts (shelves), Board/Plate/Tool attachments (stations).
 local Kit = require(script.Parent.Parent.Kit)
@@ -7576,7 +7711,7 @@ return function(Registry)
 		local _ = root
 	end)
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000042"><Properties><string name="Name">People</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000043"><Properties><string name="Name">People</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Detailed NPC looks built on the R15 rig: per-part clothing colours, layered clothes (sleeves,
 -- collars, jackets, ties, skirts, shoes), voluminous hair styles, accessories and a procedural
 -- face (eyes with highlights, brows, mouth, blush) whose expression follows the customer's mood.
@@ -8431,7 +8566,7 @@ end
 return function(Registry)
 	Registry.People = People
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000043"><Properties><string name="Name">RamenYa</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000044"><Properties><string name="Name">RamenYa</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- "Ramen-ya" decoration pack, modelled on real ramen counters: industrial pendant lamps, a red
 -- banner with white lettering, rows of menu posters, a retro ramen poster, a vertical sign, a
 -- framed soup signboard, a wooden canopy over the counter, water pitchers, condiment caddies,
@@ -8807,7 +8942,7 @@ return function(Registry)
 		root:SetAttribute("TopY", 2.7)
 	end)
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000044"><Properties><string name="Name">Street</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000045"><Properties><string name="Name">Street</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Street scenery: road, sidewalks, neighbour buildings, lamps, poles, trees, viaduct, truck, train.
 local Kit = require(script.Parent.Parent.Kit)
 local P = require(script.Parent.Parent.Palette)
@@ -9213,7 +9348,7 @@ return function(Registry)
 	Registry.Street = S
 	local _ = Color
 end
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000046"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000047"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Primitive helpers for procedural models. Coordinates are relative to the model's bottom center.
 local Color = require(script.Parent.Parent.Util.Color)
 
@@ -9475,7 +9610,7 @@ function Kit.slats(parent, count, sx, sy, sz, x0, x1, y, z, color, material, pro
 end
 
 return Kit
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000047"><Properties><string name="Name">Palette</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000048"><Properties><string name="Name">Palette</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Theme colors and materials used by every procedural model.
 local Color = require(script.Parent.Parent.Util.Color)
 
@@ -9547,7 +9682,7 @@ end
 Palette.hex = Color.hex
 
 return Palette
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000048"><Properties><string name="Name">Registry</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000049"><Properties><string name="Name">Registry</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Model registry: id -> builder. Models in ReplicatedStorage.AssetOverrides with the same name
 -- replace the procedural version (they are scaled to fit the configured size).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -9681,7 +9816,7 @@ function Registry.place(model, x, y, z, r)
 end
 
 return Registry
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000049"><Properties><string name="Name">Scene</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000050"><Properties><string name="Name">Scene</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Builds the restaurant shell (floors, walls, roof, facade, stairs) and the street scenery.
 -- Shared so the server world builder and the preview renderer use the same code.
 local CollectionService = game:GetService("CollectionService")
@@ -10164,7 +10299,7 @@ end
 
 
 return Scene
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000051"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000052"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Remote definitions shared by server and client.
 -- The server creates the instances; the client waits for them.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10195,6 +10330,8 @@ Net.Events = {
 	"ClaimAchievement",
 	"ClaimDaily",
 	"ClaimOffline",
+	"ClaimGift", -- (index) free gift for minutes played
+	"RedeemCode", -- (code)
 	"SetSetting", -- (key, value)
 	"SetPermission", -- (userId, level)
 	"Franchise", -- (cityId)
@@ -10257,7 +10394,7 @@ function Net.func(name)
 end
 
 return Net
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000058"><Properties><string name="Name">Util</string></Properties><Item class="ModuleScript" referent="RBX000052"><Properties><string name="Name">Color</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000059"><Properties><string name="Name">Util</string></Properties><Item class="ModuleScript" referent="RBX000053"><Properties><string name="Name">Color</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Color = {}
 
 local cache = {}
@@ -10296,7 +10433,7 @@ function Color.lighten(c, amount)
 end
 
 return Color
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000053"><Properties><string name="Name">Format</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000054"><Properties><string name="Name">Format</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Format = {}
 
 local function group(n, sep)
@@ -10366,7 +10503,7 @@ function Format.duration(seconds)
 end
 
 return Format
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000054"><Properties><string name="Name">RateLimit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000055"><Properties><string name="Name">RateLimit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Token bucket rate limiter keyed by any value (player, player..remote, ...).
 local RateLimit = {}
 RateLimit.__index = RateLimit
@@ -10396,7 +10533,7 @@ function RateLimit:clear(key)
 end
 
 return RateLimit
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000055"><Properties><string name="Name">Signal</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000056"><Properties><string name="Name">Signal</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Minimal signal implementation (connect / once / fire / wait).
 local Signal = {}
 Signal.__index = Signal
@@ -10450,7 +10587,7 @@ function Signal:DisconnectAll()
 end
 
 return Signal
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000056"><Properties><string name="Name">TableUtil</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000057"><Properties><string name="Name">TableUtil</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local TableUtil = {}
 
 function TableUtil.deepCopy(value)
@@ -10547,7 +10684,7 @@ function TableUtil.weightedPick(list, weightFn, rng)
 end
 
 return TableUtil
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000057"><Properties><string name="Name">Uid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000058"><Properties><string name="Name">Uid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Short unique ids for placed items, boxes, entities.
 local Uid = {}
 
@@ -10566,14 +10703,14 @@ function Uid.new(prefix)
 end
 
 return Uid
-]]></ProtectedString></Properties></Item></Item></Item><Item class="Folder" referent="RBX000060"><Properties><string name="Name">AssetOverrides</string></Properties></Item></Item><Item class="ServerScriptService" referent="RBX000091"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX000090"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX000062"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item><Item class="Folder" referent="RBX000061"><Properties><string name="Name">AssetOverrides</string></Properties></Item></Item><Item class="ServerScriptService" referent="RBX000093"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX000092"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX000063"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of server services (avoids circular requires).
 local Core = {
 	S = {},
 	Started = false,
 }
 return Core
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000063"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000064"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Server entry point: loads every service, then calls Init() and Start() in order.
 local Core = require(script.Parent.Core)
 local Services = script.Parent.Services
@@ -10581,7 +10718,7 @@ local Services = script.Parent.Services
 local ORDER = {
 	"Net", "Data", "Session", "Economy", "Progression", "World", "Entities", "Placement", "Hands",
 	"Supply", "Appliance", "Seating", "Cooking", "Npc", "Customers", "Tasks", "Staff", "Day",
-	"Meta", "Franchise", "Monetization", "Leaderboard", "Interaction", "SelfTest", "Dev",
+	"Meta", "Rewards", "Franchise", "Monetization", "Leaderboard", "Interaction", "SelfTest", "Dev",
 }
 
 for _, name in ipairs(ORDER) do
@@ -10621,7 +10758,7 @@ for _, name in ipairs(ORDER) do
 end
 
 Core.Started = true
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000089"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX000064"><Properties><string name="Name">Appliance</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000091"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX000065"><Properties><string name="Name">Appliance</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Rice cookers, broth pots, sink, dishwasher, fridges and the clean/dirty dish pool.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Ingredients = require(Shared.Config.Ingredients)
@@ -10723,7 +10860,7 @@ function Appliance.load(actor, e)
 		Hands.refresh(actor)
 	end
 	refresh(e)
-	Core.S.Net.fx("sfx", { name = "pour", pos = e.model.PrimaryPart.Position })
+	Core.S.Net.fx("sfx", { name = e.kind == "ricecooker" and "rice" or "pour", pos = e.model.PrimaryPart.Position })
 	Core.S.Data.changed(Core.S.Session.owner, "appliances")
 	return true
 end
@@ -10843,6 +10980,7 @@ function Appliance.useSink(actor, e, speed)
 		return false, sinkPile > 0 and "msg.hands_busy" or "msg.sink_hint"
 	end
 	washing[e.uid] = true
+	Core.S.Net.fx("sfx", { name = "wash", pos = e.model.PrimaryPart.Position })
 	local spout = e.model:FindFirstChild("Spout")
 	local emitter = spout and spout:FindFirstChildOfClass("ParticleEmitter")
 	if emitter then
@@ -10972,7 +11110,7 @@ function Appliance.Start()
 end
 
 return Appliance
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000065"><Properties><string name="Name">Cooking</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000066"><Properties><string name="Name">Cooking</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Stations: ingredients go on the board, each click runs the next step (cut, combine, roll,
 -- boil, pour, top, fry...), then the dish waits on the plate. Also the order tickets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -11142,13 +11280,7 @@ local function animateStep(e, stepName, duration)
 	local low = boardAtt.WorldCFrame * CFrame.new(0, 0.45, 0)
 	local steps = math.max(8, math.floor(duration / 0.04))
 	local pos = boardAtt.WorldPosition
-	if stepName == "cut" then
-		Core.S.Net.fx("sfx", { name = "cut", pos = pos })
-	elseif stepName == "boil" or stepName == "fry" then
-		Core.S.Net.fx("sfx", { name = "sizzle", pos = pos })
-	elseif stepName == "pour" then
-		Core.S.Net.fx("sfx", { name = "pour", pos = pos })
-	end
+	Core.S.Net.fx("step", { name = stepName, dur = duration, pos = pos })
 	local startScales = {}
 	for i, mdl in ipairs(st.boardModels) do
 		startScales[i] = mdl:GetPivot()
@@ -11424,7 +11556,7 @@ function Cooking.Init()
 end
 
 return Cooking
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000066"><Properties><string name="Name">Customers</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000067"><Properties><string name="Name">Customers</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Customers: arrive from the street, take a seat, order, wait (patience), eat, pay, review, leave.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -11444,6 +11576,7 @@ local rng = Random.new()
 local menuCache, menuCacheTime = nil, 0
 
 local CFG = GameConfig.Customers
+local RewardsCfg = require(Shared.Config.Rewards)
 local MAIN = { sushi = true, ramen = true }
 
 local function data()
@@ -11686,6 +11819,7 @@ local function pay(c, recipe)
 		comfort = c.seat and c.seat.comfort or 0,
 		patienceLeft = c.patience / c.patienceMax,
 		customerTip = c.cfg.tip,
+		extraTip = c.comboBonus or 0,
 	})
 	local got = Economy.add(owner, price, "sale")
 	local gotTip = Economy.add(owner, tip, "tip")
@@ -11697,12 +11831,29 @@ local function pay(c, recipe)
 	end
 	Core.S.Net.fx("money", { amount = got + gotTip, tip = gotTip, pos = (c.npc and c.npc.root and c.npc.root.Position or c.seat.dish) + Vector3.new(0, 3, 0) })
 	Core.S.Net.fx("sfx", { name = "coin", pos = c.seat.dish })
+	if gotTip > 0 then
+		task.delay(0.35, function()
+			Core.S.Net.fx("sfx", { name = "tip", pos = c.seat and c.seat.dish or Vector3.new() })
+		end)
+	end
 end
 
 local function eat(c, recipe)
 	setState(c, "eating")
 	local eatTime = CFG.EatTime[recipe.cat] or 10
-	task.wait(eatTime * (0.85 + rng:NextNumber() * 0.3))
+	local total = eatTime * (0.85 + rng:NextNumber() * 0.3)
+	if (recipe.cat == "ramen" or recipe.cat == "drink") and c.seat then
+		-- noodles and soup are eaten with a proper slurp
+		local where = c.seat.dish
+		for _, at in ipairs({ 0.15, 0.45, 0.75 }) do
+			task.delay(total * at, function()
+				if c.state == "eating" then
+					Core.S.Net.fx("sfx", { name = "slurp", pos = where })
+				end
+			end)
+		end
+	end
+	task.wait(total)
 	if c.dishModel then
 		c.dishModel:Destroy()
 		c.dishModel = nil
@@ -11728,8 +11879,9 @@ end
 local function run(c)
 	local Npc = Core.S.Npc
 	local Seating = Core.S.Seating
-	-- walk in
+	-- walk in: the wind chime over the door rings
 	Npc.walkTo(c.npc, entrance())
+	Core.S.Net.fx("sfx", { name = "chime", pos = entrance() + Vector3.new(0, 7, 0) })
 	-- wait in queue until a seat is free
 	if not c.seat then
 		setState(c, "queue")
@@ -11828,7 +11980,7 @@ local function spawnCustomer(cfg, side, seat, group)
 	if cfg.lunchPatience and clock >= 12 and clock < 14 then
 		patience = cfg.lunchPatience
 	end
-	patience = patience * (1 + amb.patience)
+	patience = patience * (1 + amb.patience) * (CFG.PatienceMult or 1)
 	local c = {
 		uid = uid, cfg = cfg, npc = npc, seat = seat, side = side, state = "arriving", group = group,
 		patienceMax = patience, patience = patience, minPatience = 1, eaten = 0, fresh = false,
@@ -11986,8 +12138,10 @@ function Service.use(actor, e)
 			return false, "msg.tickets_full"
 		end
 		c.ticket = t
+		-- the order is taken: a fresh, full timer for cooking it
+		c.patience = c.patienceMax
 		setState(c, "waiting")
-		Core.S.Net.fx("sfx", { name = "click", pos = Core.S.Entities.position(e) })
+		Core.S.Net.fx("sfx", { name = "ticket", pos = Core.S.Entities.position(e) })
 		return true
 	elseif c.state == "waiting" then
 		local hands = Hands.get(actor)
@@ -12008,8 +12162,27 @@ function Service.use(actor, e)
 	return false, "msg.customer_happy"
 end
 
+-- Serving combo: dishes served close together raise the tip (Config/Rewards.Combo)
+local combo = { n = 0, last = -1e9 }
+
+local function bumpCombo(c)
+	local cfg = RewardsCfg.Combo
+	local now = os.clock()
+	if now - combo.last <= cfg.Window then
+		combo.n += 1
+	else
+		combo.n = 1
+	end
+	combo.last = now
+	c.comboBonus = math.min(combo.n - 1, cfg.Max) * cfg.Step
+	if combo.n >= 2 and c.seat then
+		Core.S.Net.fx("combo", { n = combo.n, bonus = c.comboBonus, pos = c.seat.dish + Vector3.new(0, 4, 0) })
+	end
+end
+
 function Service.serve(c, dish, actor)
 	local recipe = Recipes.byId[dish.recipe]
+	bumpCombo(c)
 	if c.ticket then
 		Core.S.Cooking.removeTicket(c.ticket.id)
 		c.ticket = nil
@@ -12026,6 +12199,7 @@ function Service.serve(c, dish, actor)
 	end
 	m.Parent = Core.S.World.folders().dynamic
 	c.dishModel = m
+	Core.S.Net.fx("sfx", { name = "plate", pos = c.seat.dish })
 	setState(c, "served")
 	local d = data()
 	local owner = Core.S.Session.owner
@@ -12054,6 +12228,9 @@ function Service.collectDirty(actor, e)
 	end
 	Core.S.Entities.unregister(e.uid)
 	if e.model then
+		if e.model.PrimaryPart then
+			Core.S.Net.fx("sfx", { name = "plate", pos = e.model.PrimaryPart.Position })
+		end
 		e.model:Destroy()
 	end
 	return true
@@ -12106,7 +12283,7 @@ function Service.Start()
 end
 
 return Service
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000067"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000068"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Player profiles: loading, session locking, autosave, migrations and replication to clients.
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
@@ -12127,7 +12304,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 2
+local VERSION = 3
 local profiles = {} -- [player] = { data, key, loaded, saving }
 local store = nil
 local storeOk = false
@@ -12167,10 +12344,10 @@ function Data.newProfile()
 		staff = {},
 		ads = {},
 		boosts = {},
-		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0 },
+		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0, codes = {} },
 		franchise = { stars = 0, city = "tokyo" },
 		perms = {},
-		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, autoDay = false, cam = "game", camSpeed = 1 },
+		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, autoDay = false, cam = "first", camSpeed = 1 },
 		passes = {},
 		receipts = {},
 		created = os.time(),
@@ -12207,11 +12384,10 @@ function Data.newProfile()
 	return d
 end
 
-local function migrate(d)
-	d.v = d.v or 1
-	if d.v < 2 then
-		-- v2: the restaurant is twice as big. Bought objects go to the inventory, the starter
-		-- layout is rebuilt at the new size, shelf stock goes back into boxes.
+-- Puts every bought object in the inventory, rebuilds the starter layout and moves shelf stock
+-- back into boxes (used when the starter layout changes size)
+local function rebuildLayout(d)
+	do
 		d.inventory = d.inventory or {}
 		d.storage = d.storage or {}
 		local starter = {}
@@ -12238,7 +12414,24 @@ local function migrate(d)
 		d.placed = Data.newProfile().placed
 		d.shelves = {}
 		d.appliances = {}
+	end
+end
+
+local function migrate(d)
+	d.v = d.v or 1
+	if d.v < 2 then
+		-- v2: the restaurant is twice as big
+		rebuildLayout(d)
 		d.v = 2
+	end
+	if d.v < 3 then
+		-- v3: longer counter with twelve stools, bigger shelves, first-person camera by default
+		rebuildLayout(d)
+		d.settings = d.settings or {}
+		if d.settings.cam == nil or d.settings.cam == "game" then
+			d.settings.cam = "first"
+		end
+		d.v = 3
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION
@@ -12488,7 +12681,7 @@ end
 
 local _ = { RunService, HttpService }
 return Data
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000068"><Properties><string name="Name">Day</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000069"><Properties><string name="Name">Day</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Day cycle: prep -> open (11:00-23:00, 1 game hour = 1 minute) -> closing -> report -> prep.
 local Lighting = game:GetService("Lighting")
 
@@ -12692,7 +12885,7 @@ function Day.Start()
 end
 
 return Day
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000069"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000070"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Developer tools: available in Studio or to the experience creator.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -12806,7 +12999,7 @@ function Dev.Start()
 end
 
 return Dev
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000070"><Properties><string name="Name">Economy</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000071"><Properties><string name="Name">Economy</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Yen and sakura tokens, income multipliers, boosts and the per-day ledger.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Franchise = require(Shared.Config.Franchise)
@@ -12940,7 +13133,7 @@ function Economy.Init()
 end
 
 return Economy
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000071"><Properties><string name="Name">Entities</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000072"><Properties><string name="Name">Entities</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Registry of interactable things in the world (placed items, boxes, customers, fixed props).
 local CollectionService = game:GetService("CollectionService")
 
@@ -12997,7 +13190,7 @@ function Entities.position(e)
 end
 
 return Entities
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000072"><Properties><string name="Name">Franchise</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000073"><Properties><string name="Name">Franchise</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Franchise (prestige): open a restaurant in the next city with permanent bonuses.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Franchise = require(Shared.Config.Franchise)
@@ -13086,7 +13279,7 @@ function Service.Init()
 end
 
 return Service
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000073"><Properties><string name="Name">Hands</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000074"><Properties><string name="Name">Hands</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- What every actor (player or staff NPC) is carrying, with visuals welded in front of the body.
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -13229,6 +13422,8 @@ local function refreshVisual(actor)
 					w.Parent = d
 				end
 			end
+			-- the client shows held items in front of the camera in first person
+			m:SetAttribute("Held", true)
 			m.Parent = char
 			table.insert(s.visuals, m)
 		end
@@ -13371,7 +13566,7 @@ function Hands.Start()
 end
 
 return Hands
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000074"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000075"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Receives clicks/taps from players, checks distance and permissions, dispatches to services.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -13486,7 +13681,7 @@ function Interaction.Init()
 end
 
 return Interaction
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000075"><Properties><string name="Name">Leaderboard</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000076"><Properties><string name="Name">Leaderboard</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Global leaderboards (dishes served, yen earned) with a small cache.
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
@@ -13571,7 +13766,7 @@ function Leaderboard.Start()
 end
 
 return Leaderboard
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000076"><Properties><string name="Name">Meta</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000077"><Properties><string name="Name">Meta</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login streak, offline earnings and tutorial progress.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Quests = require(Shared.Config.Quests)
@@ -13828,7 +14023,7 @@ function Meta.Init()
 			return type(v) == "boolean"
 		end,
 		cam = function(v)
-			return v == "game" or v == "roblox"
+			return v == "first" or v == "game" or v == "roblox"
 		end,
 		camSpeed = function(v)
 			return type(v) == "number" and v >= 0.3 and v <= 2
@@ -13862,7 +14057,7 @@ function Meta.Start()
 end
 
 return Meta
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000077"><Properties><string name="Name">Monetization</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000078"><Properties><string name="Name">Monetization</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Game passes and developer products (IDs in Shared.Config.Monetization; 0 = disabled).
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -14037,7 +14232,7 @@ function Monetization.Start()
 end
 
 return Monetization
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000078"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000079"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Server networking helpers: rate-limited handlers and broadcast helpers.
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -14119,7 +14314,7 @@ end
 
 local _ = Core
 return Net
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000079"><Properties><string name="Name">Npc</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000080"><Properties><string name="Name">Npc</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- NPC characters (customers and staff): creation, pooling, animations, walking with pathfinding,
 -- sitting and simple emotes.
 local Players = game:GetService("Players")
@@ -14489,7 +14684,7 @@ function Npc.Start()
 end
 
 return Npc
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000080"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000081"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Placed objects: spawning models from the owner's data, building remotes, inventory, painting,
 -- ambience. Functional services subscribe to ItemAdded / ItemRemoved / ItemMoved.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -14970,7 +15165,7 @@ function Placement.Start()
 end
 
 return Placement
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000081"><Properties><string name="Name">Progression</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000082"><Properties><string name="Name">Progression</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Restaurant level, licenses, upgrades, ads, expansions, menu, mastery, rating and popularity.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -15304,6 +15499,8 @@ function Progression.applyWalkSpeed()
 	end
 	local speed = GameConfig.WalkSpeed * Upgrades.value(d.upgrades, "up_shoes")
 	for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
+		-- the client multiplies this while running (Controllers/FirstPerson)
+		p:SetAttribute("WalkSpeed", speed)
 		local hum = p.Character and p.Character:FindFirstChildOfClass("Humanoid")
 		if hum then
 			hum.WalkSpeed = speed
@@ -15334,7 +15531,160 @@ function Progression.Start()
 end
 
 return Progression
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000082"><Properties><string name="Name">Seating</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000083"><Properties><string name="Name">Rewards</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Roblox-style rewards: free gifts for the minutes played in this session, redeemable codes and
+-- the leaderstats shown in the player list (yen and level).
+local Players = game:GetService("Players")
+
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local RewardsCfg = require(Shared.Config.Rewards)
+local Ingredients = require(Shared.Config.Ingredients)
+local Uid = require(Shared.Util.Uid)
+local Core = require(script.Parent.Parent.Core)
+
+local Rewards = {}
+local claimed = {} -- [player] = { [index] = true }
+
+local function publishClaimed(player)
+	local list = {}
+	for i in pairs(claimed[player] or {}) do
+		table.insert(list, tostring(i))
+	end
+	table.sort(list)
+	player:SetAttribute("GiftsClaimed", table.concat(list, ","))
+end
+
+-- Gives a reward table { yen, sakura, boxes } to a player; returns false without data
+local function grant(player, reward)
+	local d = Core.S.Data.get(player)
+	if not d then
+		return false
+	end
+	if reward.yen then
+		local yen = math.floor(reward.yen * (1 + (d.level or 1) * (RewardsCfg.GiftYenPerLevel or 0)) + 0.5)
+		Core.S.Economy.add(player, yen, "gift")
+	end
+	if reward.sakura then
+		Core.S.Economy.addSakura(player, reward.sakura)
+	end
+	if reward.boxes then
+		if player == Core.S.Session.owner then
+			for g, n in pairs(reward.boxes) do
+				local ing = Ingredients.byId[g]
+				if ing then
+					for _ = 1, n do
+						table.insert(d.storage, { u = Uid.new("b"), g = g, n = ing.units })
+					end
+				end
+			end
+			Core.S.Supply.layout()
+			Core.S.Data.changed(player, "storage")
+		else
+			Core.S.Economy.add(player, RewardsCfg.GiftBoxYen or 400, "gift")
+		end
+	end
+	return true
+end
+
+local function claimGift(player, index)
+	if type(index) ~= "number" or index % 1 ~= 0 then
+		return
+	end
+	local gift = RewardsCfg.Gifts[index]
+	if not gift then
+		return
+	end
+	claimed[player] = claimed[player] or {}
+	if claimed[player][index] then
+		return
+	end
+	local joinedAt = player:GetAttribute("JoinedAt") or workspace:GetServerTimeNow()
+	if workspace:GetServerTimeNow() - joinedAt < gift.min * 60 - 1 then
+		return Core.S.Net.notify(player, "msg.gift_wait", nil, "info")
+	end
+	if grant(player, gift) then
+		claimed[player][index] = true
+		publishClaimed(player)
+		Core.S.Net.fxTo(player, "sfx", { name = "gift" })
+		Core.S.Net.fxTo(player, "sparkle", {})
+		Core.S.Net.notify(player, "msg.gift_claimed", nil, "success")
+	end
+end
+
+local function redeemCode(player, code)
+	if type(code) ~= "string" or #code > 40 then
+		return
+	end
+	code = string.upper((string.gsub(code, "%s", "")))
+	local reward = RewardsCfg.Codes[code]
+	if not reward then
+		return Core.S.Net.notify(player, "msg.code_invalid", nil, "error")
+	end
+	local d = Core.S.Data.get(player)
+	if not d then
+		return
+	end
+	d.meta.codes = d.meta.codes or {}
+	if d.meta.codes[code] then
+		return Core.S.Net.notify(player, "msg.code_used", nil, "error")
+	end
+	if grant(player, reward) then
+		d.meta.codes[code] = true
+		Core.S.Data.changed(player, "meta")
+		Core.S.Net.fxTo(player, "sfx", { name = "gift" })
+		Core.S.Net.notify(player, "msg.code_ok", { code = code }, "success")
+	end
+end
+
+local function leaderstats(player)
+	local folder = Instance.new("Folder")
+	folder.Name = "leaderstats"
+	local yen = Instance.new("IntValue")
+	yen.Name = "¥"
+	yen.Parent = folder
+	local level = Instance.new("IntValue")
+	level.Name = "⭐"
+	level.Parent = folder
+	folder.Parent = player
+end
+
+local function onPlayer(player)
+	player:SetAttribute("JoinedAt", workspace:GetServerTimeNow())
+	claimed[player] = {}
+	publishClaimed(player)
+	leaderstats(player)
+end
+
+function Rewards.Init()
+	local Net = Core.S.Net
+	Net.on("ClaimGift", claimGift, 4)
+	Net.on("RedeemCode", redeemCode, 2)
+end
+
+function Rewards.Start()
+	for _, p in ipairs(Players:GetPlayers()) do
+		onPlayer(p)
+	end
+	Players.PlayerAdded:Connect(onPlayer)
+	Players.PlayerRemoving:Connect(function(p)
+		claimed[p] = nil
+	end)
+	-- keep the player list numbers current
+	while true do
+		task.wait(2)
+		for _, p in ipairs(Players:GetPlayers()) do
+			local d = Core.S.Data.get(p)
+			local ls = p:FindFirstChild("leaderstats")
+			if d and ls then
+				ls["¥"].Value = math.floor(d.yen or 0)
+				ls["⭐"].Value = d.level or 1
+			end
+		end
+	end
+end
+
+return Rewards
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000084"><Properties><string name="Name">Seating</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Works out which seats are usable (stool in front of a counter, chair next to a table,
 -- booths), where the dish goes, and keeps reservations / dirty dishes per seat.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -15581,7 +15931,7 @@ function Seating.Init()
 end
 
 return Seating
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000083"><Properties><string name="Name">SelfTest</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000085"><Properties><string name="Name">SelfTest</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- End-to-end self test of the core loop, started from the dev panel. It drives the real services
 -- with an invisible worker: restock, rice, cook a kappa maki, serve a customer, get paid, wash.
 -- Results go to the Output window and to a toast.
@@ -15879,7 +16229,7 @@ function SelfTest.run(player)
 end
 
 return SelfTest
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000084"><Properties><string name="Name">Session</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000086"><Properties><string name="Name">Session</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Personal worlds: public servers act as an entrance that teleports every player to their
 -- own reserved server; friends can join through invites. In Studio the server is a world directly.
 local Players = game:GetService("Players")
@@ -16225,7 +16575,7 @@ function Session.Start()
 end
 
 return Session
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000085"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000087"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Staff: hiring, training, salaries and the AI that automates the restaurant.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -16779,7 +17129,7 @@ function Staff.Start()
 end
 
 return Staff
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000086"><Properties><string name="Name">Supply</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000088"><Properties><string name="Name">Supply</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier orders, the delivery truck, boxes in the storage room and shelf slots.
 local TweenService = game:GetService("TweenService")
 
@@ -16989,10 +17339,14 @@ function Supply.takeBox(actor, e)
 		return false, "msg.hands_full"
 	end
 	local entry = e.box
+	local pos = Core.S.Entities.position(e)
 	entry.h = true
 	entry.px, entry.pz, entry.pf, entry.pr = nil, nil, nil, nil
 	Hands.set(actor, "box", { entry })
 	Supply.layout()
+	if pos then
+		Core.S.Net.fx("sfx", { name = "box", pos = pos })
+	end
 	return true
 end
 
@@ -17000,6 +17354,7 @@ end
 -- of the actor. Returns "rack" or "floor".
 function Supply.dropBox(entry, pos, look, floor)
 	entry.h = nil
+	Core.S.Net.fx("sfx", { name = "box", pos = pos })
 	if entry.n <= 0 then
 		Supply.returnBox(entry)
 		return "gone"
@@ -17126,11 +17481,15 @@ function Supply.refreshShelf(e)
 			local holder = Instance.new("Model")
 			holder.Name = "SlotItems"
 			local width = part:GetAttribute("Width") or 3
-			local shown = math.min(5, math.max(1, math.ceil(s.n / math.max(1, cap) * 5)))
+			local shown = math.min(6, math.max(1, math.ceil(s.n / math.max(1, cap) * 6)))
 			for k = 1, shown do
 				local m = Registry.food("ingredient", s.g)
+				-- the shelves are big: show the products a little bigger too
+				pcall(function()
+					m:ScaleTo(GameConfig.ShelfItemScale or 1)
+				end)
 				local x = -width / 2 + width * (k - 0.5) / shown
-				m:PivotTo(part.CFrame * CFrame.new(x, -part.Size.Y / 2 + 0.32, 0))
+				m:PivotTo(part.CFrame * CFrame.new(x, -part.Size.Y / 2 + 0.32 * (GameConfig.ShelfItemScale or 1), 0))
 				for _, dsc in ipairs(m:GetDescendants()) do
 					if dsc:IsA("BasePart") then
 						dsc.CanQuery = false
@@ -17246,7 +17605,7 @@ function Supply.useShelf(actor, e, slot)
 		Supply.refreshShelf(e)
 		Core.S.Data.changed(Core.S.Session.owner, "shelves")
 		Core.S.Meta.event(Core.S.Session.owner, "restock", 1)
-		Core.S.Net.fx("sfx", { name = "place", pos = e.model.PrimaryPart.Position })
+		Core.S.Net.fx("sfx", { name = "restock", pos = e.model.PrimaryPart.Position })
 		return true
 	elseif hands.kind == nil or hands.kind == "ing" then
 		local s = slot and st[tostring(slot)]
@@ -17354,7 +17713,10 @@ local function animateTruck(onArrive)
 	local t2 = TweenService:Create(value, TweenInfo.new(1.6, Enum.EasingStyle.Sine), { Value = bayCf })
 	t2:Play()
 	t2.Completed:Wait()
-	Core.S.Net.fx("sfx", { name = "bell", pos = bayCf.Position })
+	Core.S.Net.fx("sfx", { name = "truck", pos = bayCf.Position })
+	task.delay(0.8, function()
+		Core.S.Net.fx("sfx", { name = "bell", pos = bayCf.Position })
+	end)
 	task.wait(1)
 	onArrive()
 	task.wait(1.5)
@@ -17520,7 +17882,7 @@ end
 
 Supply.updateBoxLabel = updateBoxLabel
 return Supply
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000087"><Properties><string name="Name">Tasks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000089"><Properties><string name="Name">Tasks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Task board helpers for staff: finds work, claims targets so two workers never do the same job.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Recipes = require(Shared.Config.Recipes)
@@ -17713,7 +18075,7 @@ function Tasks.findRefill(kinds)
 end
 
 return Tasks
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000088"><Properties><string name="Name">World</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000090"><Properties><string name="Name">World</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Builds the street and the restaurant shell from the unlocked zones; exposes the geometry
 -- (zones, walls, stairs, openings) used by placement, seating and NPC services.
 local CollectionService = game:GetService("CollectionService")
@@ -17908,7 +18270,7 @@ function World.Start()
 end
 
 return World
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000130"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000129"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000128"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000103"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000092"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000135"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000134"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000133"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000106"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client-only animations: swaying lanterns and noren, maneki-neko paws, koi, shishi-odoshi,
 -- streamers, and the evening train on the viaduct.
 local RunService = game:GetService("RunService")
@@ -17916,6 +18278,7 @@ local RunService = game:GetService("RunService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Registry = require(Shared.Models.Registry)
 local Expansions = require(Shared.Config.Expansions)
+local Core = require(script.Parent.Parent.Core)
 
 local Ambient = {}
 local parts = {} -- [part] = { kind, base, last, phase }
@@ -17955,11 +18318,18 @@ local function runTrain()
 	end
 	local train = S.train(4)
 	train.Parent = workspace.CurrentCamera
+	local Audio = Core.C.Audio
+	local sound = Audio and Audio.attachTrain(train.PrimaryPart or train:FindFirstChildWhichIsA("BasePart"))
 	while true do
 		local dir = rng:NextNumber() < 0.5 and 1 or -1
 		local x0, x1 = -(Expansions.Street.reach + 280) * dir, (Expansions.Street.reach + 280) * dir
 		local t0 = os.clock()
 		local duration = 22
+		if sound then
+			sound.TimePosition = 0
+			sound.Volume = Audio.trainVolume()
+			sound:Play()
+		end
 		while os.clock() - t0 < duration do
 			local k = (os.clock() - t0) / duration
 			local L = Expansions.Street
@@ -17967,6 +18337,9 @@ local function runTrain()
 			task.wait()
 		end
 		train:PivotTo(CFrame.new(0, -200, 0))
+		if sound then
+			sound:Stop()
+		end
 		task.wait(rng:NextNumber() * 40 + 35)
 	end
 end
@@ -18004,87 +18377,329 @@ function Ambient.Start()
 end
 
 return Ambient
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000093"><Properties><string name="Name">Audio</string><ProtectedString name="Source"><![CDATA[--!nonstrict
--- Sound effects (2D or positional) and background music.
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Audio</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Sound: one-shot effects (2D or positional, random take and pitch), the sound patterns of the
+-- cooking steps (knife chops in rhythm, broth pouring, noodles drained...), ambience loops mixed
+-- from where you are (street outside, chatter that grows with the customers, bubbling pots, the
+-- train) and a day / evening music playlist.
 local SoundService = game:GetService("SoundService")
+local TweenService = game:GetService("TweenService")
+local ContentProvider = game:GetService("ContentProvider")
+local CollectionService = game:GetService("CollectionService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local AudioCfg = require(Shared.Config.Audio)
 local Core = require(script.Parent.Parent.Core)
 
 local Audio = {}
-local cache = {}
-local music
+local rng = Random.new()
+local loops = {} -- [name] = Sound for 2D ambience
+local attached = {} -- [Model] = Sound for bubbling pots and cookers
+local music, musicList, musicIndex = nil, nil, 0
 
-local function volume(kind)
-	local s = Core.C.Data and Core.C.Data.m("settings")
-	if kind == "music" then
-		return (s and s.music or 0.5) * AudioCfg.Volume.music
-	end
-	return (s and s.sfx or 0.8) * AudioCfg.Volume.sfx
+local function settings()
+	return Core.C.Data and Core.C.Data.m and Core.C.Data.m("settings") or {}
 end
 
-function Audio.play(name, pos)
-	local id = AudioCfg.Sfx[name]
-	if not id or id == "" then
+local function volume(kind)
+	local s = settings() or {}
+	if kind == "music" then
+		return (s.music or 0.5) * AudioCfg.Volume.music
+	elseif kind == "ambience" then
+		return (s.sfx or 0.8) * AudioCfg.Volume.ambience
+	end
+	return (s.sfx or 0.8) * AudioCfg.Volume.sfx
+end
+
+local function pick(list)
+	return list[rng:NextInteger(1, #list)]
+end
+
+local function fadeOut(s, after, time)
+	task.delay(after, function()
+		if s.Parent then
+			TweenService:Create(s, TweenInfo.new(time or 0.25), { Volume = 0 }):Play()
+			task.wait((time or 0.25) + 0.05)
+			s:Stop()
+		end
+	end)
+end
+
+-- Plays effect `name`; pos (Vector3) makes it positional. opts: volume (multiplier), len, pitch
+function Audio.play(name, pos, opts)
+	local cfg = AudioCfg.Sfx[name]
+	if not cfg or not cfg.ids or #cfg.ids == 0 then
 		return
 	end
-	local vol = volume("sfx")
+	local vol = volume("sfx") * (cfg.volume or 1) * (opts and opts.volume or 1)
 	if vol <= 0 then
 		return
 	end
+	local s = Instance.new("Sound")
+	s.SoundId = pick(cfg.ids)
+	s.Volume = vol
+	local p = cfg.pitch or { 0.96, 1.05 }
+	s.PlaybackSpeed = (opts and opts.pitch) or (p[1] + (p[2] - p[1]) * rng:NextNumber())
+	if cfg.start then
+		s.TimePosition = cfg.start
+	end
+	local len = (opts and opts.len) or cfg.len
 	if pos then
-		local p = Instance.new("Part")
-		p.Anchored = true
-		p.CanCollide = false
-		p.CanQuery = false
-		p.Transparency = 1
-		p.Size = Vector3.new(0.2, 0.2, 0.2)
-		p.Position = pos
-		p.Parent = workspace.CurrentCamera
-		local s = Instance.new("Sound")
-		s.SoundId = id
-		s.Volume = vol
-		s.RollOffMaxDistance = 80
-		s.Parent = p
-		s:Play()
-		task.delay(4, function()
-			p:Destroy()
+		local att = Instance.new("Attachment")
+		att.WorldPosition = pos
+		att.Parent = workspace.Terrain
+		s.RollOffMode = Enum.RollOffMode.InverseTapered
+		s.RollOffMinDistance = 6
+		s.RollOffMaxDistance = cfg.range or 60
+		s.Parent = att
+		s.Ended:Connect(function()
+			att:Destroy()
 		end)
+		task.delay(math.max(len or 0, 8), function()
+			if att.Parent then
+				att:Destroy()
+			end
+		end)
+	else
+		s.Parent = SoundService
+		s.Ended:Connect(function()
+			s:Destroy()
+		end)
+		task.delay(math.max(len or 0, 8), function()
+			if s.Parent then
+				s:Destroy()
+			end
+		end)
+	end
+	s:Play()
+	if len then
+		fadeOut(s, len, 0.25)
+	end
+	return s
+end
+
+-- Sound pattern of one cooking step lasting `dur` seconds at `pos`
+function Audio.step(name, dur, pos)
+	local cfg = AudioCfg.Steps[name]
+	if not cfg then
 		return
 	end
-	local s = cache[name]
-	if not s then
-		s = Instance.new("Sound")
-		s.SoundId = id
-		s.Parent = SoundService
-		cache[name] = s
+	dur = math.max(0.3, dur or 1)
+	if cfg.hit then
+		-- knife: quick chops in rhythm with the animation
+		local n = cfg.hits or 4
+		for k = 0, n - 1 do
+			task.delay(dur * (k + 0.5) / n, function()
+				Audio.play(cfg.hit, pos)
+			end)
+		end
+		return
 	end
-	s.Volume = vol
-	s.TimePosition = 0
-	s:Play()
+	if cfg.first then
+		Audio.play(cfg.first, pos, { len = math.max(0.6, dur + 0.2) })
+	end
+	if cfg.last then
+		task.delay(math.max(0.2, dur - 0.35), function()
+			Audio.play(cfg.last, pos)
+		end)
+	end
+end
+
+------------------------------------------------------------------ ambience
+
+local function loop2d(name)
+	local cfg = AudioCfg.Ambience[name]
+	if not cfg or not cfg.id or cfg.id == "" then
+		return nil
+	end
+	if not loops[name] then
+		local s = Instance.new("Sound")
+		s.Name = "Ambience_" .. name
+		s.SoundId = cfg.id
+		s.Looped = true
+		s.Volume = 0
+		s.Parent = SoundService
+		s:Play()
+		loops[name] = s
+	end
+	return loops[name], cfg
+end
+
+local function setLoop(name, target)
+	local s, cfg = loop2d(name)
+	if not s then
+		return
+	end
+	local v = target * (cfg.volume or 1) * volume("ambience")
+	TweenService:Create(s, TweenInfo.new(1.2), { Volume = v }):Play()
+end
+
+local function customersInside()
+	local n = 0
+	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
+		if m:GetAttribute("Kind") == "customer" then
+			local st = m:GetAttribute("State")
+			if st == "order" or st == "waiting" or st == "eating" or st == "reading" then
+				n += 1
+			end
+		end
+	end
+	return n
+end
+
+-- bubbling loops on pots with broth and on cookers that are cooking
+local function updateAttached()
+	local seen = {}
+	local base = volume("ambience")
+	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
+		local kind = m:GetAttribute("Kind")
+		if (kind == "pot" or kind == "ricecooker") and m.PrimaryPart then
+			local cooking = (m:GetAttribute("C") or 0) > 0
+			local has = (m:GetAttribute("N") or 0) > 0
+			local on = cooking or (kind == "pot" and has)
+			if on then
+				seen[m] = true
+				local s = attached[m]
+				local cfg = AudioCfg.Ambience[kind == "pot" and "boil" or "cooker"]
+				if not s and cfg then
+					s = Instance.new("Sound")
+					s.SoundId = cfg.id
+					s.Looped = true
+					s.RollOffMode = Enum.RollOffMode.InverseTapered
+					s.RollOffMinDistance = 4
+					s.RollOffMaxDistance = cfg.range or 24
+					s.TimePosition = rng:NextNumber() * 8
+					s.Volume = 0
+					s.Parent = m.PrimaryPart
+					s:Play()
+					attached[m] = s
+				end
+				if s and cfg then
+					s.Volume = base * (cfg.volume or 0.3) * (cooking and 1.25 or 0.8)
+				end
+			end
+		end
+	end
+	for m, s in pairs(attached) do
+		if not seen[m] or not m.Parent then
+			s:Destroy()
+			attached[m] = nil
+		end
+	end
+end
+
+local function ambienceLoop()
+	while true do
+		local Camera = Core.C.Camera
+		local inside = Camera and Camera.isIndoors and Camera.isIndoors() or false
+		local day = Core.C.Data and Core.C.Data.day or {}
+		setLoop("street", inside and 0.35 or 1)
+		local crowd = math.clamp(customersInside() / 8, 0, 1)
+		if day.phase ~= "open" then
+			crowd = 0
+		end
+		setLoop("restaurant", crowd * (inside and 1 or 0.35))
+		updateAttached()
+		task.wait(0.6)
+	end
+end
+
+-- the train on the viaduct carries its own sound
+function Audio.attachTrain(part)
+	local cfg = AudioCfg.Ambience.train
+	if not cfg or not part then
+		return nil
+	end
+	local s = Instance.new("Sound")
+	s.SoundId = cfg.id
+	s.Looped = true
+	s.RollOffMode = Enum.RollOffMode.InverseTapered
+	s.RollOffMinDistance = 30
+	s.RollOffMaxDistance = cfg.range or 300
+	s.Volume = 0
+	s.Parent = part
+	return s
+end
+
+function Audio.trainVolume()
+	local cfg = AudioCfg.Ambience.train
+	return volume("ambience") * (cfg and cfg.volume or 0.6)
+end
+
+------------------------------------------------------------------ music
+
+local function nextTrack()
+	local night = game:GetService("Lighting").ClockTime >= 18.5 or game:GetService("Lighting").ClockTime < 6
+	local list = night and AudioCfg.Music.night or AudioCfg.Music.day
+	if list ~= musicList then
+		musicList = list
+		musicIndex = rng:NextInteger(0, math.max(0, #list - 1))
+	end
+	if #list == 0 then
+		return nil
+	end
+	musicIndex = musicIndex % #list + 1
+	return list[musicIndex]
+end
+
+local function playNext()
+	local id = nextTrack()
+	if not id then
+		return
+	end
+	music.SoundId = id
+	music.TimePosition = 0
+	music:Play()
+end
+
+local function preload()
+	local list = {}
+	for _, cfg in pairs(AudioCfg.Sfx) do
+		for _, id in ipairs(cfg.ids or {}) do
+			local s = Instance.new("Sound")
+			s.SoundId = id
+			table.insert(list, s)
+		end
+	end
+	pcall(function()
+		ContentProvider:PreloadAsync(list)
+	end)
+	for _, s in ipairs(list) do
+		s:Destroy()
+	end
 end
 
 function Audio.Start()
+	task.spawn(preload)
+	task.spawn(ambienceLoop)
 	music = Instance.new("Sound")
-	music.Looped = true
+	music.Name = "Music"
+	music.Looped = false
 	music.Parent = SoundService
-	local currentId = nil
+	music.Ended:Connect(function()
+		task.wait(2)
+		playNext()
+	end)
+	playNext()
+	local wasNight = nil
 	while true do
-		local night = game:GetService("Lighting").ClockTime >= 18.5 or game:GetService("Lighting").ClockTime < 6
-		local id = night and AudioCfg.Music.night or AudioCfg.Music.day
-		if id ~= "" and id ~= currentId then
-			currentId = id
-			music.SoundId = id
-			music:Play()
+		local clock = game:GetService("Lighting").ClockTime
+		local night = clock >= 18.5 or clock < 6
+		if wasNight ~= nil and night ~= wasNight then
+			-- evening falls (or morning comes): fade into the other playlist
+			TweenService:Create(music, TweenInfo.new(2), { Volume = 0 }):Play()
+			task.wait(2.1)
+			playNext()
 		end
+		wasNight = night
 		music.Volume = volume("music")
 		task.wait(2)
 	end
 end
 
+
 return Audio
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000096"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build mode: ghost preview on a 1/5/10 stud grid, rotation, local validation (same rules as the
 -- server), placing, moving, storing and selling objects.
 local Players = game:GetService("Players")
@@ -18690,10 +19305,14 @@ function Build.Start()
 end
 
 return Build
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
--- Game camera: a smooth orbit camera that rotates slowly (right mouse drag, one-finger drag on
--- the world, ← → keys), zooms with the wheel or a pinch, never ends up behind walls and hides the
--- roof when it rises above the ceiling, so the kitchen is always visible from above.
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000097"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Game camera, three modes (Settings → Camera):
+--   "first"  first person (default): mouse look, a crosshair in the middle, click / E on what you
+--            look at (see Controllers/FirstPerson)
+--   "game"   a smooth orbit camera that rotates slowly (right mouse drag, one-finger drag, ← →),
+--            zooms with the wheel or a pinch, never ends up behind walls and hides the roof when
+--            it rises above the ceiling while you are inside
+--   "roblox" the standard Roblox camera
 -- Also the build-mode top view and hiding roofs/ceilings while building.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -18766,8 +19385,21 @@ local function settings()
 	return s or {}
 end
 
+function Camera.mode()
+	local m = settings().cam
+	if m == "game" or m == "roblox" then
+		return m
+	end
+	return "first"
+end
+
+-- the orbit camera drives the view (not in first person, not while building in first person)
 local function useGameCamera()
-	return settings().cam ~= "roblox"
+	return Camera.mode() == "game"
+end
+
+function Camera.isFirstPerson()
+	return Camera.mode() == "first" and not Camera.build and not Camera.top
 end
 
 local function sensitivity()
@@ -18818,6 +19450,42 @@ local function indoors(pos, floor)
 		end
 	end
 	return false
+end
+
+function Camera.isIndoors()
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	return root ~= nil and indoors(root.Position, Camera.currentFloor())
+end
+
+-- Applies the camera mode to the player (first person lock, zoom limits, camera type)
+local applied = nil
+function Camera.apply()
+	local mode = Camera.mode()
+	local key = mode .. (Camera.build and ":build" or "") .. (Camera.top and ":top" or "")
+	if key == applied then
+		return
+	end
+	applied = key
+	local cam = workspace.CurrentCamera
+	if mode == "first" and not Camera.build and not Camera.top then
+		player.CameraMinZoomDistance = 0.5
+		player.CameraMaxZoomDistance = 0.5
+		player.CameraMode = Enum.CameraMode.LockFirstPerson
+		cam.CameraType = Enum.CameraType.Custom
+		cam.FieldOfView = 74
+	else
+		player.CameraMode = Enum.CameraMode.Classic
+		player.CameraMaxZoomDistance = 60
+		player.CameraMinZoomDistance = 6
+		cam.FieldOfView = 70
+		if not Camera.top then
+			cam.CameraType = useGameCamera() and Enum.CameraType.Scriptable or Enum.CameraType.Custom
+		end
+	end
+	if roofsHiddenByOrbit and not useGameCamera() and not Camera.build then
+		roofsHiddenByOrbit = false
+		setRoofs(false, nil)
+	end
 end
 
 local function orbitLoop(dt)
@@ -18890,6 +19558,7 @@ function Camera.setTop(on)
 		end
 		cam.CameraType = useGameCamera() and Enum.CameraType.Scriptable or Enum.CameraType.Custom
 	end
+	Camera.apply()
 end
 
 function Camera.toggleTop()
@@ -18901,22 +19570,26 @@ function Camera.setBuildView(on)
 	roofsHiddenByOrbit = nil
 	Camera.floor = Camera.currentFloor()
 	setRoofs(on, Camera.floor)
-	if not on and Camera.top then
+	if on and Camera.mode() == "first" then
+		-- building needs the mouse and a view from above
+		Camera.setTop(true)
+	elseif not on and Camera.top then
 		Camera.setTop(false)
 	end
+	Camera.apply()
 end
 
 function Camera.Start()
 	RunService:BindToRenderStep("RamenCamera", Enum.RenderPriority.Camera.Value + 1, orbitLoop)
+	Camera.apply()
 	player.CharacterAdded:Connect(function(char)
 		local root = char:WaitForChild("HumanoidRootPart", 10)
 		if root then
 			local _, y = root.CFrame:ToEulerAnglesYXZ()
 			orbit.yaw = math.deg(y)
 		end
-		if not useGameCamera() then
-			workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
-		end
+		applied = nil
+		Camera.apply()
 	end)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed or not useGameCamera() then
@@ -18984,9 +19657,10 @@ function Camera.Start()
 			p.LocalTransparencyModifier = 1
 		end
 	end)
-	-- follow the player up and down the stairs while building
+	-- follow the player up and down the stairs while building; pick up camera setting changes
 	while true do
 		task.wait(1)
+		Camera.apply()
 		if Camera.build then
 			local f = Camera.currentFloor()
 			if f ~= Camera.floor then
@@ -18998,7 +19672,7 @@ function Camera.Start()
 end
 
 return Camera
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000096"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000098"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Local copy of the player's profile ("me"), the restaurant owner's data ("world"),
 -- session info, day state and tickets.
 local Players = game:GetService("Players")
@@ -19123,7 +19797,7 @@ function Data.Start()
 end
 
 return Data
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000097"><Properties><string name="Name">Effects</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000099"><Properties><string name="Name">Effects</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Visual feedback for server events: money popups, review stars, level up confetti,
 -- dish ready sparkles, construction dust, sounds.
 local Players = game:GetService("Players")
@@ -19200,6 +19874,44 @@ local function confetti()
 	end
 end
 
+-- Big "COMBO x3" banner in the middle of the screen
+local comboLabel = nil
+local function comboBanner(n, bonus)
+	local root = Core.C.UI and Core.C.UI.root()
+	if not root then
+		return
+	end
+	if comboLabel then
+		comboLabel:Destroy()
+	end
+	local l = Instance.new("TextLabel")
+	l.AnchorPoint = Vector2.new(0.5, 0.5)
+	l.Position = UDim2.fromScale(0.5, 0.3)
+	l.Size = UDim2.fromOffset(420, 70)
+	l.BackgroundTransparency = 1
+	l.Text = Locale.t("ui.combo", { n = n, pct = math.floor((bonus or 0) * 100 + 0.5) })
+	l.TextScaled = true
+	l.TextColor3 = Color.hex(n >= 6 and "#FF5A3B" or "#FFD23B")
+	l.TextStrokeTransparency = 0
+	l.TextStrokeColor3 = Color.hex("#5B3A24")
+	l.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json")
+	l.AutoLocalize = false
+	l.Rotation = -4
+	l.Parent = root
+	comboLabel = l
+	local scale = Instance.new("UIScale")
+	scale.Scale = 0.4
+	scale.Parent = l
+	TweenService:Create(scale, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	task.delay(1.3, function()
+		if l.Parent then
+			TweenService:Create(l, TweenInfo.new(0.4), { TextTransparency = 1, TextStrokeTransparency = 1 }):Play()
+			task.wait(0.45)
+			l:Destroy()
+		end
+	end)
+end
+
 function Effects.Init()
 	NetDef.event("Fx").OnClientEvent:Connect(function(kind, data)
 		data = data or {}
@@ -19215,6 +19927,9 @@ function Effects.Init()
 			end
 			if Audio then
 				Audio.play("level")
+				task.delay(0.4, function()
+					Audio.play("sparkle")
+				end)
 			end
 		elseif kind == "dishReady" and data.pos then
 			burst(data.pos, "sparkle", 14)
@@ -19223,6 +19938,19 @@ function Effects.Init()
 			end
 		elseif kind == "ready" and data.pos then
 			popup(data.pos + Vector3.new(0, 3, 0), "✅", Color.hex("#6DDC5A"), 1.5)
+			if Audio then
+				Audio.play("beep", data.pos)
+			end
+		elseif kind == "step" and Audio then
+			Audio.step(data.name, data.dur, data.pos)
+		elseif kind == "combo" then
+			comboBanner(data.n or 2, data.bonus)
+			if data.pos then
+				burst(data.pos, "sparkle", 10, "#FFD23B")
+			end
+			if Audio then
+				Audio.play("combo", nil, { pitch = 1 + math.min(data.n or 2, 10) * 0.05 })
+			end
 		elseif kind == "sparkle" then
 			confetti()
 		elseif kind == "construction" then
@@ -19243,7 +19971,255 @@ function Effects.Init()
 end
 
 return Effects
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000098"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000100"><Properties><string name="Name">FirstPerson</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- First person (Settings → Camera, the default):
+--   * a crosshair in the middle of the screen; under it, what clicking / E does on the object you
+--     look at (gold when close enough)
+--   * what you hold is shown in front of the camera, with a light walking sway
+--   * the mouse is freed while a menu is open, while building or while Alt is held
+--   * keyboard shortcuts for the bottom buttons: B build, O supplier, P phone (all camera modes)
+--   * on touch screens a big ✋ button uses what is under the crosshair (tapping things works too)
+--   * running: hold Shift, or the 🏃 button on touch screens (every camera mode)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Locale = require(Shared.Locale)
+local RewardsCfg = require(Shared.Config.Rewards)
+local Kit = require(script.Parent.Parent.UI.Kit)
+local Core = require(script.Parent.Parent.Core)
+
+local FirstPerson = {}
+local player = Players.LocalPlayer
+local t = Locale.t
+local T = Kit.Theme
+
+local gui, dot, hintPill, hintText, modal, keysLabel, useButton, runButton
+local altHeld = false
+local shiftHeld = false
+local runToggle = false
+local views = {} -- [held model on the character] = { clone, rel }
+local bob = 0
+
+local function active()
+	local Camera = Core.C.Camera
+	return Camera ~= nil and Camera.isFirstPerson ~= nil and Camera.isFirstPerson()
+end
+
+-- true while the mouse must move freely (menus, building, Alt)
+function FirstPerson.cursorFree()
+	if altHeld then
+		return true
+	end
+	local UI = Core.C.UI
+	if UI and UI.current then
+		return true
+	end
+	if Core.C.Build and Core.C.Build.active then
+		return true
+	end
+	return false
+end
+
+local function clearViews()
+	for m, v in pairs(views) do
+		v.clone:Destroy()
+		views[m] = nil
+	end
+end
+
+-- copies of the held items (the character itself is hidden in first person)
+local function syncViews(char, hrp)
+	for m, v in pairs(views) do
+		if m.Parent ~= char then
+			v.clone:Destroy()
+			views[m] = nil
+		end
+	end
+	for _, m in ipairs(char:GetChildren()) do
+		if m:IsA("Model") and m:GetAttribute("Held") and not views[m] then
+			local ok, clone = pcall(function()
+				return m:Clone()
+			end)
+			if ok and clone then
+				for _, d in ipairs(clone:GetDescendants()) do
+					if d:IsA("JointInstance") or d:IsA("WeldConstraint") then
+						d:Destroy()
+					elseif d:IsA("BasePart") then
+						d.Anchored = true
+						d.CanCollide = false
+						d.CanQuery = false
+						d.CanTouch = false
+						d.CastShadow = false
+						d.LocalTransparencyModifier = 0
+					end
+				end
+				clone.Parent = workspace.CurrentCamera
+				views[m] = { clone = clone, rel = hrp.CFrame:ToObjectSpace(m:GetPivot()) }
+			end
+		end
+	end
+end
+
+local function updateViews(dt)
+	local char = player.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	if not hrp or not active() then
+		clearViews()
+		return
+	end
+	syncViews(char, hrp)
+	local cam = workspace.CurrentCamera
+	local speed = Vector3.new(hrp.AssemblyLinearVelocity.X, 0, hrp.AssemblyLinearVelocity.Z).Magnitude
+	local moving = speed > 1
+	bob += dt * (moving and 9 or 1.6)
+	local amp = moving and 0.05 or 0.015
+	local base = cam.CFrame * CFrame.new(0.5 + math.cos(bob * 0.5) * amp, -1.5 + math.abs(math.sin(bob)) * amp, -0.6)
+	for _, v in pairs(views) do
+		v.clone:PivotTo(base * v.rel)
+	end
+end
+
+local function updateCrosshair()
+	local fp = active()
+	local free = FirstPerson.cursorFree()
+	modal.Visible = fp and free
+	local show = fp and not free
+	dot.Visible = show
+	local touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+	keysLabel.Visible = fp and not touch and not free
+	local target = show and Core.C.Interaction and Core.C.Interaction.target and Core.C.Interaction.target()
+	if target and target.text then
+		hintPill.Visible = true
+		hintText.Text = target.near and ((touch and "✋ " or "🖱️ ") .. target.text) or ("🚶 " .. t("hint.get_closer"))
+		dot.Size = UDim2.fromOffset(target.near and 14 or 10, target.near and 14 or 10)
+		dot.BackgroundColor3 = target.near and T.gold or Color3.fromRGB(220, 214, 205)
+	else
+		hintPill.Visible = false
+		dot.Size = UDim2.fromOffset(6, 6)
+		dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	end
+	useButton.Visible = show and touch and target ~= nil and target.near == true
+end
+
+local function shortcut(key)
+	local UI = Core.C.UI
+	if key == Enum.KeyCode.B then
+		if Core.C.Build then
+			Core.C.Build.toggle()
+		end
+	elseif key == Enum.KeyCode.O then
+		if Core.C.Build and Core.C.Build.active then
+			return
+		end
+		UI.toggle("Supplier")
+	elseif key == Enum.KeyCode.P then
+		if Core.C.Build and Core.C.Build.active then
+			return
+		end
+		UI.toggle("Phone")
+	elseif key == Enum.KeyCode.R then
+		if Core.C.Build and Core.C.Build.active then
+			return
+		end
+		UI.toggle("Gifts")
+	end
+end
+
+-- walking speed from the server (shoes upgrade included) times the run multiplier
+local function updateRun()
+	local hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+	local base = player:GetAttribute("WalkSpeed")
+	if not hum or not base then
+		return
+	end
+	local running = shiftHeld or runToggle
+	local want = running and base * (RewardsCfg.RunMultiplier or 1.4) or base
+	if math.abs(hum.WalkSpeed - want) > 0.01 then
+		hum.WalkSpeed = want
+	end
+	local touch = UserInputService.TouchEnabled
+	runButton.Visible = touch and not (Core.C.Build and Core.C.Build.active)
+	runButton.BackgroundColor3 = runToggle and T.green or T.paper
+end
+
+function FirstPerson.Init()
+	gui = Kit.new("ScreenGui", { Name = "FirstPerson", ResetOnSpawn = false, IgnoreGuiInset = true, DisplayOrder = -1, Parent = player:WaitForChild("PlayerGui") })
+	dot = Kit.new("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(6, 6),
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255), Visible = false, Parent = gui,
+	}, { Kit.corner(8), Kit.stroke(Color3.fromRGB(30, 26, 24), 1.5, 0.2) })
+	hintPill = Kit.new("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0.5, 18), Size = UDim2.fromOffset(0, 32),
+		AutomaticSize = Enum.AutomaticSize.X, BackgroundColor3 = Color3.fromRGB(43, 35, 32), BackgroundTransparency = 0.15, Visible = false, Parent = gui,
+	}, { Kit.corner(12), Kit.padding(12, 4) })
+	hintText = Kit.label("", {
+		Parent = hintPill, Size = UDim2.fromOffset(0, 24), AutomaticSize = Enum.AutomaticSize.X, TextSize = 17, FontFace = T.bold, TextWrapped = false,
+		TextColor3 = Color3.fromRGB(244, 235, 221), TextYAlignment = Enum.TextYAlignment.Center,
+	})
+	keysLabel = Kit.label("", {
+		Parent = gui, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -12, 1, -10), Size = UDim2.fromOffset(330, 60),
+		TextSize = 13, FontFace = T.bold, TextColor3 = Color3.fromRGB(255, 255, 255), TextStrokeTransparency = 0.4, TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Right, TextYAlignment = Enum.TextYAlignment.Bottom, Visible = false,
+	})
+	-- a visible Modal button is what frees the mouse in first person
+	modal = Kit.new("TextButton", { Text = "", BackgroundTransparency = 1, Size = UDim2.fromOffset(0, 0), Modal = true, Visible = false, Parent = gui })
+	useButton = Kit.new("TextButton", {
+		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -24, 1, -190), Size = UDim2.fromOffset(86, 86), Text = "✋",
+		TextScaled = true, BackgroundColor3 = T.gold, Visible = false, Parent = gui,
+	}, { Kit.corner(43), Kit.stroke(T.wood, 3, 0) })
+	useButton.Activated:Connect(function()
+		if Core.C.Interaction and Core.C.Interaction.act then
+			Core.C.Interaction.act()
+		end
+	end)
+	runButton = Kit.new("TextButton", {
+		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -120, 1, -110), Size = UDim2.fromOffset(64, 64), Text = "🏃",
+		TextScaled = true, BackgroundColor3 = T.paper, Visible = false, Parent = gui,
+	}, { Kit.corner(32), Kit.stroke(T.wood, 3, 0) })
+	runButton.Activated:Connect(function()
+		runToggle = not runToggle
+	end)
+	local function refreshKeys()
+		keysLabel.Text = t("ui.fp_keys")
+	end
+	refreshKeys()
+	Locale.Changed:Connect(refreshKeys)
+end
+
+function FirstPerson.Start()
+	RunService.RenderStepped:Connect(function(dt)
+		updateCrosshair()
+		updateViews(dt)
+		updateRun()
+	end)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if input.KeyCode == Enum.KeyCode.LeftAlt or input.KeyCode == Enum.KeyCode.RightAlt then
+			altHeld = true
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.RightShift then
+			shiftHeld = true
+			return
+		end
+		if processed or UserInputService:GetFocusedTextBox() then
+			return
+		end
+		shortcut(input.KeyCode)
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.KeyCode == Enum.KeyCode.LeftAlt or input.KeyCode == Enum.KeyCode.RightAlt then
+			altHeld = false
+		elseif input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.RightShift then
+			shiftHeld = false
+		end
+	end)
+	player.CharacterRemoving:Connect(clearViews)
+end
+
+return FirstPerson
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Hover highlight + action label on nearby interactables; click / tap / E sends Interact.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -19414,13 +20390,23 @@ local function setCurrent(model, slot)
 		return
 	end
 	local near = inRange(model)
-	current = { model = model, uid = model:GetAttribute("Uid"), kind = kind, slot = slot, near = near }
+	current = { model = model, uid = model:GetAttribute("Uid"), kind = kind, slot = slot, near = near, text = text }
 	highlight.Adornee = model
 	highlight.Enabled = true
 	highlight.OutlineColor = near and Color.hex("#FFD23B") or Color.hex("#B8AFA2")
+	-- in first person the action is written under the crosshair (Controllers/FirstPerson)
+	local fp = Core.C.Camera and Core.C.Camera.isFirstPerson and Core.C.Camera.isFirstPerson()
 	label.Adornee = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
-	label.Enabled = true
+	label.Enabled = not fp
 	labelText.Text = near and text or ("🚶 " .. t("hint.get_closer"))
+end
+
+-- What the player points at: { text, near, kind } or nil
+function Interaction.target()
+	if not current then
+		return nil
+	end
+	return { text = current.text, near = current.near, kind = current.kind }
 end
 
 local function update(screenPos)
@@ -19453,9 +20439,6 @@ local function act()
 		return
 	end
 	NetDef.event("Interact"):FireServer(current.uid, { slot = current.slot })
-	if Core.C.Audio then
-		Core.C.Audio.play("click")
-	end
 end
 
 -- Briefly marks the shelves/station needed for a recipe (clicked ticket)
@@ -19555,13 +20538,25 @@ function Interaction.Init()
 	labelText.Parent = bg
 end
 
+Interaction.act = act
+
+local function aimingCenter()
+	local Camera = Core.C.Camera
+	local fp = Core.C.FirstPerson
+	return Camera and Camera.isFirstPerson and Camera.isFirstPerson() and not (fp and fp.cursorFree and fp.cursorFree())
+end
+
 function Interaction.Start()
 	RunService.RenderStepped:Connect(function()
 		if os.clock() - lastCheck < 0.05 then
 			return
 		end
 		lastCheck = os.clock()
-		if UserInputService.MouseEnabled then
+		if aimingCenter() then
+			-- first person: whatever is under the crosshair (mouse, touch and gamepad alike)
+			local cam = workspace.CurrentCamera
+			update(cam.ViewportSize / 2)
+		elseif UserInputService.MouseEnabled then
 			update(UserInputService:GetMouseLocation())
 		elseif current then
 			setCurrent(current.model, current.slot)
@@ -19591,7 +20586,7 @@ function Interaction.Start()
 end
 
 return Interaction
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000099"><Properties><string name="Name">Lighting</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000102"><Properties><string name="Name">Lighting</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Time-of-day look (sky colors, atmosphere, bloom, color grading) and night lights.
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
@@ -19696,7 +20691,7 @@ function LightingC.Start()
 end
 
 return LightingC
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000100"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000103"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Guided first day: step panel, arrow beam to the target and a floating marker.
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
@@ -19858,6 +20853,12 @@ function Tutorial.Init()
 	Kit.button(t("ui.next"), { parent = panel, size = UDim2.fromOffset(90, 30), position = UDim2.new(1, -186, 1, -32), style = "gold", textSize = 14, onClick = function()
 		advance()
 	end })
+	-- in first person the mouse is captured: Enter also goes to the next card
+	game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+		if not processed and panel.Visible and (input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter) then
+			advance()
+		end
+	end)
 	a0 = Instance.new("Attachment")
 	a1 = Instance.new("Attachment")
 	beam = Instance.new("Beam")
@@ -19947,7 +20948,7 @@ function Tutorial.Start()
 end
 
 return Tutorial
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Screen manager, toasts and shared UI helpers.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -19993,6 +20994,9 @@ function UI.open(name, arg)
 	end
 	if s.modal ~= false then
 		UI.current = name
+		if Core.C.Audio then
+			Core.C.Audio.play("open")
+		end
 	end
 	local ok, err = pcall(s.open, arg)
 	if not ok then
@@ -20147,7 +21151,7 @@ function UI.Start()
 end
 
 return UI
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000102"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Localized billboards over customers (order + patience), stations (board / next step),
 -- rice cookers & pots, shelf slots, dirty dishes and staff name tags.
 local Players = game:GetService("Players")
@@ -20431,13 +21435,13 @@ function WorldUI.Start()
 end
 
 return WorldUI
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of client controllers and UI screens.
 return {
 	C = {},
 	Screens = {},
 }
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000105"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000108"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client entry point.
 if not game:IsLoaded() then
 	game.Loaded:Wait()
@@ -20447,7 +21451,7 @@ local Core = require(script.Parent.Core)
 local Controllers = script.Parent.Controllers
 
 local ORDER = {
-	"Data", "Audio", "UI", "Lighting", "Ambient", "WorldUI", "Camera", "Interaction", "Build", "Tutorial", "Effects",
+	"Data", "Audio", "UI", "Lighting", "Ambient", "WorldUI", "Camera", "Interaction", "FirstPerson", "Build", "Tutorial", "Effects",
 }
 
 for _, name in ipairs(ORDER) do
@@ -20483,7 +21487,7 @@ for _, name in ipairs(ORDER) do
 		end)
 	end
 end
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000127"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000132"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Helper to build standard modal screens: Base.make(name, titleKey, size, render)
 -- render(content, screen) rebuilds the content each refresh.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -20528,7 +21532,7 @@ function Base.make(name, titleKey, size, render)
 end
 
 return Base
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Emoji icons for catalog cards (no image assets needed).
 local Icons = {
 	cat = {
@@ -20572,7 +21576,7 @@ function Icons.forItem(item)
 end
 
 return Icons
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000108"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Tiny declarative UI toolkit + the visual theme (washi paper, dark wood, lacquer red, gold).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Color = require(Shared.Util.Color)
@@ -20882,7 +21886,7 @@ function Kit.row(icon, titleText, subtitle, height)
 end
 
 return Kit
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000126"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000131"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build panel: catalog by category, inventory, floor/wall styles, grid & rotation tools,
 -- selection actions (move / rotate / store / sell).
 local Players = game:GetService("Players")
@@ -21173,7 +22177,38 @@ function Screen.close()
 end
 
 return Screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Codes</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Redeem a code (Config/Rewards.Codes): each code works once per player.
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local NetDef = require(Shared.Net)
+local Locale = require(Shared.Locale)
+local Kit = require(script.Parent.Parent.Kit)
+local Base = require(script.Parent.Parent.Base)
+
+local t = Locale.t
+local T = Kit.Theme
+
+return Base.make("Codes", "ui.codes", UDim2.fromScale(0.4, 0.42), function(content)
+	Kit.label("🎟️", { Parent = content, Size = UDim2.new(1, 0, 0, 56), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
+	Kit.label(t("ui.codes_hint"), { Parent = content, Position = UDim2.fromOffset(0, 60), Size = UDim2.new(1, 0, 0, 44), TextSize = 16, TextColor3 = T.muted, TextXAlignment = Enum.TextXAlignment.Center })
+	local box = Kit.new("TextBox", {
+		Parent = content, Position = UDim2.fromOffset(0, 112), Size = UDim2.new(1, 0, 0, 46), Text = "", PlaceholderText = t("ui.codes_placeholder"),
+		ClearTextOnFocus = false, TextSize = 22, FontFace = T.bold, TextColor3 = T.ink, BackgroundColor3 = T.white,
+	}, { Kit.corner(10), Kit.stroke(T.wood, 2) })
+	local function redeem()
+		if box.Text ~= "" then
+			NetDef.event("RedeemCode"):FireServer(box.Text)
+			box.Text = ""
+		end
+	end
+	box.FocusLost:Connect(function(enter)
+		if enter then
+			redeem()
+		end
+	end)
+	Kit.button(t("ui.redeem"), { parent = content, size = UDim2.new(1, 0, 0, 46), position = UDim2.new(0, 0, 1, -48), style = "green", onClick = redeem })
+end)
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -21221,7 +22256,7 @@ screen = Base.make("DayReport", "ui.report", UDim2.fromScale(0.42, 0.74), functi
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Kit = require(script.Parent.Parent.Kit)
@@ -21243,7 +22278,7 @@ return Base.make("Dev", "ui.dev", UDim2.fromScale(0.5, 0.6), function(content)
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Expansions</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Expansions screen: new rooms and floors ("zones" tab) and renovations that turn the plain
 -- starting restaurant into the detailed one ("reno" tab, grouped by exterior/interior/furniture).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -21335,7 +22370,131 @@ screen = Base.make("Expansions", "ui.expansions", UDim2.fromScale(0.66, 0.76), f
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Gifts</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Free gifts for the minutes played in this session (Config/Rewards.Gifts). Timers tick every
+-- second without rebuilding the list.
+local Players = game:GetService("Players")
+
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local NetDef = require(Shared.Net)
+local Locale = require(Shared.Locale)
+local Format = require(Shared.Util.Format)
+local Rewards = require(Shared.Config.Rewards)
+local Ingredients = require(Shared.Config.Ingredients)
+local Kit = require(script.Parent.Parent.Kit)
+local Base = require(script.Parent.Parent.Base)
+local Core = require(script.Parent.Parent.Parent.Core)
+
+local t = Locale.t
+local T = Kit.Theme
+local player = Players.LocalPlayer
+
+local function claimedSet()
+	local set = {}
+	for _, s in ipairs(string.split(player:GetAttribute("GiftsClaimed") or "", ",")) do
+		if s ~= "" then
+			set[tonumber(s)] = true
+		end
+	end
+	return set
+end
+
+local function elapsed()
+	local joined = player:GetAttribute("JoinedAt")
+	if not joined then
+		return 0
+	end
+	return workspace:GetServerTimeNow() - joined
+end
+
+local function rewardText(g)
+	local me = Core.C.Data.me or {}
+	if g.yen then
+		return Format.yen(math.floor(g.yen * (1 + (me.level or 1) * Rewards.GiftYenPerLevel) + 0.5), Locale.get())
+	elseif g.sakura then
+		return "🌸 " .. g.sakura
+	elseif g.boxes then
+		local parts = {}
+		for id, n in pairs(g.boxes) do
+			local ing = Ingredients.byId[id]
+			table.insert(parts, n .. "× " .. (ing and ing.icon or "📦"))
+		end
+		table.sort(parts)
+		return "📦 " .. table.concat(parts, " ")
+	end
+	return ""
+end
+
+-- index of the next gift not yet claimed and seconds until it is ready (0 = ready now)
+local function nextGift()
+	local set = claimedSet()
+	local e = elapsed()
+	for i, g in ipairs(Rewards.Gifts) do
+		if not set[i] then
+			return i, math.max(0, g.min * 60 - e)
+		end
+	end
+	return nil, nil
+end
+
+local screen = Base.make("Gifts", "ui.gifts", UDim2.fromScale(0.5, 0.66), function(content, s)
+	s.rows = {}
+	Kit.label(t("ui.gifts_hint"), { Parent = content, Size = UDim2.new(1, 0, 0, 24), TextSize = 15, TextColor3 = T.muted })
+	local grid = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 30), Size = UDim2.new(1, 0, 1, -30), Parent = content }, { Kit.grid(132, 132, 8) })
+	local set = claimedSet()
+	for i, g in ipairs(Rewards.Gifts) do
+		local card = Kit.card({ LayoutOrder = i, Parent = grid })
+		Kit.label("🎁", { Parent = card, Position = UDim2.fromOffset(0, 6), Size = UDim2.new(1, 0, 0, 36), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
+		Kit.label(rewardText(g), { Parent = card, Position = UDim2.fromOffset(4, 44), Size = UDim2.new(1, -8, 0, 22), TextSize = 15, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center })
+		local btn = Kit.button("", { parent = card, size = UDim2.new(1, -16, 0, 34), position = UDim2.new(0, 8, 1, -42), style = "plain", textSize = 15, onClick = function()
+			NetDef.event("ClaimGift"):FireServer(i)
+		end })
+		s.rows[i] = { button = btn, gift = g, claimed = set[i] }
+	end
+	s.tick()
+end)
+
+-- updates the countdowns and buttons in place
+function screen.tick()
+	if not screen.rows then
+		return
+	end
+	local e = elapsed()
+	for _, row in pairs(screen.rows) do
+		local left = row.gift.min * 60 - e
+		if row.claimed then
+			row.button.Text = "✅ " .. t("ui.claimed")
+			row.button.BackgroundColor3 = T.paperDark
+		elseif left <= 0 then
+			row.button.Text = t("ui.claim")
+			row.button.BackgroundColor3 = T.green
+			row.button.TextColor3 = T.white
+		else
+			row.button.Text = "⏳ " .. Format.duration(left)
+			row.button.BackgroundColor3 = T.paperDark
+		end
+	end
+end
+
+screen.nextGift = nextGift
+
+task.spawn(function()
+	while true do
+		task.wait(1)
+		if screen.visible() then
+			screen.tick()
+		end
+	end
+end)
+
+player:GetAttributeChangedSignal("GiftsClaimed"):Connect(function()
+	if screen.visible() then
+		screen.refresh()
+	end
+end)
+
+return screen
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login calendar, leaderboards and franchise.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -21497,7 +22656,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Order guide: tapping an order ticket (left) shows what to do, in a few short lines with live
 -- ticks, highlights the shelf slots and the station to use and draws a glowing arrow from you to
 -- the next thing to click.
@@ -21883,7 +23042,7 @@ function Guide.close()
 end
 
 return Guide
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Always-visible HUD, kept small: wallet and level (top-left), day bar with an open / closed
 -- switch (top-centre), rating line (top-right), order tickets (left), what you hold (bottom),
 -- build / supplier / phone (bottom-left).
@@ -21909,13 +23068,21 @@ local player = Players.LocalPlayer
 -- Always on screen: the two most used actions and the phone (bottom-left). Everything else is an
 -- app on the phone, ordered by how often it is needed (see Screens/Phone).
 local BUTTONS = {
-	{ id = "Build", icon = "🔨", key = "ui.build", build = true },
-	{ id = "Supplier", icon = "📦", key = "ui.supplier", build = true },
-	{ id = "Phone", icon = "📱", key = "ui.phone" },
+	{ id = "Build", icon = "🔨", key = "ui.build", build = true, hotkey = "B" },
+	{ id = "Supplier", icon = "📦", key = "ui.supplier", build = true, hotkey = "O" },
+	{ id = "Phone", icon = "📱", key = "ui.phone", hotkey = "P" },
 }
 
 local function lang()
 	return Locale.get()
+end
+
+-- " [R]" after a label on keyboards (shortcuts in Controllers/FirstPerson)
+local function keyHint(key)
+	if game:GetService("UserInputService").KeyboardEnabled then
+		return " [" .. key .. "]"
+	end
+	return ""
 end
 
 local function open(id)
@@ -21968,8 +23135,17 @@ function HUD.create(root)
 	refs.rating = Kit.label("", { Parent = info, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -24, 1, 0), TextSize = 14, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
 	refs.ambience = refs.rating
 	refs.dishes = refs.rating
+	-- free gift for minutes played (Screens/Gifts): countdown, then "claim!"
+	refs.gift = Kit.new("TextButton", { Position = UDim2.fromOffset(10, 68), Size = UDim2.fromOffset(150, 30), BackgroundColor3 = T.paper, Text = "", Visible = false, Parent = top }, { Kit.corner(15), Kit.stroke(T.wood, 2, 0.2), Kit.sheen(0.9) })
+	refs.giftLabel = Kit.label("🎁", { Parent = refs.gift, Size = UDim2.fromScale(1, 1), TextSize = 15, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center })
+	refs.gift.MouseButton1Click:Connect(function()
+		if Core.C.Audio then
+			Core.C.Audio.play("ui")
+		end
+		Core.C.UI.toggle("Gifts")
+	end)
 	-- order tickets (left, under the wallet): click one to see how to make it
-	refs.tickets = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 70), Size = UDim2.fromOffset(196, 420), Parent = top }, { Kit.list(Enum.FillDirection.Vertical, 5) })
+	refs.tickets = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 104), Size = UDim2.fromOffset(196, 420), Parent = top }, { Kit.list(Enum.FillDirection.Vertical, 5) })
 	-- what you are holding (bottom-centre) with a put-down button
 	refs.hands = pill({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Size = UDim2.fromOffset(360, 40), Visible = false, Parent = top })
 	refs.handsLabel = Kit.label("", { Parent = refs.hands, Position = UDim2.fromOffset(14, 0), Size = UDim2.new(1, -130, 1, 0), TextSize = 15, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
@@ -21986,6 +23162,11 @@ function HUD.create(root)
 		local btn = Kit.new("TextButton", { Size = UDim2.fromOffset(66, 66), BackgroundColor3 = T.paper, Text = "", LayoutOrder = i, Parent = dock }, { Kit.corner(16), Kit.stroke(T.wood, 2, 0.1), Kit.sheen(0.88) })
 		Kit.label(b.icon, { Parent = btn, Size = UDim2.new(1, 0, 0, 34), Position = UDim2.fromOffset(0, 5), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
 		local lbl = Kit.label("", { Parent = btn, Size = UDim2.new(1, -4, 0, 18), Position = UDim2.fromOffset(2, 43), TextSize = 12, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
+		if b.hotkey and game:GetService("UserInputService").KeyboardEnabled then
+			-- keyboard shortcut (see Controllers/FirstPerson)
+			local key = Kit.new("Frame", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, 4, 0, -4), Size = UDim2.fromOffset(20, 20), BackgroundColor3 = T.wood, Parent = btn }, { Kit.corner(6) })
+			Kit.label(b.hotkey, { Parent = key, Size = UDim2.fromScale(1, 1), TextSize = 13, FontFace = T.bold, TextColor3 = T.white, TextXAlignment = Enum.TextXAlignment.Center })
+		end
 		btn.MouseButton1Click:Connect(function()
 			if Core.C.Audio then
 				Core.C.Audio.play("ui")
@@ -22007,9 +23188,39 @@ function HUD.create(root)
 			task.wait(1)
 			HUD.refreshTickets()
 			HUD.refreshInfo()
+			HUD.refreshGift()
 		end
 	end)
 	Core.C.Data.TicketsChanged:Connect(HUD.refreshTickets)
+end
+
+local giftToasted = {}
+function HUD.refreshGift()
+	local screen = Core.C.UI and Core.C.UI.screens.Gifts
+	local idx, left = nil, nil
+	if screen and screen.nextGift then
+		idx, left = screen.nextGift()
+	end
+	if not idx then
+		refs.gift.Visible = false
+		return
+	end
+	refs.gift.Visible = true
+	if left <= 0 then
+		local hot = keyHint("R")
+		refs.giftLabel.Text = "🎁 " .. t("ui.gift_ready") .. hot
+		refs.gift.BackgroundColor3 = T.gold
+		if not giftToasted[idx] then
+			giftToasted[idx] = true
+			Core.C.UI.toast("🎁 " .. t("msg.gift_ready"), "success")
+			if Core.C.Audio then
+				Core.C.Audio.play("gift")
+			end
+		end
+	else
+		refs.giftLabel.Text = "🎁 " .. Format.duration(left)
+		refs.gift.BackgroundColor3 = T.paper
+	end
 end
 
 function HUD.refreshHands()
@@ -22154,7 +23365,7 @@ function HUD.open() end
 function HUD.close() end
 
 return HUD
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Invite friends to the personal world and set their permissions.
 local Players = game:GetService("Players")
 local SocialService = game:GetService("SocialService")
@@ -22201,7 +23412,7 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.66), function(con
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">Licenses</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -22253,7 +23464,7 @@ return Base.make("Licenses", "ui.licenses", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000123"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Menu board: enable dishes, set prices (-30%..+30%), recipe book with mastery.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -22346,7 +23557,7 @@ screen = Base.make("Menu", "ui.menu", UDim2.fromScale(0.66, 0.76), function(cont
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -22367,7 +23578,7 @@ return Base.make("Offline", "ui.offline", UDim2.fromScale(0.36, 0.4), function(c
 		Core.C.UI.close("Offline")
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000125"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Phone: every secondary screen is an app, ordered by how often it is needed. Opens from the
 -- 📱 button at the bottom-left and closes when an app is opened.
 local Players = game:GetService("Players")
@@ -22386,6 +23597,7 @@ local player = Players.LocalPlayer
 
 local APPS = {
 	{ id = "Menu", icon = "📜", key = "ui.menu", color = "#B3262E" },
+	{ id = "Gifts", icon = "🎁", key = "ui.gifts", color = "#E0405A" },
 	{ id = "Staff", icon = "👥", key = "ui.staff", color = "#2E5A8C" },
 	{ id = "Upgrades", icon = "⬆️", key = "ui.upgrades", color = "#5E8F3A" },
 	{ id = "Expansions", icon = "🏗️", key = "ui.expansions", color = "#8A5A36" },
@@ -22393,6 +23605,7 @@ local APPS = {
 	{ id = "Goals", icon = "🎯", key = "ui.goals", color = "#F27A2E" },
 	{ id = "Help", icon = "❓", key = "ui.howto", color = "#2EA3B3" },
 	{ id = "Shop", icon = "🛒", key = "ui.shop", color = "#F25A9A" },
+	{ id = "Codes", icon = "🎟️", key = "ui.codes", color = "#3A8F8A" },
 	{ id = "Invite", icon = "👋", key = "ui.invite", color = "#7F3AB3" },
 	{ id = "Settings", icon = "⚙️", key = "ui.settings", color = "#5A5A64" },
 	{ id = "Dev", icon = "🛠️", key = "ui.dev", color = "#1E1E22", dev = true },
@@ -22473,7 +23686,7 @@ function Phone.close()
 end
 
 return Phone
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000126"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -22515,7 +23728,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 	local vols = { { label = "0%", value = 0 }, { label = "25%", value = 0.25 }, { label = "50%", value = 0.5 }, { label = "100%", value = 1 } }
 	choice(4, "🎵 " .. t("ui.music"), vols, s.music or 0.5, "music")
 	choice(5, "🔊 " .. t("ui.sfx"), vols, s.sfx or 0.8, "sfx")
-	choice(7, "🎥 " .. t("ui.camera"), { { label = t("ui.cam_game"), value = "game", width = 110 }, { label = "Roblox", value = "roblox" } }, s.cam or "game", "cam")
+	choice(7, "🎥 " .. t("ui.camera"), { { label = t("ui.cam_first"), value = "first", width = 118 }, { label = t("ui.cam_game"), value = "game", width = 118 }, { label = "Roblox", value = "roblox", width = 80 } }, s.cam or "first", "cam")
 	choice(8, "🐢 " .. t("ui.cam_speed"), { { label = t("ui.slow"), value = 0.6 }, { label = t("ui.medium"), value = 1 }, { label = t("ui.fast"), value = 1.6 } }, s.camSpeed or 1, "camSpeed")
 	choice(6, "🖥️ " .. t("ui.low_graphics"), { { label = t("ui.on"), value = true }, { label = t("ui.off"), value = false } }, s.lowGfx == true, "lowGfx")
 	Kit.button("🎓 " .. t("ui.restart_tutorial"), { parent = scroll, size = UDim2.new(1, -8, 0, 44), style = "plain", order = 10, onClick = function()
@@ -22526,7 +23739,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 		end
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000127"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -22567,7 +23780,7 @@ return Base.make("Shop", "ui.shop", UDim2.fromScale(0.6, 0.72), function(content
 		Kit.label("🛒 " .. t("ui.shop_soon"), { Parent = scroll, Size = UDim2.new(1, 0, 0, 80), TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000123"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000128"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -22633,7 +23846,7 @@ return Base.make("Staff", "ui.staff", UDim2.fromScale(0.66, 0.78), function(cont
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000129"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier tablet: order boxes of ingredients and dish sets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -22739,7 +23952,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000125"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000130"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -22811,4 +24024,4 @@ return Base.make("Upgrades", "ui.upgrades", UDim2.fromScale(0.66, 0.76), functio
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000131"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000132"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000133"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000136"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000137"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000138"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

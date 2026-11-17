@@ -18,6 +18,7 @@ local rng = Random.new()
 local menuCache, menuCacheTime = nil, 0
 
 local CFG = GameConfig.Customers
+local RewardsCfg = require(Shared.Config.Rewards)
 local MAIN = { sushi = true, ramen = true }
 
 local function data()
@@ -260,6 +261,7 @@ local function pay(c, recipe)
 		comfort = c.seat and c.seat.comfort or 0,
 		patienceLeft = c.patience / c.patienceMax,
 		customerTip = c.cfg.tip,
+		extraTip = c.comboBonus or 0,
 	})
 	local got = Economy.add(owner, price, "sale")
 	local gotTip = Economy.add(owner, tip, "tip")
@@ -271,12 +273,29 @@ local function pay(c, recipe)
 	end
 	Core.S.Net.fx("money", { amount = got + gotTip, tip = gotTip, pos = (c.npc and c.npc.root and c.npc.root.Position or c.seat.dish) + Vector3.new(0, 3, 0) })
 	Core.S.Net.fx("sfx", { name = "coin", pos = c.seat.dish })
+	if gotTip > 0 then
+		task.delay(0.35, function()
+			Core.S.Net.fx("sfx", { name = "tip", pos = c.seat and c.seat.dish or Vector3.new() })
+		end)
+	end
 end
 
 local function eat(c, recipe)
 	setState(c, "eating")
 	local eatTime = CFG.EatTime[recipe.cat] or 10
-	task.wait(eatTime * (0.85 + rng:NextNumber() * 0.3))
+	local total = eatTime * (0.85 + rng:NextNumber() * 0.3)
+	if (recipe.cat == "ramen" or recipe.cat == "drink") and c.seat then
+		-- noodles and soup are eaten with a proper slurp
+		local where = c.seat.dish
+		for _, at in ipairs({ 0.15, 0.45, 0.75 }) do
+			task.delay(total * at, function()
+				if c.state == "eating" then
+					Core.S.Net.fx("sfx", { name = "slurp", pos = where })
+				end
+			end)
+		end
+	end
+	task.wait(total)
 	if c.dishModel then
 		c.dishModel:Destroy()
 		c.dishModel = nil
@@ -302,8 +321,9 @@ end
 local function run(c)
 	local Npc = Core.S.Npc
 	local Seating = Core.S.Seating
-	-- walk in
+	-- walk in: the wind chime over the door rings
 	Npc.walkTo(c.npc, entrance())
+	Core.S.Net.fx("sfx", { name = "chime", pos = entrance() + Vector3.new(0, 7, 0) })
 	-- wait in queue until a seat is free
 	if not c.seat then
 		setState(c, "queue")
@@ -402,7 +422,7 @@ local function spawnCustomer(cfg, side, seat, group)
 	if cfg.lunchPatience and clock >= 12 and clock < 14 then
 		patience = cfg.lunchPatience
 	end
-	patience = patience * (1 + amb.patience)
+	patience = patience * (1 + amb.patience) * (CFG.PatienceMult or 1)
 	local c = {
 		uid = uid, cfg = cfg, npc = npc, seat = seat, side = side, state = "arriving", group = group,
 		patienceMax = patience, patience = patience, minPatience = 1, eaten = 0, fresh = false,
@@ -560,8 +580,10 @@ function Service.use(actor, e)
 			return false, "msg.tickets_full"
 		end
 		c.ticket = t
+		-- the order is taken: a fresh, full timer for cooking it
+		c.patience = c.patienceMax
 		setState(c, "waiting")
-		Core.S.Net.fx("sfx", { name = "click", pos = Core.S.Entities.position(e) })
+		Core.S.Net.fx("sfx", { name = "ticket", pos = Core.S.Entities.position(e) })
 		return true
 	elseif c.state == "waiting" then
 		local hands = Hands.get(actor)
@@ -582,8 +604,27 @@ function Service.use(actor, e)
 	return false, "msg.customer_happy"
 end
 
+-- Serving combo: dishes served close together raise the tip (Config/Rewards.Combo)
+local combo = { n = 0, last = -1e9 }
+
+local function bumpCombo(c)
+	local cfg = RewardsCfg.Combo
+	local now = os.clock()
+	if now - combo.last <= cfg.Window then
+		combo.n += 1
+	else
+		combo.n = 1
+	end
+	combo.last = now
+	c.comboBonus = math.min(combo.n - 1, cfg.Max) * cfg.Step
+	if combo.n >= 2 and c.seat then
+		Core.S.Net.fx("combo", { n = combo.n, bonus = c.comboBonus, pos = c.seat.dish + Vector3.new(0, 4, 0) })
+	end
+end
+
 function Service.serve(c, dish, actor)
 	local recipe = Recipes.byId[dish.recipe]
+	bumpCombo(c)
 	if c.ticket then
 		Core.S.Cooking.removeTicket(c.ticket.id)
 		c.ticket = nil
@@ -600,6 +641,7 @@ function Service.serve(c, dish, actor)
 	end
 	m.Parent = Core.S.World.folders().dynamic
 	c.dishModel = m
+	Core.S.Net.fx("sfx", { name = "plate", pos = c.seat.dish })
 	setState(c, "served")
 	local d = data()
 	local owner = Core.S.Session.owner
@@ -628,6 +670,9 @@ function Service.collectDirty(actor, e)
 	end
 	Core.S.Entities.unregister(e.uid)
 	if e.model then
+		if e.model.PrimaryPart then
+			Core.S.Net.fx("sfx", { name = "plate", pos = e.model.PrimaryPart.Position })
+		end
 		e.model:Destroy()
 	end
 	return true

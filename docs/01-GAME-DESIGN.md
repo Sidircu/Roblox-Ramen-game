@@ -147,6 +147,7 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 ### 4.3 Dal magazzino alle mensole
 - Clicchi una scatola → la prendi in mano.
 - Clicchi una **mensola** dietro il bancone → il personaggio la svuota nel ripiano cliccato e, se avanza, nel ripiano libero successivo (animazione di sistemazione).
+- Le mensole sono **grandi** (la piccola è alta 7,4 stud e larga 5,6) e mostrano i prodotti ben visibili.
 - Ogni mensola ha dei **ripiani** (slot); ogni ripiano contiene un solo tipo di ingrediente. Un ripiano della mensola base contiene **mezza scatola**: **una scatola riempie al massimo 2 ripiani**. Le mensole più grandi e il miglioramento *Mensole rinforzate* rendono i ripiani più capienti (la scatola ne riempie meno). Gli oggetti sulle mensole sono visibili (barattoli, pacchetti, filetti di pesce).
 - Se avanzano porzioni (ripiano già mezzo pieno, mensola piena o scatola grande, che riempie 2 ripiani alla volta), la scatola resta in mano con le porzioni avanzate; una scatola vuota si butta automaticamente.
 - La **vetrina refrigerata del pesce** (sul bancone, come nei veri sushi bar) funziona come una mensola per il pesce e dà un bonus di freschezza (qualità).
@@ -216,7 +217,7 @@ Non esistono errori né tempismo: ogni piatto riesce sempre. Il guadagno dipende
 1. Arrivano dalla strada. Se non c'è un posto libero adatto, aspettano sulla **panchina d'attesa** (se c'è) o se ne vanno (recensione persa).
 2. Scelgono un posto: i clienti singoli preferiscono il **bancone**, coppie e gruppi hanno bisogno di **tavoli**.
 3. Si siedono, guardano il menu (2–4 s), mostrano l'ordine.
-4. **Barra della pazienza** sopra la testa (verde → gialla → rossa). Se finisce, se ne vanno arrabbiati senza pagare (recensione 1 ★).
+4. **Barra della pazienza** sopra la testa (verde → gialla → rossa). Se finisce, se ne vanno arrabbiati senza pagare (recensione 1 ★). **Difficoltà bassa**: i clienti aspettano molto (1,8 volte la pazienza del loro tipo) e, quando prendi l'ordine, il tempo **riparte da pieno**, così hai tutto il tempo per cucinare.
 5. Mangiano, pagano, lasciano una **recensione** (stelle + commento breve, es. "Il brodo era perfetto!").
 6. A volte ordinano un secondo piatto o una bevanda dopo il primo.
 
@@ -346,6 +347,10 @@ Con la **Cassaforte** il ristorante produce una parte del guadagno anche quando 
 - **Set di decorazioni**: piazzare tutti i pezzi di un set (es. "Matsuri", "Giardino zen", "Samurai", "Ramen-ya") dà un bonus permanente.
 - **Pacchetto Ramen-ya** (dalle foto di riferimento di un vero bancone da ramen): sgabelli rossi su palo nero, lampade a sospensione industriali, tettoia in legno sopra il bancone con striscione rosso e lampade, poster del menù colorati, mensola menù da bancone, brocche d'acqua e portacondimenti, poster retrò, insegna verticale, tavola del brodo, tavolo con panche. La categoria **Sul tavolo** raccoglie gli oggetti da appoggiare su banconi e tavoli.
 - **Premio di accesso giornaliero** con serie (7 giorni, poi ricomincia con premi migliori).
+- **Regali a tempo** (come nei giochi Roblox più famosi): mentre giochi si sblocca un regalo gratis ogni pochi minuti (yen, 🌸, scatole di ingredienti). Il pulsante 🎁 sotto i soldi mostra il conto alla rovescia e diventa dorato quando un regalo è pronto (tasto R). Ripartono a ogni nuova sessione.
+- **Codici**: nell'app 🎟️ Codici del telefono si scrive un codice (annunciato sui social o nel gruppo) per ricevere un premio; ogni codice vale una volta per giocatore.
+- **Combo di servizio**: servire piatti a meno di 30 secondi l'uno dall'altro fa salire la combo (scritta grande "🔥 COMBO x3!" e suono che sale): ogni passo dà +5% di mancia a quel cliente, fino a +50%.
+- **Classifica nella lista giocatori** (leaderstats): ¥ e livello ⭐ di ognuno.
 
 ### 8.9 Franchise (rinascita / prestigio)
 Disponibile al livello 40 con valutazione ≥ 4,5 e tutte le espansioni principali.
@@ -427,8 +432,10 @@ Toccando un ordine a sinistra si apre una scheda con pochi passaggi brevi, ognun
 ### Oggetti in mano
 Un clic con una scatola su uno scaffale riempie **tutti** gli spazi liberi adatti, e un messaggio dice quante porzioni restano nella scatola. **Posa** (tasto G o ⬇) appoggia la scatola a terra davanti a te, visibile e da riprendere, oppure sulla scaffalatura se sei in magazzino. Gli ingredienti in mano tornano sullo scaffale più vicino, i piatti vanno al lavello. Un messaggio dice sempre dove è finito l'oggetto.
 
-### Telecamera
-Telecamera del gioco morbida e più lenta di quella standard: tasto destro tenuto premuto (o un dito sullo schermo) per girare, frecce ← → per ruotare, rotellina o due dita per lo zoom. Non finisce mai dietro i muri e, quando sale sopra il soffitto, il tetto sparisce e la cucina si vede dall'alto. Velocità (lenta, media, veloce) e telecamera classica di Roblox nelle impostazioni.
+### Telecamera e comandi
+**Prima persona** (predefinita, come in Supermarket Together): ci si guarda intorno con il mouse o trascinando un dito; un **pallino al centro** dello schermo indica cosa si sta puntando e sotto compare cosa succede cliccando (dorato quando sei abbastanza vicino). Clic o **E** per usare, **G** per posare, **Shift** per correre, **Alt** tenuto premuto per usare il mouse sui pulsanti (il mouse si libera da solo quando si apre un menu o in costruzione, dove la vista passa dall'alto). Scorciatoie: **B** costruisci, **O** fornitore, **P** telefono, **R** regali, **Invio** per il consiglio successivo del tutorial. Quello che hai in mano si vede davanti alla telecamera. Su telefono e tablet ci sono i pulsanti **✋ Usa** e **🏃 Corri**.
+
+Nelle impostazioni si può scegliere anche la **terza persona** (telecamera morbida e lenta: tasto destro o un dito per girare, ← →, rotellina o due dita per lo zoom; non finisce dietro i muri e, se sei dentro e sale sopra il soffitto, il tetto sparisce) o la telecamera classica di Roblox, con velocità lenta, media o veloce.
 
 ---
 
@@ -441,7 +448,7 @@ Telecamera del gioco morbida e più lenta di quella standard: tasto destro tenut
 - **Effetti**: vapore dalle ciotole e dai pentoloni, bolle nel brodo, scintille dorate quando un piatto è pronto, petali di ciliegio, monete che volano alla cassa, coriandoli al livello.
 - **Animazioni**: zampa del maneki-neko, pesci nel laghetto koi e nell'acquario, shishi-odoshi che si inclina, noren che ondeggia, treno serale.
 - **Scritte giapponesi** sulle insegne: ラーメン (ramen), 寿司 (sushi), 営業中 (aperto), 準備中 (in preparazione).
-- **Audio** (da scegliere nella libreria audio di Roblox): musica di sottofondo con shamisen e koto in versione lo-fi, ambiente della strada, sfrigolio, taglio, campanello d'ingresso, gong del livello.
+- **Audio realistico** (tutto dalla libreria pubblica di Roblox: Pro Sound Effects, APM Music e suoni UI di Roblox, ID in `Config/Audio.luau`): il coltello che taglia sul tagliere a ritmo con l'animazione (16 colpi diversi), il brodo versato nella ciotola, i noodles che bollono e poi si scolano, lo sfrigolio della piastra e della friggitrice, la spatola, il riso versato nel cuociriso e il bip quando è pronto, i piatti di ceramica, le scatole di cartone, il lavello, la cassa e le monete della mancia, il campanello del piatto pronto, il fūrin (campanella a vento) quando entra un cliente, i clienti che risucchiano i noodles. Ambiente: traffico giapponese in strada (più piano dentro), brusio del ristorante che cresce con i clienti, pentole che bollono vicino a te, il treno sul cavalcavia. Musica: playlist calma di giorno (koto, lounge) e di sera.
 
 I modelli sono costruiti dal codice con parti Roblox, curati nelle proporzioni e nei colori. Il livello di dettaglio cresce con le ristrutturazioni (§8.5): lo stesso oggetto ha una versione base e una versione rifinita. Ogni modello è **sostituibile**: se più avanti metti un modello 3D più dettagliato (da Blender o dal Creator Store) con lo stesso nome nella cartella apposita, il gioco usa quello al posto della versione generata.
 

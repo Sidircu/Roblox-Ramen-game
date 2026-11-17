@@ -332,6 +332,8 @@ function Progression.applyWalkSpeed()
 	end
 	local speed = GameConfig.WalkSpeed * Upgrades.value(d.upgrades, "up_shoes")
 	for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
+		-- the client multiplies this while running (Controllers/FirstPerson)
+		p:SetAttribute("WalkSpeed", speed)
 		local hum = p.Character and p.Character:FindFirstChildOfClass("Humanoid")
 		if hum then
 			hum.WalkSpeed = speed

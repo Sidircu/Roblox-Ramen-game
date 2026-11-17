@@ -255,7 +255,7 @@ function Meta.Init()
 			return type(v) == "boolean"
 		end,
 		cam = function(v)
-			return v == "game" or v == "roblox"
+			return v == "first" or v == "game" or v == "roblox"
 		end,
 		camSpeed = function(v)
 			return type(v) == "number" and v >= 0.3 and v <= 2

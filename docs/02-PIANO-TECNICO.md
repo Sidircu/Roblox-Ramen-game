@@ -120,6 +120,7 @@ Un test controlla l'integrità: ogni ingrediente usato esiste, ogni licenza punt
 | `EconomyService` | yen, gettoni, moltiplicatori (VIP, franchise, eventi), registro delle transazioni del giorno |
 | `ProgressionService` | XP, livelli, licenze, upgrade, espansioni, maestrie, valutazione |
 | `MetaService` | missioni giornaliere, obiettivi, premio giornaliero, guadagni offline, set di decorazioni |
+| `RewardsService` | regali a tempo della sessione (`JoinedAt`, `GiftsClaimed` come attributi del giocatore, `ClaimGift`), codici (`RedeemCode`, usati in `meta.codes`), leaderstats ¥ e ⭐ |
 | `FranchiseService` | rinascita e città |
 | `MonetizationService` | gamepass, `ProcessReceipt` con registro anti-doppio-acquisto |
 | `LeaderboardService` | classifiche globali (OrderedDataStore) mostrate su una bacheca in strada |
@@ -132,14 +133,15 @@ Un test controlla l'integrità: ogni ingrediente usato esiste, ogni licenza punt
 | Controller | Responsabilità |
 |---|---|
 | `DataController` | copia locale dei dati del giocatore + eventi di cambiamento |
-| `InteractionController` | raggio dal cursore/tocco, evidenziazione (`Highlight`) ed etichetta sull'oggetto se il giocatore è abbastanza vicino, clic/tocco → richiesta al server |
+| `InteractionController` | raggio dal cursore/tocco (dal centro dello schermo in prima persona), evidenziazione (`Highlight`) ed etichetta sull'oggetto se il giocatore è abbastanza vicino, clic/tocco/E → richiesta al server |
+| `FirstPersonController` | mirino e testo dell'azione al centro, oggetti in mano copiati davanti alla telecamera (attributo `Held` sui modelli in mano), mouse libero con un `GuiButton.Modal` visibile (menu aperto, costruzione, Alt), scorciatoie B/O/P/R, corsa (Shift o 🏃, attributo `WalkSpeed`), pulsante ✋ su touch |
 | `CarryVisualController` | posa delle braccia quando si porta qualcosa, pila di oggetti in mano |
 | `BuildController` | modalità costruzione: anteprima, griglia 1/5/10, rotazione, colori valido/non valido, vista dall'alto |
 | `GridVisualizer` | linee della griglia disegnate solo attorno al cursore (poche parti, solo in costruzione) |
-| `CameraController` | occlusione "Invisicam", vista dall'alto in costruzione, nasconde il tetto quando serve |
+| `CameraController` | modalità `first` (prima persona, `LockFirstPerson`), `game` (orbita morbida) e `roblox`; vista dall'alto in costruzione; nasconde il tetto solo in orbita quando sei dentro |
 | `LightingController` | transizione di luce durante la giornata, accensione lanterne e neon |
 | `AmbientController` | treno, petali, animazioni decorative (maneki-neko, koi, shishi-odoshi) solo lato client |
-| `AudioController` | musica, ambiente, effetti |
+| `AudioController` | effetti con prese casuali e intonazione variata (2D o posizionali), sequenze dei passaggi di cucina (`Fx("step")`: colpi di coltello a ritmo, versare, scolare, sfrigolare), anelli d'ambiente mescolati da posizione e clienti, pentole che bollono, treno, playlist giorno/sera |
 | `UIController` | apre/chiude schermate, scala per telefono/PC, notifiche |
 | `TutorialController` | passi guidati con frecce (`Beam`) e fumetti |
 
@@ -201,7 +203,7 @@ Permessi (salvati nei dati del proprietario): `helper` (cucina, serve, pulisce, 
 - DataStore `Profiles_v1`, chiave `u_<userId>`; scrittura sempre con `UpdateAsync`.
 - **Blocco di sessione**: il salvataggio contiene `{ jobId, time }`; un altro server non lo usa finché il blocco è recente (< 10 min), poi lo considera abbandonato. Evita duplicazioni.
 - Autosalvataggio ogni 120 s, all'uscita e in `game:BindToClose`; tentativi con attesa crescente; controllo del budget delle richieste.
-- `migrate(data)` porta i salvataggi vecchi alla versione corrente; i campi mancanti si riempiono dai valori predefiniti.
+- `migrate(data)` porta i salvataggi vecchi alla versione corrente; i campi mancanti si riempiono dai valori predefiniti. Versione 2: locale ingrandito; versione 3: bancone da 12 sgabelli, mensole grandi e prima persona (gli oggetti comprati tornano nell'inventario, le scorte delle mensole tornano nelle scatole).
 - Lo stato "in corso" (clienti seduti, piatti in mano) **non** si salva: alla riapertura il locale riparte pulito in fase di preparazione; le scorte (scatole, mensole, lotti pronti) invece si salvano.
 
 ### Replica al client

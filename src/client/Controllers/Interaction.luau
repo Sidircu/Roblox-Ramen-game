@@ -169,13 +169,23 @@ local function setCurrent(model, slot)
 		return
 	end
 	local near = inRange(model)
-	current = { model = model, uid = model:GetAttribute("Uid"), kind = kind, slot = slot, near = near }
+	current = { model = model, uid = model:GetAttribute("Uid"), kind = kind, slot = slot, near = near, text = text }
 	highlight.Adornee = model
 	highlight.Enabled = true
 	highlight.OutlineColor = near and Color.hex("#FFD23B") or Color.hex("#B8AFA2")
+	-- in first person the action is written under the crosshair (Controllers/FirstPerson)
+	local fp = Core.C.Camera and Core.C.Camera.isFirstPerson and Core.C.Camera.isFirstPerson()
 	label.Adornee = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
-	label.Enabled = true
+	label.Enabled = not fp
 	labelText.Text = near and text or ("🚶 " .. t("hint.get_closer"))
+end
+
+-- What the player points at: { text, near, kind } or nil
+function Interaction.target()
+	if not current then
+		return nil
+	end
+	return { text = current.text, near = current.near, kind = current.kind }
 end
 
 local function update(screenPos)
@@ -208,9 +218,6 @@ local function act()
 		return
 	end
 	NetDef.event("Interact"):FireServer(current.uid, { slot = current.slot })
-	if Core.C.Audio then
-		Core.C.Audio.play("click")
-	end
 end
 
 -- Briefly marks the shelves/station needed for a recipe (clicked ticket)
@@ -310,13 +317,25 @@ function Interaction.Init()
 	labelText.Parent = bg
 end
 
+Interaction.act = act
+
+local function aimingCenter()
+	local Camera = Core.C.Camera
+	local fp = Core.C.FirstPerson
+	return Camera and Camera.isFirstPerson and Camera.isFirstPerson() and not (fp and fp.cursorFree and fp.cursorFree())
+end
+
 function Interaction.Start()
 	RunService.RenderStepped:Connect(function()
 		if os.clock() - lastCheck < 0.05 then
 			return
 		end
 		lastCheck = os.clock()
-		if UserInputService.MouseEnabled then
+		if aimingCenter() then
+			-- first person: whatever is under the crosshair (mouse, touch and gamepad alike)
+			local cam = workspace.CurrentCamera
+			update(cam.ViewportSize / 2)
+		elseif UserInputService.MouseEnabled then
 			update(UserInputService:GetMouseLocation())
 		elseif current then
 			setCurrent(current.model, current.slot)

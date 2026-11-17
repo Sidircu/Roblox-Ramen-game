@@ -29,8 +29,8 @@ return {
 		{ i = "sushi_station", x = -11, z = 33.3, r = 180, s = "f" },
 		{ i = "ramen_station", x = -3, z = 33.3, r = 180, s = "f" },
 		-- back line across a wide aisle: shelves, rice cooker, broth pot, sink
-		{ i = "shelf_small", x = -15, z = 42, r = 0, s = "f" },
-		{ i = "shelf_small", x = -10, z = 42, r = 0, s = "f" },
+		{ i = "shelf_small", x = -22, z = 42.2, r = 0, s = "f" },
+		{ i = "shelf_small", x = -15.5, z = 42.2, r = 0, s = "f" },
 		{ i = "rice_cooker", x = -5.5, z = 42, r = 0, s = "f" },
 		{ i = "broth_pot", x = -1.5, z = 42, r = 0, s = "f" },
 		{ i = "sink", x = 4, z = 42, r = 0, s = "f" },

@@ -6,6 +6,7 @@ local RunService = game:GetService("RunService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Registry = require(Shared.Models.Registry)
 local Expansions = require(Shared.Config.Expansions)
+local Core = require(script.Parent.Parent.Core)
 
 local Ambient = {}
 local parts = {} -- [part] = { kind, base, last, phase }
@@ -45,11 +46,18 @@ local function runTrain()
 	end
 	local train = S.train(4)
 	train.Parent = workspace.CurrentCamera
+	local Audio = Core.C.Audio
+	local sound = Audio and Audio.attachTrain(train.PrimaryPart or train:FindFirstChildWhichIsA("BasePart"))
 	while true do
 		local dir = rng:NextNumber() < 0.5 and 1 or -1
 		local x0, x1 = -(Expansions.Street.reach + 280) * dir, (Expansions.Street.reach + 280) * dir
 		local t0 = os.clock()
 		local duration = 22
+		if sound then
+			sound.TimePosition = 0
+			sound.Volume = Audio.trainVolume()
+			sound:Play()
+		end
 		while os.clock() - t0 < duration do
 			local k = (os.clock() - t0) / duration
 			local L = Expansions.Street
@@ -57,6 +65,9 @@ local function runTrain()
 			task.wait()
 		end
 		train:PivotTo(CFrame.new(0, -200, 0))
+		if sound then
+			sound:Stop()
+		end
 		task.wait(rng:NextNumber() * 40 + 35)
 	end
 end

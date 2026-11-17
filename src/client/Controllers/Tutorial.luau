@@ -160,6 +160,12 @@ function Tutorial.Init()
 	Kit.button(t("ui.next"), { parent = panel, size = UDim2.fromOffset(90, 30), position = UDim2.new(1, -186, 1, -32), style = "gold", textSize = 14, onClick = function()
 		advance()
 	end })
+	-- in first person the mouse is captured: Enter also goes to the next card
+	game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+		if not processed and panel.Visible and (input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter) then
+			advance()
+		end
+	end)
 	a0 = Instance.new("Attachment")
 	a1 = Instance.new("Attachment")
 	beam = Instance.new("Beam")

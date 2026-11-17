@@ -168,13 +168,7 @@ local function animateStep(e, stepName, duration)
 	local low = boardAtt.WorldCFrame * CFrame.new(0, 0.45, 0)
 	local steps = math.max(8, math.floor(duration / 0.04))
 	local pos = boardAtt.WorldPosition
-	if stepName == "cut" then
-		Core.S.Net.fx("sfx", { name = "cut", pos = pos })
-	elseif stepName == "boil" or stepName == "fry" then
-		Core.S.Net.fx("sfx", { name = "sizzle", pos = pos })
-	elseif stepName == "pour" then
-		Core.S.Net.fx("sfx", { name = "pour", pos = pos })
-	end
+	Core.S.Net.fx("step", { name = stepName, dur = duration, pos = pos })
 	local startScales = {}
 	for i, mdl in ipairs(st.boardModels) do
 		startScales[i] = mdl:GetPivot()

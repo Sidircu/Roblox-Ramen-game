@@ -6,7 +6,7 @@ local Services = script.Parent.Services
 local ORDER = {
 	"Net", "Data", "Session", "Economy", "Progression", "World", "Entities", "Placement", "Hands",
 	"Supply", "Appliance", "Seating", "Cooking", "Npc", "Customers", "Tasks", "Staff", "Day",
-	"Meta", "Franchise", "Monetization", "Leaderboard", "Interaction", "SelfTest", "Dev",
+	"Meta", "Rewards", "Franchise", "Monetization", "Leaderboard", "Interaction", "SelfTest", "Dev",
 }
 
 for _, name in ipairs(ORDER) do

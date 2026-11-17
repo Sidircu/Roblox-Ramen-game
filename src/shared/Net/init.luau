@@ -29,6 +29,8 @@ Net.Events = {
 	"ClaimAchievement",
 	"ClaimDaily",
 	"ClaimOffline",
+	"ClaimGift", -- (index) free gift for minutes played
+	"RedeemCode", -- (code)
 	"SetSetting", -- (key, value)
 	"SetPermission", -- (userId, level)
 	"Franchise", -- (cityId)

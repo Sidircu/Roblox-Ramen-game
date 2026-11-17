@@ -19,7 +19,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 2
+local VERSION = 3
 local profiles = {} -- [player] = { data, key, loaded, saving }
 local store = nil
 local storeOk = false
@@ -59,10 +59,10 @@ function Data.newProfile()
 		staff = {},
 		ads = {},
 		boosts = {},
-		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0 },
+		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0, codes = {} },
 		franchise = { stars = 0, city = "tokyo" },
 		perms = {},
-		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, autoDay = false, cam = "game", camSpeed = 1 },
+		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, autoDay = false, cam = "first", camSpeed = 1 },
 		passes = {},
 		receipts = {},
 		created = os.time(),
@@ -99,11 +99,10 @@ function Data.newProfile()
 	return d
 end
 
-local function migrate(d)
-	d.v = d.v or 1
-	if d.v < 2 then
-		-- v2: the restaurant is twice as big. Bought objects go to the inventory, the starter
-		-- layout is rebuilt at the new size, shelf stock goes back into boxes.
+-- Puts every bought object in the inventory, rebuilds the starter layout and moves shelf stock
+-- back into boxes (used when the starter layout changes size)
+local function rebuildLayout(d)
+	do
 		d.inventory = d.inventory or {}
 		d.storage = d.storage or {}
 		local starter = {}
@@ -130,7 +129,24 @@ local function migrate(d)
 		d.placed = Data.newProfile().placed
 		d.shelves = {}
 		d.appliances = {}
+	end
+end
+
+local function migrate(d)
+	d.v = d.v or 1
+	if d.v < 2 then
+		-- v2: the restaurant is twice as big
+		rebuildLayout(d)
 		d.v = 2
+	end
+	if d.v < 3 then
+		-- v3: longer counter with twelve stools, bigger shelves, first-person camera by default
+		rebuildLayout(d)
+		d.settings = d.settings or {}
+		if d.settings.cam == nil or d.settings.cam == "game" then
+			d.settings.cam = "first"
+		end
+		d.v = 3
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION

@@ -100,7 +100,7 @@ function Appliance.load(actor, e)
 		Hands.refresh(actor)
 	end
 	refresh(e)
-	Core.S.Net.fx("sfx", { name = "pour", pos = e.model.PrimaryPart.Position })
+	Core.S.Net.fx("sfx", { name = e.kind == "ricecooker" and "rice" or "pour", pos = e.model.PrimaryPart.Position })
 	Core.S.Data.changed(Core.S.Session.owner, "appliances")
 	return true
 end
@@ -220,6 +220,7 @@ function Appliance.useSink(actor, e, speed)
 		return false, sinkPile > 0 and "msg.hands_busy" or "msg.sink_hint"
 	end
 	washing[e.uid] = true
+	Core.S.Net.fx("sfx", { name = "wash", pos = e.model.PrimaryPart.Position })
 	local spout = e.model:FindFirstChild("Spout")
 	local emitter = spout and spout:FindFirstChildOfClass("ParticleEmitter")
 	if emitter then
