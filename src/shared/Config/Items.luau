@@ -35,6 +35,11 @@ local list = {
 	-- Kitchen ------------------------------------------------------------------------------------
 	{ id = "shelf_small", cat = "kitchen", price = 400, lv = 1, place = "floor", areas = KITCHEN, size = { 5.6, 7.4, 2 }, amb = 0, fn = { type = "shelf", slots = 4 } },
 	{ id = "shelf_large", cat = "kitchen", price = 1500, lv = 7, place = "floor", areas = KITCHEN, size = { 7.8, 8.4, 2 }, amb = 0, fn = { type = "shelf", slots = 6 } },
+	-- bigger and nicer shelves (more slots, each still half a box): tall wooden one with a little
+	-- noren, a bamboo market shelf with lanterns, a black lacquer pantry with gold trim and lights
+	{ id = "shelf_tall", cat = "kitchen", price = 4000, lv = 10, place = "floor", areas = KITCHEN, size = { 7.8, 10, 2 }, amb = 2, fn = { type = "shelf", slots = 8, cols = 2, style = "tall" } },
+	{ id = "shelf_market", cat = "kitchen", price = 9000, lv = 15, place = "floor", areas = KITCHEN, size = { 9.6, 8.8, 2.2 }, amb = 4, fn = { type = "shelf", slots = 9, cols = 3, style = "bamboo" } },
+	{ id = "shelf_deluxe", cat = "kitchen", price = 25000, lv = 22, place = "floor", areas = KITCHEN, size = { 11, 10, 2.4 }, amb = 8, fn = { type = "shelf", slots = 12, cols = 3, style = "lacquer" } },
 	{ id = "neta_case", cat = "kitchen", price = 3000, lv = 5, place = "floor", areas = KITCHEN, size = { 5, 3.2, 2.2 }, amb = 3, fn = { type = "shelf", slots = 4, fishOnly = true, fresh = true } },
 	{ id = "rice_cooker", cat = "kitchen", price = 600, lv = 1, place = "floor", areas = KITCHEN, size = { 2.6, 4.9, 2.5 }, amb = 0, fn = { type = "ricecooker", batch = 10, time = 20 } },
 	{ id = "rice_cooker_pro", cat = "kitchen", price = 5000, lv = 11, place = "floor", areas = KITCHEN, size = { 3, 5.1, 2.5 }, amb = 0, fn = { type = "ricecooker", batch = 25, time = 15 } },

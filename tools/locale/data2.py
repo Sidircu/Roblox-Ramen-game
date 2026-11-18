@@ -6,7 +6,7 @@ ITEMS = [
 ("zabuton","Zabuton cushion","Cuscino zabuton"),("booth","Booth (4 seats)","Separé imbottito (4 posti)"),("zashiki_table","VIP zashiki table","Tavolo VIP zashiki"),
 ("waiting_bench","Waiting bench","Panchina d'attesa"),("shelf_small","Small shelf","Mensola piccola"),("shelf_large","Large shelf","Mensola grande"),
 ("neta_case","Fish display case","Vetrina refrigerata del pesce"),("rice_cooker","Rice cooker","Rice cooker"),("rice_cooker_pro","Pro rice cooker","Rice cooker professionale"),
-("broth_pot","Range with broth pot","Fornello con pentolone"),("broth_pot_large","Range with large broth pot","Fornello con pentolone grande"),("kitchen_counter","Kitchen worktop","Piano di lavoro"),("tip_jar","Tip jar","Barattolo delle mance"),("sushi_station","Sushi station","Postazione sushi"),
+("broth_pot","Range with broth pot","Fornello con pentolone"),("broth_pot_large","Range with large broth pot","Fornello con pentolone grande"),("kitchen_counter","Kitchen worktop","Piano di lavoro"),("tip_jar","Tip jar","Barattolo delle mance"),("shelf_tall","Tall wooden shelf","Scaffale alto in legno"),("shelf_market","Bamboo market shelf","Scaffale da mercato in bambù"),("shelf_deluxe","Lacquer pantry deluxe","Dispensa laccata deluxe"),("sushi_station","Sushi station","Postazione sushi"),
 ("ramen_station","Ramen station","Postazione ramen"),("drink_station","Drink station","Postazione bevande"),("griddle","Teppan griddle","Piastra teppan"),
 ("fryer","Fryer","Friggitrice"),("takoyaki_stove","Takoyaki stove","Fornello takoyaki"),("dessert_station","Dessert station","Postazione dolci"),
 ("sink","Sink","Lavello"),("dishwasher","Dishwasher","Lavastoviglie"),("fridge","Pro fridge","Frigorifero professionale"),

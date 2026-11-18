@@ -355,12 +355,13 @@ local list = {
 		id = "zone_base", lv = 1, cost = 0, requires = {},
 		zones = {
 			{ id = "base_dining", rect = { -36, 0, 36, 32 }, floor = 0, area = "dining", room = "main" },
-			{ id = "base_kitchen", rect = { -36, 32, 36, 56 }, floor = 0, area = "kitchen", room = "main" },
+			-- 14 deep: stations behind the counter, a 9-stud aisle, the kitchen line on the back wall
+			{ id = "base_kitchen", rect = { -36, 32, 36, 46 }, floor = 0, area = "kitchen", room = "main" },
 			{ id = "base_storage", rect = { 36, 24, 60, 56 }, floor = 0, area = "storage", room = "storage" },
 		},
 		openings = {
 			{ floor = 0, axis = "z", at = 0, from = -4, to = 4, kind = "entrance" },
-			{ floor = 0, axis = "x", at = 36, from = 40, to = 47, kind = "door" },
+			{ floor = 0, axis = "x", at = 36, from = 38, to = 45, kind = "door" },
 			{ floor = 0, axis = "z", at = 24, from = 45, to = 55, kind = "loading" },
 		},
 	},
@@ -370,25 +371,25 @@ local list = {
 	{ id = "zone_terrace", lv = 12, cost = 60000, requires = { "zone_base" }, zones = { { id = "terrace", rect = { -36, -10, 36, 0 }, floor = 0, area = "outdoor", outdoor = true, gaps = { { axis = "z", at = -10, from = -4, to = 4 } } } } },
 	{
 		id = "zone_garden", lv = 15, cost = 100000, requires = { "zone_base" },
-		zones = { { id = "garden", rect = { -36, 56, 12, 92 }, floor = 0, area = "garden", outdoor = true } },
-		openings = { { floor = 0, axis = "z", at = 56, from = -17, to = -10, kind = "door" } },
+		zones = { { id = "garden", rect = { -36, 46, 12, 82 }, floor = 0, area = "garden", outdoor = true } },
+		openings = { { floor = 0, axis = "z", at = 46, from = -17, to = -10, kind = "door" } },
 	},
 	{
 		id = "zone_tatami", lv = 18, cost = 180000, requires = { "zone_west" },
 		zones = { { id = "tatami", rect = { -100, 56, -68, 88 }, floor = 0, area = "tatami", room = "tatami", floorStyle = "floor_tatami", wallStyle = "wall_shoji" } },
 		openings = { { floor = 0, axis = "z", at = 56, from = -88, to = -81, kind = "door" } },
 	},
-	{ id = "zone_kitchen_pro", lv = 20, cost = 250000, requires = { "zone_east" }, zones = { { id = "kitchen_pro", rect = { -68, 32, -36, 56 }, floor = 0, area = "kitchen", room = "main" } } },
+	{ id = "zone_kitchen_pro", lv = 20, cost = 250000, requires = { "zone_east" }, zones = { { id = "kitchen_pro", rect = { -68, 32, -36, 46 }, floor = 0, area = "kitchen", room = "main" } } },
 	{
 		id = "zone_floor2", lv = 25, cost = 600000, requires = { "zone_base" },
-		zones = { { id = "floor2", rect = { -36, 0, 36, 56 }, floor = 1, area = "dining", room = "f2" } },
+		zones = { { id = "floor2", rect = { -36, 0, 36, 46 }, floor = 1, area = "dining", room = "f2" } },
 		stairs = { cornerStairs(0, -1) },
 	},
 	{ id = "sign_rooftop", lv = 28, cost = 500000, requires = { "zone_base" }, popularity = 0.3, cosmetic = true, reno = "exterior" },
 	{ id = "facade_deluxe", lv = 30, cost = 1000000, requires = { "zone_base" }, ambience = 60, cosmetic = true, reno = "exterior" },
 	{
 		id = "zone_rooftop", lv = 35, cost = 2000000, requires = { "zone_floor2" },
-		zones = { { id = "rooftop", rect = { -36, 0, 36, 56 }, floor = 2, area = "outdoor", outdoor = true } },
+		zones = { { id = "rooftop", rect = { -36, 0, 36, 46 }, floor = 2, area = "outdoor", outdoor = true } },
 		stairs = { cornerStairs(1, 1) },
 	},
 	-- Renovations: the starting restaurant is plain; these add the detailed look piece by piece.
@@ -709,6 +710,11 @@ local list = {
 	-- Kitchen ------------------------------------------------------------------------------------
 	{ id = "shelf_small", cat = "kitchen", price = 400, lv = 1, place = "floor", areas = KITCHEN, size = { 5.6, 7.4, 2 }, amb = 0, fn = { type = "shelf", slots = 4 } },
 	{ id = "shelf_large", cat = "kitchen", price = 1500, lv = 7, place = "floor", areas = KITCHEN, size = { 7.8, 8.4, 2 }, amb = 0, fn = { type = "shelf", slots = 6 } },
+	-- bigger and nicer shelves (more slots, each still half a box): tall wooden one with a little
+	-- noren, a bamboo market shelf with lanterns, a black lacquer pantry with gold trim and lights
+	{ id = "shelf_tall", cat = "kitchen", price = 4000, lv = 10, place = "floor", areas = KITCHEN, size = { 7.8, 10, 2 }, amb = 2, fn = { type = "shelf", slots = 8, cols = 2, style = "tall" } },
+	{ id = "shelf_market", cat = "kitchen", price = 9000, lv = 15, place = "floor", areas = KITCHEN, size = { 9.6, 8.8, 2.2 }, amb = 4, fn = { type = "shelf", slots = 9, cols = 3, style = "bamboo" } },
+	{ id = "shelf_deluxe", cat = "kitchen", price = 25000, lv = 22, place = "floor", areas = KITCHEN, size = { 11, 10, 2.4 }, amb = 8, fn = { type = "shelf", slots = 12, cols = 3, style = "lacquer" } },
 	{ id = "neta_case", cat = "kitchen", price = 3000, lv = 5, place = "floor", areas = KITCHEN, size = { 5, 3.2, 2.2 }, amb = 3, fn = { type = "shelf", slots = 4, fishOnly = true, fresh = true } },
 	{ id = "rice_cooker", cat = "kitchen", price = 600, lv = 1, place = "floor", areas = KITCHEN, size = { 2.6, 4.9, 2.5 }, amb = 0, fn = { type = "ricecooker", batch = 10, time = 20 } },
 	{ id = "rice_cooker_pro", cat = "kitchen", price = 5000, lv = 11, place = "floor", areas = KITCHEN, size = { 3, 5.1, 2.5 }, amb = 0, fn = { type = "ricecooker", batch = 25, time = 15 } },
@@ -1143,16 +1149,16 @@ return {
 		-- stations right behind the counter, the cook works facing it
 		{ i = "sushi_station", x = -11, z = 33.3, r = 180, s = "f" },
 		{ i = "ramen_station", x = -3, z = 33.3, r = 180, s = "f" },
-		-- back line across a wide aisle: one fitted kitchen unit (same height, depth and tiles) with
-		-- the rice cooker, the gas range with the stock pot, a worktop, the sink and another worktop,
-		-- then two shelves on the side of the storage door (short walk with the boxes)
-		{ i = "shelf_small", x = 7.4, z = 42.2, r = 0, s = "f" },
-		{ i = "shelf_small", x = 13.9, z = 42.2, r = 0, s = "f" },
-		{ i = "rice_cooker", x = -10.7, z = 42.45, r = 0, s = "f" },
-		{ i = "broth_pot", x = -7.4, z = 42.45, r = 0, s = "f" },
-		{ i = "kitchen_counter", x = -4.1, z = 42.45, r = 0, s = "f" },
-		{ i = "sink", x = -0.8, z = 42.45, r = 0, s = "f" },
-		{ i = "kitchen_counter", x = 2.5, z = 42.45, r = 0, s = "f" },
+		-- everything against the back wall, 9 studs behind the stations: the two shelves right behind
+		-- the stations (the trip you make for every order), then the fitted kitchen unit (rice
+		-- cooker, gas range, worktop, sink, worktop) towards the storage door
+		{ i = "shelf_small", x = -10.2, z = 44.55, r = 0, s = "f" },
+		{ i = "shelf_small", x = -4.4, z = 44.55, r = 0, s = "f" },
+		{ i = "rice_cooker", x = -0.1, z = 44.3, r = 0, s = "f" },
+		{ i = "broth_pot", x = 3.2, z = 44.3, r = 0, s = "f" },
+		{ i = "kitchen_counter", x = 6.5, z = 44.3, r = 0, s = "f" },
+		{ i = "sink", x = 9.8, z = 44.3, r = 0, s = "f" },
+		{ i = "kitchen_counter", x = 13.1, z = 44.3, r = 0, s = "f" },
 		{ i = "storage_rack", x = 48, z = 54.6, r = 0, s = "f" },
 		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
 		{ i = "chochin_white", x = -6, z = 20, r = 0, s = "c" },
@@ -1575,8 +1581,11 @@ return {
 	["item.sakura_garland"] = "Cherry blossom garland",
 	["item.sakura_tree"] = "Cherry tree in bloom",
 	["item.samurai_armor"] = "Samurai armor",
+	["item.shelf_deluxe"] = "Lacquer pantry deluxe",
 	["item.shelf_large"] = "Large shelf",
+	["item.shelf_market"] = "Bamboo market shelf",
 	["item.shelf_small"] = "Small shelf",
+	["item.shelf_tall"] = "Tall wooden shelf",
 	["item.shisa_pair"] = "Shisa guardians",
 	["item.shishi_odoshi"] = "Shishi-odoshi fountain",
 	["item.sink"] = "Sink",
@@ -1643,6 +1652,7 @@ return {
 	["msg.box_on_floor"] = "📦 Box put down in front of you. Click it to pick it up again.",
 	["msg.box_on_rack"] = "📦 Box put back on the storage rack.",
 	["msg.busy"] = "Busy, wait a moment.",
+	["msg.buy_station"] = "🔨 New dishes need a new station: buy {name} in Build → Kitchen.",
 	["msg.celebrity"] = "⭐ A celebrity is coming! Fans are on their way!",
 	["msg.code_invalid"] = "This code does not exist.",
 	["msg.code_ok"] = "🎟️ Code {code} redeemed!",
@@ -2383,8 +2393,11 @@ return {
 	["item.sakura_garland"] = "Ghirlanda di ciliegio",
 	["item.sakura_tree"] = "Ciliegio in fiore",
 	["item.samurai_armor"] = "Armatura samurai",
+	["item.shelf_deluxe"] = "Dispensa laccata deluxe",
 	["item.shelf_large"] = "Mensola grande",
+	["item.shelf_market"] = "Scaffale da mercato in bambù",
 	["item.shelf_small"] = "Mensola piccola",
+	["item.shelf_tall"] = "Scaffale alto in legno",
 	["item.shisa_pair"] = "Coppia di shisa",
 	["item.shishi_odoshi"] = "Fontana shishi-odoshi",
 	["item.sink"] = "Lavello",
@@ -2451,6 +2464,7 @@ return {
 	["msg.box_on_floor"] = "📦 Scatola appoggiata a terra davanti a te. Cliccala per riprenderla.",
 	["msg.box_on_rack"] = "📦 Scatola rimessa sulla scaffalatura del magazzino.",
 	["msg.busy"] = "Occupato, aspetta un attimo.",
+	["msg.buy_station"] = "🔨 I nuovi piatti hanno bisogno di una postazione: compra {name} in Costruisci → Cucina.",
 	["msg.celebrity"] = "⭐ Arriva una celebrità! I fan sono in arrivo!",
 	["msg.code_invalid"] = "Questo codice non esiste.",
 	["msg.code_ok"] = "🎟️ Codice {code} riscattato!",
@@ -7779,33 +7793,48 @@ local function pan(m, x, z, y0, color)
 	Kit.box(m, 0.36, 0.05, 0.36, x, y0 + 0.13, z, color, M.smooth, nc())
 end
 
+-- Shelf looks (fn.style): frame, back, boards, crown, header kanji and extras
+local SHELF_STYLES = {
+	wood = { frame = P.wood_dark, back = P.hinoki, board = P.wood_light, crown = P.wood_black, sign = "食材" },
+	tall = { frame = P.wood, back = P.hinoki, board = P.wood_light, crown = P.wood_dark, sign = "食材", noren = true },
+	bamboo = { frame = P.bamboo, back = P.cream, board = P.bamboo, crown = P.lacquer, sign = "市場", lanterns = true },
+	lacquer = { frame = P.wood_black, back = P.lacquer_dark, board = P.wood_dark, crown = P.wood_black, sign = "極上", trim = P.gold, lights = true },
+}
+
 local function shelfUnit(m, item)
 	local root = Kit.finish(m, size(item))
 	local w, h, d = item.size[1], item.size[2], item.size[3]
 	local slots = item.fn.slots
-	local cols = slots > 4 and 2 or 1
+	local cols = item.fn.cols or (slots > 4 and 2 or 1)
 	local rows = math.ceil(slots / cols)
-	-- frame: dark posts on black feet, light hinoki back boards
-	Kit.box(m, w, h, 0.12, 0, h / 2, d / 2 - 0.06, P.wood_dark, M.planks)
+	local st = SHELF_STYLES[item.fn.style or "wood"] or SHELF_STYLES.wood
+	-- frame: posts on feet and a back panel
+	Kit.box(m, w, h, 0.12, 0, h / 2, d / 2 - 0.06, st.frame, M.planks)
 	local dk = Kit.detail(m, "kitchen")
-	Kit.box(dk, w - 0.4, h - 0.3, 0.03, 0, h / 2, d / 2 - 0.135, P.hinoki, M.planks, nc())
+	Kit.box(m, w - 0.4, h - 0.3, 0.03, 0, h / 2, d / 2 - 0.135, st.back, M.planks, nc())
 	for _, x in ipairs({ -w / 2 + 0.1, w / 2 - 0.1 }) do
-		Kit.box(m, 0.2, h, d, x, h / 2, 0, P.wood_dark, M.wood)
-		Kit.box(dk, 0.28, 0.12, d + 0.08, x, 0.06, 0, P.wood_black, M.wood, nc())
+		Kit.box(m, 0.2, h, d, x, h / 2, 0, st.frame, M.wood)
+		Kit.box(m, 0.28, 0.12, d + 0.08, x, 0.06, 0, P.wood_black, M.wood, nc())
 		for _, y in ipairs({ 0.55, h - 0.55 }) do
 			Kit.box(dk, 0.24, 0.3, 0.03, x, y, -d / 2 - 0.015, P.charcoal, M.metal, nc())
 			Kit.ball(dk, 0.07, x, y, -d / 2 - 0.04, P.brass, M.metal, nc())
 		end
 	end
-	if cols == 2 then
-		Kit.box(m, 0.14, h, d, 0, h / 2, 0, P.wood_dark, M.wood)
+	-- dividers between columns
+	for c = 1, cols - 1 do
+		local x = -w / 2 + 0.15 + (w - 0.3) * c / cols
+		Kit.box(m, 0.14, h, d, x, h / 2, 0, st.frame, M.wood)
 	end
 	local rowH = (h - 0.3) / rows
 	local idx = 0
 	for r = 0, rows - 1 do
 		local y = 0.15 + r * rowH
-		Kit.box(m, w - 0.2, 0.12, d, 0, y, 0, P.wood_light, M.wood)
-		Kit.box(dk, w - 0.3, 0.16, 0.05, 0, y + 0.02, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
+		Kit.box(m, w - 0.2, 0.12, d, 0, y, 0, st.board, M.wood)
+		Kit.box(m, w - 0.3, 0.16, 0.05, 0, y + 0.02, -d / 2 - 0.02, st.trim or P.wood_dark, st.trim and M.metal or M.wood, nc())
+		if st.lights and r > 0 then
+			-- warm strip under each board lights the products below
+			Kit.box(m, w - 0.5, 0.04, 0.08, 0, y - 0.08, -d / 2 + 0.3, P.lamp_warm, M.neon, nc())
+		end
 		for c = 0, cols - 1 do
 			idx += 1
 			if idx <= slots then
@@ -7817,12 +7846,30 @@ local function shelfUnit(m, item)
 			end
 		end
 	end
-	-- crown with a kanji header board ("ingredients")
-	Kit.box(m, w + 0.2, 0.18, d + 0.15, 0, h - 0.06, -0.02, P.wood_black, M.wood)
-	Kit.box(dk, w + 0.3, 0.06, d + 0.25, 0, h + 0.06, -0.02, P.wood_dark, M.wood, nc())
-	local sign = Kit.box(dk, math.min(2.2, w - 0.8), 0.6, 0.08, 0, h + 0.4, -d / 2 + 0.2, P.hinoki, M.wood, nc())
-	Kit.text(sign, Enum.NormalId.Front, "食材", { color = "#2B2320", font = JP_FONT, pps = 40 })
-	Kit.box(dk, math.min(2.2, w - 0.8) + 0.12, 0.08, 0.1, 0, h + 0.74, -d / 2 + 0.2, P.wood_dark, M.wood, nc())
+	-- crown with a kanji header board
+	Kit.box(m, w + 0.2, 0.18, d + 0.15, 0, h - 0.06, -0.02, st.crown, M.wood)
+	if st.trim then
+		Kit.box(m, w + 0.22, 0.05, d + 0.17, 0, h + 0.04, -0.02, st.trim, M.metal, nc())
+	end
+	local sign = Kit.box(m, math.min(2.4, w - 0.8), 0.6, 0.08, 0, h + 0.4, -d / 2 + 0.2, st.trim and P.wood_black or P.hinoki, M.wood, nc())
+	Kit.text(sign, Enum.NormalId.Front, st.sign, { color = st.trim and "#D4A23C" or "#2B2320", font = JP_FONT, pps = 40 })
+	if st.noren then
+		-- short split curtain hanging from the crown
+		for k = 0, 3 do
+			local x = -w / 2 + 0.4 + (w - 0.8) * (k + 0.5) / 4
+			local cloth = Kit.box(m, (w - 0.8) / 4 - 0.08, 0.7, 0.03, x, h - 0.5, -d / 2 - 0.05, P.indigo, M.fabric, nc())
+			cloth:SetAttribute("Animate", "sway")
+		end
+	end
+	if st.lanterns then
+		-- two small red lanterns on the sides of the header
+		for _, sx in ipairs({ -1, 1 }) do
+			local lx = sx * (w / 2 - 0.5)
+			Kit.cyl(m, 0.05, 0.3, lx, h + 0.35, -d / 2 + 0.25, P.wood_black, M.wood, nc())
+			local lamp = Kit.blob(m, 0.5, 0.6, 0.5, lx, h + 0.05, -d / 2 + 0.25, P.lacquer, M.fabric, nc())
+			Kit.light(lamp, "Point", P.lamp_warm, 8, 0.6)
+		end
+	end
 end
 
 local function riceCooker(m, item, pro)
@@ -7950,6 +7997,9 @@ end
 return function(Registry)
 	Registry.register("shelf_small", shelfUnit)
 	Registry.register("shelf_large", shelfUnit)
+	Registry.register("shelf_tall", shelfUnit)
+	Registry.register("shelf_market", shelfUnit)
+	Registry.register("shelf_deluxe", shelfUnit)
 
 	Registry.register("neta_case", function(m, item)
 		local root = Kit.finish(m, size(item))
@@ -13218,7 +13268,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 7
+local VERSION = 8
 local profiles = {} -- [player] = { data, key, loaded, saving }
 local store = nil
 local storeOk = false
@@ -13385,6 +13435,11 @@ local function migrate(d)
 		-- v7: lower, deeper counter in 3-stud modules with a place setting each, stools 3 apart
 		rebuildLayout(d)
 		d.v = 7
+	end
+	if d.v < 8 then
+		-- v8: shallower kitchen (14 studs) with everything on the back wall
+		rebuildLayout(d)
+		d.v = 8
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION
@@ -16221,6 +16276,7 @@ local Expansions = require(Shared.Config.Expansions)
 local Franchise = require(Shared.Config.Franchise)
 local Events = require(Shared.Config.Events)
 local Staff = require(Shared.Config.Staff)
+local Items = require(Shared.Config.Items)
 local Formulas = require(Shared.Logic.Formulas)
 local Core = require(script.Parent.Parent.Core)
 
@@ -16414,6 +16470,33 @@ local function buyLicense(player, id)
 	Core.S.Data.changed(o, "licenses")
 	Core.S.Data.changed(o, "menu")
 	Net.notifyAll("msg.license_bought", { name = "lic." .. id }, "success")
+	-- new recipes for a kind of station you do not have yet: say which one to buy
+	local needed = {}
+	for _, rid in ipairs(lic.recipes) do
+		local r = Recipes.byId[rid]
+		if r and r.station then
+			needed[r.station] = true
+		end
+	end
+	for stationType in pairs(needed) do
+		local have = false
+		for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+			if e.item and e.item.fn.station == stationType then
+				have = true
+			end
+		end
+		if not have then
+			local best = nil
+			for _, it in ipairs(Items.list) do
+				if it.fn and it.fn.type == "station" and it.fn.station == stationType and (not best or it.price < best.price) then
+					best = it
+				end
+			end
+			if best then
+				Net.notify(player, "msg.buy_station", { name = "item." .. best.id }, "info")
+			end
+		end
+	end
 	Net.fx("sparkle", { userId = player.UserId })
 	Core.S.Meta.event(o, "licenses", 1)
 end

@@ -185,33 +185,48 @@ local function pan(m, x, z, y0, color)
 	Kit.box(m, 0.36, 0.05, 0.36, x, y0 + 0.13, z, color, M.smooth, nc())
 end
 
+-- Shelf looks (fn.style): frame, back, boards, crown, header kanji and extras
+local SHELF_STYLES = {
+	wood = { frame = P.wood_dark, back = P.hinoki, board = P.wood_light, crown = P.wood_black, sign = "食材" },
+	tall = { frame = P.wood, back = P.hinoki, board = P.wood_light, crown = P.wood_dark, sign = "食材", noren = true },
+	bamboo = { frame = P.bamboo, back = P.cream, board = P.bamboo, crown = P.lacquer, sign = "市場", lanterns = true },
+	lacquer = { frame = P.wood_black, back = P.lacquer_dark, board = P.wood_dark, crown = P.wood_black, sign = "極上", trim = P.gold, lights = true },
+}
+
 local function shelfUnit(m, item)
 	local root = Kit.finish(m, size(item))
 	local w, h, d = item.size[1], item.size[2], item.size[3]
 	local slots = item.fn.slots
-	local cols = slots > 4 and 2 or 1
+	local cols = item.fn.cols or (slots > 4 and 2 or 1)
 	local rows = math.ceil(slots / cols)
-	-- frame: dark posts on black feet, light hinoki back boards
-	Kit.box(m, w, h, 0.12, 0, h / 2, d / 2 - 0.06, P.wood_dark, M.planks)
+	local st = SHELF_STYLES[item.fn.style or "wood"] or SHELF_STYLES.wood
+	-- frame: posts on feet and a back panel
+	Kit.box(m, w, h, 0.12, 0, h / 2, d / 2 - 0.06, st.frame, M.planks)
 	local dk = Kit.detail(m, "kitchen")
-	Kit.box(dk, w - 0.4, h - 0.3, 0.03, 0, h / 2, d / 2 - 0.135, P.hinoki, M.planks, nc())
+	Kit.box(m, w - 0.4, h - 0.3, 0.03, 0, h / 2, d / 2 - 0.135, st.back, M.planks, nc())
 	for _, x in ipairs({ -w / 2 + 0.1, w / 2 - 0.1 }) do
-		Kit.box(m, 0.2, h, d, x, h / 2, 0, P.wood_dark, M.wood)
-		Kit.box(dk, 0.28, 0.12, d + 0.08, x, 0.06, 0, P.wood_black, M.wood, nc())
+		Kit.box(m, 0.2, h, d, x, h / 2, 0, st.frame, M.wood)
+		Kit.box(m, 0.28, 0.12, d + 0.08, x, 0.06, 0, P.wood_black, M.wood, nc())
 		for _, y in ipairs({ 0.55, h - 0.55 }) do
 			Kit.box(dk, 0.24, 0.3, 0.03, x, y, -d / 2 - 0.015, P.charcoal, M.metal, nc())
 			Kit.ball(dk, 0.07, x, y, -d / 2 - 0.04, P.brass, M.metal, nc())
 		end
 	end
-	if cols == 2 then
-		Kit.box(m, 0.14, h, d, 0, h / 2, 0, P.wood_dark, M.wood)
+	-- dividers between columns
+	for c = 1, cols - 1 do
+		local x = -w / 2 + 0.15 + (w - 0.3) * c / cols
+		Kit.box(m, 0.14, h, d, x, h / 2, 0, st.frame, M.wood)
 	end
 	local rowH = (h - 0.3) / rows
 	local idx = 0
 	for r = 0, rows - 1 do
 		local y = 0.15 + r * rowH
-		Kit.box(m, w - 0.2, 0.12, d, 0, y, 0, P.wood_light, M.wood)
-		Kit.box(dk, w - 0.3, 0.16, 0.05, 0, y + 0.02, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
+		Kit.box(m, w - 0.2, 0.12, d, 0, y, 0, st.board, M.wood)
+		Kit.box(m, w - 0.3, 0.16, 0.05, 0, y + 0.02, -d / 2 - 0.02, st.trim or P.wood_dark, st.trim and M.metal or M.wood, nc())
+		if st.lights and r > 0 then
+			-- warm strip under each board lights the products below
+			Kit.box(m, w - 0.5, 0.04, 0.08, 0, y - 0.08, -d / 2 + 0.3, P.lamp_warm, M.neon, nc())
+		end
 		for c = 0, cols - 1 do
 			idx += 1
 			if idx <= slots then
@@ -223,12 +238,30 @@ local function shelfUnit(m, item)
 			end
 		end
 	end
-	-- crown with a kanji header board ("ingredients")
-	Kit.box(m, w + 0.2, 0.18, d + 0.15, 0, h - 0.06, -0.02, P.wood_black, M.wood)
-	Kit.box(dk, w + 0.3, 0.06, d + 0.25, 0, h + 0.06, -0.02, P.wood_dark, M.wood, nc())
-	local sign = Kit.box(dk, math.min(2.2, w - 0.8), 0.6, 0.08, 0, h + 0.4, -d / 2 + 0.2, P.hinoki, M.wood, nc())
-	Kit.text(sign, Enum.NormalId.Front, "食材", { color = "#2B2320", font = JP_FONT, pps = 40 })
-	Kit.box(dk, math.min(2.2, w - 0.8) + 0.12, 0.08, 0.1, 0, h + 0.74, -d / 2 + 0.2, P.wood_dark, M.wood, nc())
+	-- crown with a kanji header board
+	Kit.box(m, w + 0.2, 0.18, d + 0.15, 0, h - 0.06, -0.02, st.crown, M.wood)
+	if st.trim then
+		Kit.box(m, w + 0.22, 0.05, d + 0.17, 0, h + 0.04, -0.02, st.trim, M.metal, nc())
+	end
+	local sign = Kit.box(m, math.min(2.4, w - 0.8), 0.6, 0.08, 0, h + 0.4, -d / 2 + 0.2, st.trim and P.wood_black or P.hinoki, M.wood, nc())
+	Kit.text(sign, Enum.NormalId.Front, st.sign, { color = st.trim and "#D4A23C" or "#2B2320", font = JP_FONT, pps = 40 })
+	if st.noren then
+		-- short split curtain hanging from the crown
+		for k = 0, 3 do
+			local x = -w / 2 + 0.4 + (w - 0.8) * (k + 0.5) / 4
+			local cloth = Kit.box(m, (w - 0.8) / 4 - 0.08, 0.7, 0.03, x, h - 0.5, -d / 2 - 0.05, P.indigo, M.fabric, nc())
+			cloth:SetAttribute("Animate", "sway")
+		end
+	end
+	if st.lanterns then
+		-- two small red lanterns on the sides of the header
+		for _, sx in ipairs({ -1, 1 }) do
+			local lx = sx * (w / 2 - 0.5)
+			Kit.cyl(m, 0.05, 0.3, lx, h + 0.35, -d / 2 + 0.25, P.wood_black, M.wood, nc())
+			local lamp = Kit.blob(m, 0.5, 0.6, 0.5, lx, h + 0.05, -d / 2 + 0.25, P.lacquer, M.fabric, nc())
+			Kit.light(lamp, "Point", P.lamp_warm, 8, 0.6)
+		end
+	end
 end
 
 local function riceCooker(m, item, pro)
@@ -356,6 +389,9 @@ end
 return function(Registry)
 	Registry.register("shelf_small", shelfUnit)
 	Registry.register("shelf_large", shelfUnit)
+	Registry.register("shelf_tall", shelfUnit)
+	Registry.register("shelf_market", shelfUnit)
+	Registry.register("shelf_deluxe", shelfUnit)
 
 	Registry.register("neta_case", function(m, item)
 		local root = Kit.finish(m, size(item))

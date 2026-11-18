@@ -41,12 +41,13 @@ local list = {
 		id = "zone_base", lv = 1, cost = 0, requires = {},
 		zones = {
 			{ id = "base_dining", rect = { -36, 0, 36, 32 }, floor = 0, area = "dining", room = "main" },
-			{ id = "base_kitchen", rect = { -36, 32, 36, 56 }, floor = 0, area = "kitchen", room = "main" },
+			-- 14 deep: stations behind the counter, a 9-stud aisle, the kitchen line on the back wall
+			{ id = "base_kitchen", rect = { -36, 32, 36, 46 }, floor = 0, area = "kitchen", room = "main" },
 			{ id = "base_storage", rect = { 36, 24, 60, 56 }, floor = 0, area = "storage", room = "storage" },
 		},
 		openings = {
 			{ floor = 0, axis = "z", at = 0, from = -4, to = 4, kind = "entrance" },
-			{ floor = 0, axis = "x", at = 36, from = 40, to = 47, kind = "door" },
+			{ floor = 0, axis = "x", at = 36, from = 38, to = 45, kind = "door" },
 			{ floor = 0, axis = "z", at = 24, from = 45, to = 55, kind = "loading" },
 		},
 	},
@@ -56,25 +57,25 @@ local list = {
 	{ id = "zone_terrace", lv = 12, cost = 60000, requires = { "zone_base" }, zones = { { id = "terrace", rect = { -36, -10, 36, 0 }, floor = 0, area = "outdoor", outdoor = true, gaps = { { axis = "z", at = -10, from = -4, to = 4 } } } } },
 	{
 		id = "zone_garden", lv = 15, cost = 100000, requires = { "zone_base" },
-		zones = { { id = "garden", rect = { -36, 56, 12, 92 }, floor = 0, area = "garden", outdoor = true } },
-		openings = { { floor = 0, axis = "z", at = 56, from = -17, to = -10, kind = "door" } },
+		zones = { { id = "garden", rect = { -36, 46, 12, 82 }, floor = 0, area = "garden", outdoor = true } },
+		openings = { { floor = 0, axis = "z", at = 46, from = -17, to = -10, kind = "door" } },
 	},
 	{
 		id = "zone_tatami", lv = 18, cost = 180000, requires = { "zone_west" },
 		zones = { { id = "tatami", rect = { -100, 56, -68, 88 }, floor = 0, area = "tatami", room = "tatami", floorStyle = "floor_tatami", wallStyle = "wall_shoji" } },
 		openings = { { floor = 0, axis = "z", at = 56, from = -88, to = -81, kind = "door" } },
 	},
-	{ id = "zone_kitchen_pro", lv = 20, cost = 250000, requires = { "zone_east" }, zones = { { id = "kitchen_pro", rect = { -68, 32, -36, 56 }, floor = 0, area = "kitchen", room = "main" } } },
+	{ id = "zone_kitchen_pro", lv = 20, cost = 250000, requires = { "zone_east" }, zones = { { id = "kitchen_pro", rect = { -68, 32, -36, 46 }, floor = 0, area = "kitchen", room = "main" } } },
 	{
 		id = "zone_floor2", lv = 25, cost = 600000, requires = { "zone_base" },
-		zones = { { id = "floor2", rect = { -36, 0, 36, 56 }, floor = 1, area = "dining", room = "f2" } },
+		zones = { { id = "floor2", rect = { -36, 0, 36, 46 }, floor = 1, area = "dining", room = "f2" } },
 		stairs = { cornerStairs(0, -1) },
 	},
 	{ id = "sign_rooftop", lv = 28, cost = 500000, requires = { "zone_base" }, popularity = 0.3, cosmetic = true, reno = "exterior" },
 	{ id = "facade_deluxe", lv = 30, cost = 1000000, requires = { "zone_base" }, ambience = 60, cosmetic = true, reno = "exterior" },
 	{
 		id = "zone_rooftop", lv = 35, cost = 2000000, requires = { "zone_floor2" },
-		zones = { { id = "rooftop", rect = { -36, 0, 36, 56 }, floor = 2, area = "outdoor", outdoor = true } },
+		zones = { { id = "rooftop", rect = { -36, 0, 36, 46 }, floor = 2, area = "outdoor", outdoor = true } },
 		stairs = { cornerStairs(1, 1) },
 	},
 	-- Renovations: the starting restaurant is plain; these add the detailed look piece by piece.

@@ -19,7 +19,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 7
+local VERSION = 8
 local profiles = {} -- [player] = { data, key, loaded, saving }
 local store = nil
 local storeOk = false
@@ -186,6 +186,11 @@ local function migrate(d)
 		-- v7: lower, deeper counter in 3-stud modules with a place setting each, stools 3 apart
 		rebuildLayout(d)
 		d.v = 7
+	end
+	if d.v < 8 then
+		-- v8: shallower kitchen (14 studs) with everything on the back wall
+		rebuildLayout(d)
+		d.v = 8
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION

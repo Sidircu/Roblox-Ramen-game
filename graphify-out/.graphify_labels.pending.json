@@ -100,5 +100,11 @@
   "98": "10. Interfaccia",
   "99": "Day.luau",
   "100": "Net.notify",
-  "101": "Net.notifyAll"
+  "101": "Net.notifyAll",
+  "102": "HUD.luau",
+  "103": "HUD.refresh",
+  "104": "Locale.t",
+  "105": "ShelfTags.luau",
+  "106": "shared_config_ingredients",
+  "107": "Gifts.luau"
 }

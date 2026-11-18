@@ -10,6 +10,7 @@ local Expansions = require(Shared.Config.Expansions)
 local Franchise = require(Shared.Config.Franchise)
 local Events = require(Shared.Config.Events)
 local Staff = require(Shared.Config.Staff)
+local Items = require(Shared.Config.Items)
 local Formulas = require(Shared.Logic.Formulas)
 local Core = require(script.Parent.Parent.Core)
 
@@ -203,6 +204,33 @@ local function buyLicense(player, id)
 	Core.S.Data.changed(o, "licenses")
 	Core.S.Data.changed(o, "menu")
 	Net.notifyAll("msg.license_bought", { name = "lic." .. id }, "success")
+	-- new recipes for a kind of station you do not have yet: say which one to buy
+	local needed = {}
+	for _, rid in ipairs(lic.recipes) do
+		local r = Recipes.byId[rid]
+		if r and r.station then
+			needed[r.station] = true
+		end
+	end
+	for stationType in pairs(needed) do
+		local have = false
+		for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+			if e.item and e.item.fn.station == stationType then
+				have = true
+			end
+		end
+		if not have then
+			local best = nil
+			for _, it in ipairs(Items.list) do
+				if it.fn and it.fn.type == "station" and it.fn.station == stationType and (not best or it.price < best.price) then
+					best = it
+				end
+			end
+			if best then
+				Net.notify(player, "msg.buy_station", { name = "item." .. best.id }, "info")
+			end
+		end
+	end
 	Net.fx("sparkle", { userId = player.UserId })
 	Core.S.Meta.event(o, "licenses", 1)
 end

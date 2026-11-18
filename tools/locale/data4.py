@@ -46,4 +46,5 @@ NEW = [
 ("msg.slot_full","This slot is full: click another one.","Questo ripiano è pieno: clicca un altro ripiano."),
 ("msg.slot_other","{name} is on this slot: put your box on an empty slot.","Su questo ripiano c'è {name}: metti la scatola su un ripiano vuoto."),
 ("ui.eating","Enjoying the meal","Sta mangiando"),
+("msg.buy_station","🔨 New dishes need a new station: buy {name} in Build → Kitchen.","🔨 I nuovi piatti hanno bisogno di una postazione: compra {name} in Costruisci → Cucina."),
 ]

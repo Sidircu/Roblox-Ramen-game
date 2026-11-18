@@ -1,17 +1,17 @@
-# Graph Report - Roblox-Ramen-game  (2026-11-17)
+# Graph Report - Roblox-Ramen-game  (2026-11-18)
 
 ## Corpus Check
-- 142 files · ~183,885 words
+- 142 files · ~184,860 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 1 file(s) not represented in the graph (top: (none) 1)
 
 ## Summary
-- 1454 nodes · 3826 edges · 102 communities (68 shown, 34 thin omitted)
-- Extraction: 77% EXTRACTED · 23% INFERRED · 0% AMBIGUOUS · INFERRED: 871 edges (avg confidence: 0.85)
+- 1454 nodes · 3830 edges · 108 communities (73 shown, 35 thin omitted)
+- Extraction: 77% EXTRACTED · 23% INFERRED · 0% AMBIGUOUS · INFERRED: 874 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a427fd78`
+- Built from commit: `ac091c72`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -89,12 +89,18 @@
 - Day.luau
 - Net.notify
 - Net.notifyAll
+- HUD.luau
+- HUD.refresh
+- Locale.t
+- ShelfTags.luau
+- shared_config_ingredients
+- Gifts.luau
 
 ## God Nodes (most connected - your core abstractions)
 1. `Kit.box()` - 101 edges
-2. `Kit.cyl()` - 60 edges
+2. `Kit.cyl()` - 61 edges
 3. `nc()` - 53 edges
-4. `Kit.blob()` - 35 edges
+4. `Kit.blob()` - 36 edges
 5. `Kit.part()` - 35 edges
 6. `Color.hex()` - 35 edges
 7. `Scene.shell()` - 34 edges
@@ -109,15 +115,15 @@
   src/server/Services/Customers.luau → src/server/Services/Hands.luau
 - `speed()` --calls--> `Formulas.staffSpeed()`  [INFERRED]
   src/server/Services/Staff.luau → src/shared/Logic/Formulas.luau
-- `Build.Init()` --calls--> `Color.hex()`  [INFERRED]
-  src/client/Controllers/Build.luau → src/shared/Util/Color.luau
 - `frame()` --calls--> `Kit.box()`  [INFERRED]
   src/shared/Models/Builders/Decor.luau → src/shared/Models/Kit.luau
+- `Build.Init()` --calls--> `Color.hex()`  [INFERRED]
+  src/client/Controllers/Build.luau → src/shared/Util/Color.luau
 
 ## Import Cycles
 - None detected.
 
-## Communities (102 total, 34 thin omitted)
+## Communities (108 total, 35 thin omitted)
 
 ### Community 0 - "script_parent_parent_core"
 Cohesion: 0.05
@@ -250,10 +256,6 @@ Nodes (4): 7. Salvataggi, Regole, Replica al client, Schema (versione 1)
 ### Community 34 - "Net/init.luau"
 Cohesion: 0.83
 Nodes (3): getFolder(), Net.event(), Net.func()
-
-### Community 36 - "shared_locale"
-Cohesion: 0.05
-Nodes (44): Data.applyLanguage(), Data.canBuild(), Data.Init(), Data.m(), Data.role(), Data.Start(), Data.w(), Data.wallet() (+36 more)
 
 ### Community 48 - "Seating.luau"
 Cohesion: 0.18
@@ -391,23 +393,47 @@ Nodes (10): Economy.charge(), Economy.spend(), Net.notify(), Placement.paint(), 
 Cohesion: 0.29
 Nodes (8): open(), Service.check(), Net.fireAll(), Net.fx(), Net.notifyAll(), Placement.revalidate(), buyExpansion(), buyLicense()
 
+### Community 102 - "HUD.luau"
+Cohesion: 0.14
+Nodes (15): HUD.day(), HUD.refreshGift(), HUD.refreshHands(), HUD.refreshInfo(), HUD.refreshLike(), HUD.setBuilding(), keyHint(), lang() (+7 more)
+
+### Community 103 - "HUD.refresh"
+Cohesion: 0.35
+Nodes (10): Data.applyLanguage(), Data.canBuild(), Data.Init(), Data.m(), Data.role(), Data.Start(), Data.w(), Data.wallet() (+2 more)
+
+### Community 104 - "Locale.t"
+Cohesion: 0.28
+Nodes (5): Kit.T(), Locale.has(), Locale.name(), Locale.set(), Locale.t()
+
+### Community 105 - "ShelfTags.luau"
+Cohesion: 0.52
+Nodes (6): makeTag(), place(), setText(), ShelfTags.Init(), ShelfTags.Start(), update()
+
+### Community 106 - "shared_config_ingredients"
+Cohesion: 0.60
+Nodes (3): cartForMenu(), stock(), unlocked()
+
+### Community 107 - "Gifts.luau"
+Cohesion: 0.70
+Nodes (4): claimedSet(), elapsed(), nextGift(), screen.tick()
+
 ## Knowledge Gaps
-- **34 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **35 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `refresh()` connect `Appliance.luau` to `Color.hex`?**
-  _High betweenness centrality (0.178) - this node is a cross-community bridge._
+  _High betweenness centrality (0.144) - this node is a cross-community bridge._
 - **Are the 96 inferred relationships involving `Kit.box()` (e.g. with `makeScene()` and `B.doorFrame()`) actually correct?**
   _`Kit.box()` has 96 INFERRED edges - model-reasoned connections that need verification._
 - **Should `script_parent_parent_core` be split into smaller, more focused modules?**
   _Cohesion score 0.0505175983436853 - nodes in this community are weakly interconnected._
-- **Why does `Piano tecnico — architettura e implementazione` connect `Piano tecnico — architettura e implementazione` to `Appliance.luau`, `10. Sistemi di gioco`, `01-GAME-DESIGN.md`, `7. Salvataggi`?**
-  _High betweenness centrality (0.175) - this node is a cross-community bridge._
-- **Are the 58 inferred relationships involving `Kit.cyl()` (e.g. with `makeScene()` and `B.entranceDetail()`) actually correct?**
-  _`Kit.cyl()` has 58 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `12. Interfaccia e lingue` connect `Appliance.luau` to `Piano tecnico — architettura e implementazione`?**
+  _High betweenness centrality (0.138) - this node is a cross-community bridge._
+- **Are the 59 inferred relationships involving `Kit.cyl()` (e.g. with `makeScene()` and `B.entranceDetail()`) actually correct?**
+  _`Kit.cyl()` has 59 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Appliance.luau` be split into smaller, more focused modules?**
   _Cohesion score 0.059096459096459095 - nodes in this community are weakly interconnected._
-- **Why does `12. Interfaccia e lingue` connect `Appliance.luau` to `Piano tecnico — architettura e implementazione`?**
-  _High betweenness centrality (0.171) - this node is a cross-community bridge._
+- **Why does `Piano tecnico — architettura e implementazione` connect `Piano tecnico — architettura e implementazione` to `Appliance.luau`, `10. Sistemi di gioco`, `01-GAME-DESIGN.md`, `7. Salvataggi`?**
+  _High betweenness centrality (0.134) - this node is a cross-community bridge._
