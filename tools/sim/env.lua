@@ -103,6 +103,7 @@ Sim = {
 	studio = true,
 	verbose = false,
 	instances = 0,
+	writes = 0, -- property writes (the GUI layout cache is valid until the next one)
 }
 
 local function fail(msg)
@@ -538,9 +539,11 @@ do
 		end
 		return true
 	end
+	CF.ToEulerAnglesYXZ = CF.ToOrientation
 	CFrame.fromOrientation = function(x, y, z)
 		return CFrame.Angles(0, y, 0) * CFrame.Angles(x, 0, 0) * CFrame.Angles(0, 0, z)
 	end
+	CFrame.fromEulerAnglesYXZ = CFrame.fromOrientation
 	CFrame.fromAxisAngle = function(axis, a)
 		if math.abs(axis.Y) > 0.9 then
 			return CFrame.Angles(0, a * (axis.Y > 0 and 1 or -1), 0)
@@ -1333,6 +1336,13 @@ Inst.__index = function(t, k)
 	elseif k == "Terrain" and cls == "Workspace" then
 		return methods.FindFirstChild(t, "Terrain")
 	end
+	local computed = Sim.computed[k]
+	if computed then
+		local cv = computed(t)
+		if cv ~= nil then
+			return cv
+		end
+	end
 	local child = methods.FindFirstChild(t, k)
 	if child then
 		return child
@@ -1341,6 +1351,7 @@ Inst.__index = function(t, k)
 end
 Inst.__newindex = function(t, k, v)
 	local pr = props(t)
+	Sim.writes = Sim.writes + 1
 	if k == "Parent" then
 		setParent(t, v)
 		return
@@ -1378,9 +1389,13 @@ Inst.__newindex = function(t, k, v)
 	pr[k] = v
 	if old ~= v then
 		fireIf(t, "__propSignals", k)
-		fireIf(t, "__signals", "Changed", k)
-		if k == "Value" and isA(className(t), "ValueBase") then
-			fireIf(t, "__signals", "Changed", v)
+		-- value objects (IntValue, NumberValue...) fire Changed with the new value, and only for Value
+		if isA(className(t), "ValueBase") then
+			if k == "Value" then
+				fireIf(t, "__signals", "Changed", v)
+			end
+		else
+			fireIf(t, "__signals", "Changed", k)
 		end
 	end
 end
@@ -1405,5 +1420,11 @@ Instance = {
 	end,
 }
 Sim.newInstance = newInstance
+Sim.PARENT = PARENT
+Sim.tagIndex = tagIndex
+Sim.DEFAULTS = DEFAULTS
+Sim.EVENTS = EVENTS
+Sim.isA = isA
+Sim.computed = {} -- [property] = function(instance) for values computed on read (GUI layout)
 Sim.classMethods = classMethods
 Sim.methods = methods

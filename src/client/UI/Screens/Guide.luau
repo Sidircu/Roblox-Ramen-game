@@ -1,7 +1,8 @@
 --!nonstrict
--- Order guide: tapping an order ticket (left) shows what to do, in a few short lines with live
+-- Order guide: tapping an order ticket (right) shows what to do, in a few short lines with live
 -- ticks, highlights the shelf slots and the station to use and draws a glowing arrow from you to
--- the next thing to click.
+-- the next thing to click. The card stands on the left, under the wallet; on phones the second
+-- line of each step is left out.
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local CollectionService = game:GetService("CollectionService")
@@ -102,12 +103,15 @@ end
 
 -- One line of the guide: state = "done" | "now" | "todo"
 local function line(order, state, text, sub)
+	if Kit.profile == "phone" and state ~= "now" then
+		sub = nil
+	end
 	local icon = state == "done" and "✅" or (state == "now" and "👉" or "▫️")
 	local row = Kit.new("Frame", { BackgroundColor3 = state == "now" and Color.hex("#FFF4D6") or T.paper, BackgroundTransparency = state == "now" and 0 or 1, Size = UDim2.new(1, 0, 0, sub and 46 or 28), LayoutOrder = order, Parent = list }, { Kit.corner(8) })
 	Kit.label(icon, { Parent = row, Position = UDim2.fromOffset(4, 3), Size = UDim2.fromOffset(22, 22), TextScaled = true })
-	Kit.label(text, { Parent = row, Position = UDim2.fromOffset(30, 3), Size = UDim2.new(1, -34, 0, 22), TextSize = 14, FontFace = state == "now" and T.bold or T.body, TextColor3 = state == "done" and T.muted or T.ink, TextTruncate = Enum.TextTruncate.AtEnd })
+	Kit.label(text, { Parent = row, Position = UDim2.fromOffset(30, 3), Size = UDim2.new(1, -34, 0, 22), TextSize = 15, FontFace = state == "now" and T.bold or T.body, TextColor3 = state == "done" and T.muted or T.ink, TextTruncate = Enum.TextTruncate.AtEnd, TextWrapped = false })
 	if sub then
-		Kit.label(sub, { Parent = row, Position = UDim2.fromOffset(30, 24), Size = UDim2.new(1, -34, 0, 18), TextSize = 12, TextColor3 = T.muted, TextTruncate = Enum.TextTruncate.AtEnd })
+		Kit.label(sub, { Parent = row, Position = UDim2.fromOffset(30, 24), Size = UDim2.new(1, -34, 0, 18), TextSize = 13, TextColor3 = T.muted, TextTruncate = Enum.TextTruncate.AtEnd, TextWrapped = false })
 	end
 end
 
@@ -243,11 +247,17 @@ local function update()
 		add("todo", t("guide.serve"))
 	end
 	pointAt(target)
-	frame.Size = UDim2.fromOffset(310, 56 + order * 44)
+	local h = 50
+	for _, c in ipairs(list:GetChildren()) do
+		if c:IsA("Frame") then
+			h += c.Size.Y.Offset + 3
+		end
+	end
+	frame.Size = UDim2.fromOffset(Kit.profile == "phone" and 290 or 320, h + 8)
 end
 
 function Guide.create(root)
-	frame = Kit.panel({ Name = "Guide", Position = UDim2.fromOffset(214, 70), Size = UDim2.fromOffset(310, 300), Visible = false, Parent = root })
+	frame = Kit.panel({ Name = "Guide", Position = UDim2.fromOffset(10, 124), Size = UDim2.fromOffset(320, 300), Visible = false, ZIndex = 5, Parent = root })
 	title = Kit.title("", { Parent = frame, Position = UDim2.fromOffset(12, 6), Size = UDim2.new(1, -54, 0, 30), TextSize = 18, TextTruncate = Enum.TextTruncate.AtEnd })
 	Kit.button("✕", { parent = frame, size = UDim2.fromOffset(32, 32), position = UDim2.new(1, -40, 0, 6), style = "plain", textSize = 14, radius = 16, onClick = function()
 		Guide.hide()

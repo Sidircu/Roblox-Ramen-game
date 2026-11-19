@@ -10,7 +10,7 @@ Gioco Roblox tycoon: gestisci un ristorante giapponese di ramen e sushi, cucini 
 5. **Game Settings → Places → Max Players: 4** (un ristorante per giocatore lungo la strada).
 6. Premi **Play**. Per provare la strada con più giocatori: **Test → Clients and Servers** con 2–4 giocatori. In Studio tutti contano come amici, quindi ognuno può aiutare negli altri locali; nel gioco pubblicato possono aiutare gli amici del proprietario (o tutti, se lo sceglie nell'app Amici).
 
-**Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, tasto destro posa la scatola, G posa, Shift corri, Q per liberare il mouse e cliccare i pulsanti (di nuovo Q per tornare a guardare), B costruisci, O fornitore, P telefono, R regali. Mentre i noodles bollono, clicca nel verde della barra per una ciotola perfetta.
+**Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, tasto destro posa la scatola, G posa, Shift corri, Q per liberare il mouse e cliccare i pulsanti (di nuovo Q per tornare a guardare), U negozio, B costruisci, O fornitore, P altro, R regali. Su telefono e tablet si tocca il pulsante che compare sopra l'oggetto. Mentre i noodles bollono, clicca nel verde della barra per una ciotola perfetta.
 
 Pannello sviluppatore (pulsante 🛠️, solo in Studio o per il creatore del gioco): yen, livelli, licenze, zone, scorte, clienti, chiusura della giornata.
 
@@ -51,10 +51,22 @@ python3 tools/build_place.py
 `tools/sim.py` fa girare tutti i servizi del server su un Roblox simulato (orologio virtuale, istanze,
 eventi, DataStore in memoria, giocatori finti) e gioca gli scenari di `tools/sim/scenarios/`:
 il server parte, entra un giocatore, l'autotest del gioco fa tutto il ciclo, arrivano clienti, si salva
-all'uscita; il ciclo base con i tempi; la strada con quattro giocatori e gli aiutanti; e i casi difficili dei salvataggi. Ogni errore del gioco fa fallire la prova.
+all'uscita; il ciclo base con i tempi; la strada con quattro giocatori e gli aiutanti; i casi difficili dei
+salvataggi; e un giocatore su telefono che gioca con il client vero (postazione, cliente e negozio toccati
+come sullo schermo). Ogni errore del gioco fa fallire la prova.
 ```
 python3 tools/sim.py                 # tutti gli scenari
 python3 tools/sim.py --verbose core  # uno scenario, con notifiche e stampe del gioco
+```
+
+## Anteprima dell'interfaccia (senza Studio)
+`tools/ui_preview.py` fa girare server e client nel simulatore, gioca uno script di `tools/sim/ui/`
+(entra un giocatore, arriva un ordine, si apre il negozio…) e disegna lo schermo in PNG su telefono,
+tablet e computer, con joystick e salto sovrapposti per vedere se qualcosa ci finisce sotto
+(`pip install lupa pillow fonttools numpy`):
+```
+python3 tools/ui_preview.py hud shop screens visit                 # in build/ui/
+python3 tools/ui_preview.py shop --devices=phone,laptop --out=/tmp/ui
 ```
 
 ## Anteprima dei modelli (senza Studio)

@@ -182,6 +182,11 @@ local function shortcut(key)
 			return
 		end
 		UI.toggle("Supplier")
+	elseif key == Enum.KeyCode.U then
+		if Core.C.Build and Core.C.Build.active then
+			return
+		end
+		UI.toggle("Shop")
 	elseif key == Enum.KeyCode.P then
 		if Core.C.Build and Core.C.Build.active then
 			return
@@ -214,7 +219,8 @@ local function updateRun()
 		hum.WalkSpeed = want
 	end
 	local touch = UserInputService.TouchEnabled
-	runButton.Visible = touch and not (Core.C.Build and Core.C.Build.active)
+	local controls = game:GetService("GuiService").TouchControlsEnabled ~= false
+	runButton.Visible = touch and controls and not (Core.C.Build and Core.C.Build.active)
 	runButton.BackgroundColor3 = runToggle and T.green or T.paper
 end
 
@@ -254,10 +260,27 @@ function FirstPerson.Init()
 			Core.C.Sink.endHold()
 		end
 	end)
+	-- run toggle: just left of Roblox's jump button (70 points at (1, -95, 1, -90) on small
+	-- screens, 120 points at (1, -170, 1, -210) on bigger ones), clear of the orders above it
 	runButton = Kit.new("TextButton", {
-		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -120, 1, -110), Size = UDim2.fromOffset(64, 64), Text = "🏃",
+		AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -107, 1, -27), Size = UDim2.fromOffset(56, 56), Text = "🏃",
 		TextScaled = true, BackgroundColor3 = T.paper, Visible = false, Parent = gui,
-	}, { Kit.corner(32), Kit.stroke(T.wood, 3, 0) })
+	}, { Kit.corner(28), Kit.stroke(T.wood, 3, 0), Kit.padding(8) })
+	local function placeRun()
+		local cam = workspace.CurrentCamera
+		local v = cam and cam.ViewportSize or Vector2.new(844, 390)
+		if math.min(v.X, v.Y) <= 500 then
+			runButton.Size = UDim2.fromOffset(56, 56)
+			runButton.Position = UDim2.new(1, -107, 1, -27)
+		else
+			runButton.Size = UDim2.fromOffset(76, 76)
+			runButton.Position = UDim2.new(1, -186, 1, -96)
+		end
+	end
+	placeRun()
+	if workspace.CurrentCamera then
+		workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(placeRun)
+	end
 	runButton.Activated:Connect(function()
 		runToggle = not runToggle
 	end)

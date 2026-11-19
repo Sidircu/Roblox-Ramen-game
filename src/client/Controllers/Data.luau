@@ -22,6 +22,12 @@ Data.SessionChanged = Signal.new()
 Data.Ready = Signal.new()
 Data.ready = false
 
+-- the data of the restaurant you work in: your own profile, or the owner's restaurant keys when
+-- you help in someone else's (Data.world is nil while you are at home)
+function Data.restaurant()
+	return Data.world or Data.me or {}
+end
+
 function Data.w(key)
 	local w = Data.world or Data.me
 	return w and w[key]

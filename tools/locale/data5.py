@@ -49,3 +49,17 @@ REVAMP += [
 ("perm.helper","Helper in your restaurant","Aiutante nel tuo ristorante"),
 ("perm.comanager","Co-manager: can build and buy","Co-gestore: può costruire e comprare"),
 ]
+
+# Phase 4: one shop with tabs, a smaller HUD
+REVAMP += [
+("ui.more","More","Altro"),
+("ui.home","Home","A casa"),
+("ui.premium","Premium","Premium"),
+("ui.tab_recipes","Recipes","Ricette"),
+("ui.tab_rooms","Rooms","Spazi"),
+("ui.tab_renos","Renovations","Ristrutturazioni"),
+("ui.need_slots","Team full: open a room","Squadra piena: apri uno spazio"),
+("ui.need_manager","You have one","Ne hai già uno"),
+("ui.missing","{yen} more needed","Mancano {yen}"),
+("ui.only_owner","Only the owner and co-managers can buy here","Qui possono comprare solo il proprietario e i co-gestori"),
+]

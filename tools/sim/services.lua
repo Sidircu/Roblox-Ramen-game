@@ -763,11 +763,14 @@ function cm.CollectionService.GetTags(_, inst)
 end
 function cm.CollectionService.GetTagged(_, tag)
 	local out = {}
-	for _, d in ipairs(game:GetDescendants()) do
-		if rawget(d, "__tags")[tag] then
-			table.insert(out, d)
+	for inst in pairs(Sim.tagIndex[tag] or {}) do
+		if not rawget(inst, "__destroyed") and Sim.inGame(inst) then
+			table.insert(out, inst)
 		end
 	end
+	table.sort(out, function(a, b)
+		return rawget(a, "__id") < rawget(b, "__id")
+	end)
 	return out
 end
 function cm.CollectionService.GetInstanceAddedSignal(_, tag)

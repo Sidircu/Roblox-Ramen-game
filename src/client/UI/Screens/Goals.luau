@@ -135,7 +135,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 			end
 		end
 	elseif tab == "franchise" then
-		local w = Core.C.Data.world or me
+		local w = Core.C.Data.restaurant()
 		local stars = w.franchise and w.franchise.stars or 0
 		local nextCity = nil
 		for _, c in ipairs(Franchise.list) do

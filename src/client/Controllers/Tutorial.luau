@@ -132,6 +132,11 @@ function Tutorial.currentKey()
 	return st and st.key or nil
 end
 
+-- true while a step is on screen (the HUD hides today's objective meanwhile)
+function Tutorial.active()
+	return panel ~= nil and panel.Visible
+end
+
 local function show()
 	local st = STEPS[index]
 	if not st then
@@ -141,6 +146,8 @@ local function show()
 		return
 	end
 	panel.Visible = true
+	-- narrower on phones, so the order guide (left) and the orders (right) stay clear
+	panel.Size = UDim2.fromOffset(Kit.profile == "phone" and 370 or 400, 132)
 	stepLabel.Text = t("tut.step", { i = index, n = #STEPS })
 	text.Text = t(st.key)
 	stepStarted = os.clock()
@@ -185,8 +192,9 @@ end
 
 function Tutorial.Init()
 	local gui = Core.C.UI.root()
-	-- big card on the right (the left side holds the orders and their guide)
-	panel = Kit.panel({ AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 84), Size = UDim2.fromOffset(340, 168), Visible = false, Parent = gui })
+	-- card at the top in the middle, where today's objective is shown after the tutorial (the
+	-- orders are on the right, the order guide on the left)
+	panel = Kit.panel({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 50), Size = UDim2.fromOffset(400, 132), Visible = false, ZIndex = 7, Parent = gui })
 	local stroke = panel:FindFirstChildOfClass("UIStroke")
 	if stroke then
 		stroke.Color = T.gold
@@ -195,14 +203,14 @@ function Tutorial.Init()
 	Kit.padding(12, 10).Parent = panel
 	stepLabel = Kit.label("", { Parent = panel, Size = UDim2.new(1, 0, 0, 20), TextSize = 14, TextColor3 = T.muted, FontFace = T.bold })
 	text = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(0, 22), Size = UDim2.new(1, 0, 1, -62), TextSize = 17, TextYAlignment = Enum.TextYAlignment.Top })
-	Kit.button(t("ui.skip"), { parent = panel, size = UDim2.fromOffset(90, 30), position = UDim2.new(1, -90, 1, -32), style = "plain", textSize = 14, onClick = function()
+	Kit.button(t("ui.skip"), { parent = panel, size = UDim2.fromOffset(96, 34), position = UDim2.new(1, -96, 1, -36), style = "plain", textSize = 15, onClick = function()
 		index = -1
 		save()
 		panel.Visible = false
 		beam.Enabled = false
 		marker.Enabled = false
 	end })
-	Kit.button(t("ui.next"), { parent = panel, size = UDim2.fromOffset(90, 30), position = UDim2.new(1, -186, 1, -32), style = "gold", textSize = 14, onClick = function()
+	Kit.button(t("ui.next"), { parent = panel, size = UDim2.fromOffset(96, 34), position = UDim2.new(1, -198, 1, -36), style = "gold", textSize = 15, onClick = function()
 		-- steps that ask for an action move on by themselves when it is done
 		local st = STEPS[index]
 		if st and st.timer then

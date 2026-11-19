@@ -105,7 +105,7 @@ end
 local function makeGhost(itemId)
 	clearGhost()
 	Registry.load()
-	local world = Core.C.Data.world or {}
+	local world = Core.C.Data.restaurant()
 	ghost = Registry.build(itemId, { styles = Expansions.styles(world.zones) })
 	for _, d in ipairs(ghost:GetDescendants()) do
 		if d:IsA("BasePart") then

@@ -74,7 +74,7 @@ end
 
 local screen
 screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), function(content)
-	local w = Core.C.Data.world or {}
+	local w = Core.C.Data.restaurant()
 	local discount = Upgrades.value(w.upgrades, "up_supplier")
 	local L = Locale.get()
 	local header = Kit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 30), Parent = content })

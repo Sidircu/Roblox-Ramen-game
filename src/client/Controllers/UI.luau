@@ -7,14 +7,27 @@ local TweenService = game:GetService("TweenService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
+local Signal = require(Shared.Util.Signal)
 local Kit = require(script.Parent.Parent.UI.Kit)
 local Core = require(script.Parent.Parent.Core)
 
 local UI = {}
 UI.screens = {}
 UI.current = nil
+UI.profile = "desktop" -- "phone" | "tablet" | "desktop"
+UI.scale = 1
+UI.ProfileChanged = Signal.new() -- (profile)
 local T = Kit.Theme
 local toastHolder
+
+-- Screens are designed in "units": the UIScale turns them into points. Each kind of screen has a
+-- design size (what fits at scale 1) and limits, so text stays readable on a phone (never below
+-- 0.68: 16-unit text is still 11 points) and does not get huge on a big monitor.
+local DESIGN = {
+	phone = { w = 960, h = 400, min = 0.68, max = 1.0 },
+	tablet = { w = 1180, h = 760, min = 0.8, max = 1.15 },
+	desktop = { w = 1400, h = 800, min = 0.72, max = 1.3 },
+}
 
 function UI.root()
 	return UI.gui
@@ -22,6 +35,47 @@ end
 
 function UI.isTouch()
 	return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+end
+
+-- the area the HUD can use (under the Roblox top bar) and the kind of screen it is
+local function measure()
+	local size = UI.gui and UI.gui.AbsoluteSize or Vector2.zero
+	if size.X < 10 or size.Y < 10 then
+		local cam = workspace.CurrentCamera
+		size = cam and cam.ViewportSize or Vector2.new(1280, 720)
+	end
+	local short = math.min(size.X, size.Y)
+	local profile = short < 520 and "phone" or (UI.isTouch() and "tablet" or "desktop")
+	local d = DESIGN[profile]
+	return profile, math.clamp(math.min(size.X / d.w, size.Y / d.h), d.min, d.max)
+end
+
+function UI.rescale()
+	if not UI.uiScale then
+		return
+	end
+	local profile, scale = measure()
+	UI.uiScale.Scale = scale
+	UI.scale = scale
+	local changed = profile ~= UI.profile
+	UI.profile = profile
+	Kit.profile = profile
+	Kit.fitWindows()
+	if changed then
+		UI.ProfileChanged:Fire(profile)
+	end
+end
+
+-- Roblox's thumbstick and jump button sit above our screens on touch devices: while a window or
+-- the build catalog is open they are hidden, so a tap always reaches the window (reasons are
+-- counted: the controls come back when the last one goes)
+local touchBlocks = {}
+function UI.blockTouch(reason, on)
+	touchBlocks[reason] = on and true or nil
+	local GuiService = game:GetService("GuiService")
+	pcall(function()
+		GuiService.TouchControlsEnabled = next(touchBlocks) == nil
+	end)
 end
 
 function UI.register(name, screen)
@@ -44,6 +98,7 @@ function UI.open(name, arg)
 	end
 	if s.modal ~= false then
 		UI.current = name
+		UI.blockTouch("window", true)
 		if Core.C.Audio then
 			Core.C.Audio.play("open")
 		end
@@ -62,6 +117,7 @@ function UI.close(name)
 	end
 	if UI.current == name then
 		UI.current = nil
+		UI.blockTouch("window", false)
 	end
 end
 
@@ -92,8 +148,9 @@ function UI.toast(text, kind)
 	end
 	local f = Kit.panel({ Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = T.paper, Parent = toastHolder })
 	f:FindFirstChildOfClass("UIStroke").Color = KIND_COLOR[kind] or T.wood
-	Kit.padding(10, 6).Parent = f
+	Kit.padding(12, 8).Parent = f
 	Kit.label(text, { Parent = f, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, TextSize = 18, FontFace = T.bold, TextColor3 = kind == "error" and T.red or T.ink })
+	Kit.popIn(f, 0.7)
 	task.delay(kind == "level" and 5 or 3.2, function()
 		if f.Parent then
 			TweenService:Create(f, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
@@ -122,17 +179,14 @@ end
 function UI.Init()
 	local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
 	UI.gui = Kit.new("ScreenGui", { Name = "RamenUI", ResetOnSpawn = false, IgnoreGuiInset = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, Parent = pg })
-	local scale = Kit.new("UIScale", { Parent = UI.gui })
-	local function rescale()
-		local cam = workspace.CurrentCamera
-		local v = cam and cam.ViewportSize or Vector2.new(1280, 720)
-		scale.Scale = math.clamp(math.min(v.X / 1280, v.Y / 760) * 1.05, 0.55, 1.25)
-	end
-	rescale()
+	UI.uiScale = Kit.new("UIScale", { Parent = UI.gui })
+	UI.rescale()
+	UI.gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(UI.rescale)
 	if workspace.CurrentCamera then
-		workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(rescale)
+		workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(UI.rescale)
 	end
-	toastHolder = Kit.new("Frame", { Name = "Toasts", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 84), Size = UDim2.fromOffset(460, 300), Parent = UI.gui }, { Kit.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Center) })
+	-- messages appear under the objective, in the middle of the screen
+	toastHolder = Kit.new("Frame", { Name = "Toasts", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 92), Size = UDim2.fromOffset(460, 300), ZIndex = 20, Parent = UI.gui }, { Kit.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Center) })
 	local screens = script.Parent.Parent.UI.Screens
 	for _, m in ipairs(screens:GetChildren()) do
 		if m:IsA("ModuleScript") then

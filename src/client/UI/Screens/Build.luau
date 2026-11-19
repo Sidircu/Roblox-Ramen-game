@@ -94,7 +94,7 @@ function Screen.create(root)
 end
 
 local function itemCard(item, order, opts)
-	local w = Core.C.Data.world or {}
+	local w = Core.C.Data.restaurant()
 	local L = Locale.get()
 	local locked, why = itemLocked(w, item)
 	if opts.inventory then
@@ -126,7 +126,7 @@ end
 
 local function renderItems()
 	Kit.clear(refs.items)
-	local w = Core.C.Data.world or {}
+	local w = Core.C.Data.restaurant()
 	local L = Locale.get()
 	if category == "inventory" then
 		local inv = w.inventory or {}
@@ -216,6 +216,9 @@ function Screen.refreshTools()
 	refs.frame.Visible = active and not placing and entry == nil
 	refs.bar.Visible = active and (placing or entry ~= nil)
 	refs.tools.Visible = active
+	-- the catalog covers the bottom of the screen: no thumbstick over it (walking is back while
+	-- an object is being placed)
+	Core.C.UI.blockTouch("catalog", refs.frame.Visible)
 	Kit.clear(refs.actions)
 	if placing then
 		local status = Build.valid and ("✅ " .. t("ui.can_place")) or ("❌ " .. t(Build.reason or "msg.place_invalid"))
@@ -282,6 +285,7 @@ function Screen.close()
 	refs.frame.Visible = false
 	refs.bar.Visible = false
 	refs.tools.Visible = false
+	Core.C.UI.blockTouch("catalog", false)
 	local hud = Core.C.UI.screens.HUD
 	if hud and hud.setBuilding then
 		hud.setBuilding(false)

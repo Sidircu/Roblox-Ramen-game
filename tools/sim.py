@@ -8,7 +8,9 @@ Roblox could not save, and fake players with characters (tools/sim/env.lua, tool
 
 A scenario (tools/sim/scenarios/<name>.lua) adds players, fires remotes, advances time and checks
 the results; any error raised by the game (uncaught errors, failed Init/Start, warnings with
-"failed"/"error") or a failed check makes the run fail.
+"failed"/"error") or a failed check makes the run fail. A scenario can also start the real client
+of one player on a simulated phone, tablet or computer (Sim.startClient, tools/sim/client.lua):
+the client scripts run too, remotes go both ways and the GUI is laid out like on that screen.
 
   python3 tools/sim.py                  # every scenario
   python3 tools/sim.py core saves       # only these
@@ -44,7 +46,12 @@ def luau_to_lua(src):
 def project_entries():
     """(instance path, kind, source file) for every script under src/server and src/shared."""
     out = []
-    mounts = [("shared", "ReplicatedStorage/Shared"), ("server", "ServerScriptService/Server")]
+    mounts = [
+        ("shared", "ReplicatedStorage/Shared"),
+        ("server", "ServerScriptService/Server"),
+        ("client", "StarterPlayer/StarterPlayerScripts/Client"),
+        ("first", "ReplicatedFirst"),
+    ]
     for folder, mount in mounts:
         base = os.path.join(SRC, folder)
         for dirpath, dirnames, filenames in os.walk(base):
@@ -87,8 +94,9 @@ def main():
     return 1 if failed else 0
 
 
-def run(name, verbose):
-    t0 = time.time()
+def make_runtime(verbose=False, setup=None):
+    """A Lua state with the simulated Roblox and the project mounted (tools/sim/*.lua).
+    setup(lua) runs before the boot script (e.g. to give Lua better text metrics)."""
     lua = lua54.LuaRuntime(unpack_returned_tuples=True)
     sources = {}
 
@@ -105,12 +113,25 @@ def run(name, verbose):
     lua.globals().Sim.verbose = verbose
     entries = lua.table_from([lua.table_from([a, b, c]) for a, b, c in project_entries()])
     lua.globals()["__entries"] = entries
-    with open(os.path.join(SIM, "boot.lua"), encoding="utf-8") as fh:
-        lua.execute(fh.read())
-    with open(os.path.join(SIM, "scenarios", name + ".lua"), encoding="utf-8") as fh:
+    for f in ("boot.lua", "gui.lua", "client.lua"):
+        with open(os.path.join(SIM, f), encoding="utf-8") as fh:
+            lua.execute(fh.read())
+    if setup:
+        setup(lua)
+    return lua
+
+
+def run_scenario(lua, path, label, max_time=6 * 3600):
+    with open(path, encoding="utf-8") as fh:
         scenario = luau_to_lua(fh.read())
+    return lua.globals().Sim.runScenario(scenario, "@scenarios/" + label + ".lua", max_time)
+
+
+def run(name, verbose):
+    t0 = time.time()
+    lua = make_runtime(verbose)
     print(f"=== scenario {name}")
-    result = lua.globals().Sim.runScenario(scenario, "@scenarios/" + name + ".lua", 6 * 3600)
+    result = run_scenario(lua, os.path.join(SIM, "scenarios", name + ".lua"), name)
     errors = list(lua.globals().Sim.errors.values())
     passed = result and not errors
     for e in errors:

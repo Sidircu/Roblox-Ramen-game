@@ -14,6 +14,7 @@ local Events = require(Shared.Config.Events)
 local Staff = require(Shared.Config.Staff)
 local Items = require(Shared.Config.Items)
 local Formulas = require(Shared.Logic.Formulas)
+local ShopLogic = require(Shared.Logic.Shop)
 local Core = require(script.Parent.Parent.Core)
 
 local Progression = {}
@@ -153,13 +154,7 @@ function Progression.popularity(plot)
 end
 
 function Progression.staffSlots(d)
-	local slots = Staff.BaseSlots
-	for zone, n in pairs(Staff.SlotsByZone) do
-		if d.zones[zone] then
-			slots += n
-		end
-	end
-	return math.min(slots, GameConfig.MaxStaff)
+	return ShopLogic.staffSlots(d, Staff, GameConfig.MaxStaff)
 end
 
 -- the restaurant the player manages right now: owner (who pays), data, plot

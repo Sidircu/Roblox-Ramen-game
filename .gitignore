@@ -17,3 +17,6 @@ build/API-Dump.json
 # Python bytecode caches of the tools
 __pycache__/
 *.pyc
+
+# interface previews (tools/ui_preview.py)
+build/ui/

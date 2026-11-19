@@ -34,7 +34,7 @@ end
 
 local screen
 screen = Base.make("Menu", "ui.menu", UDim2.fromScale(0.66, 0.76), function(content)
-	local w = Core.C.Data.world or {}
+	local w = Core.C.Data.restaurant()
 	local L = Locale.get()
 	Kit.tabs(content, { { id = "menu", label = t("ui.tab_menu") }, { id = "book", label = t("ui.tab_book") } }, function(id)
 		tab = id

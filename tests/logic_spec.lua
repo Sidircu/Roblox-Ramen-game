@@ -16,6 +16,10 @@ local Surfaces = require(Shared.Config.Surfaces)
 local Sets = require(Shared.Config.Sets)
 local ShelfGrid = require(Shared.Logic.ShelfGrid)
 local Locks = require(Shared.Logic.Locks)
+local Shop = require(Shared.Logic.Shop)
+local Upgrades = require(Shared.Config.Upgrades)
+local Ads = require(Shared.Config.Ads)
+local StaffCfg = require(Shared.Config.Staff)
 
 local function starterPlaced()
   local placed, uids = {}, {}
@@ -283,4 +287,74 @@ test("the first day is ramen only, locks name the license to buy", function()
       expect(ing.id == "noodles" or ing.id == "scallion" or ing.id == "naruto" or ing.id == "broth_shoyu", ing.id .. " on sale at the start")
     end
   end
+end)
+
+test("the shop says what can be bought, what is missing and what comes first", function()
+  local w = { level = 1, yen = 1200, upgrades = {}, licenses = { lic_base = true }, zones = { zone_base = true }, staff = {}, ads = {}, stats = { days = 0 } }
+  local shoes = Upgrades.byId.up_shoes
+  local st = Shop.upgrade(w, shoes)
+  expect(st.state == "buy" and st.price == shoes.costs[1], "shoes can be bought at level 1")
+  w.yen = 400
+  st = Shop.upgrade(w, shoes)
+  expect(st.state == "poor" and st.missing == shoes.costs[1] - 400, "too expensive says how much is missing")
+  st = Shop.upgrade(w, Upgrades.byId.up_knife)
+  expect(st.state == "locked" and st.need.kind == "level" and st.need.level == Upgrades.byId.up_knife.levels[1], "the knife waits for a level")
+  w.upgrades.up_cart = Upgrades.byId.up_cart.max
+  expect(Shop.upgrade(w, Upgrades.byId.up_cart).state == "max", "an upgrade at its last level is max")
+  -- an upgrade that needs a member of staff
+  w.level = 50
+  w.yen = 1e9
+  st = Shop.upgrade(w, Upgrades.byId.up_autorestock)
+  expect(st.state == "locked" and st.need.kind == "staff", "auto-restock needs a stocker")
+  -- licenses: level, the license before, the rating
+  for _, lic in ipairs(Licenses.list) do
+    if #lic.requires > 0 and lic.requires[1] ~= "lic_base" then
+      local s2 = Shop.license(w, lic, 5)
+      expect(s2.state == "locked" and s2.need.kind == "license", lic.id .. " waits for " .. lic.requires[1])
+      break
+    end
+  end
+  for _, lic in ipairs(Licenses.list) do
+    if (lic.rating or 0) > 0 then
+      local deps = true
+      for _, r in ipairs(lic.requires) do
+        w.licenses[r] = true
+      end
+      local s3 = Shop.license(w, lic, lic.rating - 0.5)
+      expect(deps and s3.state == "locked" and s3.need.kind == "rating", lic.id .. " waits for the rating")
+      expect(Shop.license(w, lic, lic.rating).state == "buy", lic.id .. " with the rating")
+      break
+    end
+  end
+  expect(Shop.license(w, Licenses.byId.lic_base, 5).state == "owned", "the first license is owned")
+  -- rooms need the rooms before them
+  for _, e in ipairs(Expansions.list) do
+    if #e.requires > 0 and e.requires[1] ~= "zone_base" then
+      local s4 = Shop.expansion(w, e)
+      expect(s4.state == "locked" and s4.need.kind == "zone", e.id .. " waits for " .. e.requires[1])
+      break
+    end
+  end
+  -- staff: free places and a single manager
+  local slots = Shop.staffSlots(w, StaffCfg, GameConfig.MaxStaff)
+  expect(slots == StaffCfg.BaseSlots, "base staff slots " .. slots)
+  local first = StaffCfg.list[1]
+  expect(Shop.hire(w, first, slots).state == "buy", "a free place to hire")
+  for i = 1, slots do
+    table.insert(w.staff, { role = first.id, lvl = 1 })
+  end
+  st = Shop.hire(w, first, slots)
+  expect(st.state == "locked" and st.need.kind == "slots", "a full team cannot hire")
+  -- adverts run for one day
+  w.ads.ad_flyers = 1
+  expect(Shop.ad(w, Ads.byId.ad_flyers).state == "active", "today's advert is active")
+  -- the count per tab, and the order of the cards
+  local total, tabs = Shop.buyable(w, { Upgrades = Upgrades, Ads = Ads, Licenses = Licenses, Expansions = Expansions, Staff = StaffCfg, MaxStaff = GameConfig.MaxStaff }, 5)
+  expect(total > 0 and total == tabs.upgrades + tabs.recipes + tabs.staff + tabs.rooms + tabs.reno, "buyable count adds up")
+  local list = {
+    { st = { state = "owned" }, order = 1 }, { st = { state = "locked", price = 5 }, order = 2 },
+    { st = { state = "poor", price = 900 }, order = 3 }, { st = { state = "buy", price = 800 }, order = 4 }, { st = { state = "buy", price = 100 }, order = 5 },
+  }
+  Shop.sort(list)
+  expect(list[1].order == 5 and list[2].order == 4 and list[3].order == 3 and list[4].order == 2 and list[5].order == 1, "buy first (cheapest first), then poor, locked, owned")
 end)

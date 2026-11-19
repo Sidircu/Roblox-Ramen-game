@@ -27,8 +27,60 @@ Kit.Theme = {
 }
 local T = Kit.Theme
 
+-- "phone" | "tablet" | "desktop": set by Controllers/UI from the screen size (see UI.rescale)
+Kit.profile = "desktop"
+
 function Kit.T(key, params)
 	return Locale.t(key, params)
+end
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local function tween(o, t, goal, style, dir)
+	local tw = TweenService:Create(o, TweenInfo.new(t, style or Enum.EasingStyle.Quad, dir or Enum.EasingDirection.Out), goal)
+	tw:Play()
+	return tw
+end
+Kit.tween = tween
+
+-- Press feedback for any button: a quick squash while pressed, a small grow under the mouse
+function Kit.press(b)
+	local s = b:FindFirstChild("Press") or Kit.new("UIScale", { Name = "Press", Parent = b })
+	local hover = false
+	if UserInputService.MouseEnabled then
+		b.MouseEnter:Connect(function()
+			hover = true
+			tween(s, 0.12, { Scale = 1.04 })
+		end)
+		b.MouseLeave:Connect(function()
+			hover = false
+			tween(s, 0.12, { Scale = 1 })
+		end)
+	end
+	b.MouseButton1Down:Connect(function()
+		tween(s, 0.06, { Scale = 0.92 })
+	end)
+	b.MouseButton1Up:Connect(function()
+		tween(s, 0.2, { Scale = hover and 1.04 or 1 }, Enum.EasingStyle.Back)
+	end)
+	return b
+end
+
+-- A window or card springs open
+function Kit.popIn(frame, from)
+	local s = frame:FindFirstChild("Pop") or Kit.new("UIScale", { Name = "Pop", Parent = frame })
+	s.Scale = from or 0.86
+	tween(s, 0.24, { Scale = 1 }, Enum.EasingStyle.Back)
+end
+
+-- A short bump (a value changed, something was bought)
+function Kit.bump(frame, amount)
+	local s = frame:FindFirstChild("Bump") or Kit.new("UIScale", { Name = "Bump", Parent = frame })
+	local up = tween(s, 0.08, { Scale = amount or 1.15 })
+	up.Completed:Connect(function()
+		tween(s, 0.22, { Scale = 1 }, Enum.EasingStyle.Back)
+	end)
 end
 
 -- Kit.new("Frame", { props }, { children })
@@ -142,6 +194,8 @@ function Kit.button(text, opts)
 		b.BackgroundColor3 = T.locked
 		b.AutoButtonColor = false
 		b.TextColor3 = T.muted
+	else
+		Kit.press(b)
 	end
 	if opts.onClick then
 		b.MouseButton1Click:Connect(function()
@@ -247,17 +301,49 @@ function Kit.clear(container)
 	end
 end
 
+-- every window and the size it asked for (phones get almost the whole screen)
+local windows = {}
+
+local function fitWindow(frame)
+	local size = windows[frame]
+	if not size then
+		return
+	end
+	if Kit.profile == "phone" then
+		frame.Size = UDim2.new(1, -16, 1, -12)
+		frame.Position = UDim2.fromScale(0.5, 0.5)
+	else
+		frame.Size = size
+		frame.Position = UDim2.fromScale(0.5, 0.52)
+	end
+end
+
+function Kit.fitWindows()
+	for frame in pairs(windows) do
+		if frame.Parent then
+			fitWindow(frame)
+		else
+			windows[frame] = nil
+		end
+	end
+end
+
 -- Standard modal window. Returns { frame, content, title }
 function Kit.window(parent, size, titleText, onClose)
+	-- windows draw above the HUD (ZIndex order of the screen's children: HUD 1, guide 5,
+	-- tutorial 7, phone 9, windows 10, messages 20)
 	local frame = Kit.panel({
 		Name = "Window",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.52),
 		Size = size or UDim2.fromScale(0.62, 0.72),
 		Visible = false,
+		ZIndex = 10,
 		Parent = parent,
 	})
-	Kit.new("UISizeConstraint", { MaxSize = Vector2.new(980, 720), MinSize = Vector2.new(320, 260), Parent = frame })
+	windows[frame] = size or UDim2.fromScale(0.62, 0.72)
+	fitWindow(frame)
+	Kit.new("UISizeConstraint", { MaxSize = Vector2.new(1040, 760), MinSize = Vector2.new(320, 260), Parent = frame })
 	Kit.goldLine(frame, 5)
 	local header = Kit.new("Frame", { BackgroundColor3 = T.wood, Size = UDim2.new(1, 0, 0, 48), Parent = frame }, { Kit.corner(10), Kit.sheen(0.7) })
 	-- lacquer red and gold trim under the header, and a little red seal before the title
@@ -267,15 +353,37 @@ function Kit.window(parent, size, titleText, onClose)
 	Kit.new("TextLabel", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "和", TextScaled = true, TextColor3 = T.paper, FontFace = T.title, AutoLocalize = false, Parent = seal })
 	local title = Kit.title(titleText or "", { Parent = header, Size = UDim2.new(1, -150, 1, 0), Position = UDim2.fromOffset(52, 0), TextColor3 = T.paper, TextSize = 24, TextYAlignment = Enum.TextYAlignment.Center })
 	title.TextStrokeTransparency = 0.7
-	Kit.button("✕", { parent = header, size = UDim2.fromOffset(38, 38), position = UDim2.new(1, -44, 0, 5), style = "primary", onClick = onClose })
+	Kit.button("✕", { parent = header, size = UDim2.fromOffset(44, 40), position = UDim2.new(1, -50, 0, 4), style = "primary", textSize = 20, onClick = onClose })
 	local content = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 56), Size = UDim2.new(1, -24, 1, -66), Parent = frame, Name = "Content" })
-	return { frame = frame, content = content, title = title }
+	return { frame = frame, content = content, title = title, header = header }
 end
 
--- Tabs row; returns the row frame. tabs = { {id, label} }, onSelect(id)
-function Kit.tabs(parent, tabs, onSelect, current)
-	local row = Kit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 40), Parent = parent }, { Kit.list(Enum.FillDirection.Horizontal, 6) })
-	local buttons = {}
+-- Red notification dot with a number in the top-right corner of `parent`; returns set(n)
+function Kit.badge(parent, size)
+	local d = size or 22
+	local dot = Kit.new("Frame", {
+		Name = "Badge", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(1, -4, 0, 4), Size = UDim2.fromOffset(d, d),
+		BackgroundColor3 = T.red, Visible = false, ZIndex = 5, Parent = parent,
+	}, { Kit.corner(d / 2), Kit.stroke(T.white, 2, 0) })
+	local label = Kit.label("", { Parent = dot, Size = UDim2.fromScale(1, 1), TextSize = math.floor(d * 0.62), FontFace = T.bold, TextColor3 = T.white, TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 6 })
+	local shown = 0
+	return function(n)
+		n = n or 0
+		dot.Visible = n > 0
+		label.Text = n > 9 and "9+" or tostring(n)
+		if n > shown then
+			Kit.bump(dot, 1.35)
+		end
+		shown = n
+	end
+end
+
+-- Tabs row; returns the row frame, paint(id) and badges[id] = set(n).
+-- tabs = { {id, label, width} }, onSelect(id)
+function Kit.tabs(parent, tabs, onSelect, current, height)
+	local h = height or 40
+	local row = Kit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, h), Parent = parent }, { Kit.list(Enum.FillDirection.Horizontal, 6) })
+	local buttons, badges = {}, {}
 	local function paint(sel)
 		for id, b in pairs(buttons) do
 			b.BackgroundColor3 = id == sel and T.red or T.paperDark
@@ -283,16 +391,17 @@ function Kit.tabs(parent, tabs, onSelect, current)
 		end
 	end
 	for i, t in ipairs(tabs) do
-		local b = Kit.button(t.label, { size = UDim2.fromOffset(t.width or 130, 36), style = "plain", order = i, textSize = 16 })
+		local b = Kit.button(t.label, { size = UDim2.fromOffset(t.width or 130, h - 4), style = "plain", order = i, textSize = t.textSize or 16 })
 		b.Parent = row
 		buttons[t.id] = b
+		badges[t.id] = Kit.badge(b, 20)
 		b.MouseButton1Click:Connect(function()
 			paint(t.id)
 			onSelect(t.id)
 		end)
 	end
 	paint(current or (tabs[1] and tabs[1].id))
-	return row, paint
+	return row, paint, badges
 end
 
 -- Row with an emoji icon, title, subtitle and a right side area. Returns card, right
