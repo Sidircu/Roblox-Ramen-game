@@ -20933,6 +20933,7 @@ return Tasks
 -- built there and then moved onto the plot.
 local PhysicsService = game:GetService("PhysicsService")
 local Lighting = game:GetService("Lighting")
+local CollectionService = game:GetService("CollectionService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -21040,12 +21041,37 @@ function World.surfaceOf(data, zone, kind)
 	return Scene.surfaceOf(data, zone, kind)
 end
 
+-- Decorative parts nothing collides with need no ray tests: the camera, clicks and build mode go
+-- through them, and there are thousands fewer parts to test. Tagged parts (floors, walls,
+-- ceilings, roofs) and things you use (tablet, menu board, for-sale signs) keep theirs.
+local function quiet(container)
+	for _, d in ipairs(container:GetDescendants()) do
+		if d:IsA("BasePart") and not d.CanCollide and d.CanQuery and #CollectionService:GetTags(d) == 0 then
+			local used = false
+			local n = d.Parent
+			while n and n ~= container do
+				if CollectionService:HasTag(n, "Interactable") then
+					used = true
+					break
+				end
+				n = n.Parent
+			end
+			if not used then
+				d.CanQuery = false
+				d.CanTouch = false
+			end
+		end
+	end
+end
+World.quiet = quiet
+
 local function buildStreet(cityId)
 	local lots = {}
 	for _, plot in ipairs(Core.S.Plots.list) do
 		table.insert(lots, plot.origin.X)
 	end
 	local result = Scene.street(street, cityId, lots, PlotsCfg.StreetReach)
+	quiet(street)
 	Lighting:SetAttribute("City", cityId)
 	Lighting:SetAttribute("Sky", result.sky)
 	streetBuilt = true
@@ -21056,6 +21082,7 @@ local function buildEmptyLot(plot)
 	local shell = World.folders(plot).shell
 	shell:ClearAllChildren()
 	Scene.emptyLot(shell)
+	quiet(shell)
 	Core.S.Plots.shift(shell, plot)
 end
 
@@ -21092,6 +21119,7 @@ function World.rebuild(plot, data)
 			d:SetAttribute("PlotId", plot.id)
 		end
 	end
+	quiet(f.shell)
 	Core.S.Plots.shift(f.shell, plot)
 	plot.folder:SetAttribute("City", data.franchise and data.franchise.city or "tokyo")
 	plot.folder:SetAttribute("Ready", true)

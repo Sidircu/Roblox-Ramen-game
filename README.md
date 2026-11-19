@@ -22,12 +22,13 @@ In alternativa puoi usare [Rojo](https://rojo.space) (`rojo serve` con `default.
 - ID di gamepass e prodotti: `src/shared/Config/Monetization.luau` (0 = disattivato, il pulsante non compare).
 - Musica e suoni: `src/shared/Config/Audio.luau` (ID della libreria pubblica di Roblox: Pro Sound Effects, APM Music, suoni UI di Roblox; funzionano in qualsiasi gioco).
 - Regali a tempo, codici, combo e corsa: `src/shared/Config/Rewards.luau`.
-- Modelli migliori: metti un Model chiamato come l'ID dell'oggetto (es. `sakura_tree`) in `ReplicatedStorage/AssetOverrides`.
+- Modelli migliori: metti un Model chiamato come l'ID dell'oggetto (es. `sakura_tree`) in `ReplicatedStorage/AssetOverrides`; la lista con priorità e regole è in [docs/04-ASSET.md](docs/04-ASSET.md).
 
 ## Documenti
 1. [Game Design](docs/01-GAME-DESIGN.md) — cosa c'è nel gioco e come si gioca
 2. [Piano tecnico](docs/02-PIANO-TECNICO.md) — architettura e sistemi
 3. [Bilanciamento](docs/03-BILANCIAMENTO.md) — prezzi, ricette, sblocchi, formule
+4. [Asset da procurare](docs/04-ASSET.md) — modelli, icone e suoni da sostituire ai segnaposto (generato da `python3 tools/asset_list.py`)
 
 ## Struttura
 - `src/server` — servizi del server (dati, mondo, clienti, cucina, personale, economia…)
