@@ -110,20 +110,13 @@ HINT = [
 ]
 TUT = [
 ("tut.step","Tutorial {i}/{n}","Tutorial {i}/{n}"),
-("tut.welcome","Welcome to your ramen-ya! Walk with WASD (Shift to run) and look around with the mouse or by dragging a finger. Aim at things with the dot in the middle and click or press E to use them. Press Q to use the mouse on the buttons (Q again to look around); Enter shows the next tip.","Benvenuto nel tuo ramen-ya! Cammina con WASD (Shift per correre) e guardati intorno con il mouse o trascinando un dito. Punta le cose con il pallino al centro e clicca o premi E per usarle. Premi Q per usare il mouse sui pulsanti (di nuovo Q per tornare a guardare); Invio mostra il consiglio successivo."),
-("tut.take_box","The boxes are outside the storage door: follow the yellow arrow and click a box of noodles, scallion or naruto. In your hands it opens and you see what is inside.","Le scatole sono fuori dalla porta del magazzino: segui la freccia gialla e clicca una scatola di noodles, cipollotto o naruto. In mano si apre e vedi cosa c'è dentro."),
-("tut.fill_shelf","Carry it to a shelf in the kitchen and click a slot: the products jump onto its free spots. What is left stays in the box: click another slot. Right click (or G) puts a box down.","Portala a uno scaffale della cucina e clicca un ripiano: i prodotti saltano nei suoi posti liberi. Quelli che avanzano restano nella scatola: clicca un altro ripiano. Il tasto destro (o G) posa la scatola."),
-("tut.rice","Take a box of rice and click the rice cooker: the rice cooks by itself.","Prendi una scatola di riso e clicca il rice cooker: il riso cuoce da solo."),
-("tut.broth","Now the shoyu broth: take its box and click the big pot on the range. The broth cooks by itself.","Ora il brodo shoyu: prendi la sua scatola e clicca il pentolone sul fornello. Il brodo cuoce da solo."),
-("tut.open","Tap the red CLOSED switch at the top: it turns green (OPEN) and customers arrive.","Tocca l'interruttore rosso CHIUSO in alto: diventa verde (APERTO) e arrivano i clienti."),
-("tut.order","A customer has a ❗: click them to take the order. The order appears on the left.","Un cliente ha un ❗: cliccalo per prendere l'ordine. L'ordine compare a sinistra."),
-("tut.ingredients","Look at the ramen station: the see-through shapes on the board are what you need. Take noodles, scallion and naruto from the shelves (the tag says what is on each slot).","Guarda la postazione del ramen: le sagome trasparenti sul tagliere sono quello che serve. Prendi noodles, cipollotto e naruto dagli scaffali (il cartellino dice cosa c'è su ogni ripiano)."),
-("tut.cook","Click the ramen station: the ingredients fly onto their shapes. Then click again for each step: boil and drain the noodles, pour the broth, add the toppings!","Clicca la postazione del ramen: gli ingredienti volano sulle loro sagome. Poi clicca di nuovo per ogni passaggio: cuoci e scola i noodles, versa il brodo, aggiungi i condimenti!"),
-("tut.serve","Click the dish to pick it up and click the customer to serve it.","Clicca il piatto per prenderlo e clicca il cliente per servirlo."),
-("tut.collect","When they leave, click the dirty dishes to collect them.","Quando se ne va, clicca le stoviglie sporche per raccoglierle."),
-("tut.wash","Bring them to the sink, then hold the click (or E) on the sink: the sponge washes one plate at a time.","Portali al lavello, poi tieni premuto il clic (o E) sul lavello: la spugna lava un piatto alla volta."),
-("tut.build","Open 🔨 Build to decorate: choose an object and place it on the 1/5/10 grid.","Apri 🔨 Costruisci per arredare: scegli un oggetto e piazzalo sulla griglia 1/5/10."),
-("tut.done","You are ready! Earn yen, buy licenses, hire staff and grow your restaurant. がんばって!","Sei pronto! Guadagna yen, compra licenze, assumi personale e fai crescere il tuo ristorante. がんばって!"),
+("tut.welcome","Welcome to your ramen shop! Customers walk in and order by themselves.","Benvenuto nel tuo ramen-ya! I clienti entrano e ordinano da soli."),
+("tut.broth","Press again: 🥣 pour the broth.","Premi di nuovo: 🥣 versa il brodo."),
+("tut.order","A customer ordered 🍜: the order is over their head and on the left.","Un cliente ha ordinato 🍜: l'ordine è sopra la sua testa e a sinistra."),
+("tut.serve","Bring it to the customer and press: you get paid right away! 💴","Portala al cliente e premi: ti paga subito! 💴"),
+("tut.collect","When they leave, pick up the dirty bowl.","Quando se ne va, raccogli la ciotola sporca."),
+("tut.wash","Take it to the sink and hold E (or the button) to wash it.","Portala al lavello e tieni premuto E (o il pulsante) per lavarla."),
+("tut.done","That's it! Serve, earn and grow your restaurant. がんばって!","Fatto! Servi, guadagna e fai crescere il tuo ristorante. がんばって!"),
 ]
 MSG += [
 ("msg.selftest_result","🧪 Self-test: {passed}/{total} passed. Failed: {failed} (details in Output)","🧪 Autotest: {passed}/{total} superati. Falliti: {failed} (dettagli nell'Output)"),
@@ -212,9 +205,6 @@ UI += [
 
 TUT_FIRST_DAY = [
 ("tut.buy","Your storage room is empty! Open the supplier (📦, O or the tablet), press “🍜 All for the menu” and then “Order”: for now only the ramen ingredients are on sale.","Il magazzino è vuoto! Apri il fornitore (📦, O o il tablet), premi «🍜 Tutto per il menu» e poi «Ordina»: per ora si vendono solo gli ingredienti del ramen."),
-("tut.truck","The delivery truck is coming: it leaves the boxes on the ground outside the storage door.","Sta arrivando il furgone: lascerà le scatole a terra fuori dalla porta del magazzino."),
-("tut.more_boxes","Put the other boxes on the shelves too: you need noodles, scallion and naruto.","Metti sugli scaffali anche le altre scatole: servono noodles, cipollotto e naruto."),
 ("ui.cart_menu","All for the menu","Tutto per il menu"),
-("tut.broth_ready","The shoyu broth is already hot in the big pot (and the rice is in the cooker). When the pot runs out, pour a box of broth into it: you can also top it up while it cooks.","Il brodo shoyu è già caldo nel pentolone (e il riso nel cuociriso). Quando il pentolone si svuota, versaci una scatola di brodo: puoi rabboccarlo anche mentre cuoce."),
 ("msg.rescue_kit","🎁 The supplier saw you were out of money and ingredients: a free kit is on its way!","🎁 Il fornitore ha visto che eri senza soldi e senza ingredienti: ti regala un kit, sta arrivando!"),
 ]

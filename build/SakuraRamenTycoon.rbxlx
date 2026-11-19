@@ -548,18 +548,22 @@ return {
 	SellRefund = 0.75,
 	FullRefundSeconds = 30,
 
-	-- Day cycle (1 game hour = 1 real minute)
+	-- Time of day: the restaurant is always open and the clock never stops. A game hour lasts
+	-- SecondsPerHour real seconds (NightSecondsPerHour between NightFrom and NightTo, so the quiet
+	-- night passes quickly); a full day is about 14 minutes. Every day at DayStartHour the day's
+	-- accounts are closed (salaries, stats, daily quests, a short summary).
 	Day = {
-		OpenHour = 11,
-		CloseHour = 23,
-		SecondsPerHour = 60,
-		PrepClock = 9.5,
+		StartClock = 10,
+		DayStartHour = 6,
+		SecondsPerHour = 45,
+		NightSecondsPerHour = 15,
+		NightFrom = 23,
+		NightTo = 6,
+		NightFactor = 1.6, -- customers come this much less often at night
 		Peaks = { { 12, 14 }, { 19, 21 } },
 		PeakFactor = 0.6,
 		EarlyPeakFactor = 0.85, -- peaks are lighter for the first EarlyDays days
 		EarlyDays = 2,
-		ReportAutoClose = 15,
-		ManagerAutoOpenDelay = 20,
 	},
 
 	-- Customers
@@ -570,7 +574,9 @@ return {
 		MaxNpcs = 40,
 		BaseInterval = 18,
 		MinInterval = 2.5,
-		MenuReadTime = { 2, 4 },
+		MenuReadTime = { 1.5, 3 },
+		FirstCustomerDelay = 2, -- the first customer walks in this soon after the restaurant opens
+		StreetSpawn = { 70, 95 }, -- customers appear this far along the street (studs from the door)
 		EatTime = { sushi = 12, ramen = 18, side = 8, drink = 6, dessert = 8 },
 		ExtraOrderChance = 0.4,
 		SecondOrderChance = 0.15,
@@ -578,7 +584,7 @@ return {
 		BaseQueue = 2,
 		StuckTeleportSeconds = 8,
 		SeatHeightOffset = 1.05,
-		WalkSpeed = 10,
+		WalkSpeed = 11,
 		DefaultRating = 3.0,
 		RecentReviews = 50,
 	},
@@ -618,7 +624,7 @@ return {
 	Washing = { Time = 1.6, MaxPile = 12, StaffBatch = 8 },
 
 	-- Dishes (plates and bowls)
-	StartDishes = 12,
+	StartDishes = 20,
 	DishSetSize = 6,
 	DishSetPrice = 300,
 
@@ -1197,9 +1203,19 @@ return {
 		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
 		{ i = "chochin_white", x = -6, z = 20, r = 0, s = "c" },
 	},
-	-- the storage room starts empty: the tutorial has you order the ramen ingredients; the pot
-	-- starts full of this broth and the rice cooker full of rice
-	boxes = {},
+	-- a brand-new restaurant can serve its first customers within seconds: the two shelves start
+	-- stocked with the ramen ingredients (one list per shelf, in the order above, one ingredient per
+	-- slot, each slot full), the pot full of this broth, the rice cooker full of rice, and a box of
+	-- the ingredients that run out first waits in the storage room for the first restock
+	stock = {
+		{ "noodles", "noodles", "scallion", "naruto" },
+		{ "naruto", "scallion" },
+	},
+	boxes = {
+		{ g = "noodles", n = 1 },
+		{ g = "naruto", n = 1 },
+		{ g = "broth_shoyu", n = 1 },
+	},
 	broth = "broth_shoyu",
 
 }
@@ -1258,7 +1274,8 @@ local list = {
 	{ id = "up_cart", icon = "🛒", max = 2, costs = { 2500, 15000 }, levels = { 3, 10 }, values = { 1, 2, 3 }, effect = "cart" },
 	{ id = "up_supplier", icon = "📦", max = 2, costs = { 20000, 200000 }, levels = { 10, 25 }, values = { 0, 0.10, 0.20 }, effect = "discount" },
 	{ id = "up_sign", icon = "🏮", max = 5, costs = geometric(2000, 4, 5), levels = { 2, 6, 12, 20, 30 }, values = { 0, 0.08, 0.16, 0.24, 0.32, 0.40 }, effect = "popularity" },
-	{ id = "up_ticket", icon = "🧾", max = 2, costs = { 6000, 60000 }, levels = { 5, 15 }, values = { 6, 8, 10 }, effect = "tickets" },
+	-- customers order by themselves: the order bar holds one ticket per seat at least
+	{ id = "up_ticket", icon = "🧾", max = 2, costs = { 6000, 60000 }, levels = { 5, 15 }, values = { 12, 16, 20 }, effect = "tickets" },
 	{ id = "up_jukebox", icon = "🎶", max = 3, costs = { 5000, 50000, 300000 }, levels = { 4, 14, 26 }, values = { 0, 15, 40, 90 }, effect = "ambience" },
 	{ id = "up_safe", icon = "💰", max = 5, costs = geometric(10000, 4, 5), levels = { 6, 12, 18, 26, 34 }, values = { 0, 2, 4, 8, 12, 24 }, pct = { 0, 0.10, 0.15, 0.20, 0.25, 0.30 }, effect = "offline" },
 	{ id = "up_autorestock", icon = "🔁", max = 1, costs = { 120000 }, levels = { 20 }, values = { 0, 1 }, effect = "autorestock", needsStaff = "staff_stocker" },
@@ -1381,6 +1398,16 @@ return {
 	["ach.staff"] = "Hire {n} staff members",
 	["ach.washed"] = "Wash {n} dishes",
 	["ach.zones"] = "Own {n} zones",
+	["act.batter"] = "🥣 Batter · {dish} ({i}/{n})",
+	["act.boil"] = "🍜 Cook the noodles · {dish} ({i}/{n})",
+	["act.combine"] = "🍙 Put together · {dish} ({i}/{n})",
+	["act.cut"] = "🔪 Cut · {dish} ({i}/{n})",
+	["act.flip"] = "🍳 Flip · {dish} ({i}/{n})",
+	["act.fry"] = "🍤 Fry · {dish} ({i}/{n})",
+	["act.mold"] = "🤲 Shape · {dish} ({i}/{n})",
+	["act.pour"] = "🥣 Pour the broth · {dish} ({i}/{n})",
+	["act.roll"] = "🎋 Roll · {dish} ({i}/{n})",
+	["act.top"] = "🌱 Add the toppings · {dish} ({i}/{n})",
 	["ad.ad_flyers"] = "Flyers",
 	["ad.ad_radio"] = "Radio spot",
 	["ad.ad_tv"] = "TV commercial",
@@ -1463,7 +1490,9 @@ return {
 	["guide.no_station"] = "Buy this station in 🔨 Build",
 	["guide.no_stock"] = "No {name} on the shelves",
 	["guide.no_stock_how"] = "Fill a shelf from a box in storage (or order with 📦)",
+	["guide.on_shelves"] = "Ingredients on the shelves",
 	["guide.pick"] = "Take the dish from the station",
+	["guide.press_steps"] = "Press {station}: {n} steps",
 	["guide.put"] = "Click the {station} to put them down",
 	["guide.rice"] = "Rice ready in the rice cooker",
 	["guide.rice_how"] = "Bring a box of rice to the rice cooker and click it",
@@ -1474,6 +1503,7 @@ return {
 	["hint.broth_status"] = "🥣 {n} portions ready",
 	["hint.collect"] = "Collect dirty dishes",
 	["hint.cooking"] = "Cooking…",
+	["hint.cooking_now"] = "Cooking {dish}…",
 	["hint.customer"] = "Customer",
 	["hint.dishwasher"] = "Dishwasher ({n})",
 	["hint.do_step"] = "Click: {step} · {dish} ({i}/{n})",
@@ -1483,6 +1513,8 @@ return {
 	["hint.locked"] = "Locked: buy the license {name} (level {level})",
 	["hint.menuboard"] = "Open the menu",
 	["hint.missing"] = "Missing",
+	["hint.missing_for"] = "{dish}: missing {list} · restock the shelves",
+	["hint.no_orders"] = "No orders for this station",
 	["hint.pour"] = "Pour the box in",
 	["hint.put_back"] = "Put the box back",
 	["hint.put_ingredients"] = "Put ingredients on the board",
@@ -1711,6 +1743,7 @@ return {
 	["msg.daily_done"] = "Already claimed today.",
 	["msg.day_closing"] = "🕚 Closing time: no new customers.",
 	["msg.day_open"] = "🏮 The restaurant is open!",
+	["msg.day_summary"] = "🌅 Day {day} is over: ¥{yen} earned, {served} dishes served. Tap the clock for the summary.",
 	["msg.delivery_arrived"] = "🚚 Delivery arrived: {n} boxes left on the ground outside the storage door.",
 	["msg.dev_done"] = "Dev: {cmd}",
 	["msg.dish_to_sink"] = "🍽️ The plate went to the sink.",
@@ -1757,6 +1790,8 @@ return {
 	["msg.need_zone"] = "Requires {name}.",
 	["msg.no_dishes"] = "No clean dishes: wash some at the sink!",
 	["msg.no_menu"] = "Customers can't order: restock the shelves!",
+	["msg.no_orders"] = "No orders yet: customers order by themselves when they sit down.",
+	["msg.no_orders_here"] = "The orders waiting are for another station.",
 	["msg.no_permission"] = "Only the owner (or a co-manager) can do this.",
 	["msg.no_recipe_fits"] = "These ingredients don't make a dish here.",
 	["msg.no_saving"] = "Saving is off: enable 'Studio Access to API Services' to keep progress.",
@@ -1785,10 +1820,12 @@ return {
 	["msg.rack_hint"] = "Bring a box here to put it back.",
 	["msg.reno_bought"] = "🪚 Renovation done: {name}!",
 	["msg.rescue_kit"] = "🎁 The supplier saw you were out of money and ingredients: a free kit is on its way!",
+	["msg.restock_needed"] = "{name} is finished: put a box of it on the shelves (📦 Supplier).",
 	["msg.restocked"] = "📦 +{n} {name} on the shelf. Box empty!",
 	["msg.restocked_left"] = "📦 +{n} {name} on the shelf. {left} left in the box: click another slot.",
 	["msg.seat_busy"] = "Someone is using it.",
 	["msg.selftest_result"] = "🧪 Self-test: {passed}/{total} passed. Failed: {failed} (details in Output)",
+	["msg.shelf_auto"] = "The stations take the ingredients by themselves: just press the station.",
 	["msg.shelf_empty"] = "The shelf is empty.",
 	["msg.shelf_full"] = "The shelf is full.",
 	["msg.sink_hint"] = "Bring dirty dishes here.",
@@ -1914,25 +1951,18 @@ return {
 	["surf.wall_shoji"] = "Shoji",
 	["surf.wall_wood"] = "Wood panels",
 	["surf.wall_yakisugi"] = "Charred wood (yakisugi)",
-	["tut.broth"] = "Now the shoyu broth: take its box and click the big pot on the range. The broth cooks by itself.",
-	["tut.broth_ready"] = "The shoyu broth is already hot in the big pot (and the rice is in the cooker). When the pot runs out, pour a box of broth into it: you can also top it up while it cooks.",
-	["tut.build"] = "Open 🔨 Build to decorate: choose an object and place it on the 1/5/10 grid.",
+	["tut.broth"] = "Press again: 🥣 pour the broth.",
 	["tut.buy"] = "Your storage room is empty! Open the supplier (📦, O or the tablet), press “🍜 All for the menu” and then “Order”: for now only the ramen ingredients are on sale.",
-	["tut.collect"] = "When they leave, click the dirty dishes to collect them.",
-	["tut.cook"] = "Click the ramen station: the ingredients fly onto their shapes. Then click again for each step: boil and drain the noodles, pour the broth, add the toppings!",
-	["tut.done"] = "You are ready! Earn yen, buy licenses, hire staff and grow your restaurant. がんばって!",
-	["tut.fill_shelf"] = "Carry it to a shelf in the kitchen and click a slot: the products jump onto its free spots. What is left stays in the box: click another slot. Right click (or G) puts a box down.",
-	["tut.ingredients"] = "Look at the ramen station: the see-through shapes on the board are what you need. Take noodles, scallion and naruto from the shelves (the tag says what is on each slot).",
-	["tut.more_boxes"] = "Put the other boxes on the shelves too: you need noodles, scallion and naruto.",
-	["tut.open"] = "Tap the red CLOSED switch at the top: it turns green (OPEN) and customers arrive.",
-	["tut.order"] = "A customer has a ❗: click them to take the order. The order appears on the left.",
-	["tut.rice"] = "Take a box of rice and click the rice cooker: the rice cooks by itself.",
-	["tut.serve"] = "Click the dish to pick it up and click the customer to serve it.",
+	["tut.collect"] = "When they leave, pick up the dirty bowl.",
+	["tut.done"] = "That's it! Serve, earn and grow your restaurant. がんばって!",
+	["tut.noodles"] = "Go to the ramen station and press E (or tap the button): 🍜 noodles!",
+	["tut.order"] = "A customer ordered 🍜: the order is over their head and on the left.",
+	["tut.serve"] = "Bring it to the customer and press: you get paid right away! 💴",
 	["tut.step"] = "Tutorial {i}/{n}",
-	["tut.take_box"] = "The boxes are outside the storage door: follow the yellow arrow and click a box of noodles, scallion or naruto. In your hands it opens and you see what is inside.",
-	["tut.truck"] = "The delivery truck is coming: it leaves the boxes on the ground outside the storage door.",
-	["tut.wash"] = "Bring them to the sink, then hold the click (or E) on the sink: the sponge washes one plate at a time.",
-	["tut.welcome"] = "Welcome to your ramen-ya! Walk with WASD (Shift to run) and look around with the mouse or by dragging a finger. Aim at things with the dot in the middle and click or press E to use them. Press Q to use the mouse on the buttons (Q again to look around); Enter shows the next tip.",
+	["tut.take_dish"] = "The bowl is ready: press to pick it up.",
+	["tut.toppings"] = "Once more: 🌱 add the toppings.",
+	["tut.wash"] = "Take it to the sink and hold E (or the button) to wash it.",
+	["tut.welcome"] = "Welcome to your ramen shop! Customers walk in and order by themselves.",
 	["ui.active"] = "Active",
 	["ui.ad_desc"] = "+{pop} popularity today",
 	["ui.ads"] = "Advertising (1 day)",
@@ -2015,6 +2045,7 @@ return {
 	["ui.off"] = "Off",
 	["ui.offline"] = "Welcome back!",
 	["ui.offline_text"] = "While you were away ({hours} h) your restaurant earned ¥{yen}.",
+	["ui.ok"] = "OK",
 	["ui.on"] = "On",
 	["ui.open_restaurant"] = "Open restaurant",
 	["ui.open_tap"] = "OPEN",
@@ -2195,6 +2226,16 @@ return {
 	["ach.staff"] = "Assumi {n} persone",
 	["ach.washed"] = "Lava {n} stoviglie",
 	["ach.zones"] = "Possiedi {n} zone",
+	["act.batter"] = "🥣 Impana · {dish} ({i}/{n})",
+	["act.boil"] = "🍜 Cuoci i noodles · {dish} ({i}/{n})",
+	["act.combine"] = "🍙 Unisci · {dish} ({i}/{n})",
+	["act.cut"] = "🔪 Taglia · {dish} ({i}/{n})",
+	["act.flip"] = "🍳 Gira · {dish} ({i}/{n})",
+	["act.fry"] = "🍤 Friggi · {dish} ({i}/{n})",
+	["act.mold"] = "🤲 Modella · {dish} ({i}/{n})",
+	["act.pour"] = "🥣 Versa il brodo · {dish} ({i}/{n})",
+	["act.roll"] = "🎋 Arrotola · {dish} ({i}/{n})",
+	["act.top"] = "🌱 Aggiungi i condimenti · {dish} ({i}/{n})",
 	["ad.ad_flyers"] = "Volantini",
 	["ad.ad_radio"] = "Spot radio",
 	["ad.ad_tv"] = "Spot TV",
@@ -2277,7 +2318,9 @@ return {
 	["guide.no_station"] = "Compra questa postazione in 🔨 Costruisci",
 	["guide.no_stock"] = "Niente {name} sugli scaffali",
 	["guide.no_stock_how"] = "Riempi uno scaffale da una scatola del magazzino (o ordina con 📦)",
+	["guide.on_shelves"] = "Ingredienti sugli scaffali",
 	["guide.pick"] = "Prendi il piatto dalla postazione",
+	["guide.press_steps"] = "Premi {station}: {n} passaggi",
 	["guide.put"] = "Clicca la {station} per posarli",
 	["guide.rice"] = "Riso pronto nel cuociriso",
 	["guide.rice_how"] = "Porta una scatola di riso al cuociriso e cliccalo",
@@ -2288,6 +2331,7 @@ return {
 	["hint.broth_status"] = "🥣 {n} porzioni pronte",
 	["hint.collect"] = "Raccogli le stoviglie",
 	["hint.cooking"] = "In cottura…",
+	["hint.cooking_now"] = "Sto cucinando {dish}…",
 	["hint.customer"] = "Cliente",
 	["hint.dishwasher"] = "Lavastoviglie ({n})",
 	["hint.do_step"] = "Clicca: {step} · {dish} ({i}/{n})",
@@ -2297,6 +2341,8 @@ return {
 	["hint.locked"] = "Bloccato: compra la licenza {name} (livello {level})",
 	["hint.menuboard"] = "Apri il menu",
 	["hint.missing"] = "Mancano",
+	["hint.missing_for"] = "{dish}: mancano {list} · rifornisci gli scaffali",
+	["hint.no_orders"] = "Nessun ordine per questa postazione",
 	["hint.pour"] = "Versa la scatola",
 	["hint.put_back"] = "Rimetti la scatola",
 	["hint.put_ingredients"] = "Posa gli ingredienti",
@@ -2525,6 +2571,7 @@ return {
 	["msg.daily_done"] = "Già riscosso oggi.",
 	["msg.day_closing"] = "🕚 Ora di chiusura: niente nuovi clienti.",
 	["msg.day_open"] = "🏮 Il ristorante è aperto!",
+	["msg.day_summary"] = "🌅 Il giorno {day} è finito: ¥{yen} guadagnati, {served} piatti serviti. Tocca l'orologio per il resoconto.",
 	["msg.delivery_arrived"] = "🚚 Consegna arrivata: {n} scatole lasciate a terra fuori dalla porta del magazzino.",
 	["msg.dev_done"] = "Dev: {cmd}",
 	["msg.dish_to_sink"] = "🍽️ Il piatto è andato al lavello.",
@@ -2571,6 +2618,8 @@ return {
 	["msg.need_zone"] = "Serve {name}.",
 	["msg.no_dishes"] = "Niente stoviglie pulite: lavane al lavello!",
 	["msg.no_menu"] = "I clienti non possono ordinare: rifornisci le mensole!",
+	["msg.no_orders"] = "Ancora nessun ordine: i clienti ordinano da soli quando si siedono.",
+	["msg.no_orders_here"] = "Gli ordini in attesa sono per un'altra postazione.",
 	["msg.no_permission"] = "Solo il proprietario (o un co-gestore) può farlo.",
 	["msg.no_recipe_fits"] = "Questi ingredienti non formano un piatto qui.",
 	["msg.no_saving"] = "Salvataggio disattivato: attiva 'Studio Access to API Services' per conservare i progressi.",
@@ -2599,10 +2648,12 @@ return {
 	["msg.rack_hint"] = "Porta qui una scatola per rimetterla a posto.",
 	["msg.reno_bought"] = "🪚 Ristrutturazione completata: {name}!",
 	["msg.rescue_kit"] = "🎁 Il fornitore ha visto che eri senza soldi e senza ingredienti: ti regala un kit, sta arrivando!",
+	["msg.restock_needed"] = "È finito {name}: metti una scatola sugli scaffali (📦 Fornitore).",
 	["msg.restocked"] = "📦 +{n} {name} sullo scaffale. Scatola finita!",
 	["msg.restocked_left"] = "📦 +{n} {name} sullo scaffale. Nella scatola ne restano {left}: clicca un altro ripiano.",
 	["msg.seat_busy"] = "Qualcuno lo sta usando.",
 	["msg.selftest_result"] = "🧪 Autotest: {passed}/{total} superati. Falliti: {failed} (dettagli nell'Output)",
+	["msg.shelf_auto"] = "Le postazioni prendono gli ingredienti da sole: premi la postazione.",
 	["msg.shelf_empty"] = "La mensola è vuota.",
 	["msg.shelf_full"] = "La mensola è piena.",
 	["msg.sink_hint"] = "Porta qui le stoviglie sporche.",
@@ -2728,25 +2779,18 @@ return {
 	["surf.wall_shoji"] = "Shoji",
 	["surf.wall_wood"] = "Pannelli in legno",
 	["surf.wall_yakisugi"] = "Legno bruciato yakisugi",
-	["tut.broth"] = "Ora il brodo shoyu: prendi la sua scatola e clicca il pentolone sul fornello. Il brodo cuoce da solo.",
-	["tut.broth_ready"] = "Il brodo shoyu è già caldo nel pentolone (e il riso nel cuociriso). Quando il pentolone si svuota, versaci una scatola di brodo: puoi rabboccarlo anche mentre cuoce.",
-	["tut.build"] = "Apri 🔨 Costruisci per arredare: scegli un oggetto e piazzalo sulla griglia 1/5/10.",
+	["tut.broth"] = "Premi di nuovo: 🥣 versa il brodo.",
 	["tut.buy"] = "Il magazzino è vuoto! Apri il fornitore (📦, O o il tablet), premi «🍜 Tutto per il menu» e poi «Ordina»: per ora si vendono solo gli ingredienti del ramen.",
-	["tut.collect"] = "Quando se ne va, clicca le stoviglie sporche per raccoglierle.",
-	["tut.cook"] = "Clicca la postazione del ramen: gli ingredienti volano sulle loro sagome. Poi clicca di nuovo per ogni passaggio: cuoci e scola i noodles, versa il brodo, aggiungi i condimenti!",
-	["tut.done"] = "Sei pronto! Guadagna yen, compra licenze, assumi personale e fai crescere il tuo ristorante. がんばって!",
-	["tut.fill_shelf"] = "Portala a uno scaffale della cucina e clicca un ripiano: i prodotti saltano nei suoi posti liberi. Quelli che avanzano restano nella scatola: clicca un altro ripiano. Il tasto destro (o G) posa la scatola.",
-	["tut.ingredients"] = "Guarda la postazione del ramen: le sagome trasparenti sul tagliere sono quello che serve. Prendi noodles, cipollotto e naruto dagli scaffali (il cartellino dice cosa c'è su ogni ripiano).",
-	["tut.more_boxes"] = "Metti sugli scaffali anche le altre scatole: servono noodles, cipollotto e naruto.",
-	["tut.open"] = "Tocca l'interruttore rosso CHIUSO in alto: diventa verde (APERTO) e arrivano i clienti.",
-	["tut.order"] = "Un cliente ha un ❗: cliccalo per prendere l'ordine. L'ordine compare a sinistra.",
-	["tut.rice"] = "Prendi una scatola di riso e clicca il rice cooker: il riso cuoce da solo.",
-	["tut.serve"] = "Clicca il piatto per prenderlo e clicca il cliente per servirlo.",
+	["tut.collect"] = "Quando se ne va, raccogli la ciotola sporca.",
+	["tut.done"] = "Fatto! Servi, guadagna e fai crescere il tuo ristorante. がんばって!",
+	["tut.noodles"] = "Vai alla postazione del ramen e premi E (o tocca il pulsante): 🍜 noodles!",
+	["tut.order"] = "Un cliente ha ordinato 🍜: l'ordine è sopra la sua testa e a sinistra.",
+	["tut.serve"] = "Portala al cliente e premi: ti paga subito! 💴",
 	["tut.step"] = "Tutorial {i}/{n}",
-	["tut.take_box"] = "Le scatole sono fuori dalla porta del magazzino: segui la freccia gialla e clicca una scatola di noodles, cipollotto o naruto. In mano si apre e vedi cosa c'è dentro.",
-	["tut.truck"] = "Sta arrivando il furgone: lascerà le scatole a terra fuori dalla porta del magazzino.",
-	["tut.wash"] = "Portali al lavello, poi tieni premuto il clic (o E) sul lavello: la spugna lava un piatto alla volta.",
-	["tut.welcome"] = "Benvenuto nel tuo ramen-ya! Cammina con WASD (Shift per correre) e guardati intorno con il mouse o trascinando un dito. Punta le cose con il pallino al centro e clicca o premi E per usarle. Premi Q per usare il mouse sui pulsanti (di nuovo Q per tornare a guardare); Invio mostra il consiglio successivo.",
+	["tut.take_dish"] = "La ciotola è pronta: premi per prenderla.",
+	["tut.toppings"] = "Ancora una volta: 🌱 aggiungi i condimenti.",
+	["tut.wash"] = "Portala al lavello e tieni premuto E (o il pulsante) per lavarla.",
+	["tut.welcome"] = "Benvenuto nel tuo ramen-ya! I clienti entrano e ordinano da soli.",
 	["ui.active"] = "Attivo",
 	["ui.ad_desc"] = "+{pop} popolarità oggi",
 	["ui.ads"] = "Pubblicità (1 giorno)",
@@ -2829,6 +2873,7 @@ return {
 	["ui.off"] = "No",
 	["ui.offline"] = "Bentornato!",
 	["ui.offline_text"] = "Mentre eri via ({hours} h) il ristorante ha guadagnato ¥{yen}.",
+	["ui.ok"] = "OK",
 	["ui.on"] = "Sì",
 	["ui.open_restaurant"] = "Apri il ristorante",
 	["ui.open_tap"] = "APERTO",
@@ -10960,7 +11005,6 @@ Net.Events = {
 	"TrainStaff",
 	"FireStaff",
 	"SetMenu", -- (recipeId, on, priceMult)
-	"SetDayState", -- ("open" | "close" | "next")
 	"ClaimQuest",
 	"ClaimAchievement",
 	"ClaimDaily",
@@ -12096,6 +12140,9 @@ end
 local function unlockedRecipes(e)
 	local d = data()
 	local out = {}
+	if not d then
+		return out
+	end
 	for _, r in ipairs(Recipes.byStation[stationType(e)] or {}) do
 		if Core.S.Progression.isRecipeUnlocked(d, r) then
 			table.insert(out, r)
@@ -12167,6 +12214,21 @@ local function publish(e)
 	m:SetAttribute("Steps", recipe and table.concat(recipe.steps, ",") or "")
 	m:SetAttribute("Busy", st.busy)
 	m:SetAttribute("Ready", st.ready and st.ready.recipe or "")
+	-- what the next press does: start the oldest order for this station, or tell what is missing
+	local nextId, missing = "", ""
+	if not st.busy and #st.board == 0 and not st.ready then
+		local _, r = Cooking.nextOrder(e)
+		if r then
+			nextId = r.id
+			missing = table.concat(Cooking.missing(r), ",")
+		end
+	end
+	if m:GetAttribute("Next") ~= nextId then
+		m:SetAttribute("Next", nextId)
+	end
+	if m:GetAttribute("Missing") ~= missing then
+		m:SetAttribute("Missing", missing)
+	end
 end
 
 local function clearBoardModels(st)
@@ -12203,8 +12265,77 @@ local function contains(recipe, ids)
 	return true
 end
 
--- The recipe the board is heading for: the board itself if complete, else the oldest order for
--- this station that still fits what is on the board, else any recipe that fits it
+-- dishes already on their way, by recipe: cooking on a station, waiting on its plate, or in
+-- someone's hands
+local function coverage()
+	local cov = {}
+	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+		local st = station(e)
+		local r = st.recipe
+		if not r and #st.board > 0 then
+			local m = Cooking.match(e)
+			r = m and m.id or nil
+		end
+		if r then
+			cov[r] = (cov[r] or 0) + 1
+		end
+		if st.ready then
+			cov[st.ready.recipe] = (cov[st.ready.recipe] or 0) + 1
+		end
+	end
+	for id, n in pairs(Core.S.Hands.dishCounts()) do
+		cov[id] = (cov[id] or 0) + n
+	end
+	return cov
+end
+
+-- The oldest order this station can make that nobody is making yet: ticket, recipe
+function Cooking.nextOrder(e)
+	if not data() then
+		return nil
+	end
+	local unlocked = {}
+	for _, r in ipairs(unlockedRecipes(e)) do
+		unlocked[r.id] = r
+	end
+	local cov = coverage()
+	local seen = {}
+	for _, t in ipairs(Cooking.tickets) do
+		seen[t.recipe] = (seen[t.recipe] or 0) + 1
+		local r = unlocked[t.recipe]
+		if r and seen[t.recipe] > (cov[t.recipe] or 0) then
+			return t, r
+		end
+	end
+	return nil
+end
+
+-- What is missing to start recipe r: ingredient ids not on the shelves (rice and broths included)
+-- and "dishes" when every plate is dirty
+function Cooking.missing(r)
+	local Supply, Appliance = Core.S.Supply, Core.S.Appliance
+	local out = {}
+	for g, n in pairs(counts(r.ing)) do
+		if Supply.shelfStock(g) < n then
+			table.insert(out, g)
+		end
+	end
+	table.sort(out)
+	if r.rice and not Appliance.hasRice() then
+		table.insert(out, "rice")
+	end
+	if r.broth and not Appliance.hasBroth(r.broth) then
+		table.insert(out, r.broth)
+	end
+	local d = data()
+	if d and d.dishes.clean <= 0 then
+		table.insert(out, "dishes")
+	end
+	return out
+end
+
+-- The recipe the board is heading for: the board itself if complete, else the next order of this
+-- station when it still fits what is on the board, else any recipe that fits it
 local function targetRecipe(e)
 	local st = station(e)
 	local ids = {}
@@ -12215,18 +12346,12 @@ local function targetRecipe(e)
 	if exact then
 		return exact
 	end
-	local unlocked = {}
-	for _, r in ipairs(unlockedRecipes(e)) do
-		unlocked[r.id] = r
-	end
-	for _, t in ipairs(Cooking.tickets or {}) do
-		local r = unlocked[t.recipe]
-		if r and contains(r, ids) then
-			return r
-		end
+	local _, nextRecipe = Cooking.nextOrder(e)
+	if nextRecipe and contains(nextRecipe, ids) then
+		return nextRecipe
 	end
 	if #ids > 0 then
-		for _, r in pairs(unlocked) do
+		for _, r in ipairs(unlockedRecipes(e)) do
 			if contains(r, ids) then
 				return r
 			end
@@ -12460,6 +12585,54 @@ function Cooking.step(e, speed, actor)
 	return true
 end
 
+-- Starts the next order of this station: its ingredients fly from the shelves onto the board and
+-- the first step runs right away (so a ramen is three presses: noodles, broth, toppings)
+local function start(e, speed, actor)
+	local st = station(e)
+	local t, r = Cooking.nextOrder(e)
+	if not t then
+		if #Cooking.tickets == 0 then
+			return false, "msg.no_orders"
+		end
+		return false, "msg.no_orders_here", { station = "station." .. stationType(e) }
+	end
+	local missing = Cooking.missing(r)
+	if #missing > 0 then
+		local first = missing[1]
+		if first == "dishes" then
+			return false, "msg.no_dishes"
+		elseif first == "rice" then
+			return false, "msg.need_rice"
+		elseif Ingredients.byId[first] and Ingredients.byId[first].storage == "broth" then
+			return false, "msg.need_broth", { name = "ing." .. first }
+		end
+		return false, "msg.restock_needed", { name = "ing." .. first }
+	end
+	local Supply = Core.S.Supply
+	local pos = e.model and e.model.PrimaryPart and e.model.PrimaryPart.Position
+	local origins = {}
+	st.board = {}
+	for _, g in ipairs(r.ing) do
+		local from, fresh = Supply.takeIngredient(g, pos)
+		table.insert(st.board, { g = g, fresh = fresh })
+		table.insert(origins, from)
+	end
+	st.recipe = r.id
+	st.busy = true
+	publish(e)
+	-- every ingredient flies from its shelf to its spot on the board
+	local flights = {}
+	for i, sp in ipairs(boardSpots(e)) do
+		table.insert(flights, { g = sp.g, cf = sp.cf, s = BOARD_SCALE, rot = true, from = origins[i] })
+	end
+	local step = GameConfig.StockFlyStep or 0.06
+	Core.S.Net.fx("stock", { items = flights, step = step })
+	task.wait(#flights * step + 0.3)
+	layoutBoard(e)
+	st.busy = false
+	return Cooking.step(e, speed, actor)
+end
+
 -- Click on a station (players and staff)
 function Cooking.use(actor, e, speed)
 	local Hands = Core.S.Hands
@@ -12540,7 +12713,8 @@ function Cooking.use(actor, e, speed)
 				return false, "msg.board_returned"
 			end
 		end
-		return false, "msg.station_hint", { station = "station." .. stationType(e) }
+		-- an empty board: start the oldest order for this station
+		return start(e, speed, actor)
 	end
 	return false, "msg.hands_busy"
 end
@@ -12646,6 +12820,19 @@ local function timingHit(player, uid, k)
 		st.perfect = true
 	end
 	Core.S.Net.fxTo(player, "timingResult", { ok = ok, pos = e.model and e.model.PrimaryPart and e.model.PrimaryPart.Position })
+end
+
+function Cooking.Start()
+	-- stations always show what the next press does (orders, stock and dishes change all the time)
+	while true do
+		task.wait(0.5)
+		for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+			local ok, err = pcall(publish, e)
+			if not ok then
+				warn("[Cooking] publish failed: " .. tostring(err))
+			end
+		end
+	end
 end
 
 function Cooking.Init()
@@ -12787,6 +12974,8 @@ end
 
 ------------------------------------------------------------------ helpers
 
+local placeOrder
+
 local function setState(c, state)
 	c.state = state
 	if c.npc and c.npc.model then
@@ -12802,6 +12991,25 @@ local function setOrder(c, recipe)
 	if recipe then
 		Core.S.Analytics.step(Core.S.Session.owner, "first_order")
 	end
+end
+
+-- puts the customer's order on the order bar; false when the bar is full
+placeOrder = function(c)
+	if c.state ~= "order" or not c.order then
+		return false
+	end
+	local t = Core.S.Cooking.addTicket(c.uid, c.order)
+	if not t then
+		return false
+	end
+	c.ticket = t
+	-- a fresh, full timer for cooking it
+	c.patience = c.patienceMax
+	setState(c, "waiting")
+	if c.npc and c.npc.root then
+		Core.S.Net.fx("sfx", { name = "ticket", pos = c.npc.root.Position })
+	end
+	return true
 end
 
 local function patienceTick(c, dt)
@@ -12830,7 +13038,8 @@ local function dirtyNear(pos)
 end
 
 local function streetPoint(side)
-	return Vector3.new(side * (125 + rng:NextNumber() * 25), 0, Expansions.StreetWalkZ)
+	local a, b = CFG.StreetSpawn[1], CFG.StreetSpawn[2]
+	return Vector3.new(side * (a + rng:NextNumber() * (b - a)), 0, Expansions.StreetWalkZ)
 end
 
 local function entrance()
@@ -12916,6 +13125,9 @@ local function review(c, walkedOut)
 			Core.S.Meta.event(owner, "happy", 1)
 		end
 		local d = data()
+		if not d then
+			return
+		end
 		d.stats.customers += 1
 		if stars >= 5 and c.cfg.reviewWeight then
 			Economy.addSakura(owner, 3)
@@ -12991,7 +13203,6 @@ local function eat(c, recipe)
 		c.dishModel:Destroy()
 		c.dishModel = nil
 	end
-	pay(c, recipe)
 	c.dishKind = dishKind(recipe.id)
 	c.eaten += 1
 end
@@ -13059,19 +13270,20 @@ local function run(c)
 		setOrder(c, recipe)
 		c.patience = c.patienceMax * (first and 1 or 0.85)
 		setState(c, "order")
-		-- wait to be noticed / served
+		-- the customer orders by themselves: the ticket goes on the order bar right away (when the
+		-- bar is full they keep asking until there is room)
+		placeOrder(c)
 		while c.state == "order" or c.state == "waiting" do
 			task.wait(0.5)
+			if c.state == "order" then
+				placeOrder(c)
+			end
 			patienceTick(c, 0.5)
 			if c.patience <= 0 then
 				review(c, true)
 				if c.npc and c.npc.play then
 					Npc.emote(c.npc, "wave")
 				end
-				return leaveRestaurant(c)
-			end
-			local phase = Core.S.Day.phase
-			if phase == "report" or phase == "prep" then
 				return leaveRestaurant(c)
 			end
 		end
@@ -13266,15 +13478,9 @@ function Service.use(actor, e)
 	end
 	local Hands = Core.S.Hands
 	if c.state == "order" then
-		local t = Core.S.Cooking.addTicket(c.uid, c.order)
-		if not t then
+		if not placeOrder(c) then
 			return false, "msg.tickets_full"
 		end
-		c.ticket = t
-		-- the order is taken: a fresh, full timer for cooking it
-		c.patience = c.patienceMax
-		setState(c, "waiting")
-		Core.S.Net.fx("sfx", { name = "ticket", pos = Core.S.Entities.position(e) })
 		return true
 	elseif c.state == "waiting" then
 		local hands = Hands.get(actor)
@@ -13349,6 +13555,11 @@ function Service.serve(c, dish, actor)
 		Core.S.Meta.event(owner, "serve_ramen", 1)
 	end
 	Core.S.Data.changed(owner, "stats")
+	-- paid on the spot: price and tip fly to the wallet the moment the dish lands
+	pay(c, recipe)
+	if c.npc and c.npc.root then
+		Core.S.Net.fx("served", { pos = c.npc.root.Position + Vector3.new(0, 3.5, 0) })
+	end
 end
 
 function Service.collectDirty(actor, e)
@@ -13389,6 +13600,8 @@ end
 
 ------------------------------------------------------------------ loop
 
+local firstAt = nil -- the first customer comes this soon after the restaurant is ready
+
 local function spawnLoop()
 	local timer = 0
 	while true do
@@ -13397,12 +13610,19 @@ local function spawnLoop()
 		local Day = Core.S.Day
 		if Day and Day.phase == "open" and Core.S.Session.owner then
 			timer += dt
+			if firstAt and os.clock() >= firstAt then
+				firstAt = nil
+				timer = math.huge
+			end
 			local pop = Core.S.Progression.popularity()
 			local days = (data() and data().stats.days) or 0
 			local peakFactor = days < (GameConfig.Day.EarlyDays or 0) and GameConfig.Day.EarlyPeakFactor or GameConfig.Day.PeakFactor
 			local interval = Formulas.customerInterval(CFG.BaseInterval, CFG.MinInterval, pop, Day.isPeak(), peakFactor, Core.S.Economy.boostActive("rush"))
 			if Core.S.Seating.freeCount() == 0 then
 				interval = interval * 1.5
+			end
+			if Day.isNight() then
+				interval = interval * GameConfig.Day.NightFactor
 			end
 			if timer >= interval then
 				timer = 0
@@ -13415,6 +13635,9 @@ local function spawnLoop()
 end
 
 function Service.Start()
+	Core.S.Session.OwnerReady:Connect(function()
+		firstAt = os.clock() + (CFG.FirstCustomerDelay or 2)
+	end)
 	task.spawn(spawnLoop)
 end
 
@@ -13431,6 +13654,8 @@ local GameConfig = require(Shared.Config.GameConfig)
 local StarterLayout = require(Shared.Config.StarterLayout)
 local Surfaces = require(Shared.Config.Surfaces)
 local Recipes = require(Shared.Config.Recipes)
+local Ingredients = require(Shared.Config.Ingredients)
+local ShelfGrid = require(Shared.Logic.ShelfGrid)
 local TableUtil = require(Shared.Util.TableUtil)
 local Uid = require(Shared.Util.Uid)
 local Signal = require(Shared.Util.Signal)
@@ -13441,7 +13666,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 9
+local VERSION = 10
 local profiles = {} -- [player] = { data, loaded, saving, released }
 local releasing = {} -- [userId] = true while the final save of a player who left is running
 local activeSaves = 0
@@ -13487,7 +13712,7 @@ function Data.newProfile()
 		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0, codes = {}, onboarding = true, funnel = {} },
 		franchise = { stars = 0, city = "tokyo" },
 		perms = {},
-		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, autoDay = false, cam = "first", camSpeed = 1 },
+		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = 1 },
 		passes = {},
 		receipts = {},
 		created = os.time(),
@@ -13523,8 +13748,28 @@ function Data.newProfile()
 			d.placed[idx].y = ItemsCfg.byId[parent.i].size[2]
 		end
 	end
+	-- the shelves start stocked (StarterLayout.stock): every listed slot full
+	local shelfIndex = 0
+	for idx, s in ipairs(StarterLayout.items) do
+		local fn = ItemsCfg.byId[s.i].fn
+		if fn and fn.type == "shelf" then
+			shelfIndex += 1
+			local list = StarterLayout.stock and StarterLayout.stock[shelfIndex]
+			if list then
+				local slots = {}
+				for k, g in ipairs(list) do
+					local ing = Ingredients.byId[g]
+					if ing and k <= fn.slots then
+						local cols, rows = ShelfGrid.forIngredient(ing.units, GameConfig.BoxShelfSlots, 1)
+						slots[tostring(k)] = { g = g, n = cols * rows }
+					end
+				end
+				d.shelves[uids[idx]] = slots
+			end
+		end
+	end
 	for _, b in ipairs(StarterLayout.boxes) do
-		local ing = require(Shared.Config.Ingredients).byId[b.g]
+		local ing = Ingredients.byId[b.g]
 		for _ = 1, b.n do
 			table.insert(d.storage, { u = Uid.new("b"), g = b.g, n = ing.units })
 		end
@@ -13621,6 +13866,21 @@ local function migrate(d)
 		d.meta = d.meta or {}
 		d.meta.onboarding = false
 		d.v = 9
+	end
+	if d.v < 10 then
+		-- v10: the restaurant is always open; the camera picks itself (third person on phones and
+		-- tablets, first person with a keyboard)
+		d.settings = d.settings or {}
+		if d.settings.cam == nil or d.settings.cam == "first" then
+			d.settings.cam = "auto"
+		end
+		d.settings.autoDay = nil
+		-- the tutorial changed: whoever was halfway through starts the new, shorter one
+		d.meta = d.meta or {}
+		if (d.meta.tutorial or 0) > 0 then
+			d.meta.tutorial = 1
+		end
+		d.v = 10
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION
@@ -13954,8 +14214,12 @@ end
 local _ = { RunService, HttpService }
 return Data
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000073"><Properties><string name="Name">Day</string><ProtectedString name="Source"><![CDATA[--!nonstrict
--- Day cycle: prep -> open (11:00-23:00, 1 game hour = 1 minute) -> closing -> report -> prep.
+-- Time of day. The restaurant is always open: the clock turns continuously for the light (day,
+-- sunset, lantern-lit evening, a quick night) and the lunch and dinner rush. Every day at
+-- Day.DayStartHour the day's accounts are closed: salaries, stats, daily quests and a short summary
+-- for the owner (never a screen that stops the game).
 local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -13963,11 +14227,11 @@ local Staff = require(Shared.Config.Staff)
 local Core = require(script.Parent.Parent.Core)
 
 local Day = {}
-Day.phase = "prep"
-Day.clock = GameConfig.Day.PrepClock
-Day.report = nil
-local phaseStarted = os.clock()
 local DAY = GameConfig.Day
+Day.phase = "open" -- kept for older checks: the restaurant never closes
+Day.clock = DAY.StartClock
+Day.report = nil
+local hours = DAY.StartClock -- game hours since the server started (never wraps)
 
 local function data()
 	return Core.S.Session.ownerData()
@@ -13982,13 +14246,18 @@ function Day.isPeak()
 	return false
 end
 
+function Day.isNight()
+	return Day.clock >= DAY.NightFrom or Day.clock < DAY.NightTo
+end
+
 local function payload()
 	local d = data()
 	return {
 		phase = Day.phase,
 		clock = Day.clock,
 		day = d and (d.stats.days or 0) + 1 or 1,
-		report = Day.phase == "report" and Day.report or nil,
+		night = Day.isNight(),
+		report = Day.report,
 	}
 end
 
@@ -13997,36 +14266,17 @@ function Day.broadcast()
 	workspace:SetAttribute("DayPhase", Day.phase)
 end
 
-local function setPhase(p)
-	Day.phase = p
-	phaseStarted = os.clock()
-	Day.broadcast()
-end
-
-function Day.open()
-	if Day.phase ~= "prep" then
-		return
-	end
-	Core.S.Economy.resetLedger()
-	Day.clock = DAY.OpenHour
-	Lighting.ClockTime = Day.clock
-	Core.S.World.setOpenSign(true)
-	setPhase("open")
-	Core.S.Net.notifyAll("msg.day_open", nil, "success")
-	Core.S.Net.fx("sfx", { name = "bell" })
-	Core.S.Meta.event(Core.S.Session.owner, "open", 1)
-end
-
+-- closes the day's accounts and starts a new day
 local function finish()
 	local d = data()
-	if not d then
+	local owner = Core.S.Session.owner
+	if not d or not owner then
+		Core.S.Economy.resetLedger()
 		return
 	end
-	local owner = Core.S.Session.owner
-	-- tips left in the jar go to the wallet before the day's report
+	-- tips left in the jar go to the wallet before the summary
 	pcall(Core.S.Economy.collectTips, owner)
 	local L = Core.S.Economy.ledger
-	-- salaries
 	local salaries = 0
 	for _, s in ipairs(d.staff) do
 		local cfg = Staff.byId[s.role]
@@ -14058,59 +14308,26 @@ local function finish()
 	Core.S.Data.changed(owner, "stats")
 	Core.S.Meta.event(owner, "days", 1)
 	Core.S.Meta.dayEnded(owner)
-	setPhase("report")
+	Core.S.Economy.resetLedger()
+	Core.S.Net.notify(owner, "msg.day_summary", { day = Day.report.day, yen = income, served = L.served }, "success")
+	Day.broadcast()
 	task.spawn(Core.S.Data.save, owner, false)
 end
 
-function Day.next()
-	if Day.phase ~= "report" then
-		return
-	end
-	Day.clock = DAY.PrepClock
-	Lighting.ClockTime = Day.clock
-	Core.S.Cooking.clearTickets()
-	setPhase("prep")
-end
+Day.finish = finish
 
-function Day.closeEarly()
-	if Day.phase == "open" then
-		Day.clock = DAY.CloseHour
-	end
-end
-
-local function hasManager()
-	local d = data()
-	if not d then
-		return false
-	end
-	for _, s in ipairs(d.staff) do
-		if s.role == "staff_manager" then
-			return true
-		end
-	end
-	return false
-end
+-- compatibility: the restaurant does not open or close any more
+function Day.open() end
+function Day.closeEarly() end
+function Day.next() end
 
 function Day.Init()
-	Core.S.Net.on("SetDayState", function(player, action)
-		local Session = Core.S.Session
-		if not Session.canBuild(player) and action ~= "next" then
-			return Core.S.Net.notify(player, "msg.no_permission", nil, "error")
-		end
-		if action == "open" then
-			Day.open()
-		elseif action == "close" then
-			Day.closeEarly()
-		elseif action == "next" then
-			Day.next()
-		end
-	end, 2)
 	Lighting.ClockTime = Day.clock
 	Lighting.GeographicLatitude = 35
 end
 
 function Day.Start()
-	game:GetService("Players").PlayerAdded:Connect(function(p)
+	Players.PlayerAdded:Connect(function(p)
 		task.wait(2)
 		Core.S.Net.fire(p, "DayState", payload())
 	end)
@@ -14119,36 +14336,22 @@ function Day.Start()
 	end)
 	local last = os.clock()
 	local lastBroadcast = 0
+	local dayIndex = math.floor((hours - DAY.DayStartHour) / 24)
 	while true do
 		task.wait(0.25)
 		local now = os.clock()
 		local dt = now - last
 		last = now
-		local d = data()
-		if Day.phase == "open" then
-			Day.clock += dt / DAY.SecondsPerHour
-			if Day.clock >= DAY.CloseHour then
-				Day.clock = DAY.CloseHour
-				Core.S.World.setOpenSign(false)
-				setPhase("closing")
-				Core.S.Net.notifyAll("msg.day_closing", nil, "info")
-			end
-			Lighting.ClockTime = Day.clock
-		elseif Day.phase == "closing" then
-			local anyone = next(Core.S.Customers.active) ~= nil
-			if not anyone or os.clock() - phaseStarted > 90 then
-				Core.S.Customers.sendAllHome()
-				finish()
-			end
-			Day.clock = math.min(Day.clock + dt / DAY.SecondsPerHour, 24)
-			Lighting.ClockTime = Day.clock
-		elseif Day.phase == "report" then
-			if d and d.settings.autoDay and hasManager() and os.clock() - phaseStarted > DAY.ReportAutoClose then
-				Day.next()
-			end
-		elseif Day.phase == "prep" then
-			if d and d.settings.autoDay and hasManager() and os.clock() - phaseStarted > DAY.ManagerAutoOpenDelay then
-				Day.open()
+		local perHour = Day.isNight() and DAY.NightSecondsPerHour or DAY.SecondsPerHour
+		hours += dt / perHour
+		Day.clock = hours % 24
+		Lighting.ClockTime = Day.clock
+		local idx = math.floor((hours - DAY.DayStartHour) / 24)
+		if idx > dayIndex then
+			dayIndex = idx
+			local ok, err = pcall(finish)
+			if not ok then
+				warn("[Day] closing the day failed: " .. tostring(err))
 			end
 		end
 		if now - lastBroadcast > 5 then
@@ -14224,7 +14427,7 @@ local function run(player, cmd, arg)
 	elseif cmd == "spawn" then
 		task.spawn(S.Customers.trySpawn, type(arg) == "string" and arg or nil)
 	elseif cmd == "time" then
-		S.Day.closeEarly()
+		S.Day.finish()
 	elseif cmd == "stock" then
 		for _, ing in ipairs(Ingredients.list) do
 			if d.licenses[ing.license] then
@@ -14855,6 +15058,21 @@ function Hands.refresh(actor)
 	publish(actor)
 end
 
+-- dishes held by anyone, by recipe (a dish in hand is on its way to a customer)
+function Hands.dishCounts()
+	local out = {}
+	for _, s in pairs(state) do
+		if s.kind == "dish" then
+			for _, it in ipairs(s.items) do
+				if it.recipe then
+					out[it.recipe] = (out[it.recipe] or 0) + 1
+				end
+			end
+		end
+	end
+	return out
+end
+
 function Hands.forget(actor)
 	local s = state[key(actor)]
 	if s then
@@ -15395,11 +15613,8 @@ function Meta.Init()
 		lowGfx = function(v)
 			return type(v) == "boolean"
 		end,
-		autoDay = function(v)
-			return type(v) == "boolean"
-		end,
 		cam = function(v)
-			return v == "first" or v == "game" or v == "roblox"
+			return v == "auto" or v == "first" or v == "game" or v == "roblox"
 		end,
 		camSpeed = function(v)
 			return type(v) == "number" and v >= 0.3 and v <= 2
@@ -17485,34 +17700,20 @@ function SelfTest.run(player)
 	end)
 
 	check("restock a shelf", function()
-		for _, g in ipairs({ "noodles", "scallion", "naruto" }) do
-			local _, ent = ensureBox(g)
-			assert(S.Supply.takeBox(actor, ent), "could not take the box")
-			-- the first shelf with room for this ingredient
-			local shelf, before, ok, msg = nil, {}, false, "no shelf"
-			for _, e in ipairs(S.Entities.ofKind("shelf")) do
-				if not e.item.fn.fishOnly and not ok then
-					before = {}
-					for k, sl in pairs(d.shelves[e.uid] or {}) do
-						before[k] = sl.n
-					end
-					ok, msg = S.Supply.useShelf(actor, e, nil)
-					if ok then
-						shelf = e
-					end
-				end
-			end
-			assert(ok and shelf, "useShelf: " .. tostring(msg))
-			returnLeftover()
-			assert(S.Supply.shelfStock(g) > 0, g .. " not on the shelf")
-			local touched = 0
-			for k, sl in pairs(d.shelves[shelf.uid] or {}) do
-				if sl.n ~= (before[k] or 0) then
-					touched += 1
-				end
-			end
-			assert(touched <= GameConfig.BoxShelfSlots, "one box filled " .. touched .. " shelf slots")
+		-- three noodles are used, then a box of noodles fills the free spots of that slot only
+		local _, ent = ensureBox("noodles")
+		for _ = 1, 3 do
+			assert(S.Supply.takeIngredient("noodles"), "no noodles on the shelves")
 		end
+		local shelf = S.Supply.findShelfWith("noodles")
+		assert(shelf, "no shelf with noodles")
+		local before = S.Supply.shelfStock("noodles")
+		assert(S.Supply.takeBox(actor, ent), "could not take the box")
+		local ok, msg = S.Supply.useShelf(actor, shelf, nil)
+		assert(ok, "useShelf: " .. tostring(msg))
+		returnLeftover()
+		local after = S.Supply.shelfStock("noodles")
+		assert(after == before + 3, "the slot got " .. (after - before) .. " noodles instead of 3")
 	end)
 
 	check("pour the shoyu broth", function()
@@ -17534,39 +17735,7 @@ function SelfTest.run(player)
 		end
 	end)
 
-	check("cook a shoyu ramen with clicks", function()
-		for _, g in ipairs({ "noodles", "scallion", "naruto" }) do
-			local shelf, slot = S.Supply.findShelfWith(g)
-			assert(shelf, "no " .. g .. " on the shelves")
-			local ok, msg = S.Supply.useShelf(actor, shelf, slot)
-			assert(ok, "take " .. g .. ": " .. tostring(msg))
-		end
-		local station = firstOf("station", function(e)
-			return e.item.fn.station == "ramen" and not S.Cooking.stationState(e).busy and not S.Cooking.stationState(e).ready
-		end)
-		assert(station, "no free ramen station")
-		local ok, msg = S.Cooking.use(actor, station, 4)
-		assert(ok, "deposit: " .. tostring(msg))
-		for _ = 1, 6 do
-			if S.Cooking.stationState(station).ready then
-				break
-			end
-			local stepOk, stepMsg = S.Cooking.use(actor, station, 4)
-			assert(stepOk, "step: " .. tostring(stepMsg))
-		end
-		assert(S.Cooking.stationState(station).ready, "dish not ready")
-		assert(S.Cooking.use(actor, station, 4), "could not take the dish")
-		assert(S.Hands.get(actor).kind == "dish", "no dish in hand")
-		actor.keepDish = S.Hands.get(actor).items[1]
-	end)
-
-	check("customer orders, is served and pays", function()
-		assert(actor.keepDish, "no dish from the previous step")
-		if S.Day.phase == "prep" then
-			S.Day.open()
-		end
-		assert(S.Day.phase == "open", "the day is not open")
-		local before = d.yen
+	check("a customer comes in and orders by themselves", function()
 		local known = {}
 		for uid in pairs(S.Customers.active) do
 			known[uid] = true
@@ -17574,25 +17743,54 @@ function SelfTest.run(player)
 		assert(S.Customers.trySpawn("cust_student"), "no customer could be spawned (seats? menu?)")
 		local c = waitFor(function()
 			for uid, cust in pairs(S.Customers.active) do
-				if not known[uid] and cust.state == "order" then
+				if not known[uid] and cust.state == "waiting" and cust.ticket then
 					return cust
 				end
 			end
 			return nil
 		end, 75)
-		assert(c, "the customer never sat down to order")
-		c.order = "shoyu_ramen"
-		c.npc.model:SetAttribute("Order", "shoyu_ramen")
-		local e = S.Entities.get(c.uid)
-		assert(S.Customers.use(actor, e), "could not take the order")
-		assert(c.state == "waiting", "state after order: " .. tostring(c.state))
+		assert(c, "the customer never ordered")
+		actor.customer = c
+	end)
+
+	check("the station cooks the order, one press per step", function()
+		local c = actor.customer
+		assert(c, "no customer from the previous step")
+		local Recipes = require(Shared.Config.Recipes)
+		local recipe = Recipes.byId[c.order]
+		local stationEntity = firstOf("station", function(e)
+			local st = S.Cooking.stationState(e)
+			if e.item.fn.station ~= recipe.station or st.busy or st.ready or #st.board > 0 then
+				return false
+			end
+			local _, r = S.Cooking.nextOrder(e)
+			return r ~= nil and r.id == recipe.id
+		end)
+		assert(stationEntity, "no free " .. recipe.station .. " station for " .. recipe.id)
+		local presses = 0
+		while not S.Cooking.stationState(stationEntity).ready and presses < 8 do
+			local ok, msg = S.Cooking.use(actor, stationEntity, 4)
+			assert(ok, "press " .. (presses + 1) .. ": " .. tostring(msg))
+			presses += 1
+		end
+		assert(S.Cooking.stationState(stationEntity).ready, "dish not ready after " .. presses .. " presses")
+		assert(presses == #recipe.steps, recipe.id .. " took " .. presses .. " presses, expected " .. #recipe.steps)
+		assert(S.Cooking.use(actor, stationEntity, 4), "could not take the dish")
+		assert(S.Hands.get(actor).kind == "dish", "no dish in hand")
+		actor.keepDish = S.Hands.get(actor).items[1]
+	end)
+
+	check("the customer is served and pays", function()
+		local c = actor.customer
+		assert(c and actor.keepDish, "no customer or no dish from the previous steps")
 		S.Hands.set(actor, "dish", { actor.keepDish })
+		local before = d.yen
+		local e = S.Entities.get(c.uid)
 		local ok, msg = S.Customers.use(actor, e)
 		assert(ok, "serve: " .. tostring(msg))
 		assert(waitFor(function()
 			return d.yen > before
 		end, 40), "the customer did not pay")
-		actor.customerSeat = c.seat
 	end)
 
 	check("collect the dirty dish and wash it", function()
@@ -18342,39 +18540,17 @@ local function doCook(a)
 		return false
 	end
 	t.claimed = a
-	local Supply = Core.S.Supply
-	local ok = true
-	for _, g in ipairs(recipe.ing) do
-		local shelf, slot = Supply.findShelfWith(g, a.npc.root.Position)
-		if not shelf then
-			ok = false
-			break
-		end
-		walk(a, Tasks.frontOf(shelf))
-		local took = Supply.useShelf(a, shelf, slot)
-		if not took then
-			ok = false
-			break
-		end
-	end
-	if ok then
-		walk(a, Tasks.frontOf(station))
-		Core.S.Cooking.use(a, station, speed(a))
-		local guard = 0
-		while not Core.S.Cooking.stationState(station).ready and guard < 8 do
-			guard += 1
-			local stepOk = Core.S.Cooking.use(a, station, speed(a))
-			if not stepOk then
-				break
-			end
-		end
-	end
-	-- put back anything left in hand
-	if Core.S.Hands.get(a).kind == "ing" then
-		Core.S.Hands.clear(a)
+	-- at the station: the first press fetches the ingredients from the shelves, then one press
+	-- per step until the dish is on its plate
+	walk(a, Tasks.frontOf(station))
+	local ok = Core.S.Cooking.use(a, station, speed(a))
+	local guard = 0
+	while ok and not st.ready and guard < 8 do
+		guard += 1
+		ok = Core.S.Cooking.use(a, station, speed(a))
 	end
 	Tasks.release(st, a)
-	local readyNow = Core.S.Cooking.stationState(station).ready
+	local readyNow = st.ready
 	if not readyNow then
 		t.claimed = nil
 		return ok
@@ -18456,12 +18632,9 @@ local function spawnActor(record, index)
 	Core.S.Npc.spawn(npc, CFrame.new(HOME[(index % #HOME) + 1] + Vector3.new(0, 3, 0)))
 	task.spawn(function()
 		while a.alive do
-			local phase = Core.S.Day.phase
+			-- the restaurant is always open: staff always work
 			local ok, did = pcall(function()
-				if phase == "open" or phase == "closing" or a.role == "staff_stocker" or a.role == "staff_dishwasher" then
-					return think(a)
-				end
-				return false
+				return think(a)
 			end)
 			if not ok then
 				warn("[Staff] " .. tostring(did))
@@ -19165,6 +19338,30 @@ function Supply.shelfStock(g)
 	return total
 end
 
+-- Takes one product of ingredient g from the shelf slot nearest to pos (stations fetch their
+-- ingredients by themselves). Returns where the product stood (for the fly animation) and whether
+-- it was fresh (neta case), or nil when there is none on the shelves.
+function Supply.takeIngredient(g, pos)
+	local shelf, slot = Supply.findShelfWith(g, pos)
+	if not shelf then
+		return nil
+	end
+	local st = shelfState(shelf.uid)
+	local s = st[tostring(slot)]
+	if not s or s.n <= 0 then
+		return nil
+	end
+	local target = Supply.cellTarget(shelf, slot, s.n, g)
+	s.n -= 1
+	if s.n <= 0 then
+		st[tostring(slot)] = nil
+	end
+	Supply.refreshShelf(shelf, slot)
+	Core.S.Data.changed(Core.S.Session.owner, "shelves")
+	local from = target and target.cf and target.cf.Position or shelf.model.PrimaryPart.Position
+	return from, shelf.item.fn.fresh == true
+end
+
 -- Nearest shelf slot holding ingredient g (for staff)
 function Supply.findShelfWith(g, pos)
 	local best, bestSlot, bestD = nil, nil, math.huge
@@ -19311,6 +19508,9 @@ function Supply.useShelf(actor, e, slot)
 		Core.S.Meta.event(Core.S.Session.owner, "restock", 1)
 		Core.S.Net.fx("sfx", { name = "restock", pos = e.model.PrimaryPart.Position })
 		return true
+	elseif typeof(actor) == "Instance" and hands.kind == nil then
+		-- players do not carry ingredients any more: the stations take them by themselves
+		return false, "msg.shelf_auto"
 	elseif hands.kind == nil or hands.kind == "ing" then
 		local s = slot and st[tostring(slot)]
 		if not s or s.n <= 0 then
@@ -19771,37 +19971,17 @@ function Tasks.findDirty()
 	return nil
 end
 
--- Chef: a ticket for one of the chef's stations whose ingredients are on the shelves
+-- Chef: a free station of the chef's kinds with an order to start and everything it needs
+-- (the station fetches the ingredients from the shelves by itself)
 function Tasks.findCook(stations)
-	local Supply, Appliance = Core.S.Supply, Core.S.Appliance
-	for _, t in ipairs(Core.S.Cooking.tickets) do
-		local r = Recipes.byId[t.recipe]
-		if r and not t.claimed and table.find(stations, r.station) then
-			local ok = true
-			local need = {}
-			for _, g in ipairs(r.ing) do
-				need[g] = (need[g] or 0) + 1
-			end
-			for g, n in pairs(need) do
-				if Supply.shelfStock(g) < n then
-					ok = false
-				end
-			end
-			if ok and r.rice and not Appliance.hasRice() then
-				ok = false
-			end
-			if ok and r.broth and not Appliance.hasBroth(r.broth) then
-				ok = false
-			end
-			if ok then
-				-- a free station of the right type
-				for _, e in ipairs(Core.S.Entities.ofKind("station")) do
-					if e.item.fn.station == r.station then
-						local st = Core.S.Cooking.stationState(e)
-						if not st.busy and #st.board == 0 and not st.ready and not claimed(st) then
-							return t, r, e
-						end
-					end
+	local Cooking = Core.S.Cooking
+	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+		if table.find(stations, e.item.fn.station) then
+			local st = Cooking.stationState(e)
+			if not st.busy and #st.board == 0 and not st.ready and not claimed(st) then
+				local t, r = Cooking.nextOrder(e)
+				if t and #Cooking.missing(r) == 0 then
+					return t, r, e
 				end
 			end
 		end
@@ -21103,8 +21283,9 @@ end
 
 return Build
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
--- Game camera, three modes (Settings → Camera):
---   "first"  first person (default): mouse look, a crosshair in the middle, click / E on what you
+-- Game camera (Settings → Camera): "auto" (default) picks "game" on phones and tablets and
+-- "first" with a keyboard; or one of the three modes:
+--   "first"  first person: mouse look, a crosshair in the middle, click / E on what you
 --            look at (see Controllers/FirstPerson); Camera speed scales the mouse sensitivity
 --   "game"   a smooth orbit camera that rotates slowly (right mouse drag, one-finger drag, ← →),
 --            zooms with the wheel or a pinch, never ends up behind walls and hides the roof when
@@ -21182,10 +21363,14 @@ local function settings()
 	return s or {}
 end
 
+-- "auto" (the default): third person on phones and tablets, first person with a keyboard
 function Camera.mode()
 	local m = settings().cam
-	if m == "game" or m == "roblox" then
+	if m == "game" or m == "roblox" or m == "first" then
 		return m
+	end
+	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+		return "game"
 	end
 	return "first"
 end
@@ -21652,6 +21837,49 @@ local function popup(pos, text, color, rise)
 	end)
 end
 
+-- coins fly from a point in the world to the wallet at the top of the screen, which then bounces
+local function coinsToWallet(pos, amount)
+	local root = Core.C.UI and Core.C.UI.root()
+	local hud = Core.C.UI and Core.C.UI.screens.HUD
+	local cam = workspace.CurrentCamera
+	if not root or not hud or not hud.walletPoint or not cam then
+		return
+	end
+	local screen, onScreen = cam:WorldToViewportPoint(pos)
+	local target = hud.walletPoint()
+	if not onScreen or not target then
+		return
+	end
+	local inset = game:GetService("GuiService"):GetGuiInset()
+	local from = Vector2.new(screen.X, screen.Y - inset.Y)
+	local scale = root:FindFirstChildOfClass("UIScale")
+	local k = scale and scale.Scale or 1
+	local n = math.clamp(math.floor((amount or 0) / 15) + 3, 3, 8)
+	for i = 1, n do
+		task.delay((i - 1) * 0.05, function()
+			local coin = Instance.new("TextLabel")
+			coin.BackgroundTransparency = 1
+			coin.Text = "🪙"
+			coin.TextScaled = true
+			coin.AutoLocalize = false
+			coin.AnchorPoint = Vector2.new(0.5, 0.5)
+			coin.Size = UDim2.fromOffset(30, 30)
+			local jitter = Vector2.new(math.random(-24, 24), math.random(-16, 16))
+			coin.Position = UDim2.fromOffset((from.X + jitter.X) / k, (from.Y + jitter.Y) / k)
+			coin.ZIndex = 50
+			coin.Parent = root
+			local tw = TweenService:Create(coin, TweenInfo.new(0.55, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Position = UDim2.fromOffset(target.X / k, target.Y / k), Size = UDim2.fromOffset(18, 18) })
+			tw:Play()
+			tw.Completed:Connect(function()
+				coin:Destroy()
+				if hud.bumpWallet then
+					hud.bumpWallet()
+				end
+			end)
+		end)
+	end
+end
+
 local function burst(pos, preset, count, color)
 	local p = Instance.new("Part")
 	p.Anchored = true
@@ -21730,7 +21958,8 @@ local function stock(data)
 	for i, item in ipairs(items) do
 		task.delay((i - 1) * step, function()
 			local m, landing = product(item)
-			local from = data.from and (CFrame.new(data.from) * landing.Rotation) or (landing + Vector3.new(0, 2, 0))
+			local src = item.from or data.from
+			local from = src and (CFrame.new(src) * landing.Rotation) or (landing + Vector3.new(0, 2, 0))
 			m:PivotTo(from)
 			m.Parent = workspace.CurrentCamera
 			arc(m, from, landing, 0.28, 1, function()
@@ -21804,6 +22033,12 @@ function Effects.Init()
 		local Audio = Core.C.Audio
 		if kind == "money" and data.pos then
 			popup(data.pos, "+" .. Format.yen(data.amount or 0, Locale.get()), Color.hex("#FFD23B"))
+			coinsToWallet(data.pos, data.amount)
+			burst(data.pos, "sparkle", 12, "#FFD23B")
+		elseif kind == "served" and data.pos then
+			-- the customer is delighted: a smile and hearts
+			popup(data.pos, "😋", nil, 2)
+			burst(data.pos, "sparkle", 10, "#FF7A9A")
 		elseif kind == "review" and data.pos then
 			local stars = data.stars or 3
 			popup(data.pos + Vector3.new(0, 1.2, 0), string.rep("★", math.floor(stars)) .. (stars % 1 >= 0.5 and "½" or ""), stars >= 4 and Color.hex("#FFD23B") or Color.hex("#FF8A5A"), 2)
@@ -21894,7 +22129,7 @@ return Effects
 --   * the mouse is freed while a menu is open, while building, while Alt is held or after Q
 --     (Q again to look around); the first time a toast explains it
 --   * keyboard shortcuts for the bottom buttons: B build, O supplier, P phone (all camera modes)
---   * on touch screens a big ✋ button uses what is under the crosshair (tapping things works too)
+--   * the target's ProximityPrompt says what pressing does (tap it on touch screens)
 --   * running: hold Shift, or the 🏃 button on touch screens (every camera mode)
 --   * right mouse button puts down the box(es) you carry (in third person it turns the camera)
 local Players = game:GetService("Players")
@@ -22045,8 +22280,9 @@ local function updateCrosshair()
 	keysLabel.Visible = fp and not touch and not free
 	local target = show and Core.C.Interaction and Core.C.Interaction.target and Core.C.Interaction.target()
 	if target and target.text then
-		hintPill.Visible = true
-		hintText.Text = target.near and ((touch and "✋ " or "🖱️ ") .. target.text) or ("🚶 " .. t("hint.get_closer"))
+		-- close enough: the object's prompt says what E / a click / a tap does; too far: "get closer"
+		hintPill.Visible = not target.near
+		hintText.Text = "🚶 " .. t("hint.get_closer")
 		dot.Size = UDim2.fromOffset(target.near and 14 or 10, target.near and 14 or 10)
 		dot.BackgroundColor3 = target.near and T.gold or Color3.fromRGB(220, 214, 205)
 	else
@@ -22054,7 +22290,8 @@ local function updateCrosshair()
 		dot.Size = UDim2.fromOffset(6, 6)
 		dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	end
-	useButton.Visible = show and touch and ((target ~= nil and target.near == true) or (Core.C.Sink ~= nil and Core.C.Sink.isHolding()))
+	-- the prompt is tappable: no extra use button on touch screens
+	useButton.Visible = false
 end
 
 local function shortcut(key)
@@ -22193,7 +22430,10 @@ end
 
 return FirstPerson
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
--- Hover highlight + action label on nearby interactables; click / tap / E sends Interact.
+-- What you can use: in first person the object under the crosshair, in third person the one under
+-- the mouse or else the nearest one in front of you. It gets an outline and a ProximityPrompt
+-- with what pressing does (E, ButtonX or a tap on the prompt; a click or a tap on the object works
+-- too). Using sends Interact; the server checks distance, permissions and everything else.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -22218,6 +22458,9 @@ local t = Locale.t
 
 local highlight, label, labelText
 local current = nil -- { model, uid, kind, slot }
+local prompts = setmetatable({}, { __mode = "k" }) -- [model] = ProximityPrompt (local to this client)
+local shownPrompt = nil
+local act
 local lastCheck = 0
 local recipeMarks = {}
 
@@ -22313,12 +22556,8 @@ local function actionText(model, kind, slot)
 			end
 			return t("hint.restock")
 		end
-		local part = slot and model:FindFirstChild("Slot" .. slot)
-		local g = part and part:GetAttribute("G") or ""
-		if g ~= "" then
-			return t("hint.take_ing", { name = "ing." .. g, n = part:GetAttribute("N") or 0 })
-		end
-		return t("hint.shelf_empty")
+		-- empty hands: nothing to do here, the stations take the ingredients by themselves
+		return nil
 	elseif kind == "ricecooker" or kind == "pot" then
 		if hands == "box" then
 			return t("hint.pour")
@@ -22335,27 +22574,34 @@ local function actionText(model, kind, slot)
 		end
 		if hands == "ing" then
 			return t("hint.put_ingredients")
+		elseif hands then
+			return t("hint.hands_full")
 		end
 		local recipe = model:GetAttribute("Recipe") or ""
-		local steps = model:GetAttribute("Steps") or ""
 		if recipe ~= "" then
-			local list = string.split(steps, ",")
-			local idx = (model:GetAttribute("Step") or 0) + 1
-			return t("hint.do_step", { step = "step." .. (list[idx] or "combine"), dish = "rec." .. recipe, i = idx, n = #list })
-		end
-		local need = model:GetAttribute("Need") or ""
-		if need ~= "" then
-			local icons = {}
-			for _, g in ipairs(string.split(need, ",")) do
-				local ing = Ingredients.byId[g]
-				table.insert(icons, ing and ing.icon or g)
+			if model:GetAttribute("Busy") then
+				return t("hint.cooking_now", { dish = "rec." .. recipe })
 			end
-			return t("hint.board_need", { list = table.concat(icons, " ") })
+			local list = string.split(model:GetAttribute("Steps") or "", ",")
+			local idx = (model:GetAttribute("Step") or 0) + 1
+			return t("act." .. (list[idx] or "combine"), { dish = "rec." .. recipe, i = idx, n = #list })
 		end
-		if (model:GetAttribute("Board") or "") ~= "" then
-			return t("hint.board_incomplete")
+		-- an empty board: the next press starts the oldest order for this station
+		local nextId = model:GetAttribute("Next") or ""
+		if nextId ~= "" then
+			local missing = model:GetAttribute("Missing") or ""
+			if missing ~= "" then
+				local icons = {}
+				for _, g in ipairs(string.split(missing, ",")) do
+					local ing = Ingredients.byId[g]
+					table.insert(icons, g == "dishes" and "🍽️" or (ing and ing.icon or g))
+				end
+				return t("hint.missing_for", { dish = "rec." .. nextId, list = table.concat(icons, " ") })
+			end
+			local r = Recipes.byId[nextId]
+			return t("act." .. (r and r.steps[1] or "combine"), { dish = "rec." .. nextId, i = 1, n = r and #r.steps or 1 })
 		end
-		return t("hint.station")
+		return t("hint.no_orders")
 	elseif kind == "customer" then
 		local state = model:GetAttribute("State")
 		local order = model:GetAttribute("Order") or ""
@@ -22403,12 +22649,62 @@ local function inRange(model)
 	return flat <= GameConfig.InteractRange + margin - 0.5 and math.abs(pos.Y - root.Position.Y) < 12
 end
 
+-- one ProximityPrompt per object, created here on the client and shown only on the target
+local function promptFor(model)
+	local p = prompts[model]
+	if p and p.Parent then
+		return p
+	end
+	local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
+	if not part then
+		return nil
+	end
+	p = Instance.new("ProximityPrompt")
+	p.Name = "UsePrompt"
+	p.RequiresLineOfSight = false
+	p.Exclusivity = Enum.ProximityPromptExclusivity.OneGlobally
+	p.KeyboardKeyCode = Enum.KeyCode.E
+	p.GamepadKeyCode = Enum.KeyCode.ButtonX
+	p.HoldDuration = 0
+	p.MaxActivationDistance = 40
+	p.Enabled = false
+	p.Triggered:Connect(function()
+		if current and current.model == model then
+			act(false)
+		end
+	end)
+	-- releasing the button stops washing at the sink
+	p.TriggerEnded:Connect(function()
+		if Core.C.Sink then
+			Core.C.Sink.endHold()
+		end
+	end)
+	p.Parent = part
+	prompts[model] = p
+	return p
+end
+
+local function showPrompt(model, text, near)
+	local p = (model and text and near) and promptFor(model) or nil
+	if shownPrompt and shownPrompt ~= p and shownPrompt.Parent then
+		shownPrompt.Enabled = false
+	end
+	shownPrompt = p
+	if p then
+		if p.ActionText ~= text then
+			p.ActionText = text
+		end
+		p.Enabled = true
+	end
+end
+
 local function setCurrent(model, slot)
 	if not model then
 		current = nil
 		highlight.Adornee = nil
 		highlight.Enabled = false
 		label.Enabled = false
+		showPrompt(nil)
 		return
 	end
 	local kind = model:GetAttribute("Kind")
@@ -22422,11 +22718,42 @@ local function setCurrent(model, slot)
 	highlight.Adornee = model
 	highlight.Enabled = true
 	highlight.OutlineColor = near and Color.hex("#FFD23B") or Color.hex("#B8AFA2")
-	-- in first person the action is written under the crosshair (Controllers/FirstPerson)
+	-- close enough: the prompt says what pressing does; too far: a small "get closer" label
+	-- (in first person it is written under the crosshair, see Controllers/FirstPerson)
+	showPrompt(model, text, near)
 	local fp = Core.C.Camera and Core.C.Camera.isFirstPerson and Core.C.Camera.isFirstPerson()
 	label.Adornee = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
-	label.Enabled = not fp
-	labelText.Text = near and text or ("🚶 " .. t("hint.get_closer"))
+	label.Enabled = not fp and not near
+	labelText.Text = "🚶 " .. t("hint.get_closer")
+end
+
+-- third person without a mouse target: the nearest usable object in front of you
+local function proximityTarget()
+	local root = hrp()
+	if not root then
+		return nil
+	end
+	local look = root.CFrame.LookVector
+	local flatLook = Vector3.new(look.X, 0, look.Z)
+	flatLook = flatLook.Magnitude > 0 and flatLook.Unit or Vector3.new(0, 0, -1)
+	local best, bestScore = nil, math.huge
+	for _, model in ipairs(CollectionService:GetTagged("Interactable")) do
+		local pp = model.PrimaryPart
+		if pp and model:IsDescendantOf(workspace) then
+			local off = pp.Position - root.Position
+			local flat = Vector3.new(off.X, 0, off.Z)
+			local dist = flat.Magnitude
+			local size = pp.Size
+			if dist <= GameConfig.InteractRange + math.max(size.X, size.Z) / 2 and math.abs(off.Y) < 10 then
+				local facing = dist > 0.5 and flat.Unit:Dot(flatLook) or 1
+				local score = dist - facing * 5
+				if score < bestScore and actionText(model, model:GetAttribute("Kind"), nil) then
+					best, bestScore = model, score
+				end
+			end
+		end
+	end
+	return best
 end
 
 -- What the player points at: { text, near, kind } or nil
@@ -22468,7 +22795,7 @@ local function washHold(tap)
 	return true
 end
 
-local function act(tap)
+act = function(tap)
 	-- while the noodles boil, the click stops the timing needle
 	local Timing = Core.C.Timing
 	if Timing and Timing.active() then
@@ -22606,30 +22933,38 @@ function Interaction.Start()
 			return
 		end
 		lastCheck = os.clock()
-		if aimingCenter() then
+		if Core.C.Build and Core.C.Build.active then
+			setCurrent(nil)
+		elseif aimingCenter() then
 			-- first person: whatever is under the crosshair (mouse, touch and gamepad alike)
 			local cam = workspace.CurrentCamera
 			update(cam.ViewportSize / 2)
-		elseif UserInputService.MouseEnabled then
-			update(UserInputService:GetMouseLocation())
-		elseif current then
-			setCurrent(current.model, current.slot)
+		else
+			-- third person: the object under the mouse, else the nearest one in front of you
+			local hovered = nil
+			if UserInputService.MouseEnabled then
+				local hit = castAt(UserInputService:GetMouseLocation())
+				hovered = hit and findTarget(hit.Instance) or nil
+			end
+			if hovered then
+				update(UserInputService:GetMouseLocation())
+			else
+				setCurrent(proximityTarget(), nil)
+			end
 		end
 	end)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed or (Core.C.Build and Core.C.Build.active) then
 			return
 		end
+		-- E and ButtonX go through the prompt; a click works on the object you point at
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			act()
-		elseif input.KeyCode == Enum.KeyCode.E or input.KeyCode == Enum.KeyCode.ButtonX then
 			act()
 		end
 	end)
-	-- releasing the click / E stops washing
+	-- releasing the click stops washing (the prompt handles E)
 	UserInputService.InputEnded:Connect(function(input)
-		local released = input.UserInputType == Enum.UserInputType.MouseButton1 or input.KeyCode == Enum.KeyCode.E or input.KeyCode == Enum.KeyCode.ButtonX
-		if released and Core.C.Sink then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 and Core.C.Sink then
 			Core.C.Sink.endHold()
 		end
 	end)
@@ -23209,81 +23544,62 @@ local player = Players.LocalPlayer
 local t = Locale.t
 local T = Kit.Theme
 
--- The first day, guided step by step (ramen only, the storage room starts empty):
--- target = what the arrow points at (a kind, or a function returning kind and box filter);
--- done = action (sent by the server after an interaction) or check function, or a timer
-local RAMEN_SHELF = { noodles = true, scallion = true, naruto = true }
+-- The first minutes, one short step at a time: a customer orders by themselves, the ramen station
+-- makes it in three presses (noodles, broth, toppings), you serve it and get paid, then you clear
+-- and wash the dish. target = what the arrow points at (a kind, or a function returning kind and a
+-- filter); done = an action sent by the server after an interaction, or a check, or a timer.
 
-local function heldBox()
-	if player:GetAttribute("HandsKind") ~= "box" then
-		return nil
-	end
-	local ok, list = pcall(function()
-		return game:GetService("HttpService"):JSONDecode(player:GetAttribute("Hands") or "[]")
-	end)
-	return ok and list and list[1] or nil
-end
-
--- ramen ingredients not yet on any shelf
-local function missingOnShelves()
-	local have = {}
-	for _, slots in pairs(Core.C.Data.w("shelves") or {}) do
-		for _, sl in pairs(slots) do
-			if (sl.n or 0) > 0 then
-				have[sl.g] = true
+-- the station that has the order: cooking it, ready with it, or about to start it
+local function orderStation()
+	local best = nil
+	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
+		if m:GetAttribute("Kind") == "station" and m:IsDescendantOf(workspace) then
+			if (m:GetAttribute("Ready") or "") ~= "" or (m:GetAttribute("Recipe") or "") ~= "" then
+				return m
+			end
+			if (m:GetAttribute("Next") or "") ~= "" then
+				best = best or m
 			end
 		end
 	end
-	local missing = {}
-	for g in pairs(RAMEN_SHELF) do
-		if not have[g] then
-			missing[g] = true
-		end
-	end
-	return missing
+	return best
 end
 
-local function anyBox()
-	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
-		if m:GetAttribute("Kind") == "box" and m:IsDescendantOf(workspace) then
-			return true
-		end
+local function stationStep()
+	local m = orderStation()
+	if not m then
+		return 0, false
 	end
-	return false
+	if (m:GetAttribute("Ready") or "") ~= "" then
+		return 99, true
+	end
+	if (m:GetAttribute("Recipe") or "") == "" then
+		return 0, false
+	end
+	return m:GetAttribute("Step") or 0, false
+end
+
+local function anyTicket()
+	return #(Core.C.Data.tickets or {}) > 0
 end
 
 local STEPS = {
-	{ key = "tut.welcome", timer = 8 },
-	{ key = "tut.buy", target = "supplier", action = "order" },
-	{ key = "tut.truck", target = "box", check = anyBox },
-	-- a box for the shelves (noodles, scallion or naruto), then the shelf
-	{ key = "tut.take_box", target = function()
-		return "box", RAMEN_SHELF
-	end, action = "take_box" },
-	{ key = "tut.fill_shelf", target = "shelf", action = "shelf", hands = "box_done" },
-	-- the other two boxes until the three ramen toppings are all on the shelves
-	{ key = "tut.more_boxes", target = function()
-		if RAMEN_SHELF[heldBox() or ""] then
-			return "shelf"
-		end
-		return "box", missingOnShelves()
-	end, check = function()
-		return next(missingOnShelves()) == nil
+	{ key = "tut.welcome", timer = 6 },
+	{ key = "tut.order", target = "customer", check = anyTicket },
+	{ key = "tut.noodles", target = "orderStation", check = function()
+		local step, ready = stationStep()
+		return step >= 1 or ready
 	end },
-	-- the first time the broth is already in the pot (and the rice in the cooker): just show it
-	{ key = "tut.broth_ready", target = "pot", timer = 9 },
-	{ key = "tut.open", check = function()
-		return Core.C.Data.day.phase ~= "prep"
+	{ key = "tut.broth", target = "orderStation", check = function()
+		local step, ready = stationStep()
+		return step >= 2 or ready
 	end },
-	{ key = "tut.order", target = "customer", action = "customer" },
-	{ key = "tut.ingredients", target = "shelf", action = "shelf", hands = "ing" },
-	{ key = "tut.cook", target = "station", check = function()
-		for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
-			if m:GetAttribute("Kind") == "station" and (m:GetAttribute("Ready") or "") ~= "" then
-				return true
-			end
-		end
-		return false
+	{ key = "tut.toppings", target = "orderStation", check = function()
+		local _, ready = stationStep()
+		return ready or player:GetAttribute("HandsKind") == "dish"
+	end },
+	{ key = "tut.take_dish", target = "orderStation", check = function()
+		return player:GetAttribute("HandsKind") == "dish"
 	end },
 	{ key = "tut.serve", target = "customer", check = function()
 		local s = Core.C.Data.w("stats")
@@ -23291,10 +23607,7 @@ local STEPS = {
 	end },
 	{ key = "tut.collect", target = "dirty", action = "collect" },
 	{ key = "tut.wash", target = "sink", action = "wash" },
-	{ key = "tut.build", check = function()
-		return Core.C.Build.active
-	end },
-	{ key = "tut.done", timer = 10 },
+	{ key = "tut.done", timer = 8 },
 }
 
 local panel, text, stepLabel, beam, a0, a1, marker
@@ -23307,6 +23620,9 @@ end
 
 local function findTarget(target)
 	local kind, filter = target, nil
+	if target == "orderStation" then
+		return orderStation()
+	end
 	if type(target) == "function" then
 		kind, filter = target()
 	end
@@ -23373,14 +23689,6 @@ local function advance()
 		local s = Core.C.Data.w("stats")
 		Tutorial.dishesAtStart = s and s.dishes or 0
 	end
-	-- the first order opens its guide by itself (steps, ticks and the green arrow)
-	if STEPS[index].key == "tut.ingredients" then
-		local tk = (Core.C.Data.tickets or {})[1]
-		local guide = Core.C.UI.screens.Guide
-		if tk and guide and not guide.visible() then
-			guide.show(tk.recipe)
-		end
-	end
 	save()
 	show()
 end
@@ -23424,12 +23732,19 @@ function Tutorial.Init()
 		marker.Enabled = false
 	end })
 	Kit.button(t("ui.next"), { parent = panel, size = UDim2.fromOffset(90, 30), position = UDim2.new(1, -186, 1, -32), style = "gold", textSize = 14, onClick = function()
-		advance()
+		-- steps that ask for an action move on by themselves when it is done
+		local st = STEPS[index]
+		if st and st.timer then
+			advance()
+		end
 	end })
 	-- in first person the mouse is captured: Enter also goes to the next card
 	game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
 		if not processed and panel.Visible and (input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter) then
-			advance()
+			local st = STEPS[index]
+			if st and st.timer then
+				advance()
+			end
 		end
 	end)
 	a0 = Instance.new("Attachment")
@@ -23715,9 +24030,6 @@ function UI.Start()
 		local hud = UI.screens.HUD
 		if hud and hud.day then
 			hud.day(state)
-		end
-		if state.phase == "report" and state.report then
-			UI.open("DayReport", state.report)
 		end
 	end)
 	UI.refreshAll()
@@ -24831,7 +25143,6 @@ return Base.make("Codes", "ui.codes", UDim2.fromScale(0.4, 0.42), function(conte
 end)
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
-local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
 local Format = require(Shared.Util.Format)
 local Kit = require(script.Parent.Parent.Kit)
@@ -24870,8 +25181,7 @@ screen = Base.make("DayReport", "ui.report", UDim2.fromScale(0.42, 0.74), functi
 		Kit.label(row[1] .. "  " .. t(row[2]), { Parent = f, Size = UDim2.new(0.6, 0, 1, 0), TextSize = 18 })
 		Kit.label(row[3], { Parent = f, Position = UDim2.fromScale(0.6, 0), Size = UDim2.new(0.4, 0, 1, 0), TextSize = 18, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = row[4] })
 	end
-	Kit.button("🌅 " .. t("ui.next_day"), { parent = content, size = UDim2.new(1, 0, 0, 50), position = UDim2.new(0, 0, 1, -52), style = "green", onClick = function()
-		NetDef.event("SetDayState"):FireServer("next")
+	Kit.button("✓ " .. t("ui.ok"), { parent = content, size = UDim2.new(1, 0, 0, 50), position = UDim2.new(0, 0, 1, -52), style = "green", onClick = function()
 		Core.C.UI.close("DayReport")
 	end })
 end)
@@ -25444,53 +25754,41 @@ local function update()
 		baseOk = baseOk and ok
 	end
 
-	-- 2. ingredients from the shelves (live ticks from what you hold)
+	-- 2. ingredients on the shelves (the station takes them by itself)
 	local need = {}
 	for _, g in ipairs(r.ing) do
 		need[g] = (need[g] or 0) + 1
 	end
-	local have = {}
-	if kind == "ing" then
-		for _, g in ipairs(held) do
-			have[g] = (have[g] or 0) + 1
+	local stock = {}
+	for _, shelf in ipairs(interactables("shelf")) do
+		for _, part in ipairs(shelf:GetChildren()) do
+			local g = part:IsA("BasePart") and part:GetAttribute("Slot") and part:GetAttribute("G") or ""
+			if g ~= "" then
+				stock[g] = (stock[g] or 0) + (part:GetAttribute("N") or 0)
+			end
 		end
 	end
-	local onBoard = workStation ~= nil or readyStation ~= nil or holdingDish
+	local workStation0 = workStation or readyStation
+	local onBoard = workStation0 ~= nil or holdingDish
 	local chips, missing = {}, nil
 	for _, g in ipairs(r.ing) do
 		local ing = Ingredients.byId[g]
-		local got = onBoard or (have[g] or 0) >= need[g]
-		table.insert(chips, (got and "✓" or "") .. (ing and ing.icon or "") .. " " .. t("ing." .. g))
+		local got = onBoard or (stock[g] or 0) >= need[g]
+		table.insert(chips, (got and "✓" or "✗") .. (ing and ing.icon or "") .. " " .. t("ing." .. g))
 		if not got and not missing then
 			missing = g
 		end
 	end
-	local ingState = (missing == nil) and "done" or ((baseOk and not target) and "now" or "todo")
-	add(ingState, "🧺 " .. t("guide.take"), table.concat(chips, "   "))
-	if missing then
-		for _, shelf in ipairs(interactables("shelf")) do
-			for _, part in ipairs(shelf:GetChildren()) do
-				if part:IsA("BasePart") and part:GetAttribute("Slot") and need[part:GetAttribute("G") or ""] and (part:GetAttribute("N") or 0) > 0 then
-					mark(part, Color.hex("#FFD23B"))
-				end
-			end
-		end
-		if not target then
-			target = nearest(interactables("shelf"), function(m)
-				for _, part in ipairs(m:GetChildren()) do
-					if part:IsA("BasePart") and part:GetAttribute("G") == missing and (part:GetAttribute("N") or 0) > 0 then
-						return true
-					end
-				end
-				return false
-			end)
-			if not target then
-				add("now", "📦 " .. t("guide.no_stock", { name = "ing." .. missing }), t("guide.no_stock_how"))
-			end
-		end
+	add(missing == nil and "done" or "now", "🧺 " .. t("guide.on_shelves"), table.concat(chips, "   "))
+	if missing and not target then
+		-- a box of what is missing, else the supplier
+		target = nearest(interactables("box"), function(m)
+			return m:GetAttribute("Ingredient") == missing
+		end)
+		add("now", "📦 " .. t("guide.no_stock", { name = "ing." .. missing }), t("guide.no_stock_how"))
 	end
 
-	-- 3. station: put the ingredients down, then one click per step
+	-- 3. the station: one press per step (the first press brings the ingredients)
 	local stName = (STATION_ICON[r.station] or "🔪") .. " " .. t("station." .. r.station)
 	local steps = {}
 	for _, s in ipairs(r.steps) do
@@ -25498,11 +25796,9 @@ local function update()
 	end
 	local stepDone = workStation and (workStation:GetAttribute("Step") or 0) or 0
 	if readyStation or holdingDish then
-		add("done", t("guide.put", { station = stName }))
-		add("done", t("guide.click_steps", { n = #r.steps }), table.concat(steps, " → "))
+		add("done", t("guide.press_steps", { station = stName, n = #r.steps }), table.concat(steps, " → "))
 	elseif workStation then
-		add("done", t("guide.put", { station = stName }))
-		add("now", t("guide.click_steps", { n = #r.steps }) .. "  (" .. stepDone .. "/" .. #r.steps .. ")", table.concat(steps, " → "))
+		add("now", t("guide.press_steps", { station = stName, n = #r.steps }) .. "  (" .. stepDone .. "/" .. #r.steps .. ")", table.concat(steps, " → "))
 		target = target or workStation
 		mark(workStation.PrimaryPart or workStation, Color.hex("#6DDC5A"))
 	else
@@ -25510,8 +25806,7 @@ local function update()
 			return (m:GetAttribute("Board") or "") == "" and (m:GetAttribute("Ready") or "") == ""
 		end) or nearest(myStations)
 		local state = (missing == nil and not target) and "now" or "todo"
-		add(state, t("guide.put", { station = stName }), #myStations == 0 and t("guide.no_station") or nil)
-		add("todo", t("guide.click_steps", { n = #r.steps }), table.concat(steps, " → "))
+		add(state, t("guide.press_steps", { station = stName, n = #r.steps }), #myStations == 0 and t("guide.no_station") or table.concat(steps, " → "))
 		if free then
 			mark(free.PrimaryPart or free, Color.hex("#6DDC5A"))
 			if state == "now" then
@@ -25737,16 +26032,13 @@ function HUD.create(root)
 	local day = pill({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8), Size = UDim2.fromOffset(300, 36), Parent = top })
 	refs.clock = Kit.label("", { Parent = day, Position = UDim2.fromOffset(14, 0), Size = UDim2.fromOffset(76, 36), TextSize = 17, FontFace = T.title, TextColor3 = T.wood, TextYAlignment = Enum.TextYAlignment.Center })
 	refs.dayInfo = Kit.label("", { Parent = day, Position = UDim2.fromOffset(92, 0), Size = UDim2.fromOffset(96, 36), TextSize = 14, TextColor3 = T.muted, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
+	-- always open: the lantern shows it, a tap shows the summary of the last day
 	refs.dayButton = Kit.button("", {
 		size = UDim2.fromOffset(104, 26), position = UDim2.new(1, -110, 0, 5), style = "green", textSize = 13, radius = 13,
 		onClick = function()
-			local phase = Core.C.Data.day.phase
-			if phase == "prep" then
-				NetDef.event("SetDayState"):FireServer("open")
-			elseif phase == "open" then
-				NetDef.event("SetDayState"):FireServer("close")
-			elseif phase == "report" then
-				Core.C.UI.open("DayReport", Core.C.Data.day.report)
+			local report = Core.C.Data.day and Core.C.Data.day.report
+			if report then
+				Core.C.UI.open("DayReport", report)
 			end
 		end,
 	})
@@ -25834,6 +26126,59 @@ function HUD.create(root)
 		end
 	end)
 	Core.C.Data.TicketsChanged:Connect(HUD.refreshTickets)
+end
+
+-- where flying coins land (screen pixels, without the top bar inset)
+function HUD.walletPoint()
+	local l = refs.yen
+	if not l then
+		return nil
+	end
+	return l.AbsolutePosition + Vector2.new(30, l.AbsoluteSize.Y / 2)
+end
+
+-- the wallet pops a little when a coin lands
+local bumping = false
+function HUD.bumpWallet()
+	local l = refs.yen
+	if not l or bumping then
+		return
+	end
+	bumping = true
+	local s = l:FindFirstChild("Bump") or Kit.new("UIScale", { Name = "Bump", Parent = l })
+	local TweenService = game:GetService("TweenService")
+	local up = TweenService:Create(s, TweenInfo.new(0.08), { Scale = 1.18 })
+	up:Play()
+	up.Completed:Connect(function()
+		TweenService:Create(s, TweenInfo.new(0.16, Enum.EasingStyle.Back), { Scale = 1 }):Play()
+		bumping = false
+	end)
+end
+
+-- the yen counter runs up to the new amount instead of jumping
+local shownYen = nil
+local yenTween = nil
+local function showYen(amount)
+	local L = Locale.get()
+	if not shownYen or amount < shownYen or amount - shownYen > 1e7 then
+		shownYen = amount
+		refs.yen.Text = Format.yen(amount, L)
+		return
+	end
+	if amount == shownYen then
+		return
+	end
+	local value = Instance.new("NumberValue")
+	value.Value = shownYen
+	value.Changed:Connect(function(v)
+		refs.yen.Text = Format.yen(math.floor(v + 0.5), L)
+	end)
+	if yenTween then
+		yenTween:Cancel()
+	end
+	yenTween = game:GetService("TweenService"):Create(value, TweenInfo.new(0.6, Enum.EasingStyle.Quad), { Value = amount })
+	yenTween:Play()
+	shownYen = amount
 end
 
 -- first daily quest that is not claimed yet
@@ -25927,24 +26272,12 @@ function HUD.refreshHands()
 end
 
 function HUD.day(state)
-	local phase = state.phase
-	refs.clock.Text = "🕒 " .. Format.clock(state.clock or 9.5)
+	refs.clock.Text = (state.night and "🌙 " or "🕒 ") .. Format.clock(state.clock or 10)
 	refs.dayInfo.Text = t("ui.day_n", { n = state.day or 1 })
 	local b = refs.dayButton
-	if phase == "prep" then
-		b.Text = "● " .. t("ui.closed_tap")
-		b.BackgroundColor3 = T.red
-	elseif phase == "open" then
-		b.Text = "● " .. t("ui.open_tap")
-		b.BackgroundColor3 = T.green
-	elseif phase == "closing" then
-		b.Text = t("ui.closing")
-		b.BackgroundColor3 = T.locked
-	else
-		b.Text = "📊 " .. t("ui.report_short")
-		b.BackgroundColor3 = T.gold
-	end
-	b.Active = Core.C.Data.canBuild() or phase == "report"
+	b.Text = "🏮 " .. t("ui.open_tap")
+	b.BackgroundColor3 = T.green
+	b.Active = state.report ~= nil
 	b.AutoButtonColor = b.Active
 end
 
@@ -26031,7 +26364,7 @@ function HUD.refresh()
 	if not Data.ready then
 		return
 	end
-	refs.yen.Text = Format.yen(Data.wallet(), lang())
+	showYen(Data.wallet())
 	refs.sakura.Text = Format.sakura(Data.m("sakura") or 0, lang())
 	local level = Data.w("level") or 1
 	local xp = Data.w("xp") or 0
@@ -26436,7 +26769,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 	local vols = { { label = "0%", value = 0 }, { label = "25%", value = 0.25 }, { label = "50%", value = 0.5 }, { label = "100%", value = 1 } }
 	choice(4, "🎵 " .. t("ui.music"), vols, s.music or 0.5, "music")
 	choice(5, "🔊 " .. t("ui.sfx"), vols, s.sfx or 0.8, "sfx")
-	choice(7, "🎥 " .. t("ui.camera"), { { label = t("ui.cam_first"), value = "first", width = 118 }, { label = t("ui.cam_game"), value = "game", width = 118 }, { label = "Roblox", value = "roblox", width = 80 } }, s.cam or "first", "cam")
+	choice(7, "🎥 " .. t("ui.camera"), { { label = t("ui.auto"), value = "auto", width = 70 }, { label = t("ui.cam_first"), value = "first", width = 110 }, { label = t("ui.cam_game"), value = "game", width = 110 }, { label = "Roblox", value = "roblox", width = 76 } }, s.cam or "auto", "cam")
 	choice(8, "🐢 " .. t("ui.cam_speed"), { { label = t("ui.slow"), value = 0.6 }, { label = t("ui.medium"), value = 1 }, { label = t("ui.fast"), value = 1.6 } }, s.camSpeed or 1, "camSpeed")
 	choice(6, "🖥️ " .. t("ui.low_graphics"), { { label = t("ui.on"), value = true }, { label = t("ui.off"), value = false } }, s.lowGfx == true, "lowGfx")
 	Kit.button("🎓 " .. t("ui.restart_tutorial"), { parent = scroll, size = UDim2.new(1, -8, 0, 44), style = "plain", order = 10, onClick = function()
@@ -26536,12 +26869,6 @@ return Base.make("Staff", "ui.staff", UDim2.fromScale(0.66, 0.78), function(cont
 		end
 		Kit.button("✕", { parent = row, size = UDim2.fromOffset(40, 34), style = "plain", order = 2, disabled = not can, onClick = function()
 			NetDef.event("FireStaff"):FireServer(s.u)
-		end })
-	end
-	if hasManager and can then
-		local auto = Core.C.Data.m("settings") and Core.C.Data.m("settings").autoDay
-		Kit.button((auto and "✅ " or "⬜ ") .. t("ui.auto_day"), { parent = scroll, size = UDim2.fromOffset(260, 40), style = "plain", order = 50, onClick = function()
-			NetDef.event("SetSetting"):FireServer("autoDay", not auto)
 		end })
 	end
 	Kit.title(t("ui.hire"), { Parent = scroll, Size = UDim2.new(1, 0, 0, 32), LayoutOrder = 60 })

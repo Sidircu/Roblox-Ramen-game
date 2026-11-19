@@ -1,6 +1,5 @@
 --!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
-local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
 local Format = require(Shared.Util.Format)
 local Kit = require(script.Parent.Parent.Kit)
@@ -39,8 +38,7 @@ screen = Base.make("DayReport", "ui.report", UDim2.fromScale(0.42, 0.74), functi
 		Kit.label(row[1] .. "  " .. t(row[2]), { Parent = f, Size = UDim2.new(0.6, 0, 1, 0), TextSize = 18 })
 		Kit.label(row[3], { Parent = f, Position = UDim2.fromScale(0.6, 0), Size = UDim2.new(0.4, 0, 1, 0), TextSize = 18, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = row[4] })
 	end
-	Kit.button("🌅 " .. t("ui.next_day"), { parent = content, size = UDim2.new(1, 0, 0, 50), position = UDim2.new(0, 0, 1, -52), style = "green", onClick = function()
-		NetDef.event("SetDayState"):FireServer("next")
+	Kit.button("✓ " .. t("ui.ok"), { parent = content, size = UDim2.new(1, 0, 0, 50), position = UDim2.new(0, 0, 1, -52), style = "green", onClick = function()
 		Core.C.UI.close("DayReport")
 	end })
 end)

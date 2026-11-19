@@ -50,6 +50,49 @@ local function popup(pos, text, color, rise)
 	end)
 end
 
+-- coins fly from a point in the world to the wallet at the top of the screen, which then bounces
+local function coinsToWallet(pos, amount)
+	local root = Core.C.UI and Core.C.UI.root()
+	local hud = Core.C.UI and Core.C.UI.screens.HUD
+	local cam = workspace.CurrentCamera
+	if not root or not hud or not hud.walletPoint or not cam then
+		return
+	end
+	local screen, onScreen = cam:WorldToViewportPoint(pos)
+	local target = hud.walletPoint()
+	if not onScreen or not target then
+		return
+	end
+	local inset = game:GetService("GuiService"):GetGuiInset()
+	local from = Vector2.new(screen.X, screen.Y - inset.Y)
+	local scale = root:FindFirstChildOfClass("UIScale")
+	local k = scale and scale.Scale or 1
+	local n = math.clamp(math.floor((amount or 0) / 15) + 3, 3, 8)
+	for i = 1, n do
+		task.delay((i - 1) * 0.05, function()
+			local coin = Instance.new("TextLabel")
+			coin.BackgroundTransparency = 1
+			coin.Text = "🪙"
+			coin.TextScaled = true
+			coin.AutoLocalize = false
+			coin.AnchorPoint = Vector2.new(0.5, 0.5)
+			coin.Size = UDim2.fromOffset(30, 30)
+			local jitter = Vector2.new(math.random(-24, 24), math.random(-16, 16))
+			coin.Position = UDim2.fromOffset((from.X + jitter.X) / k, (from.Y + jitter.Y) / k)
+			coin.ZIndex = 50
+			coin.Parent = root
+			local tw = TweenService:Create(coin, TweenInfo.new(0.55, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Position = UDim2.fromOffset(target.X / k, target.Y / k), Size = UDim2.fromOffset(18, 18) })
+			tw:Play()
+			tw.Completed:Connect(function()
+				coin:Destroy()
+				if hud.bumpWallet then
+					hud.bumpWallet()
+				end
+			end)
+		end)
+	end
+end
+
 local function burst(pos, preset, count, color)
 	local p = Instance.new("Part")
 	p.Anchored = true
@@ -128,7 +171,8 @@ local function stock(data)
 	for i, item in ipairs(items) do
 		task.delay((i - 1) * step, function()
 			local m, landing = product(item)
-			local from = data.from and (CFrame.new(data.from) * landing.Rotation) or (landing + Vector3.new(0, 2, 0))
+			local src = item.from or data.from
+			local from = src and (CFrame.new(src) * landing.Rotation) or (landing + Vector3.new(0, 2, 0))
 			m:PivotTo(from)
 			m.Parent = workspace.CurrentCamera
 			arc(m, from, landing, 0.28, 1, function()
@@ -202,6 +246,12 @@ function Effects.Init()
 		local Audio = Core.C.Audio
 		if kind == "money" and data.pos then
 			popup(data.pos, "+" .. Format.yen(data.amount or 0, Locale.get()), Color.hex("#FFD23B"))
+			coinsToWallet(data.pos, data.amount)
+			burst(data.pos, "sparkle", 12, "#FFD23B")
+		elseif kind == "served" and data.pos then
+			-- the customer is delighted: a smile and hearts
+			popup(data.pos, "😋", nil, 2)
+			burst(data.pos, "sparkle", 10, "#FF7A9A")
 		elseif kind == "review" and data.pos then
 			local stars = data.stars or 3
 			popup(data.pos + Vector3.new(0, 1.2, 0), string.rep("★", math.floor(stars)) .. (stars % 1 >= 0.5 and "½" or ""), stars >= 4 and Color.hex("#FFD23B") or Color.hex("#FF8A5A"), 2)

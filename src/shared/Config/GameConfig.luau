@@ -18,18 +18,22 @@ return {
 	SellRefund = 0.75,
 	FullRefundSeconds = 30,
 
-	-- Day cycle (1 game hour = 1 real minute)
+	-- Time of day: the restaurant is always open and the clock never stops. A game hour lasts
+	-- SecondsPerHour real seconds (NightSecondsPerHour between NightFrom and NightTo, so the quiet
+	-- night passes quickly); a full day is about 14 minutes. Every day at DayStartHour the day's
+	-- accounts are closed (salaries, stats, daily quests, a short summary).
 	Day = {
-		OpenHour = 11,
-		CloseHour = 23,
-		SecondsPerHour = 60,
-		PrepClock = 9.5,
+		StartClock = 10,
+		DayStartHour = 6,
+		SecondsPerHour = 45,
+		NightSecondsPerHour = 15,
+		NightFrom = 23,
+		NightTo = 6,
+		NightFactor = 1.6, -- customers come this much less often at night
 		Peaks = { { 12, 14 }, { 19, 21 } },
 		PeakFactor = 0.6,
 		EarlyPeakFactor = 0.85, -- peaks are lighter for the first EarlyDays days
 		EarlyDays = 2,
-		ReportAutoClose = 15,
-		ManagerAutoOpenDelay = 20,
 	},
 
 	-- Customers
@@ -40,7 +44,9 @@ return {
 		MaxNpcs = 40,
 		BaseInterval = 18,
 		MinInterval = 2.5,
-		MenuReadTime = { 2, 4 },
+		MenuReadTime = { 1.5, 3 },
+		FirstCustomerDelay = 2, -- the first customer walks in this soon after the restaurant opens
+		StreetSpawn = { 70, 95 }, -- customers appear this far along the street (studs from the door)
 		EatTime = { sushi = 12, ramen = 18, side = 8, drink = 6, dessert = 8 },
 		ExtraOrderChance = 0.4,
 		SecondOrderChance = 0.15,
@@ -48,7 +54,7 @@ return {
 		BaseQueue = 2,
 		StuckTeleportSeconds = 8,
 		SeatHeightOffset = 1.05,
-		WalkSpeed = 10,
+		WalkSpeed = 11,
 		DefaultRating = 3.0,
 		RecentReviews = 50,
 	},
@@ -88,7 +94,7 @@ return {
 	Washing = { Time = 1.6, MaxPile = 12, StaffBatch = 8 },
 
 	-- Dishes (plates and bowls)
-	StartDishes = 12,
+	StartDishes = 20,
 	DishSetSize = 6,
 	DishSetPrice = 300,
 

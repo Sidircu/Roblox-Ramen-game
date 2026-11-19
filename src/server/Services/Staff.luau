@@ -295,39 +295,17 @@ local function doCook(a)
 		return false
 	end
 	t.claimed = a
-	local Supply = Core.S.Supply
-	local ok = true
-	for _, g in ipairs(recipe.ing) do
-		local shelf, slot = Supply.findShelfWith(g, a.npc.root.Position)
-		if not shelf then
-			ok = false
-			break
-		end
-		walk(a, Tasks.frontOf(shelf))
-		local took = Supply.useShelf(a, shelf, slot)
-		if not took then
-			ok = false
-			break
-		end
-	end
-	if ok then
-		walk(a, Tasks.frontOf(station))
-		Core.S.Cooking.use(a, station, speed(a))
-		local guard = 0
-		while not Core.S.Cooking.stationState(station).ready and guard < 8 do
-			guard += 1
-			local stepOk = Core.S.Cooking.use(a, station, speed(a))
-			if not stepOk then
-				break
-			end
-		end
-	end
-	-- put back anything left in hand
-	if Core.S.Hands.get(a).kind == "ing" then
-		Core.S.Hands.clear(a)
+	-- at the station: the first press fetches the ingredients from the shelves, then one press
+	-- per step until the dish is on its plate
+	walk(a, Tasks.frontOf(station))
+	local ok = Core.S.Cooking.use(a, station, speed(a))
+	local guard = 0
+	while ok and not st.ready and guard < 8 do
+		guard += 1
+		ok = Core.S.Cooking.use(a, station, speed(a))
 	end
 	Tasks.release(st, a)
-	local readyNow = Core.S.Cooking.stationState(station).ready
+	local readyNow = st.ready
 	if not readyNow then
 		t.claimed = nil
 		return ok
@@ -409,12 +387,9 @@ local function spawnActor(record, index)
 	Core.S.Npc.spawn(npc, CFrame.new(HOME[(index % #HOME) + 1] + Vector3.new(0, 3, 0)))
 	task.spawn(function()
 		while a.alive do
-			local phase = Core.S.Day.phase
+			-- the restaurant is always open: staff always work
 			local ok, did = pcall(function()
-				if phase == "open" or phase == "closing" or a.role == "staff_stocker" or a.role == "staff_dishwasher" then
-					return think(a)
-				end
-				return false
+				return think(a)
 			end)
 			if not ok then
 				warn("[Staff] " .. tostring(did))

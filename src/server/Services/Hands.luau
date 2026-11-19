@@ -212,6 +212,21 @@ function Hands.refresh(actor)
 	publish(actor)
 end
 
+-- dishes held by anyone, by recipe (a dish in hand is on its way to a customer)
+function Hands.dishCounts()
+	local out = {}
+	for _, s in pairs(state) do
+		if s.kind == "dish" then
+			for _, it in ipairs(s.items) do
+				if it.recipe then
+					out[it.recipe] = (out[it.recipe] or 0) + 1
+				end
+			end
+		end
+	end
+	return out
+end
+
 function Hands.forget(actor)
 	local s = state[key(actor)]
 	if s then

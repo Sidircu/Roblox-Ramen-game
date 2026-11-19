@@ -40,7 +40,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 	local vols = { { label = "0%", value = 0 }, { label = "25%", value = 0.25 }, { label = "50%", value = 0.5 }, { label = "100%", value = 1 } }
 	choice(4, "🎵 " .. t("ui.music"), vols, s.music or 0.5, "music")
 	choice(5, "🔊 " .. t("ui.sfx"), vols, s.sfx or 0.8, "sfx")
-	choice(7, "🎥 " .. t("ui.camera"), { { label = t("ui.cam_first"), value = "first", width = 118 }, { label = t("ui.cam_game"), value = "game", width = 118 }, { label = "Roblox", value = "roblox", width = 80 } }, s.cam or "first", "cam")
+	choice(7, "🎥 " .. t("ui.camera"), { { label = t("ui.auto"), value = "auto", width = 70 }, { label = t("ui.cam_first"), value = "first", width = 110 }, { label = t("ui.cam_game"), value = "game", width = 110 }, { label = "Roblox", value = "roblox", width = 76 } }, s.cam or "auto", "cam")
 	choice(8, "🐢 " .. t("ui.cam_speed"), { { label = t("ui.slow"), value = 0.6 }, { label = t("ui.medium"), value = 1 }, { label = t("ui.fast"), value = 1.6 } }, s.camSpeed or 1, "camSpeed")
 	choice(6, "🖥️ " .. t("ui.low_graphics"), { { label = t("ui.on"), value = true }, { label = t("ui.off"), value = false } }, s.lowGfx == true, "lowGfx")
 	Kit.button("🎓 " .. t("ui.restart_tutorial"), { parent = scroll, size = UDim2.new(1, -8, 0, 44), style = "plain", order = 10, onClick = function()

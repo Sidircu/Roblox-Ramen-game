@@ -37,6 +37,9 @@ end
 local function unlockedRecipes(e)
 	local d = data()
 	local out = {}
+	if not d then
+		return out
+	end
 	for _, r in ipairs(Recipes.byStation[stationType(e)] or {}) do
 		if Core.S.Progression.isRecipeUnlocked(d, r) then
 			table.insert(out, r)
@@ -108,6 +111,21 @@ local function publish(e)
 	m:SetAttribute("Steps", recipe and table.concat(recipe.steps, ",") or "")
 	m:SetAttribute("Busy", st.busy)
 	m:SetAttribute("Ready", st.ready and st.ready.recipe or "")
+	-- what the next press does: start the oldest order for this station, or tell what is missing
+	local nextId, missing = "", ""
+	if not st.busy and #st.board == 0 and not st.ready then
+		local _, r = Cooking.nextOrder(e)
+		if r then
+			nextId = r.id
+			missing = table.concat(Cooking.missing(r), ",")
+		end
+	end
+	if m:GetAttribute("Next") ~= nextId then
+		m:SetAttribute("Next", nextId)
+	end
+	if m:GetAttribute("Missing") ~= missing then
+		m:SetAttribute("Missing", missing)
+	end
 end
 
 local function clearBoardModels(st)
@@ -144,8 +162,77 @@ local function contains(recipe, ids)
 	return true
 end
 
--- The recipe the board is heading for: the board itself if complete, else the oldest order for
--- this station that still fits what is on the board, else any recipe that fits it
+-- dishes already on their way, by recipe: cooking on a station, waiting on its plate, or in
+-- someone's hands
+local function coverage()
+	local cov = {}
+	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+		local st = station(e)
+		local r = st.recipe
+		if not r and #st.board > 0 then
+			local m = Cooking.match(e)
+			r = m and m.id or nil
+		end
+		if r then
+			cov[r] = (cov[r] or 0) + 1
+		end
+		if st.ready then
+			cov[st.ready.recipe] = (cov[st.ready.recipe] or 0) + 1
+		end
+	end
+	for id, n in pairs(Core.S.Hands.dishCounts()) do
+		cov[id] = (cov[id] or 0) + n
+	end
+	return cov
+end
+
+-- The oldest order this station can make that nobody is making yet: ticket, recipe
+function Cooking.nextOrder(e)
+	if not data() then
+		return nil
+	end
+	local unlocked = {}
+	for _, r in ipairs(unlockedRecipes(e)) do
+		unlocked[r.id] = r
+	end
+	local cov = coverage()
+	local seen = {}
+	for _, t in ipairs(Cooking.tickets) do
+		seen[t.recipe] = (seen[t.recipe] or 0) + 1
+		local r = unlocked[t.recipe]
+		if r and seen[t.recipe] > (cov[t.recipe] or 0) then
+			return t, r
+		end
+	end
+	return nil
+end
+
+-- What is missing to start recipe r: ingredient ids not on the shelves (rice and broths included)
+-- and "dishes" when every plate is dirty
+function Cooking.missing(r)
+	local Supply, Appliance = Core.S.Supply, Core.S.Appliance
+	local out = {}
+	for g, n in pairs(counts(r.ing)) do
+		if Supply.shelfStock(g) < n then
+			table.insert(out, g)
+		end
+	end
+	table.sort(out)
+	if r.rice and not Appliance.hasRice() then
+		table.insert(out, "rice")
+	end
+	if r.broth and not Appliance.hasBroth(r.broth) then
+		table.insert(out, r.broth)
+	end
+	local d = data()
+	if d and d.dishes.clean <= 0 then
+		table.insert(out, "dishes")
+	end
+	return out
+end
+
+-- The recipe the board is heading for: the board itself if complete, else the next order of this
+-- station when it still fits what is on the board, else any recipe that fits it
 local function targetRecipe(e)
 	local st = station(e)
 	local ids = {}
@@ -156,18 +243,12 @@ local function targetRecipe(e)
 	if exact then
 		return exact
 	end
-	local unlocked = {}
-	for _, r in ipairs(unlockedRecipes(e)) do
-		unlocked[r.id] = r
-	end
-	for _, t in ipairs(Cooking.tickets or {}) do
-		local r = unlocked[t.recipe]
-		if r and contains(r, ids) then
-			return r
-		end
+	local _, nextRecipe = Cooking.nextOrder(e)
+	if nextRecipe and contains(nextRecipe, ids) then
+		return nextRecipe
 	end
 	if #ids > 0 then
-		for _, r in pairs(unlocked) do
+		for _, r in ipairs(unlockedRecipes(e)) do
 			if contains(r, ids) then
 				return r
 			end
@@ -401,6 +482,54 @@ function Cooking.step(e, speed, actor)
 	return true
 end
 
+-- Starts the next order of this station: its ingredients fly from the shelves onto the board and
+-- the first step runs right away (so a ramen is three presses: noodles, broth, toppings)
+local function start(e, speed, actor)
+	local st = station(e)
+	local t, r = Cooking.nextOrder(e)
+	if not t then
+		if #Cooking.tickets == 0 then
+			return false, "msg.no_orders"
+		end
+		return false, "msg.no_orders_here", { station = "station." .. stationType(e) }
+	end
+	local missing = Cooking.missing(r)
+	if #missing > 0 then
+		local first = missing[1]
+		if first == "dishes" then
+			return false, "msg.no_dishes"
+		elseif first == "rice" then
+			return false, "msg.need_rice"
+		elseif Ingredients.byId[first] and Ingredients.byId[first].storage == "broth" then
+			return false, "msg.need_broth", { name = "ing." .. first }
+		end
+		return false, "msg.restock_needed", { name = "ing." .. first }
+	end
+	local Supply = Core.S.Supply
+	local pos = e.model and e.model.PrimaryPart and e.model.PrimaryPart.Position
+	local origins = {}
+	st.board = {}
+	for _, g in ipairs(r.ing) do
+		local from, fresh = Supply.takeIngredient(g, pos)
+		table.insert(st.board, { g = g, fresh = fresh })
+		table.insert(origins, from)
+	end
+	st.recipe = r.id
+	st.busy = true
+	publish(e)
+	-- every ingredient flies from its shelf to its spot on the board
+	local flights = {}
+	for i, sp in ipairs(boardSpots(e)) do
+		table.insert(flights, { g = sp.g, cf = sp.cf, s = BOARD_SCALE, rot = true, from = origins[i] })
+	end
+	local step = GameConfig.StockFlyStep or 0.06
+	Core.S.Net.fx("stock", { items = flights, step = step })
+	task.wait(#flights * step + 0.3)
+	layoutBoard(e)
+	st.busy = false
+	return Cooking.step(e, speed, actor)
+end
+
 -- Click on a station (players and staff)
 function Cooking.use(actor, e, speed)
 	local Hands = Core.S.Hands
@@ -481,7 +610,8 @@ function Cooking.use(actor, e, speed)
 				return false, "msg.board_returned"
 			end
 		end
-		return false, "msg.station_hint", { station = "station." .. stationType(e) }
+		-- an empty board: start the oldest order for this station
+		return start(e, speed, actor)
 	end
 	return false, "msg.hands_busy"
 end
@@ -587,6 +717,19 @@ local function timingHit(player, uid, k)
 		st.perfect = true
 	end
 	Core.S.Net.fxTo(player, "timingResult", { ok = ok, pos = e.model and e.model.PrimaryPart and e.model.PrimaryPart.Position })
+end
+
+function Cooking.Start()
+	-- stations always show what the next press does (orders, stock and dishes change all the time)
+	while true do
+		task.wait(0.5)
+		for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+			local ok, err = pcall(publish, e)
+			if not ok then
+				warn("[Cooking] publish failed: " .. tostring(err))
+			end
+		end
+	end
 end
 
 function Cooking.Init()

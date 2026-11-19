@@ -1,5 +1,8 @@
 --!nonstrict
--- Hover highlight + action label on nearby interactables; click / tap / E sends Interact.
+-- What you can use: in first person the object under the crosshair, in third person the one under
+-- the mouse or else the nearest one in front of you. It gets an outline and a ProximityPrompt
+-- with what pressing does (E, ButtonX or a tap on the prompt; a click or a tap on the object works
+-- too). Using sends Interact; the server checks distance, permissions and everything else.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -24,6 +27,9 @@ local t = Locale.t
 
 local highlight, label, labelText
 local current = nil -- { model, uid, kind, slot }
+local prompts = setmetatable({}, { __mode = "k" }) -- [model] = ProximityPrompt (local to this client)
+local shownPrompt = nil
+local act
 local lastCheck = 0
 local recipeMarks = {}
 
@@ -119,12 +125,8 @@ local function actionText(model, kind, slot)
 			end
 			return t("hint.restock")
 		end
-		local part = slot and model:FindFirstChild("Slot" .. slot)
-		local g = part and part:GetAttribute("G") or ""
-		if g ~= "" then
-			return t("hint.take_ing", { name = "ing." .. g, n = part:GetAttribute("N") or 0 })
-		end
-		return t("hint.shelf_empty")
+		-- empty hands: nothing to do here, the stations take the ingredients by themselves
+		return nil
 	elseif kind == "ricecooker" or kind == "pot" then
 		if hands == "box" then
 			return t("hint.pour")
@@ -141,27 +143,34 @@ local function actionText(model, kind, slot)
 		end
 		if hands == "ing" then
 			return t("hint.put_ingredients")
+		elseif hands then
+			return t("hint.hands_full")
 		end
 		local recipe = model:GetAttribute("Recipe") or ""
-		local steps = model:GetAttribute("Steps") or ""
 		if recipe ~= "" then
-			local list = string.split(steps, ",")
-			local idx = (model:GetAttribute("Step") or 0) + 1
-			return t("hint.do_step", { step = "step." .. (list[idx] or "combine"), dish = "rec." .. recipe, i = idx, n = #list })
-		end
-		local need = model:GetAttribute("Need") or ""
-		if need ~= "" then
-			local icons = {}
-			for _, g in ipairs(string.split(need, ",")) do
-				local ing = Ingredients.byId[g]
-				table.insert(icons, ing and ing.icon or g)
+			if model:GetAttribute("Busy") then
+				return t("hint.cooking_now", { dish = "rec." .. recipe })
 			end
-			return t("hint.board_need", { list = table.concat(icons, " ") })
+			local list = string.split(model:GetAttribute("Steps") or "", ",")
+			local idx = (model:GetAttribute("Step") or 0) + 1
+			return t("act." .. (list[idx] or "combine"), { dish = "rec." .. recipe, i = idx, n = #list })
 		end
-		if (model:GetAttribute("Board") or "") ~= "" then
-			return t("hint.board_incomplete")
+		-- an empty board: the next press starts the oldest order for this station
+		local nextId = model:GetAttribute("Next") or ""
+		if nextId ~= "" then
+			local missing = model:GetAttribute("Missing") or ""
+			if missing ~= "" then
+				local icons = {}
+				for _, g in ipairs(string.split(missing, ",")) do
+					local ing = Ingredients.byId[g]
+					table.insert(icons, g == "dishes" and "🍽️" or (ing and ing.icon or g))
+				end
+				return t("hint.missing_for", { dish = "rec." .. nextId, list = table.concat(icons, " ") })
+			end
+			local r = Recipes.byId[nextId]
+			return t("act." .. (r and r.steps[1] or "combine"), { dish = "rec." .. nextId, i = 1, n = r and #r.steps or 1 })
 		end
-		return t("hint.station")
+		return t("hint.no_orders")
 	elseif kind == "customer" then
 		local state = model:GetAttribute("State")
 		local order = model:GetAttribute("Order") or ""
@@ -209,12 +218,62 @@ local function inRange(model)
 	return flat <= GameConfig.InteractRange + margin - 0.5 and math.abs(pos.Y - root.Position.Y) < 12
 end
 
+-- one ProximityPrompt per object, created here on the client and shown only on the target
+local function promptFor(model)
+	local p = prompts[model]
+	if p and p.Parent then
+		return p
+	end
+	local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
+	if not part then
+		return nil
+	end
+	p = Instance.new("ProximityPrompt")
+	p.Name = "UsePrompt"
+	p.RequiresLineOfSight = false
+	p.Exclusivity = Enum.ProximityPromptExclusivity.OneGlobally
+	p.KeyboardKeyCode = Enum.KeyCode.E
+	p.GamepadKeyCode = Enum.KeyCode.ButtonX
+	p.HoldDuration = 0
+	p.MaxActivationDistance = 40
+	p.Enabled = false
+	p.Triggered:Connect(function()
+		if current and current.model == model then
+			act(false)
+		end
+	end)
+	-- releasing the button stops washing at the sink
+	p.TriggerEnded:Connect(function()
+		if Core.C.Sink then
+			Core.C.Sink.endHold()
+		end
+	end)
+	p.Parent = part
+	prompts[model] = p
+	return p
+end
+
+local function showPrompt(model, text, near)
+	local p = (model and text and near) and promptFor(model) or nil
+	if shownPrompt and shownPrompt ~= p and shownPrompt.Parent then
+		shownPrompt.Enabled = false
+	end
+	shownPrompt = p
+	if p then
+		if p.ActionText ~= text then
+			p.ActionText = text
+		end
+		p.Enabled = true
+	end
+end
+
 local function setCurrent(model, slot)
 	if not model then
 		current = nil
 		highlight.Adornee = nil
 		highlight.Enabled = false
 		label.Enabled = false
+		showPrompt(nil)
 		return
 	end
 	local kind = model:GetAttribute("Kind")
@@ -228,11 +287,42 @@ local function setCurrent(model, slot)
 	highlight.Adornee = model
 	highlight.Enabled = true
 	highlight.OutlineColor = near and Color.hex("#FFD23B") or Color.hex("#B8AFA2")
-	-- in first person the action is written under the crosshair (Controllers/FirstPerson)
+	-- close enough: the prompt says what pressing does; too far: a small "get closer" label
+	-- (in first person it is written under the crosshair, see Controllers/FirstPerson)
+	showPrompt(model, text, near)
 	local fp = Core.C.Camera and Core.C.Camera.isFirstPerson and Core.C.Camera.isFirstPerson()
 	label.Adornee = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
-	label.Enabled = not fp
-	labelText.Text = near and text or ("🚶 " .. t("hint.get_closer"))
+	label.Enabled = not fp and not near
+	labelText.Text = "🚶 " .. t("hint.get_closer")
+end
+
+-- third person without a mouse target: the nearest usable object in front of you
+local function proximityTarget()
+	local root = hrp()
+	if not root then
+		return nil
+	end
+	local look = root.CFrame.LookVector
+	local flatLook = Vector3.new(look.X, 0, look.Z)
+	flatLook = flatLook.Magnitude > 0 and flatLook.Unit or Vector3.new(0, 0, -1)
+	local best, bestScore = nil, math.huge
+	for _, model in ipairs(CollectionService:GetTagged("Interactable")) do
+		local pp = model.PrimaryPart
+		if pp and model:IsDescendantOf(workspace) then
+			local off = pp.Position - root.Position
+			local flat = Vector3.new(off.X, 0, off.Z)
+			local dist = flat.Magnitude
+			local size = pp.Size
+			if dist <= GameConfig.InteractRange + math.max(size.X, size.Z) / 2 and math.abs(off.Y) < 10 then
+				local facing = dist > 0.5 and flat.Unit:Dot(flatLook) or 1
+				local score = dist - facing * 5
+				if score < bestScore and actionText(model, model:GetAttribute("Kind"), nil) then
+					best, bestScore = model, score
+				end
+			end
+		end
+	end
+	return best
 end
 
 -- What the player points at: { text, near, kind } or nil
@@ -274,7 +364,7 @@ local function washHold(tap)
 	return true
 end
 
-local function act(tap)
+act = function(tap)
 	-- while the noodles boil, the click stops the timing needle
 	local Timing = Core.C.Timing
 	if Timing and Timing.active() then
@@ -412,30 +502,38 @@ function Interaction.Start()
 			return
 		end
 		lastCheck = os.clock()
-		if aimingCenter() then
+		if Core.C.Build and Core.C.Build.active then
+			setCurrent(nil)
+		elseif aimingCenter() then
 			-- first person: whatever is under the crosshair (mouse, touch and gamepad alike)
 			local cam = workspace.CurrentCamera
 			update(cam.ViewportSize / 2)
-		elseif UserInputService.MouseEnabled then
-			update(UserInputService:GetMouseLocation())
-		elseif current then
-			setCurrent(current.model, current.slot)
+		else
+			-- third person: the object under the mouse, else the nearest one in front of you
+			local hovered = nil
+			if UserInputService.MouseEnabled then
+				local hit = castAt(UserInputService:GetMouseLocation())
+				hovered = hit and findTarget(hit.Instance) or nil
+			end
+			if hovered then
+				update(UserInputService:GetMouseLocation())
+			else
+				setCurrent(proximityTarget(), nil)
+			end
 		end
 	end)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed or (Core.C.Build and Core.C.Build.active) then
 			return
 		end
+		-- E and ButtonX go through the prompt; a click works on the object you point at
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			act()
-		elseif input.KeyCode == Enum.KeyCode.E or input.KeyCode == Enum.KeyCode.ButtonX then
 			act()
 		end
 	end)
-	-- releasing the click / E stops washing
+	-- releasing the click stops washing (the prompt handles E)
 	UserInputService.InputEnded:Connect(function(input)
-		local released = input.UserInputType == Enum.UserInputType.MouseButton1 or input.KeyCode == Enum.KeyCode.E or input.KeyCode == Enum.KeyCode.ButtonX
-		if released and Core.C.Sink then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 and Core.C.Sink then
 			Core.C.Sink.endHold()
 		end
 	end)

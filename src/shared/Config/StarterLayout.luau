@@ -51,9 +51,19 @@ return {
 		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
 		{ i = "chochin_white", x = -6, z = 20, r = 0, s = "c" },
 	},
-	-- the storage room starts empty: the tutorial has you order the ramen ingredients; the pot
-	-- starts full of this broth and the rice cooker full of rice
-	boxes = {},
+	-- a brand-new restaurant can serve its first customers within seconds: the two shelves start
+	-- stocked with the ramen ingredients (one list per shelf, in the order above, one ingredient per
+	-- slot, each slot full), the pot full of this broth, the rice cooker full of rice, and a box of
+	-- the ingredients that run out first waits in the storage room for the first restock
+	stock = {
+		{ "noodles", "noodles", "scallion", "naruto" },
+		{ "naruto", "scallion" },
+	},
+	boxes = {
+		{ g = "noodles", n = 1 },
+		{ g = "naruto", n = 1 },
+		{ g = "broth_shoyu", n = 1 },
+	},
 	broth = "broth_shoyu",
 
 }

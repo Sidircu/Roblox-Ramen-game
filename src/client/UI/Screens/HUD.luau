@@ -72,16 +72,13 @@ function HUD.create(root)
 	local day = pill({ AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8), Size = UDim2.fromOffset(300, 36), Parent = top })
 	refs.clock = Kit.label("", { Parent = day, Position = UDim2.fromOffset(14, 0), Size = UDim2.fromOffset(76, 36), TextSize = 17, FontFace = T.title, TextColor3 = T.wood, TextYAlignment = Enum.TextYAlignment.Center })
 	refs.dayInfo = Kit.label("", { Parent = day, Position = UDim2.fromOffset(92, 0), Size = UDim2.fromOffset(96, 36), TextSize = 14, TextColor3 = T.muted, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd })
+	-- always open: the lantern shows it, a tap shows the summary of the last day
 	refs.dayButton = Kit.button("", {
 		size = UDim2.fromOffset(104, 26), position = UDim2.new(1, -110, 0, 5), style = "green", textSize = 13, radius = 13,
 		onClick = function()
-			local phase = Core.C.Data.day.phase
-			if phase == "prep" then
-				NetDef.event("SetDayState"):FireServer("open")
-			elseif phase == "open" then
-				NetDef.event("SetDayState"):FireServer("close")
-			elseif phase == "report" then
-				Core.C.UI.open("DayReport", Core.C.Data.day.report)
+			local report = Core.C.Data.day and Core.C.Data.day.report
+			if report then
+				Core.C.UI.open("DayReport", report)
 			end
 		end,
 	})
@@ -169,6 +166,59 @@ function HUD.create(root)
 		end
 	end)
 	Core.C.Data.TicketsChanged:Connect(HUD.refreshTickets)
+end
+
+-- where flying coins land (screen pixels, without the top bar inset)
+function HUD.walletPoint()
+	local l = refs.yen
+	if not l then
+		return nil
+	end
+	return l.AbsolutePosition + Vector2.new(30, l.AbsoluteSize.Y / 2)
+end
+
+-- the wallet pops a little when a coin lands
+local bumping = false
+function HUD.bumpWallet()
+	local l = refs.yen
+	if not l or bumping then
+		return
+	end
+	bumping = true
+	local s = l:FindFirstChild("Bump") or Kit.new("UIScale", { Name = "Bump", Parent = l })
+	local TweenService = game:GetService("TweenService")
+	local up = TweenService:Create(s, TweenInfo.new(0.08), { Scale = 1.18 })
+	up:Play()
+	up.Completed:Connect(function()
+		TweenService:Create(s, TweenInfo.new(0.16, Enum.EasingStyle.Back), { Scale = 1 }):Play()
+		bumping = false
+	end)
+end
+
+-- the yen counter runs up to the new amount instead of jumping
+local shownYen = nil
+local yenTween = nil
+local function showYen(amount)
+	local L = Locale.get()
+	if not shownYen or amount < shownYen or amount - shownYen > 1e7 then
+		shownYen = amount
+		refs.yen.Text = Format.yen(amount, L)
+		return
+	end
+	if amount == shownYen then
+		return
+	end
+	local value = Instance.new("NumberValue")
+	value.Value = shownYen
+	value.Changed:Connect(function(v)
+		refs.yen.Text = Format.yen(math.floor(v + 0.5), L)
+	end)
+	if yenTween then
+		yenTween:Cancel()
+	end
+	yenTween = game:GetService("TweenService"):Create(value, TweenInfo.new(0.6, Enum.EasingStyle.Quad), { Value = amount })
+	yenTween:Play()
+	shownYen = amount
 end
 
 -- first daily quest that is not claimed yet
@@ -262,24 +312,12 @@ function HUD.refreshHands()
 end
 
 function HUD.day(state)
-	local phase = state.phase
-	refs.clock.Text = "🕒 " .. Format.clock(state.clock or 9.5)
+	refs.clock.Text = (state.night and "🌙 " or "🕒 ") .. Format.clock(state.clock or 10)
 	refs.dayInfo.Text = t("ui.day_n", { n = state.day or 1 })
 	local b = refs.dayButton
-	if phase == "prep" then
-		b.Text = "● " .. t("ui.closed_tap")
-		b.BackgroundColor3 = T.red
-	elseif phase == "open" then
-		b.Text = "● " .. t("ui.open_tap")
-		b.BackgroundColor3 = T.green
-	elseif phase == "closing" then
-		b.Text = t("ui.closing")
-		b.BackgroundColor3 = T.locked
-	else
-		b.Text = "📊 " .. t("ui.report_short")
-		b.BackgroundColor3 = T.gold
-	end
-	b.Active = Core.C.Data.canBuild() or phase == "report"
+	b.Text = "🏮 " .. t("ui.open_tap")
+	b.BackgroundColor3 = T.green
+	b.Active = state.report ~= nil
 	b.AutoButtonColor = b.Active
 end
 
@@ -366,7 +404,7 @@ function HUD.refresh()
 	if not Data.ready then
 		return
 	end
-	refs.yen.Text = Format.yen(Data.wallet(), lang())
+	showYen(Data.wallet())
 	refs.sakura.Text = Format.sakura(Data.m("sakura") or 0, lang())
 	local level = Data.w("level") or 1
 	local xp = Data.w("xp") or 0

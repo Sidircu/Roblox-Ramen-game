@@ -558,6 +558,30 @@ function Supply.shelfStock(g)
 	return total
 end
 
+-- Takes one product of ingredient g from the shelf slot nearest to pos (stations fetch their
+-- ingredients by themselves). Returns where the product stood (for the fly animation) and whether
+-- it was fresh (neta case), or nil when there is none on the shelves.
+function Supply.takeIngredient(g, pos)
+	local shelf, slot = Supply.findShelfWith(g, pos)
+	if not shelf then
+		return nil
+	end
+	local st = shelfState(shelf.uid)
+	local s = st[tostring(slot)]
+	if not s or s.n <= 0 then
+		return nil
+	end
+	local target = Supply.cellTarget(shelf, slot, s.n, g)
+	s.n -= 1
+	if s.n <= 0 then
+		st[tostring(slot)] = nil
+	end
+	Supply.refreshShelf(shelf, slot)
+	Core.S.Data.changed(Core.S.Session.owner, "shelves")
+	local from = target and target.cf and target.cf.Position or shelf.model.PrimaryPart.Position
+	return from, shelf.item.fn.fresh == true
+end
+
 -- Nearest shelf slot holding ingredient g (for staff)
 function Supply.findShelfWith(g, pos)
 	local best, bestSlot, bestD = nil, nil, math.huge
@@ -704,6 +728,9 @@ function Supply.useShelf(actor, e, slot)
 		Core.S.Meta.event(Core.S.Session.owner, "restock", 1)
 		Core.S.Net.fx("sfx", { name = "restock", pos = e.model.PrimaryPart.Position })
 		return true
+	elseif typeof(actor) == "Instance" and hands.kind == nil then
+		-- players do not carry ingredients any more: the stations take them by themselves
+		return false, "msg.shelf_auto"
 	elseif hands.kind == nil or hands.kind == "ing" then
 		local s = slot and st[tostring(slot)]
 		if not s or s.n <= 0 then

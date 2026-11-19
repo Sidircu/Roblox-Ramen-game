@@ -15,81 +15,62 @@ local player = Players.LocalPlayer
 local t = Locale.t
 local T = Kit.Theme
 
--- The first day, guided step by step (ramen only, the storage room starts empty):
--- target = what the arrow points at (a kind, or a function returning kind and box filter);
--- done = action (sent by the server after an interaction) or check function, or a timer
-local RAMEN_SHELF = { noodles = true, scallion = true, naruto = true }
+-- The first minutes, one short step at a time: a customer orders by themselves, the ramen station
+-- makes it in three presses (noodles, broth, toppings), you serve it and get paid, then you clear
+-- and wash the dish. target = what the arrow points at (a kind, or a function returning kind and a
+-- filter); done = an action sent by the server after an interaction, or a check, or a timer.
 
-local function heldBox()
-	if player:GetAttribute("HandsKind") ~= "box" then
-		return nil
-	end
-	local ok, list = pcall(function()
-		return game:GetService("HttpService"):JSONDecode(player:GetAttribute("Hands") or "[]")
-	end)
-	return ok and list and list[1] or nil
-end
-
--- ramen ingredients not yet on any shelf
-local function missingOnShelves()
-	local have = {}
-	for _, slots in pairs(Core.C.Data.w("shelves") or {}) do
-		for _, sl in pairs(slots) do
-			if (sl.n or 0) > 0 then
-				have[sl.g] = true
+-- the station that has the order: cooking it, ready with it, or about to start it
+local function orderStation()
+	local best = nil
+	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
+		if m:GetAttribute("Kind") == "station" and m:IsDescendantOf(workspace) then
+			if (m:GetAttribute("Ready") or "") ~= "" or (m:GetAttribute("Recipe") or "") ~= "" then
+				return m
+			end
+			if (m:GetAttribute("Next") or "") ~= "" then
+				best = best or m
 			end
 		end
 	end
-	local missing = {}
-	for g in pairs(RAMEN_SHELF) do
-		if not have[g] then
-			missing[g] = true
-		end
-	end
-	return missing
+	return best
 end
 
-local function anyBox()
-	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
-		if m:GetAttribute("Kind") == "box" and m:IsDescendantOf(workspace) then
-			return true
-		end
+local function stationStep()
+	local m = orderStation()
+	if not m then
+		return 0, false
 	end
-	return false
+	if (m:GetAttribute("Ready") or "") ~= "" then
+		return 99, true
+	end
+	if (m:GetAttribute("Recipe") or "") == "" then
+		return 0, false
+	end
+	return m:GetAttribute("Step") or 0, false
+end
+
+local function anyTicket()
+	return #(Core.C.Data.tickets or {}) > 0
 end
 
 local STEPS = {
-	{ key = "tut.welcome", timer = 8 },
-	{ key = "tut.buy", target = "supplier", action = "order" },
-	{ key = "tut.truck", target = "box", check = anyBox },
-	-- a box for the shelves (noodles, scallion or naruto), then the shelf
-	{ key = "tut.take_box", target = function()
-		return "box", RAMEN_SHELF
-	end, action = "take_box" },
-	{ key = "tut.fill_shelf", target = "shelf", action = "shelf", hands = "box_done" },
-	-- the other two boxes until the three ramen toppings are all on the shelves
-	{ key = "tut.more_boxes", target = function()
-		if RAMEN_SHELF[heldBox() or ""] then
-			return "shelf"
-		end
-		return "box", missingOnShelves()
-	end, check = function()
-		return next(missingOnShelves()) == nil
+	{ key = "tut.welcome", timer = 6 },
+	{ key = "tut.order", target = "customer", check = anyTicket },
+	{ key = "tut.noodles", target = "orderStation", check = function()
+		local step, ready = stationStep()
+		return step >= 1 or ready
 	end },
-	-- the first time the broth is already in the pot (and the rice in the cooker): just show it
-	{ key = "tut.broth_ready", target = "pot", timer = 9 },
-	{ key = "tut.open", check = function()
-		return Core.C.Data.day.phase ~= "prep"
+	{ key = "tut.broth", target = "orderStation", check = function()
+		local step, ready = stationStep()
+		return step >= 2 or ready
 	end },
-	{ key = "tut.order", target = "customer", action = "customer" },
-	{ key = "tut.ingredients", target = "shelf", action = "shelf", hands = "ing" },
-	{ key = "tut.cook", target = "station", check = function()
-		for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
-			if m:GetAttribute("Kind") == "station" and (m:GetAttribute("Ready") or "") ~= "" then
-				return true
-			end
-		end
-		return false
+	{ key = "tut.toppings", target = "orderStation", check = function()
+		local _, ready = stationStep()
+		return ready or player:GetAttribute("HandsKind") == "dish"
+	end },
+	{ key = "tut.take_dish", target = "orderStation", check = function()
+		return player:GetAttribute("HandsKind") == "dish"
 	end },
 	{ key = "tut.serve", target = "customer", check = function()
 		local s = Core.C.Data.w("stats")
@@ -97,10 +78,7 @@ local STEPS = {
 	end },
 	{ key = "tut.collect", target = "dirty", action = "collect" },
 	{ key = "tut.wash", target = "sink", action = "wash" },
-	{ key = "tut.build", check = function()
-		return Core.C.Build.active
-	end },
-	{ key = "tut.done", timer = 10 },
+	{ key = "tut.done", timer = 8 },
 }
 
 local panel, text, stepLabel, beam, a0, a1, marker
@@ -113,6 +91,9 @@ end
 
 local function findTarget(target)
 	local kind, filter = target, nil
+	if target == "orderStation" then
+		return orderStation()
+	end
 	if type(target) == "function" then
 		kind, filter = target()
 	end
@@ -179,14 +160,6 @@ local function advance()
 		local s = Core.C.Data.w("stats")
 		Tutorial.dishesAtStart = s and s.dishes or 0
 	end
-	-- the first order opens its guide by itself (steps, ticks and the green arrow)
-	if STEPS[index].key == "tut.ingredients" then
-		local tk = (Core.C.Data.tickets or {})[1]
-		local guide = Core.C.UI.screens.Guide
-		if tk and guide and not guide.visible() then
-			guide.show(tk.recipe)
-		end
-	end
 	save()
 	show()
 end
@@ -230,12 +203,19 @@ function Tutorial.Init()
 		marker.Enabled = false
 	end })
 	Kit.button(t("ui.next"), { parent = panel, size = UDim2.fromOffset(90, 30), position = UDim2.new(1, -186, 1, -32), style = "gold", textSize = 14, onClick = function()
-		advance()
+		-- steps that ask for an action move on by themselves when it is done
+		local st = STEPS[index]
+		if st and st.timer then
+			advance()
+		end
 	end })
 	-- in first person the mouse is captured: Enter also goes to the next card
 	game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
 		if not processed and panel.Visible and (input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter) then
-			advance()
+			local st = STEPS[index]
+			if st and st.timer then
+				advance()
+			end
 		end
 	end)
 	a0 = Instance.new("Attachment")

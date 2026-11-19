@@ -102,33 +102,37 @@ Pianta indicativa (vista dall'alto):
 
 ### 3.1 Il ciclo principale (loop)
 
+Chiaro nei primi 30 secondi: entri, il locale è già aperto e rifornito, e dopo pochi secondi entra il primo cliente.
+
 ```
-Ordina scatole dal tablet ─► Il furgone consegna in magazzino ─► Porti le scatole alle mensole
-        ▲                                                                   │
-        │                                                                   ▼
-   Spendi gli yen  ◄── Il cliente paga + mancia ◄── Servi il piatto ◄── Cucini al bancone
- (licenze, mobili,                                                          ▲
-  personale, ampliamenti)                         Il cliente si siede e ordina ┘
+Il cliente entra e ordina da solo (nuvoletta con l'icona del piatto)
+        │
+        ▼
+Alla postazione: 3 pressioni (🍜 noodles → 🥣 brodo → 🌱 condimenti); gli ingredienti volano dagli scaffali
+        │
+        ▼
+Prendi la ciotola e servi ─► paga SUBITO prezzo + mancia (monete che volano al portafoglio)
+        │
+        ▼
+Spendi gli yen (miglioramenti, licenze, personale, ampliamenti) ─► più clienti e piatti migliori
 ```
+
+Il rifornimento (fornitore, furgone, scatole, scaffali a scacchiera) e il lavaggio delle stoviglie restano, ma entrano in gioco dopo: all'inizio gli scaffali sono pieni, il pentolone e il cuociriso pronti e i piatti puliti abbondanti.
 
 ### 3.2 La giornata
 
-1. **Preparazione** (durata libera, nessun cliente): rifornisci, cuoci il riso, prepari il brodo, costruisci, compri.
-2. **Apertura**: clicchi "Apri" → il noren viene appeso, l'insegna "営業中" si accende.
-3. **Servizio** (12 minuti reali = dalle 11:00 alle 23:00, 1 ora di gioco = 1 minuto reale):
-   - Picco del pranzo (12:00–14:00) e della cena (19:00–21:00) con più clienti.
-   - La luce cambia: giorno → tramonto arancione → sera con lanterne e neon accesi.
-4. **Chiusura**: alle 23:00 non entrano più clienti, quelli seduti finiscono di mangiare.
-5. **Resoconto della giornata**: incassi, mance, costi (ingredienti, stipendi), recensioni, XP, obiettivi completati.
+Il ristorante è **sempre aperto**: nessun interruttore Apri/Chiuso, nessuna schermata che ferma il gioco.
+- L'orologio gira da solo: un'ora di gioco dura 45 secondi (15 di notte, dalle 23 alle 6, così la notte passa in fretta); un giorno intero dura circa 14 minuti.
+- Picco del pranzo (12:00–14:00) e della cena (19:00–21:00) con più clienti; di notte ne arrivano meno.
+- La luce cambia: giorno → tramonto arancione → sera con lanterne e neon accesi → notte breve.
+- Alle 6:00 si chiude la giornata: stipendi, statistiche, missioni del giorno, mance del barattolo nel portafoglio e un messaggio «Il giorno 3 è finito: ¥1.240 guadagnati». Il **resoconto** completo (incassi, mance, costi, recensioni) si apre toccando l'orologio in alto.
 
-Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertura e chiusura da sole) per giocare in modo più rilassato.
-
-### 3.3 Interazione "basta cliccare"
+### 3.3 Interazione: un'azione = un pulsante
 
 - Il personaggio si muove **liberamente** con WASD (PC) o joystick (telefono/tablet).
-- Quando sei **vicino** a un oggetto interattivo (entro ~10 stud) e ci passi sopra con il mouse, si illumina il contorno e compare un'etichetta ("Prendi salmone", "Servi", "Lava").
-- **Clicchi o tocchi** l'oggetto → l'azione avviene subito, con un'animazione. Se sei troppo lontano compare "Avvicinati".
-- Il personaggio porta gli oggetti **visibilmente in mano** (scatola, ingredienti, piatti). Gli ingredienti in mano sono fino a 6; i piatti e le stoviglie dipendono dal **Vassoio** (1 all'inizio, fino a 5).
+- L'oggetto che puoi usare (quello al centro dello schermo in prima persona; in terza persona quello sotto il mouse o, senza mouse, il più vicino davanti a te) si illumina e mostra un **ProximityPrompt** di Roblox con cosa succede: «🍜 Cuoci i noodles · Shoyu Ramen (1/3)», «Servi», «Lava i piatti».
+- **E** (tastiera), **X** (gamepad) o un **tocco sul pulsante** (telefono) eseguono l'azione; vanno bene anche il clic o il tocco sull'oggetto. Se sei troppo lontano compare "Avvicinati".
+- Il personaggio porta gli oggetti **visibilmente in mano** (scatole, piatti, stoviglie sporche); i piatti e le stoviglie dipendono dal **Vassoio** (1 all'inizio, fino a 5). Gli ingredienti non si portano più a mano: le postazioni li prendono da sole dagli scaffali.
 
 ---
 
@@ -168,37 +172,30 @@ Più avanti, con il **Manager**, puoi attivare la "giornata automatica" (apertur
 ## 5. Cucina
 
 ### 5.1 Ordini
-- Il cliente seduto mostra una nuvoletta con l'icona del piatto.
-- Clic sul cliente → l'ordine diventa un **biglietto** appeso alla barra degli ordini sopra il bancone (max 6 biglietti; 10 con upgrade).
-- Clic su un biglietto (o sulla postazione) → il gioco **evidenzia in oro** gli ingredienti che servono sulle mensole e la postazione corretta.
+- Il cliente si siede, guarda il menu un attimo e **ordina da solo**: la nuvoletta sopra la testa mostra l'icona del piatto e la barra della pazienza, e l'ordine diventa un **biglietto** a sinistra (fino a 12 biglietti, uno per posto; 16 e 20 con il miglioramento).
+- Toccando un biglietto si apre la **guida dell'ordine** e si illumina la postazione da usare.
 
-### 5.1 bis Il tagliere ti dice cosa portare
-- Sul tagliere di ogni postazione compaiono le **sagome trasparenti** degli ingredienti dell'ordine più vecchio per quella postazione (una per pezzo, al loro posto). Guardando la postazione compare "Porta qui: 🍙 🥒 🟩".
-- Quando posi gli ingredienti, volano dalle tue mani alla loro sagoma e la riempiono; le sagome che restano sono quelle che mancano. Senza ordini il tagliere è vuoto; con ingredienti già posati, le sagome seguono la ricetta che stai facendo.
+### 5.1 bis La postazione fa da sola
+- Ogni postazione sa qual è il **prossimo ordine** per lei (il più vecchio che nessuno sta già preparando) e lo mostra nel suo prompt: «🍜 Cuoci i noodles · Shoyu Ramen (1/3)».
+- La **prima pressione** porta gli ingredienti: volano dagli scaffali al tagliere, ognuno dal suo ripiano, e parte subito il primo passaggio. Ogni pressione successiva fa il passaggio dopo.
+- Se manca qualcosa il prompt lo dice prima: «Shoyu Ramen: mancano 🍥 · rifornisci gli scaffali» (o il brodo, il riso, i piatti puliti).
+- Sul tagliere vuoto le **sagome trasparenti** mostrano il piatto che verrà preparato.
 
 ### 5.1 ter Noodles perfetti (facoltativo)
 - Mentre i noodles bollono compare una barra con una parte verde e un ago che scorre: clicca (o E, o ✋) quando l'ago è nel verde e la ciotola è **perfetta** (+20% di mancia). Se sbagli o non clicchi, la ciotola è buona lo stesso.
 
 ### 5.2 Preparare il sushi (postazione sushi / tagliere)
-Esempio *Sake Nigiri*:
-1. Clic sul salmone sulla mensola → lo prendi in mano.
-2. Clic sulla postazione sushi → il salmone va sul tagliere; il riso viene preso da solo dal rice cooker.
-3. Clic → **il coltello taglia** il filetto (animazione).
-4. Clic → **gli ingredienti si uniscono**: la fetta si posa sul riso e diventa un nigiri.
-5. Il piatto viene impiattato da solo e resta sulla postazione, pronto da servire.
+Esempio *Sake Nigiri*: due pressioni.
+1. Il salmone vola dallo scaffale al tagliere e **il coltello taglia** il filetto (il riso viene preso da solo dal cuociriso).
+2. **Gli ingredienti si uniscono**: la fetta si posa sul riso e diventa un nigiri, impiattato e pronto da servire.
 
-I maki hanno i passaggi **Unisci → Arrotola → Taglia**: tre clic, tre animazioni (stuoia di bambù che arrotola, coltello che fa sei pezzi).
-
-Sopra la postazione un'etichetta mostra sempre cosa c'è sul tagliere, che piatto ne verrà fuori e il prossimo passaggio ("Clicca per tagliare").
+I maki hanno i passaggi **Unisci → Arrotola → Taglia**: tre pressioni, tre animazioni (stuoia di bambù che arrotola, coltello che fa sei pezzi). Il sashimi di salmone è una pressione sola.
 
 ### 5.3 Preparare il ramen (postazione ramen)
-Esempio *Shoyu Ramen*:
-1. Prendi noodles, cipollotto e naruto dalle mensole (puoi tenere in mano fino a 6 ingredienti).
-2. Clic sulla postazione ramen → gli ingredienti vengono posati.
-3. Clic → **i noodles cuociono** nel bollitore (animazione con vapore).
-4. Clic → **il brodo viene versato** dal pentolone nella ciotola.
-5. Clic → **i condimenti si dispongono** sopra.
-6. Ciotola fumante pronta.
+Esempio *Shoyu Ramen*: tre pressioni.
+1. 🍜 Noodles, cipollotto e naruto volano dagli scaffali e **i noodles cuociono** nel bollitore (vapore, e la barra del tempismo facoltativa).
+2. 🥣 **Il brodo viene versato** dal pentolone nella ciotola.
+3. 🌱 **I condimenti si dispongono** sopra: ciotola fumante pronta.
 
 ### 5.4 Altre postazioni (sbloccate con licenze)
 | Postazione | Piatti | Passaggi |
@@ -217,8 +214,8 @@ Non esistono errori né tempismo: ogni piatto riesce sempre. Il guadagno dipende
 - **Maestria** della ricetta: aumenta il prezzo e la velocità.
 
 ### 5.6 Servire, pagare, pulire
-- Clic sul piatto pronto → lo prendi (anche più piatti, in base al Vassoio). Clic sul cliente → lo servi.
-- Il cliente mangia (barra), poi paga in automatico: le monete volano verso la cassa con un "cha-ching". Il pagamento è **prezzo del menu + mancia**.
+- Una pressione sul piatto pronto → lo prendi (anche più piatti, in base al Vassoio). Una pressione sul cliente → lo servi.
+- Il cliente **paga subito**, appena il piatto arriva: «+¥62» sopra di lui, monete che volano fino al portafoglio in alto (che sobbalza mentre il numero sale), scintille, "cha-ching" e una faccina felice 😋. Il pagamento è **prezzo del menu + mancia**; poi mangia con calma e se ne va.
 - Al posto restano **stoviglie sporche**: il posto non è utilizzabile finché non le raccogli. Clic → le prendi → clic sul **lavello** → i piatti si **accumulano di lato**, impilati nella vasca con l'acqua saponata.
 - **Minigioco del lavaggio**: quando ci sono piatti sporchi compare "Tieni premuto: lava i piatti". Tieni premuto il clic (o E, o il pulsante ✋ su telefono): il rubinetto si apre, un piatto sporco va sotto l'acqua e una **spugna gira** sopra mentre lo sporco sparisce; una **barra sottile** sotto il centro dello schermo mostra il completamento. Quando il piatto è pulito **scorre verso sinistra**, verso lo scolapiatti, diventando trasparente fino a sparire, e si passa da solo al piatto successivo finché tieni premuto. Se lasci, il piatto in corso si ferma (con un tocco sul lavello, sul telefono, si avvia e si ferma). Il personale lava da solo con la stessa animazione.
 - Le **stoviglie pulite** sono una risorsa: se finiscono non puoi impiattare. Puoi comprare altri set di ciotole e piatti; la **lavastoviglie** lava da sola.
@@ -348,7 +345,7 @@ Il personale sono NPC che lavorano da soli. Si assumono, si pagano a giornata e 
 | Cuoco sushi | prepara gli ordini di sushi su una propria postazione |
 | Cuoco ramen | prepara gli ordini di ramen e tiene pieni i pentoloni |
 | Cuoco di linea | contorni, fritti, piastra |
-| Manager | giornata automatica, riordino automatico, bonus a tutto il personale |
+| Manager | riordino automatico, bonus a tutto il personale |
 
 Il personale diventa più veloce con l'addestramento.
 
@@ -430,7 +427,7 @@ Stile: carta washi color crema, bordi in legno scuro, accenti rosso lacca e oro,
 | Elemento | Contenuto |
 |---|---|
 | In alto a sinistra | Pillola compatta: yen, gettoni Sakura, livello con barra XP sottile |
-| In alto al centro | Barra sottile come in Pet Store Tycoon: orologio, giorno e un interruttore **CHIUSO / APERTO** (rosso/verde) da toccare |
+| In alto al centro | Barra sottile come in Pet Store Tycoon: orologio (🌙 di notte), giorno e la lanterna 🏮 APERTO; toccandola si apre il resoconto dell'ultimo giorno |
 | In alto a destra | Una riga: ★ valutazione · ✨ atmosfera · 🍽️ piatti puliti / 🧽 da lavare |
 | A sinistra | Biglietti degli ordini, grandi e numerati: icona e nome del piatto, le icone di cosa serve (ingredienti, 🥣 brodo, 🍚 riso) e la barra colorata della pazienza del cliente; toccandone uno si apre la **guida dell'ordine** accanto |
 | In basso a sinistra | Solo 3 pulsanti: 🔨 Costruisci, 📦 Fornitore, 📱 **Telefono** |
@@ -442,16 +439,16 @@ Stile: carta washi color crema, bordi in legno scuro, accenti rosso lacca e oro,
 Altre schermate: inventario decorazioni, ricettario, obiettivi, premio giornaliero, guadagni offline, impostazioni (lingua, griglia, rotazione, volume musica/effetti, qualità grafica ridotta per dispositivi deboli).
 
 ### Tutorial
-Si parte con il **magazzino vuoto** e **solo il ramen shoyu**, ma con brodo e riso già pronti. Al livello 2 la licenza **Sashimi** (¥300) aggiunge un secondo piatto facilissimo (due fette di salmone, un taglio); il sushi con il riso arriva al livello 3. Postazione sushi e cuociriso mostrano un 🔒 con la licenza e il livello che servono. La prima giornata è guidata passo passo da una scheda grande a destra e da una freccia luminosa gialla con un indicatore ⬇ sull'oggetto da cliccare: apri il fornitore e compra gli ingredienti del ramen (il pulsante «Tutto per il menu» è evidenziato) → arriva il furgone e lascia le scatole a terra → prendi una scatola → riempi lo scaffale → metti sugli scaffali anche le altre (noodles, cipollotto, naruto) → versa il brodo shoyu nel pentolone → apri → prendi l'ordine → (si apre la guida dell'ordine, le sagome sul tagliere mostrano cosa serve) → prepara e servi → raccogli e lava le stoviglie → arreda. Invio passa al consiglio successivo. Si può saltare e rivedere dal telefono (❓ Come si gioca).
+Si parte con **solo il ramen shoyu**, gli **scaffali già pieni** (noodles, cipollotto, naruto), il pentolone pieno di brodo, il cuociriso pieno e una scatola di riserva in magazzino. Al livello 2 la licenza **Sashimi** (¥300) aggiunge un secondo piatto facilissimo (due fette di salmone, un taglio); il sushi con il riso arriva al livello 3. Postazione sushi e cuociriso mostrano un 🔒 con la licenza e il livello che servono. I primi minuti sono guidati da una scheda a destra con una frase sola e da una freccia luminosa gialla con un indicatore ⬇ sull'oggetto da usare: benvenuto → un cliente ordina → 🍜 noodles → 🥣 brodo → 🌱 condimenti → prendi la ciotola → servi (e incassi) → raccogli la ciotola sporca → lavala. I passi che chiedono un'azione vanno avanti da soli quando la fai. Si può saltare e rivedere dal telefono (❓ Come si gioca).
 
 ### Guida dell'ordine
-Toccando un ordine a sinistra si apre una scheda con pochi passaggi brevi, ognuno con la spunta ✅ quando è fatto e il dito 👉 su quello da fare ora: riso o brodo pronti → ingredienti da prendere (con la spunta su quelli che hai in mano) → clicca la postazione per posarli → cliccala ancora per ogni passaggio (es. Unisci → Arrotola → Taglia, con il contatore) → prendi il piatto → servilo al cliente. Gli spazi degli scaffali con gli ingredienti giusti e la postazione da usare si illuminano, e una freccia verde va da te alla prossima cosa da cliccare (anche al cliente giusto quando hai il piatto in mano).
+Toccando un ordine a sinistra si apre una scheda con pochi passaggi brevi, ognuno con la spunta ✅ quando è fatto e il dito 👉 su quello da fare ora: riso o brodo pronti → ingredienti sugli scaffali (✓ o ✗ per ognuno; se manca qualcosa, la freccia va alla sua scatola) → premi la postazione una volta per passaggio (es. Unisci → Arrotola → Taglia, con il contatore) → prendi il piatto → servilo al cliente. Gli spazi degli scaffali con gli ingredienti giusti e la postazione da usare si illuminano, e una freccia verde va da te alla prossima cosa da cliccare (anche al cliente giusto quando hai il piatto in mano).
 
 ### Oggetti in mano
 Un clic con una scatola su uno scaffale riempie **tutti** gli spazi liberi adatti, e un messaggio dice quante porzioni restano nella scatola. **Posa** (tasto G o ⬇) appoggia la scatola a terra davanti a te, visibile e da riprendere, oppure sulla scaffalatura se sei in magazzino. Gli ingredienti in mano tornano sullo scaffale più vicino, i piatti vanno al lavello. Un messaggio dice sempre dove è finito l'oggetto.
 
 ### Telecamera e comandi
-**Prima persona** (predefinita, come in Supermarket Together): ci si guarda intorno con il mouse o trascinando un dito; un **pallino al centro** dello schermo indica cosa si sta puntando e sotto compare cosa succede cliccando (dorato quando sei abbastanza vicino). Clic o **E** per usare, **tasto destro** per posare la scatola (solo le scatole, così un piatto non si perde per sbaglio), **G** per posare qualsiasi cosa, **Shift** per correre, **Q** per liberare il mouse e usare i pulsanti (di nuovo Q per tornare a guardarti intorno; funziona anche Alt tenuto premuto (il mouse si libera da solo quando si apre un menu o in costruzione, dove la vista passa dall'alto). Scorciatoie: **B** costruisci, **O** fornitore, **P** telefono, **R** regali, **Invio** per il consiglio successivo del tutorial. Quello che hai in mano si vede davanti alla telecamera. Su telefono e tablet ci sono i pulsanti **✋ Usa** e **🏃 Corri**.
+**Telecamera automatica** (predefinita): **terza persona** su telefono e tablet, **prima persona** con la tastiera; si cambia in Impostazioni → Telecamera. **Prima persona** (come in Supermarket Together): ci si guarda intorno con il mouse o trascinando un dito; un **pallino al centro** dello schermo indica cosa si sta puntando e sotto compare cosa succede cliccando (dorato quando sei abbastanza vicino). Clic o **E** per usare, **tasto destro** per posare la scatola (solo le scatole, così un piatto non si perde per sbaglio), **G** per posare qualsiasi cosa, **Shift** per correre, **Q** per liberare il mouse e usare i pulsanti (di nuovo Q per tornare a guardarti intorno; funziona anche Alt tenuto premuto (il mouse si libera da solo quando si apre un menu o in costruzione, dove la vista passa dall'alto). Scorciatoie: **B** costruisci, **O** fornitore, **P** telefono, **R** regali, **Invio** per il consiglio successivo del tutorial. Quello che hai in mano si vede davanti alla telecamera. Su telefono e tablet ci sono i pulsanti **✋ Usa** e **🏃 Corri**.
 
 Nelle impostazioni si può scegliere anche la **terza persona** (telecamera morbida e lenta: tasto destro o un dito per girare, ← →, rotellina o due dita per lo zoom; non finisce dietro i muri e, se sei dentro e sale sopra il soffitto, il tetto sparisce) o la telecamera classica di Roblox. **Impostazioni → Sensibilità mouse / telecamera** (lenta, media, veloce) vale in tutte le modalità: in prima persona si somma alla sensibilità del menu di Roblox (Esc → Impostazioni).
 

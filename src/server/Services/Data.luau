@@ -10,6 +10,8 @@ local GameConfig = require(Shared.Config.GameConfig)
 local StarterLayout = require(Shared.Config.StarterLayout)
 local Surfaces = require(Shared.Config.Surfaces)
 local Recipes = require(Shared.Config.Recipes)
+local Ingredients = require(Shared.Config.Ingredients)
+local ShelfGrid = require(Shared.Logic.ShelfGrid)
 local TableUtil = require(Shared.Util.TableUtil)
 local Uid = require(Shared.Util.Uid)
 local Signal = require(Shared.Util.Signal)
@@ -20,7 +22,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 9
+local VERSION = 10
 local profiles = {} -- [player] = { data, loaded, saving, released }
 local releasing = {} -- [userId] = true while the final save of a player who left is running
 local activeSaves = 0
@@ -66,7 +68,7 @@ function Data.newProfile()
 		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0, codes = {}, onboarding = true, funnel = {} },
 		franchise = { stars = 0, city = "tokyo" },
 		perms = {},
-		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, autoDay = false, cam = "first", camSpeed = 1 },
+		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = 1 },
 		passes = {},
 		receipts = {},
 		created = os.time(),
@@ -102,8 +104,28 @@ function Data.newProfile()
 			d.placed[idx].y = ItemsCfg.byId[parent.i].size[2]
 		end
 	end
+	-- the shelves start stocked (StarterLayout.stock): every listed slot full
+	local shelfIndex = 0
+	for idx, s in ipairs(StarterLayout.items) do
+		local fn = ItemsCfg.byId[s.i].fn
+		if fn and fn.type == "shelf" then
+			shelfIndex += 1
+			local list = StarterLayout.stock and StarterLayout.stock[shelfIndex]
+			if list then
+				local slots = {}
+				for k, g in ipairs(list) do
+					local ing = Ingredients.byId[g]
+					if ing and k <= fn.slots then
+						local cols, rows = ShelfGrid.forIngredient(ing.units, GameConfig.BoxShelfSlots, 1)
+						slots[tostring(k)] = { g = g, n = cols * rows }
+					end
+				end
+				d.shelves[uids[idx]] = slots
+			end
+		end
+	end
 	for _, b in ipairs(StarterLayout.boxes) do
-		local ing = require(Shared.Config.Ingredients).byId[b.g]
+		local ing = Ingredients.byId[b.g]
 		for _ = 1, b.n do
 			table.insert(d.storage, { u = Uid.new("b"), g = b.g, n = ing.units })
 		end
@@ -200,6 +222,21 @@ local function migrate(d)
 		d.meta = d.meta or {}
 		d.meta.onboarding = false
 		d.v = 9
+	end
+	if d.v < 10 then
+		-- v10: the restaurant is always open; the camera picks itself (third person on phones and
+		-- tablets, first person with a keyboard)
+		d.settings = d.settings or {}
+		if d.settings.cam == nil or d.settings.cam == "first" then
+			d.settings.cam = "auto"
+		end
+		d.settings.autoDay = nil
+		-- the tutorial changed: whoever was halfway through starts the new, shorter one
+		d.meta = d.meta or {}
+		if (d.meta.tutorial or 0) > 0 then
+			d.meta.tutorial = 1
+		end
+		d.v = 10
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION

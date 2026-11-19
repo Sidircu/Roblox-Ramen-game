@@ -48,12 +48,6 @@ return Base.make("Staff", "ui.staff", UDim2.fromScale(0.66, 0.78), function(cont
 			NetDef.event("FireStaff"):FireServer(s.u)
 		end })
 	end
-	if hasManager and can then
-		local auto = Core.C.Data.m("settings") and Core.C.Data.m("settings").autoDay
-		Kit.button((auto and "✅ " or "⬜ ") .. t("ui.auto_day"), { parent = scroll, size = UDim2.fromOffset(260, 40), style = "plain", order = 50, onClick = function()
-			NetDef.event("SetSetting"):FireServer("autoDay", not auto)
-		end })
-	end
 	Kit.title(t("ui.hire"), { Parent = scroll, Size = UDim2.new(1, 0, 0, 32), LayoutOrder = 60 })
 	for _, cfg in ipairs(StaffCfg.list) do
 		local card, right = Kit.row(cfg.icon, t("staff." .. cfg.id), t("staffdesc." .. cfg.id) .. "\n" .. t("ui.req_level", { level = cfg.lv }) .. "  ·  " .. t("ui.salary", { yen = cfg.salary }), 86)

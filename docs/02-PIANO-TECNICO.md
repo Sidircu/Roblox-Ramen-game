@@ -248,17 +248,18 @@ Il server manda una copia iniziale e poi solo i cambiamenti (`DataChanged(percor
 
 ### Interazione
 - Ogni oggetto interattivo ha il tag `Interactable` e l'attributo `Uid`; `InteractionService` ha un gestore per tipo (scatola, mensola, apparecchio, postazione, cliente, piatto, stoviglie, lavello, tablet, lavagna menu).
-- Il client invia `Interact(uid)`; il server controlla distanza (≤ 9 stud), permessi, cosa ha in mano il giocatore e lo stato dell'oggetto; risponde con l'azione eseguita o con un messaggio ("Hai le mani piene").
+- **Bersaglio sul client** (`Controllers/Interaction`): in prima persona l'oggetto al centro dello schermo; in terza persona quello sotto il mouse o, senza mouse, il più vicino davanti al personaggio (distanza e direzione). Sul bersaglio il client crea (solo per sé) un **ProximityPrompt** con il testo di cosa succede (`Exclusivity = OneGlobally`, un solo prompt acceso alla volta): E, ButtonX o un tocco lo attivano, `TriggerEnded` ferma il lavaggio.
+- Il client invia `Interact(uid)`; il server controlla distanza (≤ 11 stud più metà dell'oggetto), permessi, cosa ha in mano il giocatore e lo stato dell'oggetto; risponde con l'azione eseguita o con un messaggio ("Hai le mani piene").
 - Ciò che si porta in mano è uno stack sul server (`{ tipo, id, quantità }`); il modello viene saldato alla mano e si vede anche dagli amici.
 
-### Preparazione a clic
-1. Il giocatore porta gli ingredienti alla postazione: vengono posati sul tagliere solo quelli che possono formare una ricetta sbloccata.
-2. Quando gli ingredienti sul tagliere corrispondono esattamente a una ricetta (riso e brodo si prendono da soli dal rice cooker e dal pentolone), ogni clic sulla postazione esegue il passaggio successivo con un'animazione sul server (coltello, stuoia, bollitore, mestolo).
-3. Durante un'animazione i clic vengono ignorati; la durata dipende da attrezzi, maestria e livello del personale.
-4. Dopo l'ultimo passaggio il piatto è un oggetto fisico sulla postazione, pronto da prendere e servire. Un clic a mani vuote su un tagliere con ingredienti non validi li rimette in mano.
+### Preparazione a pressioni
+1. `Cooking.nextOrder(stazione)`: il biglietto più vecchio di quel tipo di postazione che nessuno sta già preparando (conta i piatti in cottura, pronti sui piatti e in mano a qualcuno). `Cooking.missing(ricetta)`: ingredienti non sugli scaffali, riso, brodo, piatti puliti. Ogni postazione pubblica `Next` e `Missing` come attributi (aggiornati ogni 0,5 s) per il prompt del client.
+2. A tagliere vuoto la prima pressione prende gli ingredienti dagli scaffali (`Supply.takeIngredient`, il ripiano più vicino), li fa volare ognuno dal suo ripiano al tagliere e fa subito il primo passaggio; ogni pressione successiva fa il passaggio dopo con un'animazione sul server (coltello, stuoia, bollitore, mestolo). Riso e brodo si prendono da soli dal cuociriso e dal pentolone.
+3. Durante un'animazione le pressioni vengono ignorate; la durata dipende da attrezzi, maestria e livello del personale.
+4. Dopo l'ultimo passaggio il piatto è un oggetto fisico sulla postazione, pronto da prendere e servire. I cuochi del personale usano le postazioni allo stesso modo.
 
 ### Clienti (macchina a stati)
-`Arriva → (Aspetta in coda) → Va al posto → Legge il menu → Ordina → Aspetta → Mangia → Paga → Recensisce → Esce`
+`Arriva → (Aspetta in coda) → Va al posto → Legge il menu → Ordina da solo (biglietto) → Aspetta → Servito: paga subito → Mangia → Recensisce → Esce`
 - Prenotazione del posto al momento della scelta; percorso con `PathfindingService` (costo infinito sulle zone `StaffOnly`), ricalcolo se bloccato.
 - Stati superflui degli Humanoid disattivati (arrampicata, nuoto, caduta) per risparmiare CPU; proprietà fisica al server.
 - Massimo 40 NPC in totale; i clienti vengono riutilizzati (pool) invece di essere ricreati.
@@ -269,6 +270,7 @@ Il server manda una copia iniziale e poi solo i cambiamenti (`DataChanged(percor
 - I compiti presi da un giocatore vengono tolti dalla bacheca, così personale e giocatori non si ostacolano.
 
 ### Giornata ed economia
+- `Day`: il locale è sempre aperto; l'orologio avanza in continuo (`GameConfig.Day`: 45 s per ora, 15 s di notte); alle `DayStartHour` (6:00) `Day.finish` chiude la giornata (stipendi, statistiche, missioni, mance del barattolo, messaggio di riepilogo, salvataggio) senza fermare il gioco.
 - `DayCycleService` controlla `Lighting.ClockTime`; i client interpolano tra i valori per una transizione fluida.
 - Ogni guadagno passa da `EconomyService.add(player, amount, reason)` che applica i moltiplicatori e registra la voce per il resoconto della giornata.
 
@@ -335,7 +337,7 @@ Animazioni decorative, treno e particelle girano solo sul client.
 
 - **Test della logica** (`tests/logic_spec.lua`, eseguiti con lupa): formule (XP, prezzi, mance, recensioni), griglia 1/5/10, sovrapposizioni, muri e porte, validità del layout iniziale, piazzamento a terra/parete/soffitto/su bancone, blocco dei passaggi, locale completo su tre piani, ambiente, integrità della configurazione.
 - **Controllo statico** (`tools/check_luau.py`, `tools/check_api.py`): blocchi, variabili non dichiarate, require, parità delle lingue, chiamate tra servizi.
-- **Simulatore del server** (`tools/sim.py`): esegue il codice vero del server (tutti i servizi, `Init` e `Start`) su un Roblox simulato in Lua 5.4: orologio virtuale con `task.wait/spawn/delay`, istanze con proprietà, figli, attributi, tag ed eventi, i servizi usati dal gioco, DataStore in memoria che rifiutano i valori che Roblox non salverebbe (array con buchi, tabelle miste, NaN), giocatori finti con personaggio. Gli scenari in `tools/sim/scenarios/` aggiungono giocatori, mandano remoti, fanno passare il tempo e controllano il risultato: `core` (avvio, autotest del gioco, clienti per 3 minuti, statistiche, salvataggio all'uscita), `saves` (profilo bloccato da un altro server, uscita durante un salvataggio, spegnimento del server, guasto dei DataStore). Qualsiasi errore del gioco fa fallire la prova.
+- **Simulatore del server** (`tools/sim.py`): esegue il codice vero del server (tutti i servizi, `Init` e `Start`) su un Roblox simulato in Lua 5.4: orologio virtuale con `task.wait/spawn/delay`, istanze con proprietà, figli, attributi, tag ed eventi, i servizi usati dal gioco, DataStore in memoria che rifiutano i valori che Roblox non salverebbe (array con buchi, tabelle miste, NaN), giocatori finti con personaggio. Gli scenari in `tools/sim/scenarios/` aggiungono giocatori, mandano remoti, fanno passare il tempo e controllano il risultato: `core` (avvio, autotest del gioco, clienti per 3 minuti, statistiche, salvataggio all'uscita), `loop` (un giocatore nuovo gioca il ciclo base con i remoti veri e ne misura i tempi: primo ordine entro 20 s, servito e pagato entro 35 s, una giornata intera senza premere nulla), `saves` (profilo bloccato da un altro server, uscita durante un salvataggio, spegnimento del server, guasto dei DataStore). Qualsiasi errore del gioco fa fallire la prova.
 - **Costruzione**: `tools/build_place.py` produce il `.rbxlx`.
 - **In Studio** (tu): lista di controllo di gioco per la prima giornata, la costruzione, le espansioni e il personale, più il pannello sviluppatore per arrivare velocemente ai livelli alti.
 - **graphify**: `graphify update .` alla fine di ogni blocco di lavoro, così il grafo `graphify-out/` resta allineato al codice.

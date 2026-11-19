@@ -1,6 +1,10 @@
 --!nonstrict
--- Day cycle: prep -> open (11:00-23:00, 1 game hour = 1 minute) -> closing -> report -> prep.
+-- Time of day. The restaurant is always open: the clock turns continuously for the light (day,
+-- sunset, lantern-lit evening, a quick night) and the lunch and dinner rush. Every day at
+-- Day.DayStartHour the day's accounts are closed: salaries, stats, daily quests and a short summary
+-- for the owner (never a screen that stops the game).
 local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -8,11 +12,11 @@ local Staff = require(Shared.Config.Staff)
 local Core = require(script.Parent.Parent.Core)
 
 local Day = {}
-Day.phase = "prep"
-Day.clock = GameConfig.Day.PrepClock
-Day.report = nil
-local phaseStarted = os.clock()
 local DAY = GameConfig.Day
+Day.phase = "open" -- kept for older checks: the restaurant never closes
+Day.clock = DAY.StartClock
+Day.report = nil
+local hours = DAY.StartClock -- game hours since the server started (never wraps)
 
 local function data()
 	return Core.S.Session.ownerData()
@@ -27,13 +31,18 @@ function Day.isPeak()
 	return false
 end
 
+function Day.isNight()
+	return Day.clock >= DAY.NightFrom or Day.clock < DAY.NightTo
+end
+
 local function payload()
 	local d = data()
 	return {
 		phase = Day.phase,
 		clock = Day.clock,
 		day = d and (d.stats.days or 0) + 1 or 1,
-		report = Day.phase == "report" and Day.report or nil,
+		night = Day.isNight(),
+		report = Day.report,
 	}
 end
 
@@ -42,36 +51,17 @@ function Day.broadcast()
 	workspace:SetAttribute("DayPhase", Day.phase)
 end
 
-local function setPhase(p)
-	Day.phase = p
-	phaseStarted = os.clock()
-	Day.broadcast()
-end
-
-function Day.open()
-	if Day.phase ~= "prep" then
-		return
-	end
-	Core.S.Economy.resetLedger()
-	Day.clock = DAY.OpenHour
-	Lighting.ClockTime = Day.clock
-	Core.S.World.setOpenSign(true)
-	setPhase("open")
-	Core.S.Net.notifyAll("msg.day_open", nil, "success")
-	Core.S.Net.fx("sfx", { name = "bell" })
-	Core.S.Meta.event(Core.S.Session.owner, "open", 1)
-end
-
+-- closes the day's accounts and starts a new day
 local function finish()
 	local d = data()
-	if not d then
+	local owner = Core.S.Session.owner
+	if not d or not owner then
+		Core.S.Economy.resetLedger()
 		return
 	end
-	local owner = Core.S.Session.owner
-	-- tips left in the jar go to the wallet before the day's report
+	-- tips left in the jar go to the wallet before the summary
 	pcall(Core.S.Economy.collectTips, owner)
 	local L = Core.S.Economy.ledger
-	-- salaries
 	local salaries = 0
 	for _, s in ipairs(d.staff) do
 		local cfg = Staff.byId[s.role]
@@ -103,59 +93,26 @@ local function finish()
 	Core.S.Data.changed(owner, "stats")
 	Core.S.Meta.event(owner, "days", 1)
 	Core.S.Meta.dayEnded(owner)
-	setPhase("report")
+	Core.S.Economy.resetLedger()
+	Core.S.Net.notify(owner, "msg.day_summary", { day = Day.report.day, yen = income, served = L.served }, "success")
+	Day.broadcast()
 	task.spawn(Core.S.Data.save, owner, false)
 end
 
-function Day.next()
-	if Day.phase ~= "report" then
-		return
-	end
-	Day.clock = DAY.PrepClock
-	Lighting.ClockTime = Day.clock
-	Core.S.Cooking.clearTickets()
-	setPhase("prep")
-end
+Day.finish = finish
 
-function Day.closeEarly()
-	if Day.phase == "open" then
-		Day.clock = DAY.CloseHour
-	end
-end
-
-local function hasManager()
-	local d = data()
-	if not d then
-		return false
-	end
-	for _, s in ipairs(d.staff) do
-		if s.role == "staff_manager" then
-			return true
-		end
-	end
-	return false
-end
+-- compatibility: the restaurant does not open or close any more
+function Day.open() end
+function Day.closeEarly() end
+function Day.next() end
 
 function Day.Init()
-	Core.S.Net.on("SetDayState", function(player, action)
-		local Session = Core.S.Session
-		if not Session.canBuild(player) and action ~= "next" then
-			return Core.S.Net.notify(player, "msg.no_permission", nil, "error")
-		end
-		if action == "open" then
-			Day.open()
-		elseif action == "close" then
-			Day.closeEarly()
-		elseif action == "next" then
-			Day.next()
-		end
-	end, 2)
 	Lighting.ClockTime = Day.clock
 	Lighting.GeographicLatitude = 35
 end
 
 function Day.Start()
-	game:GetService("Players").PlayerAdded:Connect(function(p)
+	Players.PlayerAdded:Connect(function(p)
 		task.wait(2)
 		Core.S.Net.fire(p, "DayState", payload())
 	end)
@@ -164,36 +121,22 @@ function Day.Start()
 	end)
 	local last = os.clock()
 	local lastBroadcast = 0
+	local dayIndex = math.floor((hours - DAY.DayStartHour) / 24)
 	while true do
 		task.wait(0.25)
 		local now = os.clock()
 		local dt = now - last
 		last = now
-		local d = data()
-		if Day.phase == "open" then
-			Day.clock += dt / DAY.SecondsPerHour
-			if Day.clock >= DAY.CloseHour then
-				Day.clock = DAY.CloseHour
-				Core.S.World.setOpenSign(false)
-				setPhase("closing")
-				Core.S.Net.notifyAll("msg.day_closing", nil, "info")
-			end
-			Lighting.ClockTime = Day.clock
-		elseif Day.phase == "closing" then
-			local anyone = next(Core.S.Customers.active) ~= nil
-			if not anyone or os.clock() - phaseStarted > 90 then
-				Core.S.Customers.sendAllHome()
-				finish()
-			end
-			Day.clock = math.min(Day.clock + dt / DAY.SecondsPerHour, 24)
-			Lighting.ClockTime = Day.clock
-		elseif Day.phase == "report" then
-			if d and d.settings.autoDay and hasManager() and os.clock() - phaseStarted > DAY.ReportAutoClose then
-				Day.next()
-			end
-		elseif Day.phase == "prep" then
-			if d and d.settings.autoDay and hasManager() and os.clock() - phaseStarted > DAY.ManagerAutoOpenDelay then
-				Day.open()
+		local perHour = Day.isNight() and DAY.NightSecondsPerHour or DAY.SecondsPerHour
+		hours += dt / perHour
+		Day.clock = hours % 24
+		Lighting.ClockTime = Day.clock
+		local idx = math.floor((hours - DAY.DayStartHour) / 24)
+		if idx > dayIndex then
+			dayIndex = idx
+			local ok, err = pcall(finish)
+			if not ok then
+				warn("[Day] closing the day failed: " .. tostring(err))
 			end
 		end
 		if now - lastBroadcast > 5 then

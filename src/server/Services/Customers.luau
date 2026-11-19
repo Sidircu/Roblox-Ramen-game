@@ -108,6 +108,8 @@ end
 
 ------------------------------------------------------------------ helpers
 
+local placeOrder
+
 local function setState(c, state)
 	c.state = state
 	if c.npc and c.npc.model then
@@ -123,6 +125,25 @@ local function setOrder(c, recipe)
 	if recipe then
 		Core.S.Analytics.step(Core.S.Session.owner, "first_order")
 	end
+end
+
+-- puts the customer's order on the order bar; false when the bar is full
+placeOrder = function(c)
+	if c.state ~= "order" or not c.order then
+		return false
+	end
+	local t = Core.S.Cooking.addTicket(c.uid, c.order)
+	if not t then
+		return false
+	end
+	c.ticket = t
+	-- a fresh, full timer for cooking it
+	c.patience = c.patienceMax
+	setState(c, "waiting")
+	if c.npc and c.npc.root then
+		Core.S.Net.fx("sfx", { name = "ticket", pos = c.npc.root.Position })
+	end
+	return true
 end
 
 local function patienceTick(c, dt)
@@ -151,7 +172,8 @@ local function dirtyNear(pos)
 end
 
 local function streetPoint(side)
-	return Vector3.new(side * (125 + rng:NextNumber() * 25), 0, Expansions.StreetWalkZ)
+	local a, b = CFG.StreetSpawn[1], CFG.StreetSpawn[2]
+	return Vector3.new(side * (a + rng:NextNumber() * (b - a)), 0, Expansions.StreetWalkZ)
 end
 
 local function entrance()
@@ -237,6 +259,9 @@ local function review(c, walkedOut)
 			Core.S.Meta.event(owner, "happy", 1)
 		end
 		local d = data()
+		if not d then
+			return
+		end
 		d.stats.customers += 1
 		if stars >= 5 and c.cfg.reviewWeight then
 			Economy.addSakura(owner, 3)
@@ -312,7 +337,6 @@ local function eat(c, recipe)
 		c.dishModel:Destroy()
 		c.dishModel = nil
 	end
-	pay(c, recipe)
 	c.dishKind = dishKind(recipe.id)
 	c.eaten += 1
 end
@@ -380,19 +404,20 @@ local function run(c)
 		setOrder(c, recipe)
 		c.patience = c.patienceMax * (first and 1 or 0.85)
 		setState(c, "order")
-		-- wait to be noticed / served
+		-- the customer orders by themselves: the ticket goes on the order bar right away (when the
+		-- bar is full they keep asking until there is room)
+		placeOrder(c)
 		while c.state == "order" or c.state == "waiting" do
 			task.wait(0.5)
+			if c.state == "order" then
+				placeOrder(c)
+			end
 			patienceTick(c, 0.5)
 			if c.patience <= 0 then
 				review(c, true)
 				if c.npc and c.npc.play then
 					Npc.emote(c.npc, "wave")
 				end
-				return leaveRestaurant(c)
-			end
-			local phase = Core.S.Day.phase
-			if phase == "report" or phase == "prep" then
 				return leaveRestaurant(c)
 			end
 		end
@@ -587,15 +612,9 @@ function Service.use(actor, e)
 	end
 	local Hands = Core.S.Hands
 	if c.state == "order" then
-		local t = Core.S.Cooking.addTicket(c.uid, c.order)
-		if not t then
+		if not placeOrder(c) then
 			return false, "msg.tickets_full"
 		end
-		c.ticket = t
-		-- the order is taken: a fresh, full timer for cooking it
-		c.patience = c.patienceMax
-		setState(c, "waiting")
-		Core.S.Net.fx("sfx", { name = "ticket", pos = Core.S.Entities.position(e) })
 		return true
 	elseif c.state == "waiting" then
 		local hands = Hands.get(actor)
@@ -670,6 +689,11 @@ function Service.serve(c, dish, actor)
 		Core.S.Meta.event(owner, "serve_ramen", 1)
 	end
 	Core.S.Data.changed(owner, "stats")
+	-- paid on the spot: price and tip fly to the wallet the moment the dish lands
+	pay(c, recipe)
+	if c.npc and c.npc.root then
+		Core.S.Net.fx("served", { pos = c.npc.root.Position + Vector3.new(0, 3.5, 0) })
+	end
 end
 
 function Service.collectDirty(actor, e)
@@ -710,6 +734,8 @@ end
 
 ------------------------------------------------------------------ loop
 
+local firstAt = nil -- the first customer comes this soon after the restaurant is ready
+
 local function spawnLoop()
 	local timer = 0
 	while true do
@@ -718,12 +744,19 @@ local function spawnLoop()
 		local Day = Core.S.Day
 		if Day and Day.phase == "open" and Core.S.Session.owner then
 			timer += dt
+			if firstAt and os.clock() >= firstAt then
+				firstAt = nil
+				timer = math.huge
+			end
 			local pop = Core.S.Progression.popularity()
 			local days = (data() and data().stats.days) or 0
 			local peakFactor = days < (GameConfig.Day.EarlyDays or 0) and GameConfig.Day.EarlyPeakFactor or GameConfig.Day.PeakFactor
 			local interval = Formulas.customerInterval(CFG.BaseInterval, CFG.MinInterval, pop, Day.isPeak(), peakFactor, Core.S.Economy.boostActive("rush"))
 			if Core.S.Seating.freeCount() == 0 then
 				interval = interval * 1.5
+			end
+			if Day.isNight() then
+				interval = interval * GameConfig.Day.NightFactor
 			end
 			if timer >= interval then
 				timer = 0
@@ -736,6 +769,9 @@ local function spawnLoop()
 end
 
 function Service.Start()
+	Core.S.Session.OwnerReady:Connect(function()
+		firstAt = os.clock() + (CFG.FirstCustomerDelay or 2)
+	end)
 	task.spawn(spawnLoop)
 end
 

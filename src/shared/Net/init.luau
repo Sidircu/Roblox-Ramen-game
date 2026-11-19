@@ -24,7 +24,6 @@ Net.Events = {
 	"TrainStaff",
 	"FireStaff",
 	"SetMenu", -- (recipeId, on, priceMult)
-	"SetDayState", -- ("open" | "close" | "next")
 	"ClaimQuest",
 	"ClaimAchievement",
 	"ClaimDaily",

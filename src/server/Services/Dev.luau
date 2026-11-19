@@ -63,7 +63,7 @@ local function run(player, cmd, arg)
 	elseif cmd == "spawn" then
 		task.spawn(S.Customers.trySpawn, type(arg) == "string" and arg or nil)
 	elseif cmd == "time" then
-		S.Day.closeEarly()
+		S.Day.finish()
 	elseif cmd == "stock" then
 		for _, ing in ipairs(Ingredients.list) do
 			if d.licenses[ing.license] then

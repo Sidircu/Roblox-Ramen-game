@@ -193,9 +193,6 @@ function UI.Start()
 		if hud and hud.day then
 			hud.day(state)
 		end
-		if state.phase == "report" and state.report then
-			UI.open("DayReport", state.report)
-		end
 	end)
 	UI.refreshAll()
 end

@@ -1,6 +1,7 @@
 --!nonstrict
--- Game camera, three modes (Settings → Camera):
---   "first"  first person (default): mouse look, a crosshair in the middle, click / E on what you
+-- Game camera (Settings → Camera): "auto" (default) picks "game" on phones and tablets and
+-- "first" with a keyboard; or one of the three modes:
+--   "first"  first person: mouse look, a crosshair in the middle, click / E on what you
 --            look at (see Controllers/FirstPerson); Camera speed scales the mouse sensitivity
 --   "game"   a smooth orbit camera that rotates slowly (right mouse drag, one-finger drag, ← →),
 --            zooms with the wheel or a pinch, never ends up behind walls and hides the roof when
@@ -78,10 +79,14 @@ local function settings()
 	return s or {}
 end
 
+-- "auto" (the default): third person on phones and tablets, first person with a keyboard
 function Camera.mode()
 	local m = settings().cam
-	if m == "game" or m == "roblox" then
+	if m == "game" or m == "roblox" or m == "first" then
 		return m
+	end
+	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+		return "game"
 	end
 	return "first"
 end

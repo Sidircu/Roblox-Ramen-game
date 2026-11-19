@@ -90,37 +90,17 @@ function Tasks.findDirty()
 	return nil
 end
 
--- Chef: a ticket for one of the chef's stations whose ingredients are on the shelves
+-- Chef: a free station of the chef's kinds with an order to start and everything it needs
+-- (the station fetches the ingredients from the shelves by itself)
 function Tasks.findCook(stations)
-	local Supply, Appliance = Core.S.Supply, Core.S.Appliance
-	for _, t in ipairs(Core.S.Cooking.tickets) do
-		local r = Recipes.byId[t.recipe]
-		if r and not t.claimed and table.find(stations, r.station) then
-			local ok = true
-			local need = {}
-			for _, g in ipairs(r.ing) do
-				need[g] = (need[g] or 0) + 1
-			end
-			for g, n in pairs(need) do
-				if Supply.shelfStock(g) < n then
-					ok = false
-				end
-			end
-			if ok and r.rice and not Appliance.hasRice() then
-				ok = false
-			end
-			if ok and r.broth and not Appliance.hasBroth(r.broth) then
-				ok = false
-			end
-			if ok then
-				-- a free station of the right type
-				for _, e in ipairs(Core.S.Entities.ofKind("station")) do
-					if e.item.fn.station == r.station then
-						local st = Core.S.Cooking.stationState(e)
-						if not st.busy and #st.board == 0 and not st.ready and not claimed(st) then
-							return t, r, e
-						end
-					end
+	local Cooking = Core.S.Cooking
+	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+		if table.find(stations, e.item.fn.station) then
+			local st = Cooking.stationState(e)
+			if not st.busy and #st.board == 0 and not st.ready and not claimed(st) then
+				local t, r = Cooking.nextOrder(e)
+				if t and #Cooking.missing(r) == 0 then
+					return t, r, e
 				end
 			end
 		end

@@ -6,7 +6,7 @@
 --   * the mouse is freed while a menu is open, while building, while Alt is held or after Q
 --     (Q again to look around); the first time a toast explains it
 --   * keyboard shortcuts for the bottom buttons: B build, O supplier, P phone (all camera modes)
---   * on touch screens a big ✋ button uses what is under the crosshair (tapping things works too)
+--   * the target's ProximityPrompt says what pressing does (tap it on touch screens)
 --   * running: hold Shift, or the 🏃 button on touch screens (every camera mode)
 --   * right mouse button puts down the box(es) you carry (in third person it turns the camera)
 local Players = game:GetService("Players")
@@ -157,8 +157,9 @@ local function updateCrosshair()
 	keysLabel.Visible = fp and not touch and not free
 	local target = show and Core.C.Interaction and Core.C.Interaction.target and Core.C.Interaction.target()
 	if target and target.text then
-		hintPill.Visible = true
-		hintText.Text = target.near and ((touch and "✋ " or "🖱️ ") .. target.text) or ("🚶 " .. t("hint.get_closer"))
+		-- close enough: the object's prompt says what E / a click / a tap does; too far: "get closer"
+		hintPill.Visible = not target.near
+		hintText.Text = "🚶 " .. t("hint.get_closer")
 		dot.Size = UDim2.fromOffset(target.near and 14 or 10, target.near and 14 or 10)
 		dot.BackgroundColor3 = target.near and T.gold or Color3.fromRGB(220, 214, 205)
 	else
@@ -166,7 +167,8 @@ local function updateCrosshair()
 		dot.Size = UDim2.fromOffset(6, 6)
 		dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	end
-	useButton.Visible = show and touch and ((target ~= nil and target.near == true) or (Core.C.Sink ~= nil and Core.C.Sink.isHolding()))
+	-- the prompt is tappable: no extra use button on touch screens
+	useButton.Visible = false
 end
 
 local function shortcut(key)

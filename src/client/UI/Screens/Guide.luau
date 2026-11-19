@@ -165,53 +165,41 @@ local function update()
 		baseOk = baseOk and ok
 	end
 
-	-- 2. ingredients from the shelves (live ticks from what you hold)
+	-- 2. ingredients on the shelves (the station takes them by itself)
 	local need = {}
 	for _, g in ipairs(r.ing) do
 		need[g] = (need[g] or 0) + 1
 	end
-	local have = {}
-	if kind == "ing" then
-		for _, g in ipairs(held) do
-			have[g] = (have[g] or 0) + 1
+	local stock = {}
+	for _, shelf in ipairs(interactables("shelf")) do
+		for _, part in ipairs(shelf:GetChildren()) do
+			local g = part:IsA("BasePart") and part:GetAttribute("Slot") and part:GetAttribute("G") or ""
+			if g ~= "" then
+				stock[g] = (stock[g] or 0) + (part:GetAttribute("N") or 0)
+			end
 		end
 	end
-	local onBoard = workStation ~= nil or readyStation ~= nil or holdingDish
+	local workStation0 = workStation or readyStation
+	local onBoard = workStation0 ~= nil or holdingDish
 	local chips, missing = {}, nil
 	for _, g in ipairs(r.ing) do
 		local ing = Ingredients.byId[g]
-		local got = onBoard or (have[g] or 0) >= need[g]
-		table.insert(chips, (got and "✓" or "") .. (ing and ing.icon or "") .. " " .. t("ing." .. g))
+		local got = onBoard or (stock[g] or 0) >= need[g]
+		table.insert(chips, (got and "✓" or "✗") .. (ing and ing.icon or "") .. " " .. t("ing." .. g))
 		if not got and not missing then
 			missing = g
 		end
 	end
-	local ingState = (missing == nil) and "done" or ((baseOk and not target) and "now" or "todo")
-	add(ingState, "🧺 " .. t("guide.take"), table.concat(chips, "   "))
-	if missing then
-		for _, shelf in ipairs(interactables("shelf")) do
-			for _, part in ipairs(shelf:GetChildren()) do
-				if part:IsA("BasePart") and part:GetAttribute("Slot") and need[part:GetAttribute("G") or ""] and (part:GetAttribute("N") or 0) > 0 then
-					mark(part, Color.hex("#FFD23B"))
-				end
-			end
-		end
-		if not target then
-			target = nearest(interactables("shelf"), function(m)
-				for _, part in ipairs(m:GetChildren()) do
-					if part:IsA("BasePart") and part:GetAttribute("G") == missing and (part:GetAttribute("N") or 0) > 0 then
-						return true
-					end
-				end
-				return false
-			end)
-			if not target then
-				add("now", "📦 " .. t("guide.no_stock", { name = "ing." .. missing }), t("guide.no_stock_how"))
-			end
-		end
+	add(missing == nil and "done" or "now", "🧺 " .. t("guide.on_shelves"), table.concat(chips, "   "))
+	if missing and not target then
+		-- a box of what is missing, else the supplier
+		target = nearest(interactables("box"), function(m)
+			return m:GetAttribute("Ingredient") == missing
+		end)
+		add("now", "📦 " .. t("guide.no_stock", { name = "ing." .. missing }), t("guide.no_stock_how"))
 	end
 
-	-- 3. station: put the ingredients down, then one click per step
+	-- 3. the station: one press per step (the first press brings the ingredients)
 	local stName = (STATION_ICON[r.station] or "🔪") .. " " .. t("station." .. r.station)
 	local steps = {}
 	for _, s in ipairs(r.steps) do
@@ -219,11 +207,9 @@ local function update()
 	end
 	local stepDone = workStation and (workStation:GetAttribute("Step") or 0) or 0
 	if readyStation or holdingDish then
-		add("done", t("guide.put", { station = stName }))
-		add("done", t("guide.click_steps", { n = #r.steps }), table.concat(steps, " → "))
+		add("done", t("guide.press_steps", { station = stName, n = #r.steps }), table.concat(steps, " → "))
 	elseif workStation then
-		add("done", t("guide.put", { station = stName }))
-		add("now", t("guide.click_steps", { n = #r.steps }) .. "  (" .. stepDone .. "/" .. #r.steps .. ")", table.concat(steps, " → "))
+		add("now", t("guide.press_steps", { station = stName, n = #r.steps }) .. "  (" .. stepDone .. "/" .. #r.steps .. ")", table.concat(steps, " → "))
 		target = target or workStation
 		mark(workStation.PrimaryPart or workStation, Color.hex("#6DDC5A"))
 	else
@@ -231,8 +217,7 @@ local function update()
 			return (m:GetAttribute("Board") or "") == "" and (m:GetAttribute("Ready") or "") == ""
 		end) or nearest(myStations)
 		local state = (missing == nil and not target) and "now" or "todo"
-		add(state, t("guide.put", { station = stName }), #myStations == 0 and t("guide.no_station") or nil)
-		add("todo", t("guide.click_steps", { n = #r.steps }), table.concat(steps, " → "))
+		add(state, t("guide.press_steps", { station = stName, n = #r.steps }), #myStations == 0 and t("guide.no_station") or table.concat(steps, " → "))
 		if free then
 			mark(free.PrimaryPart or free, Color.hex("#6DDC5A"))
 			if state == "now" then

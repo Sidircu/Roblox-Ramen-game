@@ -11,11 +11,13 @@
 |---|---|
 | XP per passare dal livello L al successivo | `round(100 × L^1.65)` |
 | Livello massimo | 50 (per ogni franchise) |
-| Yen iniziali | ¥500 + 2 scatole di ogni ingrediente base in magazzino |
+| Yen iniziali | ¥500; scaffali pieni (noodles ×20, cipollotto ×30, naruto ×20), pentolone di brodo shoyu (16) e cuociriso pieni, una scatola di noodles, naruto e brodo shoyu in magazzino |
 | Prezzo effettivo di un piatto | `prezzoBase × (1 + 0,05 × livelloMaestria) × moltiplicatorePrezzoMenu × bonusFranchise` |
 | Mancia | `prezzo × (0,05 + bonusFreschezza + bonusAmbiente + bonusComfort + bonusPazienza) × moltiplicatoreTipoCliente` (bonusFreschezza = 0,10 se il pesce viene dalla vetrina o se c'è un frigorifero professionale vicino alla postazione) |
 | Bonus pazienza sulla mancia | `0,10 × pazienzaResidua` (0–1) |
-| Intervallo tra clienti | `max(2,5 s; 18 s / (1 + popolarità))` |
+| Intervallo tra clienti | `max(2,5 s; 18 s / (1 + popolarità))`; ×0,6 nei picchi, ×1,6 di notte (23–6); il primo cliente entra 2 s dopo l'apertura e i clienti compaiono a 70–95 stud dalla porta |
+| Giornata | sempre aperto; 45 s per ora di gioco (15 s di notte), circa 14 minuti al giorno; la giornata si chiude alle 6:00 |
+| Pagamento | appena il piatto è servito: prezzo + mancia (la pazienza residua conta in quel momento) |
 | Popolarità | `0,15 × (livello/10) + 0,35 × (valutazione−3) + bonusAmbiente + bonusInsegna + pubblicità` (minimo 0) |
 | Picchi pranzo/cena | intervallo × 0,6 |
 | Domanda in base al prezzo del menu | `probabilità ordine × (1 − 1,2 × (moltiplicatore − 1))` |
@@ -219,7 +221,7 @@ Colonne: prezzo, punti ambiente (Amb.), livello di sblocco, tipo di piazzamento,
 | `storage_rack_large` | Scaffale magazzino grande | ¥3.000 | 9 | 12 scatole |
 | `fridge` | Frigorifero professionale | ¥15.000 | 16 | +10% qualità a tutti i piatti nel suo raggio |
 
-Stoviglie iniziali: 12. Il set di stoviglie si compra dal Fornitore (non si piazza).
+Stoviglie iniziali: 20. Il set di stoviglie si compra dal Fornitore (non si piazza).
 
 ### 5.3 Decorazioni
 | ID | Nome | Categoria | Prezzo | Amb. | Liv. | Piazzamento |
@@ -328,7 +330,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `up_cart` | Carrello per scatole | 0→2 | ¥2.500 (L3) · ¥15.000 (L10) | scatole portate insieme 1 → 2 → 3 (il pass Carrello grande +1). Le consegne sono immediate: il furgone arriva in circa 6 s |
 | `up_supplier` | Fornitore premium | 0→2 | ¥20.000 (L10) · ¥200.000 (L25) | scatole grandi −10% / −20% |
 | `up_sign` | Insegna luminosa | 0→5 | ¥2.000 × 4^n | +0,08 popolarità per livello |
-| `up_ticket` | Barra ordini | 0→2 | ¥6.000 · ¥60.000 | 6 → 8 → 10 biglietti |
+| `up_ticket` | Barra ordini | 0→2 | ¥6.000 · ¥60.000 | 12 → 16 → 20 biglietti (i clienti ordinano da soli: almeno un biglietto per posto) |
 | `up_jukebox` | Jukebox | 0→3 | ¥5.000 · ¥50.000 · ¥300.000 | +15 / +40 / +90 ambiente |
 | `up_safe` | Cassaforte (guadagni offline) | 0→5 | ¥10.000 × 4^n | 2/4/8/12/24 h al 10/15/20/25/30% |
 | `up_autorestock` | Riordino automatico | 0→1 | ¥120.000 (L20, serve un Magazziniere) | ordina da solo sotto soglia |

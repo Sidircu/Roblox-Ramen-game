@@ -95,34 +95,20 @@ function SelfTest.run(player)
 	end)
 
 	check("restock a shelf", function()
-		for _, g in ipairs({ "noodles", "scallion", "naruto" }) do
-			local _, ent = ensureBox(g)
-			assert(S.Supply.takeBox(actor, ent), "could not take the box")
-			-- the first shelf with room for this ingredient
-			local shelf, before, ok, msg = nil, {}, false, "no shelf"
-			for _, e in ipairs(S.Entities.ofKind("shelf")) do
-				if not e.item.fn.fishOnly and not ok then
-					before = {}
-					for k, sl in pairs(d.shelves[e.uid] or {}) do
-						before[k] = sl.n
-					end
-					ok, msg = S.Supply.useShelf(actor, e, nil)
-					if ok then
-						shelf = e
-					end
-				end
-			end
-			assert(ok and shelf, "useShelf: " .. tostring(msg))
-			returnLeftover()
-			assert(S.Supply.shelfStock(g) > 0, g .. " not on the shelf")
-			local touched = 0
-			for k, sl in pairs(d.shelves[shelf.uid] or {}) do
-				if sl.n ~= (before[k] or 0) then
-					touched += 1
-				end
-			end
-			assert(touched <= GameConfig.BoxShelfSlots, "one box filled " .. touched .. " shelf slots")
+		-- three noodles are used, then a box of noodles fills the free spots of that slot only
+		local _, ent = ensureBox("noodles")
+		for _ = 1, 3 do
+			assert(S.Supply.takeIngredient("noodles"), "no noodles on the shelves")
 		end
+		local shelf = S.Supply.findShelfWith("noodles")
+		assert(shelf, "no shelf with noodles")
+		local before = S.Supply.shelfStock("noodles")
+		assert(S.Supply.takeBox(actor, ent), "could not take the box")
+		local ok, msg = S.Supply.useShelf(actor, shelf, nil)
+		assert(ok, "useShelf: " .. tostring(msg))
+		returnLeftover()
+		local after = S.Supply.shelfStock("noodles")
+		assert(after == before + 3, "the slot got " .. (after - before) .. " noodles instead of 3")
 	end)
 
 	check("pour the shoyu broth", function()
@@ -144,39 +130,7 @@ function SelfTest.run(player)
 		end
 	end)
 
-	check("cook a shoyu ramen with clicks", function()
-		for _, g in ipairs({ "noodles", "scallion", "naruto" }) do
-			local shelf, slot = S.Supply.findShelfWith(g)
-			assert(shelf, "no " .. g .. " on the shelves")
-			local ok, msg = S.Supply.useShelf(actor, shelf, slot)
-			assert(ok, "take " .. g .. ": " .. tostring(msg))
-		end
-		local station = firstOf("station", function(e)
-			return e.item.fn.station == "ramen" and not S.Cooking.stationState(e).busy and not S.Cooking.stationState(e).ready
-		end)
-		assert(station, "no free ramen station")
-		local ok, msg = S.Cooking.use(actor, station, 4)
-		assert(ok, "deposit: " .. tostring(msg))
-		for _ = 1, 6 do
-			if S.Cooking.stationState(station).ready then
-				break
-			end
-			local stepOk, stepMsg = S.Cooking.use(actor, station, 4)
-			assert(stepOk, "step: " .. tostring(stepMsg))
-		end
-		assert(S.Cooking.stationState(station).ready, "dish not ready")
-		assert(S.Cooking.use(actor, station, 4), "could not take the dish")
-		assert(S.Hands.get(actor).kind == "dish", "no dish in hand")
-		actor.keepDish = S.Hands.get(actor).items[1]
-	end)
-
-	check("customer orders, is served and pays", function()
-		assert(actor.keepDish, "no dish from the previous step")
-		if S.Day.phase == "prep" then
-			S.Day.open()
-		end
-		assert(S.Day.phase == "open", "the day is not open")
-		local before = d.yen
+	check("a customer comes in and orders by themselves", function()
 		local known = {}
 		for uid in pairs(S.Customers.active) do
 			known[uid] = true
@@ -184,25 +138,54 @@ function SelfTest.run(player)
 		assert(S.Customers.trySpawn("cust_student"), "no customer could be spawned (seats? menu?)")
 		local c = waitFor(function()
 			for uid, cust in pairs(S.Customers.active) do
-				if not known[uid] and cust.state == "order" then
+				if not known[uid] and cust.state == "waiting" and cust.ticket then
 					return cust
 				end
 			end
 			return nil
 		end, 75)
-		assert(c, "the customer never sat down to order")
-		c.order = "shoyu_ramen"
-		c.npc.model:SetAttribute("Order", "shoyu_ramen")
-		local e = S.Entities.get(c.uid)
-		assert(S.Customers.use(actor, e), "could not take the order")
-		assert(c.state == "waiting", "state after order: " .. tostring(c.state))
+		assert(c, "the customer never ordered")
+		actor.customer = c
+	end)
+
+	check("the station cooks the order, one press per step", function()
+		local c = actor.customer
+		assert(c, "no customer from the previous step")
+		local Recipes = require(Shared.Config.Recipes)
+		local recipe = Recipes.byId[c.order]
+		local stationEntity = firstOf("station", function(e)
+			local st = S.Cooking.stationState(e)
+			if e.item.fn.station ~= recipe.station or st.busy or st.ready or #st.board > 0 then
+				return false
+			end
+			local _, r = S.Cooking.nextOrder(e)
+			return r ~= nil and r.id == recipe.id
+		end)
+		assert(stationEntity, "no free " .. recipe.station .. " station for " .. recipe.id)
+		local presses = 0
+		while not S.Cooking.stationState(stationEntity).ready and presses < 8 do
+			local ok, msg = S.Cooking.use(actor, stationEntity, 4)
+			assert(ok, "press " .. (presses + 1) .. ": " .. tostring(msg))
+			presses += 1
+		end
+		assert(S.Cooking.stationState(stationEntity).ready, "dish not ready after " .. presses .. " presses")
+		assert(presses == #recipe.steps, recipe.id .. " took " .. presses .. " presses, expected " .. #recipe.steps)
+		assert(S.Cooking.use(actor, stationEntity, 4), "could not take the dish")
+		assert(S.Hands.get(actor).kind == "dish", "no dish in hand")
+		actor.keepDish = S.Hands.get(actor).items[1]
+	end)
+
+	check("the customer is served and pays", function()
+		local c = actor.customer
+		assert(c and actor.keepDish, "no customer or no dish from the previous steps")
 		S.Hands.set(actor, "dish", { actor.keepDish })
+		local before = d.yen
+		local e = S.Entities.get(c.uid)
 		local ok, msg = S.Customers.use(actor, e)
 		assert(ok, "serve: " .. tostring(msg))
 		assert(waitFor(function()
 			return d.yen > before
 		end, 40), "the customer did not pay")
-		actor.customerSeat = c.seat
 	end)
 
 	check("collect the dirty dish and wash it", function()
