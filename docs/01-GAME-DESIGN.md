@@ -39,13 +39,15 @@ Apri un piccolo ramen-ya in un vicolo giapponese illuminato da lanterne. All'ini
 
 ### Durata prevista
 
-| Fase | Livelli | Ore indicative | Cosa succede |
+| Fase | Livelli | Tempo indicativo | Cosa succede |
 |---|---|---|---|
-| Inizio | 1–10 | 0–6 h | Tutto a mano. Prime licenze, primi tavoli, prima espansione |
-| Crescita | 10–25 | 6–20 h | Arrivano camerieri e cuochi, ramen avanzati, terrazza, giardino, sala tatami |
-| Maturità | 25–40 | 20–35 h | Secondo piano, menu completo, maestrie, decorazioni di lusso |
-| Fine gioco | 40–50 | 35–45 h | Piatti da maestro, tetto, collezioni complete |
-| Franchise | ×5 città | +60–150 h | Ricominci in una nuova città con bonus permanenti e piatti regionali |
+| Inizio | 1–5 | 0–20 min | Tutorial, primo piatto, primi miglioramenti; il **primo aiutante** (lavapiatti) arriva tra 10 e 20 minuti |
+| Crescita | 5–12 | 20 min – 3 h | Cameriere, magazziniere, sushi, Sala Est e Sala Ovest, primi cuochi; al livello 12 si può aprire il **primo franchise** |
+| Maturità | 12–30 | 3–15 h | Terrazza, giardino, sala tatami, cucina professionale, secondo piano, menu completo, maestrie |
+| Fine gioco | 30–50 | 15–30 h | Piatti da maestro, tetto, collezioni complete |
+| Franchise | ×5 città | + molte ore | Ricominci in una nuova città con bonus permanenti e piatti regionali; ogni città chiede un po' di più (livello 12 → 16 → 20 → 25 → 30) |
+
+**Ritmo** (misurato con un giocatore automatico che gioca con il server vero, `python3 tools/sim.py progression --hours=4`): un acquisto almeno ogni 5–6 minuti nella prima ora (oltre alle decorazioni), il livello 5 verso i 20 minuti, il livello 10 verso le 2,5 ore senza arredare; un giocatore che mette tavoli, nuove postazioni e cuochi va più veloce.
 
 ---
 
@@ -229,7 +231,7 @@ Non esistono errori né tempismo: ogni piatto riesce sempre. Il guadagno dipende
 ## 6. Clienti
 
 ### 6.1 Comportamento
-1. Arrivano dalla strada. Se non c'è un posto libero adatto, aspettano sulla **panchina d'attesa** (se c'è) o se ne vanno (recensione persa).
+1. Arrivano dalla strada. Se non c'è un posto libero adatto, aspettano sulla **panchina d'attesa** (se c'è) o se ne vanno (recensione persa). Quando in cucina aspettano già molti ordini (3, più 3 per ogni cuoco del personale) entra meno gente (2,5 volte più di rado): il locale non si riempie di clienti che nessuno riesce a servire, e assumere cuochi porta davvero più clienti.
 2. Scelgono un posto: i clienti singoli preferiscono il **bancone**, coppie e gruppi hanno bisogno di **tavoli**.
 3. Si siedono, guardano il menu (2–4 s), mostrano l'ordine.
 4. Nei **primi 2 giorni** i picchi di pranzo e cena sono leggeri.
@@ -351,7 +353,10 @@ Il personale sono NPC che lavorano da soli. Si assumono, si pagano a giornata e 
 | Cuoco di linea | contorni, fritti, piastra |
 | Manager | riordino automatico, bonus a tutto il personale |
 
-Il personale diventa più veloce con l'addestramento.
+Il personale diventa più veloce con l'addestramento. Il primo aiutante arriva presto: il **lavapiatti al livello 4** (¥2.000), il **cameriere al 5**, il magazziniere al 7, i cuochi dal livello 9.
+
+### 8.5 bis Cartelli "in vendita"
+Come nei tycoon, dove si può costruire la prossima stanza al piano terra c'è un **cartello di legno** con lanterna: nome della stanza e prezzo (✅ se hai i soldi), oppure 🔒 e il livello che serve. Si usa come una postazione (E o tocco): un'azione e la stanza si costruisce (il server controlla livello, stanze precedenti e prezzo). Comprata la stanza, il cartello sparisce e compaiono quelli delle stanze che ora si possono costruire.
 
 ### 8.7 Guadagni offline
 Con la **Cassaforte** il ristorante produce una parte del guadagno anche quando non giochi (dal 10% al 30% della media oraria, fino a 2–24 ore in base al livello). Al rientro una schermata mostra quanto hai guadagnato.
@@ -372,7 +377,7 @@ Con la **Cassaforte** il ristorante produce una parte del guadagno anche quando 
 - **❤️ Mi piace**: chi visita il ristorante di un amico può mettergli Mi piace (una volta al giorno); il numero si vede in alto a destra e c'è la classifica dei ristoranti più amati.
 
 ### 8.9 Franchise (rinascita / prestigio)
-Disponibile al livello 40 con valutazione ≥ 4,5 e tutte le espansioni principali.
+La prima volta è disponibile dopo poche ore di gioco: **livello 12, valutazione ≥ 4,0, Sala Est, Magazzino ampliato e Sala Ovest**. Ogni città successiva chiede di più (livello 16 con ★4,1 e anche terrazza e giardino; 20 con ★4,2 e sala tatami e cucina professionale; 25 e 30 con il secondo piano). Gli obiettivi (scheda Franchise) mostrano cosa manca, voce per voce.
 - Apri un nuovo locale in un'altra città: **Kyoto → Osaka → Sapporo → Fukuoka → Okinawa**. Ogni città ha una strada diversa (templi a Kyoto, insegne giganti a Osaka, neve a Sapporo…) e **2–3 piatti regionali** esclusivi.
 - Si azzerano: livello, yen, licenze, espansioni, personale.
 - Si conservano: **tutte le decorazioni** (vanno nell'inventario), gettoni, ricettario, obiettivi.

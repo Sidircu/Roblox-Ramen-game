@@ -138,6 +138,12 @@ function Shop.buyable(w, cfg, rating)
 			tabs.upgrades = tabs.upgrades + 1
 		end
 	end
+	-- today's advert counts too (it comes back every day)
+	for _, ad in ipairs(cfg.Ads and cfg.Ads.list or {}) do
+		if Shop.ad(w, ad).state == "buy" then
+			tabs.upgrades = tabs.upgrades + 1
+		end
+	end
 	for _, lic in ipairs(cfg.Licenses.list) do
 		if Shop.license(w, lic, rating).state == "buy" then
 			tabs.recipes = tabs.recipes + 1

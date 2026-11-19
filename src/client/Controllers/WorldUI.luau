@@ -277,9 +277,41 @@ local function updateStaff(char, origin)
 	end
 end
 
+-- the "for sale" signs of rooms (Models/Scene.forSale): icon, name and price in your language,
+-- or the level it needs
+local function paintSigns()
+	local Format = require(Shared.Util.Format)
+	local level = Core.C.Data.w("level") or 1
+	local yen = Core.C.Data.wallet()
+	for _, m in ipairs(CollectionService:GetTagged("ForSale")) do
+		local board = m.PrimaryPart
+		local id = m:GetAttribute("Expansion") or ""
+		local price = m:GetAttribute("Price") or 0
+		local need = m:GetAttribute("Level") or 1
+		local text
+		if level < need then
+			text = "🔒\n" .. t("zone." .. id) .. "\n" .. t("ui.req_level", { level = need })
+		else
+			text = "🏗️ " .. t("zone." .. id) .. "\n" .. Format.yen(price, Locale.get()) .. (yen >= price and "  ✅" or "")
+		end
+		for _, side in ipairs({ "Front", "Back" }) do
+			local gui = board and board:FindFirstChild(side)
+			local label = gui and gui:FindFirstChildOfClass("TextLabel")
+			if label and label.Text ~= text then
+				label.Text = text
+			end
+		end
+	end
+end
+
 function WorldUI.Start()
+	local lastSigns = 0
 	while true do
 		task.wait(0.2)
+		if os.clock() - lastSigns > 1 then
+			lastSigns = os.clock()
+			pcall(paintSigns)
+		end
 		local cam = workspace.CurrentCamera
 		local char = player.Character
 		local root = char and char:FindFirstChild("HumanoidRootPart")

@@ -12,6 +12,7 @@ local CollectionService = game:GetService("CollectionService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
+local Format = require(Shared.Util.Format)
 local GameConfig = require(Shared.Config.GameConfig)
 local Recipes = require(Shared.Config.Recipes)
 local Ingredients = require(Shared.Config.Ingredients)
@@ -206,6 +207,13 @@ local function actionText(model, kind, slot)
 		return t("hint.supplier")
 	elseif kind == "menuboard" then
 		return t("hint.menuboard")
+	elseif kind == "forsale" then
+		local id = model:GetAttribute("Expansion") or ""
+		local need = model:GetAttribute("Level") or 1
+		if (Core.C.Data.w("level") or 1) < need then
+			return "🔒 " .. t("zone." .. id) .. " · " .. t("ui.req_level", { level = need })
+		end
+		return t("hint.buy_room", { name = "zone." .. id, yen = Format.yen(model:GetAttribute("Price") or 0, Locale.get()) })
 	end
 	return nil
 end
@@ -392,6 +400,19 @@ act = function(tap)
 	end
 	if current.kind == "supplier" then
 		Core.C.UI.open("Supplier")
+		return
+	elseif current.kind == "forsale" then
+		-- one press buys the room (the server checks level, rooms before it and the price)
+		if not Core.C.Data.canBuild() then
+			Core.C.UI.toast(t("ui.only_owner"), "warning")
+			return
+		end
+		local price = current.model:GetAttribute("Price") or 0
+		if Core.C.Data.wallet() < price then
+			Core.C.UI.toast(t("ui.missing", { yen = Format.yen(price - Core.C.Data.wallet(), Locale.get()) }), "warning")
+			return
+		end
+		NetDef.event("BuyExpansion"):FireServer(current.model:GetAttribute("Expansion"))
 		return
 	elseif current.kind == "menuboard" then
 		Core.C.UI.open("Menu")

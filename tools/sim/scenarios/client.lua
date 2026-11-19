@@ -112,4 +112,29 @@ if buy then
 	Sim.check("the card bought an upgrade", bought)
 end
 C.UI.close("Shop")
+
+-- the "for sale" sign of the east dining room: one press builds it
+local CS = game:GetService("CollectionService")
+local function signFor(id)
+	for _, m in ipairs(CS:GetTagged("ForSale")) do
+		if m:GetAttribute("Expansion") == id and m:GetAttribute("PlotId") == plot.id then
+			return m
+		end
+	end
+	return nil
+end
+local sign = signFor("zone_east")
+Sim.check("a for-sale sign stands where the east room goes", sign ~= nil)
+if sign then
+	task.wait(1.2)
+	local label = sign.PrimaryPart:FindFirstChild("Front"):FindFirstChildOfClass("TextLabel")
+	Sim.check("the sign shows the room and its price", label and label.Text:find("¥", 1, true) ~= nil, label and label.Text)
+	use(sign)
+	Sim.waitFor(function()
+		return d.zones.zone_east == true
+	end, 6)
+	Sim.check("using the sign builds the room", d.zones.zone_east == true)
+	task.wait(3) -- the builders take a moment, then the restaurant is built again
+	Sim.check("the sign is gone and the next room has one", signFor("zone_east") == nil and signFor("zone_west") ~= nil)
+end
 Sim.check("server closes cleanly", Sim.close())

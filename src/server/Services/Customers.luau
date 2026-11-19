@@ -6,6 +6,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Customers = require(Shared.Config.Customers)
 local Recipes = require(Shared.Config.Recipes)
 local Expansions = require(Shared.Config.Expansions)
+local StaffCfg = require(Shared.Config.Staff)
 local Formulas = require(Shared.Logic.Formulas)
 local TableUtil = require(Shared.Util.TableUtil)
 local Registry = require(Shared.Models.Registry)
@@ -796,6 +797,18 @@ local function tick(plot, dt)
 	local interval = Formulas.customerInterval(CFG.BaseInterval, CFG.MinInterval, pop, Day.isPeak(), peakFactor, Core.S.Economy.boostActive(plot, "rush"))
 	if Core.S.Seating.freeCount(plot) == 0 then
 		interval = interval * 1.5
+	end
+	-- a busy kitchen: with many orders still waiting, fewer people walk in, so the restaurant does
+	-- not fill with customers nobody can cook for (every cook on the staff takes more)
+	local cooks = 0
+	for _, s in ipairs(d and d.staff or {}) do
+		local cfg = StaffCfg.byId[s.role]
+		if cfg and table.find(cfg.tasks, "cook") then
+			cooks += 1
+		end
+	end
+	if #Core.S.Cooking.ticketsOf(plot) >= CFG.BusyTickets + CFG.BusyTicketsPerCook * cooks then
+		interval = interval * CFG.BusyFactor
 	end
 	if Day.isNight() then
 		interval = interval * GameConfig.Day.NightFactor

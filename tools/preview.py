@@ -289,6 +289,19 @@ function scene_plots()
     shell.Parent = root
     if i <= 2 then
       Scene.shell(shell, geo, { zones = { zone_base = true }, surfaces = {}, franchise = { city = "tokyo" } })
+      -- the "for sale" signs of the rooms that can be built next
+      for _, e in ipairs(Expansions.list) do
+        local z1 = e.zones and e.zones[1]
+        local ready = not e.reno and e.id ~= "zone_base" and z1 and (z1.floor or 0) == 0
+        for _, req in ipairs(ready and e.requires or {}) do
+          if req ~= "zone_base" then
+            ready = false
+          end
+        end
+        if ready then
+          Scene.forSale(shell, e, i)
+        end
+      end
     else
       Scene.emptyLot(shell)
     end

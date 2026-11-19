@@ -48,9 +48,9 @@
     "semantic_hash": ""
   },
   "src/client/Controllers/Interaction.luau": {
-    "mtime": 1795096667.7963336,
-    "seen": 1795097151.234596,
-    "ast_hash": "d08a0c6f9b5ec238ebce11a2c48e4216",
+    "mtime": 1795098910.2659729,
+    "seen": 1795113048.5093539,
+    "ast_hash": "cbbdbc0c0fcc0ffed19e3343237f65ae",
     "semantic_hash": ""
   },
   "src/client/Controllers/Lighting.luau": {
@@ -72,9 +72,9 @@
     "semantic_hash": ""
   },
   "src/client/Controllers/WorldUI.luau": {
-    "mtime": 1795085145.1022506,
-    "seen": 1795093791.8756864,
-    "ast_hash": "88f06ddfa26ebb2ac6f5a1875feba2fe",
+    "mtime": 1795098904.5523283,
+    "seen": 1795113048.509366,
+    "ast_hash": "96a8b9400e96f54ee863dc7d4dffe3c1",
     "semantic_hash": ""
   },
   "src/client/Core.luau": {
@@ -126,9 +126,9 @@
     "semantic_hash": ""
   },
   "src/client/UI/Screens/Goals.luau": {
-    "mtime": 1795095633.0134273,
-    "seen": 1795096234.4682026,
-    "ast_hash": "6cde0926e2b77136f68019ef382696d2",
+    "mtime": 1795112856.7289903,
+    "seen": 1795113048.5093834,
+    "ast_hash": "0527adce6de87caf622447df2abe1a10",
     "semantic_hash": ""
   },
   "src/client/UI/Screens/HUD.luau": {
@@ -204,9 +204,9 @@
     "semantic_hash": ""
   },
   "src/server/Services/Customers.luau": {
-    "mtime": 1795084976.2637756,
-    "seen": 1795093791.875757,
-    "ast_hash": "3f6d948fbe180710cbdd5e3fe1f0cc23",
+    "mtime": 1795111509.93728,
+    "seen": 1795113048.5094094,
+    "ast_hash": "ce887787790278b08574450a21dd4f5e",
     "semantic_hash": ""
   },
   "src/server/Services/Data.luau": {
@@ -240,9 +240,9 @@
     "semantic_hash": ""
   },
   "src/server/Services/Franchise.luau": {
-    "mtime": 1795084900.4938757,
-    "seen": 1795093791.8757672,
-    "ast_hash": "3c165e0d95e1ae70adf26fb6867fdce1",
+    "mtime": 1795098156.5742688,
+    "seen": 1795113048.5094178,
+    "ast_hash": "34305c6426e37c3471cbd8ffdb19ff51",
     "semantic_hash": ""
   },
   "src/server/Services/Hands.luau": {
@@ -312,9 +312,9 @@
     "semantic_hash": ""
   },
   "src/server/Services/Supply.luau": {
-    "mtime": 1795084523.7382183,
-    "seen": 1795093791.875794,
-    "ast_hash": "372d5a679d41ba85d46c1c1b7593eb18",
+    "mtime": 1795112356.2019296,
+    "seen": 1795113048.5094397,
+    "ast_hash": "fae894412ea20f9d5b99ecae19518291",
     "semantic_hash": ""
   },
   "src/server/Services/Tasks.luau": {
@@ -324,9 +324,9 @@
     "semantic_hash": ""
   },
   "src/server/Services/World.luau": {
-    "mtime": 1795085145.1026087,
-    "seen": 1795093791.8757973,
-    "ast_hash": "606739c8206493ec5ec9b9bb48daf304",
+    "mtime": 1795098886.9555604,
+    "seen": 1795113048.5094426,
+    "ast_hash": "febad4218d28980669eb7997f0c2f89f",
     "semantic_hash": ""
   },
   "src/shared/Config/Achievements.luau": {
@@ -366,21 +366,21 @@
     "semantic_hash": ""
   },
   "src/shared/Config/Expansions.luau": {
-    "mtime": 1795013375.1513093,
-    "seen": 1795013495.7584019,
-    "ast_hash": "87ba601abe03e959b3cf234697a76808",
+    "mtime": 1795098131.286609,
+    "seen": 1795113048.509454,
+    "ast_hash": "1696b38a03fb77ca6e95136ab0f4e61c",
     "semantic_hash": ""
   },
   "src/shared/Config/Franchise.luau": {
-    "mtime": 1794758648.2933621,
-    "seen": 1794776610.4569914,
-    "ast_hash": "7ca56cc929de006ec63d5a96928f64c8",
+    "mtime": 1795098831.828641,
+    "seen": 1795113048.5094554,
+    "ast_hash": "189b8de3f7328b09e99667e329f0b323",
     "semantic_hash": ""
   },
   "src/shared/Config/GameConfig.luau": {
-    "mtime": 1795084726.1266825,
-    "seen": 1795093791.8758152,
-    "ast_hash": "cb5041c62f9ef88547e5817dc5661115",
+    "mtime": 1795111509.9375226,
+    "seen": 1795113048.5094566,
+    "ast_hash": "c6fea03f6c1362fe330dc19474564049",
     "semantic_hash": ""
   },
   "src/shared/Config/Ingredients.luau": {
@@ -396,9 +396,9 @@
     "semantic_hash": ""
   },
   "src/shared/Config/Licenses.luau": {
-    "mtime": 1794944852.8888648,
-    "seen": 1794945063.6991522,
-    "ast_hash": "5998f1ea926ca06838cb2cb1f8417783",
+    "mtime": 1795098131.286261,
+    "seen": 1795113048.5094607,
+    "ast_hash": "82bb509c0b581b9c530c43c14fce4d60",
     "semantic_hash": ""
   },
   "src/shared/Config/Monetization.luau": {
@@ -432,9 +432,9 @@
     "semantic_hash": ""
   },
   "src/shared/Config/Staff.luau": {
-    "mtime": 1794758537.7296197,
-    "seen": 1794776610.4570014,
-    "ast_hash": "f14114139983386c14cc9d08fbb049a7",
+    "mtime": 1795098131.2855542,
+    "seen": 1795113048.509472,
+    "ast_hash": "01cb14b2b46dc8604fd3478536d93274",
     "semantic_hash": ""
   },
   "src/shared/Config/StarterLayout.luau": {
@@ -450,15 +450,15 @@
     "semantic_hash": ""
   },
   "src/shared/Config/Upgrades.luau": {
-    "mtime": 1795083471.5140994,
-    "seen": 1795084044.9012914,
-    "ast_hash": "e1c61a178177db0e557ede2518a78bae",
+    "mtime": 1795098131.2858346,
+    "seen": 1795113048.5094776,
+    "ast_hash": "79cb1d42a9a17fd4e184d3acc502439d",
     "semantic_hash": ""
   },
   "src/shared/Locale/en.luau": {
-    "mtime": 1795096614.1498423,
-    "seen": 1795097151.2347035,
-    "ast_hash": "134f87caf76b13631f23d2561ae4b2f9",
+    "mtime": 1795112364.669433,
+    "seen": 1795113048.5094793,
+    "ast_hash": "f008b674c381ff6181bcf52f74fd6edc",
     "semantic_hash": ""
   },
   "src/shared/Locale/init.luau": {
@@ -468,9 +468,9 @@
     "semantic_hash": ""
   },
   "src/shared/Locale/it.luau": {
-    "mtime": 1795096614.1509778,
-    "seen": 1795097151.234706,
-    "ast_hash": "96060ad0843932fd4203b2faf4f333b8",
+    "mtime": 1795112364.67011,
+    "seen": 1795113048.509482,
+    "ast_hash": "70d61b1dd4d12f19bc3a3df5effd25f4",
     "semantic_hash": ""
   },
   "src/shared/Logic/Ambience.luau": {
@@ -486,9 +486,9 @@
     "semantic_hash": ""
   },
   "src/shared/Logic/Formulas.luau": {
-    "mtime": 1794758732.1166632,
-    "seen": 1794776610.4570122,
-    "ast_hash": "1977728b7c9319a66f99727e1f601f8d",
+    "mtime": 1795098131.285165,
+    "seen": 1795113048.509492,
+    "ast_hash": "7d22e87438b4adf0a12932f9d1699331",
     "semantic_hash": ""
   },
   "src/shared/Logic/Geometry.luau": {
@@ -624,9 +624,9 @@
     "semantic_hash": ""
   },
   "tests/logic_spec.lua": {
-    "mtime": 1795097147.2607808,
-    "seen": 1795097151.234741,
-    "ast_hash": "680c29f85f4b82f4fc08455c4129fee5",
+    "mtime": 1795099013.6023433,
+    "seen": 1795113048.509532,
+    "ast_hash": "f1e9b405c72a953c639e11f10b0cb0db",
     "semantic_hash": ""
   },
   "tools/build_place.py": {
@@ -666,21 +666,21 @@
     "semantic_hash": ""
   },
   "docs/01-GAME-DESIGN.md": {
-    "mtime": 1795097106.252844,
-    "seen": 1795097151.234779,
-    "ast_hash": "5ee9fbb6cfb3e489121795749f712a2d",
+    "mtime": 1795112811.7803648,
+    "seen": 1795113048.5095835,
+    "ast_hash": "ab8f417f8183511ac828b9acf74c2563",
     "semantic_hash": ""
   },
   "docs/02-PIANO-TECNICO.md": {
-    "mtime": 1795097116.4196784,
-    "seen": 1795097151.23478,
-    "ast_hash": "2c6b64a37c3b999998317cca16721478",
+    "mtime": 1795112811.7824364,
+    "seen": 1795113048.509585,
+    "ast_hash": "a057b1a97f866b759ebe44f42c92722e",
     "semantic_hash": ""
   },
   "docs/03-BILANCIAMENTO.md": {
-    "mtime": 1795097106.2536585,
-    "seen": 1795097151.2347813,
-    "ast_hash": "c5a3febb309655ba3adadbd7a0bcad4e",
+    "mtime": 1795113045.4011679,
+    "seen": 1795113048.509586,
+    "ast_hash": "e48f7a4e50a5408eefa5525be413357d",
     "semantic_hash": ""
   },
   "src/server/Services/SelfTest.luau": {
@@ -708,9 +708,9 @@
     "semantic_hash": ""
   },
   "tools/locale/data3.py": {
-    "mtime": 1795096614.115709,
-    "seen": 1795097151.2347484,
-    "ast_hash": "412531596e695da75f61bee6da7d835b",
+    "mtime": 1795112364.6431973,
+    "seen": 1795113048.509541,
+    "ast_hash": "f57718ffc21eb7be03db39ef4de3c2cd",
     "semantic_hash": ""
   },
   "tools/locale/gen.py": {
@@ -720,15 +720,15 @@
     "semantic_hash": ""
   },
   "src/shared/Models/Scene.luau": {
-    "mtime": 1795084322.008548,
-    "seen": 1795093791.875904,
-    "ast_hash": "b6b3a07732aab2c8f4353e7056735959",
+    "mtime": 1795112889.0212002,
+    "seen": 1795113048.5095203,
+    "ast_hash": "d6f9233e9e0ef603469e47eb4e4dd9d7",
     "semantic_hash": ""
   },
   "tools/preview.py": {
-    "mtime": 1795085215.8204865,
-    "seen": 1795093791.875931,
-    "ast_hash": "fd3926d72aa2c662cf1ffe25a96f369f",
+    "mtime": 1795099066.0763597,
+    "seen": 1795113048.5095463,
+    "ast_hash": "2513ed814363181e03e9532f73043cc3",
     "semantic_hash": ""
   },
   "tools/preview/mock.lua": {
@@ -834,15 +834,15 @@
     "semantic_hash": ""
   },
   "tools/locale/data5.py": {
-    "mtime": 1795096614.1181293,
-    "seen": 1795097151.234751,
-    "ast_hash": "ffdf34a591802369a3e7584c20a1e7b6",
+    "mtime": 1795112356.2021985,
+    "seen": 1795113048.509544,
+    "ast_hash": "553679d5bff59e4037757f2821555f57",
     "semantic_hash": ""
   },
   "tools/sim.py": {
-    "mtime": 1795094696.5407255,
-    "seen": 1795096234.4683423,
-    "ast_hash": "b8452ac59f450e704a659a6f181f5a6f",
+    "mtime": 1795111850.0324137,
+    "seen": 1795113048.5095506,
+    "ast_hash": "e258c8c9083e14c5ed3b153df88a9a38",
     "semantic_hash": ""
   },
   "tools/sim/boot.lua": {
@@ -852,9 +852,9 @@
     "semantic_hash": ""
   },
   "tools/sim/env.lua": {
-    "mtime": 1795095560.3173535,
-    "seen": 1795096234.4683454,
-    "ast_hash": "970a657d80560c982c2128553061530a",
+    "mtime": 1795111850.0320694,
+    "seen": 1795113048.5095546,
+    "ast_hash": "b7bdb39b1e1d1f252d84a6c43719f3b3",
     "semantic_hash": ""
   },
   "tools/sim/scenarios/core.lua": {
@@ -906,9 +906,9 @@
     "semantic_hash": ""
   },
   "src/shared/Logic/Shop.luau": {
-    "mtime": 1795095110.2006347,
-    "seen": 1795096234.468304,
-    "ast_hash": "3b37496cf1d9832923c294b56e9f65fb",
+    "mtime": 1795112793.72919,
+    "seen": 1795113048.5095015,
+    "ast_hash": "4e9f1c7ca3475039b4a2d97b2f2b6eb0",
     "semantic_hash": ""
   },
   "tools/sim/client.lua": {
@@ -924,9 +924,9 @@
     "semantic_hash": ""
   },
   "tools/sim/scenarios/client.lua": {
-    "mtime": 1795095886.5537238,
-    "seen": 1795096234.4683473,
-    "ast_hash": "21912147c8cd234082b8771b7683e9ef",
+    "mtime": 1795098931.2330723,
+    "seen": 1795113048.5095572,
+    "ast_hash": "c9c8a2a24b694382f4c7755bfcc3ba3a",
     "semantic_hash": ""
   },
   "tools/sim/ui/hud.lua": {
@@ -987,6 +987,18 @@
     "mtime": 1795097031.9870486,
     "seen": 1795097151.2347732,
     "ast_hash": "fc348cde9637756f4066e3e4f87fe926",
+    "semantic_hash": ""
+  },
+  "tools/sim/scenarios/progression.lua": {
+    "mtime": 1795112793.7296448,
+    "seen": 1795113048.509562,
+    "ast_hash": "09632991ef8997b3f06b204238965345",
+    "semantic_hash": ""
+  },
+  "tools/sim/ui/franchise.lua": {
+    "mtime": 1795112834.0269322,
+    "seen": 1795113048.5095708,
+    "ast_hash": "787eda59e5550d285b5f8d461acb3e76",
     "semantic_hash": ""
   }
 }

@@ -12,9 +12,11 @@ the results; any error raised by the game (uncaught errors, failed Init/Start, w
 of one player on a simulated phone, tablet or computer (Sim.startClient, tools/sim/client.lua):
 the client scripts run too, remotes go both ways and the GUI is laid out like on that screen.
 
-  python3 tools/sim.py                  # every scenario
+  python3 tools/sim.py                  # every scenario (except the slow ones)
   python3 tools/sim.py core saves       # only these
   python3 tools/sim.py --verbose core   # also print notifications and game prints
+  python3 tools/sim.py progression --hours=4   # a slow one (first line "-- (slow)"): a bot plays for hours
+  python3 tools/sim.py --seed=7 core           # another random sequence (runs are the same for a seed)
 Requires: pip install lupa
 """
 import os
@@ -81,23 +83,32 @@ def main():
     verbose = "--verbose" in sys.argv
     scenario_dir = os.path.join(SIM, "scenarios")
     available = sorted(f[:-4] for f in os.listdir(scenario_dir) if f.endswith(".lua"))
-    chosen = args or available
+
+    def slow(name):
+        with open(os.path.join(scenario_dir, name + ".lua"), encoding="utf-8") as fh:
+            return fh.readline().startswith("-- (slow)")
+
+    chosen = args or [n for n in available if not slow(n)]
     for name in chosen:
         if name not in available:
             print(f"unknown scenario {name} (available: {', '.join(available)})")
             return 2
     failed = 0
+    hours = next((float(a.split("=", 1)[1]) for a in sys.argv[1:] if a.startswith("--hours=")), None)
+    seed = next((int(a.split("=", 1)[1]) for a in sys.argv[1:] if a.startswith("--seed=")), None)
     for name in chosen:
-        ok = run(name, verbose)
+        ok = run(name, verbose, hours, seed)
         failed += 0 if ok else 1
     print(f"\n{len(chosen) - failed} scenario(s) passed, {failed} failed")
     return 1 if failed else 0
 
 
-def make_runtime(verbose=False, setup=None):
+def make_runtime(verbose=False, setup=None, seed=None):
     """A Lua state with the simulated Roblox and the project mounted (tools/sim/*.lua).
-    setup(lua) runs before the boot script (e.g. to give Lua better text metrics)."""
+    setup(lua) runs before the boot script (e.g. to give Lua better text metrics); seed picks the
+    random sequence (the same seed plays the same run)."""
     lua = lua54.LuaRuntime(unpack_returned_tuples=True)
+    lua.globals()["__seed"] = seed
     sources = {}
 
     def read(path):
@@ -127,11 +138,13 @@ def run_scenario(lua, path, label, max_time=6 * 3600):
     return lua.globals().Sim.runScenario(scenario, "@scenarios/" + label + ".lua", max_time)
 
 
-def run(name, verbose):
+def run(name, verbose, hours=None, seed=None):
     t0 = time.time()
-    lua = make_runtime(verbose)
+    lua = make_runtime(verbose, seed=seed)
+    if hours:
+        lua.globals().Sim.progressionHours = hours
     print(f"=== scenario {name}")
-    result = run_scenario(lua, os.path.join(SIM, "scenarios", name + ".lua"), name)
+    result = run_scenario(lua, os.path.join(SIM, "scenarios", name + ".lua"), name, 30 * 3600)
     errors = list(lua.globals().Sim.errors.values())
     passed = result and not errors
     for e in errors:

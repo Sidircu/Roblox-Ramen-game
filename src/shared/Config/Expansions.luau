@@ -51,9 +51,9 @@ local list = {
 			{ floor = 0, axis = "z", at = 24, from = 45, to = 55, kind = "loading" },
 		},
 	},
-	{ id = "zone_east", lv = 3, cost = 5000, requires = { "zone_base" }, zones = { { id = "east_dining", rect = { -68, 0, -36, 32 }, floor = 0, area = "dining", room = "main" } } },
-	{ id = "zone_storage2", lv = 5, cost = 8000, requires = { "zone_base" }, zones = { { id = "storage2", rect = { 60, 24, 84, 56 }, floor = 0, area = "storage", room = "storage" } } },
-	{ id = "zone_west", lv = 8, cost = 25000, requires = { "zone_east" }, zones = { { id = "west_dining", rect = { -100, 0, -68, 56 }, floor = 0, area = "dining", room = "main" } } },
+	{ id = "zone_east", lv = 3, cost = 3000, requires = { "zone_base" }, zones = { { id = "east_dining", rect = { -68, 0, -36, 32 }, floor = 0, area = "dining", room = "main" } } },
+	{ id = "zone_storage2", lv = 5, cost = 6000, requires = { "zone_base" }, zones = { { id = "storage2", rect = { 60, 24, 84, 56 }, floor = 0, area = "storage", room = "storage" } } },
+	{ id = "zone_west", lv = 8, cost = 18000, requires = { "zone_east" }, zones = { { id = "west_dining", rect = { -100, 0, -68, 56 }, floor = 0, area = "dining", room = "main" } } },
 	{ id = "zone_terrace", lv = 12, cost = 60000, requires = { "zone_base" }, zones = { { id = "terrace", rect = { -36, -10, 36, 0 }, floor = 0, area = "outdoor", outdoor = true, gaps = { { axis = "z", at = -10, from = -4, to = 4 } } } } },
 	{
 		id = "zone_garden", lv = 15, cost = 100000, requires = { "zone_base" },
@@ -81,10 +81,10 @@ local list = {
 	-- Renovations: the starting restaurant is plain; these add the detailed look piece by piece.
 	-- reno = tab group; the shell builder reads the owned ids, `style` keeps the matching
 	-- Detail_<style> group inside placeable models (see Registry.build).
-	{ id = "reno_storage", lv = 2, cost = 1500, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 2 },
-	{ id = "reno_wainscot", lv = 3, cost = 3500, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 5 },
-	{ id = "reno_kitchen_tiles", lv = 4, cost = 4000, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 3 },
-	{ id = "reno_facade", lv = 4, cost = 6000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 6, popularity = 0.03 },
+	{ id = "reno_storage", lv = 2, cost = 800, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 2 },
+	{ id = "reno_wainscot", lv = 3, cost = 2500, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 5 },
+	{ id = "reno_kitchen_tiles", lv = 4, cost = 3000, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 3 },
+	{ id = "reno_facade", lv = 4, cost = 4500, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 6, popularity = 0.03 },
 	{ id = "reno_entrance", lv = 5, cost = 8000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 8, popularity = 0.04 },
 	{ id = "reno_counter", lv = 6, cost = 10000, requires = { "zone_base" }, cosmetic = true, reno = "furniture", style = "counter", ambience = 10 },
 	{ id = "reno_eaves", lv = 7, cost = 14000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 10, popularity = 0.04 },

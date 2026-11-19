@@ -339,6 +339,49 @@ function Scene.emptyLot(shell)
 	end
 end
 
+-- A "for sale" sign standing where a room can be built, like the buy pads of a tycoon: posts, a
+-- board with a little roof and a lantern. The board's text (icon, name, price or lock) is written
+-- by every client in its own language (Controllers/WorldUI); using the sign buys the room
+-- (Controllers/Interaction -> BuyExpansion, checked by the server).
+function Scene.forSale(shell, e, plotId)
+	local rect = e.zones[1].rect
+	local x, z = (rect[1] + rect[3]) / 2, (rect[2] + rect[4]) / 2
+	-- an outdoor area in front of the door (the terrace): the sign stands at its side, not in the way
+	if e.zones[1].outdoor and rect[3] - rect[1] > 30 then
+		x = rect[1] + 6
+	end
+	local M = P.M
+	local m = Kit.model("ForSale_" .. e.id)
+	local board = Kit.box(m, 7, 3.6, 0.35, x, 4.2, z, P.paper, M.wood, { collide = false })
+	board.Name = "Board"
+	for _, dx in ipairs({ -3.2, 3.2 }) do
+		Kit.box(m, 0.35, 6, 0.35, x + dx, 3, z, P.wood_dark, M.wood, { collide = false })
+	end
+	Kit.box(m, 7.8, 0.3, 1.2, x, 6.25, z, P.wood_dark, M.wood, { collide = false })
+	local lamp = Kit.ball(m, 0.8, x + 3.2, 6.9, z, P.lacquer, M.fabric, { collide = false })
+	Kit.light(lamp, "Point", P.lamp_warm, 12, 1.2)
+	local front = Kit.text(board, Enum.NormalId.Front, "🏗️", { color = "#2B2320", pps = 40 })
+	front.Name = "Front"
+	local back = Kit.text(board, Enum.NormalId.Back, "🏗️", { color = "#2B2320", pps = 40 })
+	back.Name = "Back"
+	m.PrimaryPart = board
+	m:SetAttribute("Kind", "forsale")
+	m:SetAttribute("Uid", "forsale_" .. e.id .. "_" .. tostring(plotId))
+	m:SetAttribute("Expansion", e.id)
+	m:SetAttribute("Price", e.cost)
+	m:SetAttribute("Level", e.lv)
+	m:SetAttribute("PlotId", plotId)
+	game:GetService("CollectionService"):AddTag(m, "Interactable")
+	game:GetService("CollectionService"):AddTag(m, "ForSale")
+	for _, d in ipairs(m:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.CollisionGroup = "Shell"
+		end
+	end
+	m.Parent = shell
+	return m
+end
+
 -- Neighbour facade colour: the city tone mixed with plaster, tile or concrete shades
 local FACADE_MIX = { "#EFE3CC", "#B5B1A8", "#C9B8A0", "#9AA3A8", "#D8CFC0", "#A0705A" }
 local function facadeColor(pal, r)

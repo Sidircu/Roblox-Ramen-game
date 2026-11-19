@@ -143,18 +143,36 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 				nextCity = c
 			end
 		end
-		Kit.label(t("ui.franchise_info", { stars = stars, yen = math.floor(stars * Franchise.YenPerStar * 100), xp = math.floor(stars * Franchise.XpPerStar * 100) }), { Parent = scroll, Size = UDim2.new(1, 0, 0, 60), TextSize = 17 })
-		for _, c in ipairs(Franchise.list) do
-			local mark = (w.franchise and w.franchise.city == c.id) and "📍" or ((c.star <= stars) and "✅" or "🔒")
-			local card = Kit.row(mark, t("city." .. c.id), t("citydesc." .. c.id), 60)
-			card.Parent = scroll
-		end
-		if nextCity then
-			local reqs = t("ui.franchise_req", { level = Franchise.RequiredLevel, rating = Franchise.RequiredRating })
-			Kit.label(reqs, { Parent = scroll, Size = UDim2.new(1, 0, 0, 44), TextSize = 15, TextColor3 = T.muted })
-			Kit.button("🗾 " .. t("ui.franchise_open", { city = "city." .. nextCity.id }), { parent = scroll, size = UDim2.new(1, -8, 0, 50), style = "primary", disabled = Core.C.Data.role() ~= "owner", onClick = function()
+		Kit.label(t("ui.franchise_info", { stars = stars, yen = math.floor(stars * Franchise.YenPerStar * 100), xp = math.floor(stars * Franchise.XpPerStar * 100) }), { Parent = scroll, Size = UDim2.new(1, 0, 0, 50), TextSize = 17, LayoutOrder = 1 })
+		-- first what the next city asks for, ticked off one by one, and the button
+		local step = Franchise.nextStep(stars)
+		if nextCity and step then
+			local rating = Core.C.Data.plotAttr("Rating") or 3
+			local level = w.level or 1
+			local all = true
+			local order = 10
+			local function need(ok, text)
+				all = all and ok
+				order += 1
+				Kit.label((ok and "✅ " or "🔒 ") .. text, { Parent = scroll, Size = UDim2.new(1, -8, 0, 26), TextSize = 16, FontFace = ok and T.body or T.bold, TextColor3 = ok and T.muted or T.ink, LayoutOrder = order })
+			end
+			Kit.title(t("ui.franchise_next", { city = "city." .. nextCity.id }), { Parent = scroll, Size = UDim2.new(1, -8, 0, 30), TextSize = 20, LayoutOrder = 10 })
+			need(level >= step.level, t("ui.req_level", { level = step.level }) .. "  (" .. level .. ")")
+			need(rating >= step.rating, "★ " .. Format.decimal(step.rating, 1, L) .. "  (" .. Format.decimal(rating, 1, L) .. ")")
+			for _, z in ipairs(step.zones) do
+				need(w.zones and w.zones[z] == true, t("zone." .. z))
+			end
+			local b = Kit.button("🗾 " .. t("ui.franchise_open", { city = "city." .. nextCity.id }), { parent = scroll, size = UDim2.new(1, -8, 0, 50), style = all and "primary" or "plain", disabled = Core.C.Data.role() ~= "owner" or not all, onClick = function()
 				NetDef.event("Franchise"):FireServer(nextCity.id)
 			end })
+			b.LayoutOrder = 50
+		end
+		-- then the cities
+		for i, c in ipairs(Franchise.list) do
+			local mark = (w.franchise and w.franchise.city == c.id) and "📍" or ((c.star <= stars) and "✅" or "🔒")
+			local card = Kit.row(mark, t("city." .. c.id), t("citydesc." .. c.id), 60)
+			card.LayoutOrder = 100 + i
+			card.Parent = scroll
 		end
 	end
 end)

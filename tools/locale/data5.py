@@ -74,3 +74,11 @@ REVAMP += [
 ("hint.first_shop","You can buy something new in the 🛒 shop!","Puoi comprare qualcosa di nuovo nel 🛒 negozio!"),
 ("hint.first_staff","You can hire your first helper: 🛒 shop → 👥 Staff.","Puoi assumere il tuo primo aiutante: 🛒 negozio → 👥 Personale."),
 ]
+
+# Phase 6: franchise requirements grow with each city
+REVAMP += [
+("ui.franchise_next","To open in {city}:","Per aprire a {city}:"),
+("hint.buy_room","🏗️ Build {name} · {yen}","🏗️ Costruisci {name} · {yen}"),
+("msg.shelf_full_other","This shelf is full: another shelf has room for it.","Questa mensola è piena: su un'altra c'è posto."),
+("msg.shelf_full_buy","Every shelf is full: buy a new one (🔨 Build → Kitchen).","Tutte le mensole sono piene: comprane un'altra (🔨 Costruisci → Cucina)."),
+]

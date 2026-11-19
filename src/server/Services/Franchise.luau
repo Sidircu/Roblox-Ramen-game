@@ -7,13 +7,17 @@ local Core = require(script.Parent.Parent.Core)
 local Service = {}
 
 function Service.check(d, plot)
-	if d.level < Franchise.RequiredLevel then
-		return false, "msg.need_level", { level = Franchise.RequiredLevel }
+	local step = Franchise.nextStep(d.franchise.stars or 0)
+	if not step then
+		return false, "msg.franchise_done"
 	end
-	if Core.S.Progression.rating(plot) < Franchise.RequiredRating then
-		return false, "msg.need_rating", { rating = Franchise.RequiredRating }
+	if d.level < step.level then
+		return false, "msg.need_level", { level = step.level }
 	end
-	for _, z in ipairs(Franchise.RequiredZones) do
+	if Core.S.Progression.rating(plot) < step.rating then
+		return false, "msg.need_rating", { rating = step.rating }
+	end
+	for _, z in ipairs(step.zones) do
 		if not d.zones[z] then
 			return false, "msg.need_zone", { name = "zone." .. z }
 		end

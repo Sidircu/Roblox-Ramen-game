@@ -9,13 +9,13 @@
 
 | Formula | Valore |
 |---|---|
-| XP per passare dal livello L al successivo | `round(100 × L^1.65)` |
+| XP per passare dal livello L al successivo | `round(50 × L^1.6)` (i primi livelli arrivano in pochi minuti) |
 | Livello massimo | 50 (per ogni franchise) |
 | Yen iniziali | ¥500; scaffali pieni (noodles ×20, cipollotto ×30, naruto ×20), pentolone di brodo shoyu (16) e cuociriso pieni, una scatola di noodles, naruto e brodo shoyu in magazzino |
 | Prezzo effettivo di un piatto | `prezzoBase × (1 + 0,05 × livelloMaestria) × moltiplicatorePrezzoMenu × bonusFranchise` |
 | Mancia | `prezzo × (0,05 + bonusFreschezza + bonusAmbiente + bonusComfort + bonusPazienza) × moltiplicatoreTipoCliente` (bonusFreschezza = 0,10 se il pesce viene dalla vetrina o se c'è un frigorifero professionale vicino alla postazione) |
 | Bonus pazienza sulla mancia | `0,10 × pazienzaResidua` (0–1) |
-| Intervallo tra clienti | `max(2,5 s; 18 s / (1 + popolarità))`; ×0,6 nei picchi, ×1,6 di notte (23–6); il primo cliente entra 2 s dopo l'apertura e i clienti compaiono a 70–95 stud dalla porta |
+| Intervallo tra clienti | `max(2,5 s; 18 s / (1 + popolarità))`; ×0,6 nei picchi, ×1,6 di notte (23–6), ×1,5 senza posti liberi, ×2,5 con la cucina piena (ordini in attesa ≥ 3 + 3 × cuochi del personale); il primo cliente entra 2 s dopo l'apertura e i clienti compaiono a 70–95 stud dalla porta |
 | Giornata | sempre aperto; 45 s per ora di gioco (15 s di notte), circa 14 minuti al giorno; la giornata si chiude alle 6:00 |
 | Pagamento | appena il piatto è servito: prezzo + mancia (la pazienza residua conta in quel momento) |
 | Popolarità | `0,15 × (livello/10) + 0,35 × (valutazione−3) + bonusAmbiente + bonusInsegna + pubblicità` (minimo 0) |
@@ -26,14 +26,17 @@
 
 ### Andamento previsto dei livelli
 
-| Livello | XP per il livello | XP totali | Ore indicative |
+| Livello | XP per il livello | XP totali per arrivarci | Tempo indicativo |
 |---|---|---|---|
-| 5 | ~1.420 | ~3.400 | 2 |
-| 10 | ~4.470 | ~19.000 | 6 |
-| 20 | ~14.000 | ~113.000 | 17 |
-| 30 | ~27.400 | ~324.000 | 26 |
-| 40 | ~44.000 | ~690.000 | 35 |
-| 50 | ~64.000 | ~1.230.000 | 45 |
+| 5 | 657 | 951 | ~20 min |
+| 10 | 1.991 | 6.687 | ~2–2,5 h |
+| 12 | 2.665 | 10.996 | ~2,5–3,5 h (primo franchise) |
+| 20 | 6.034 | 43.440 | ~8 h |
+| 30 | 11.544 | 127.481 | ~15 h |
+| 40 | 18.292 | 272.332 | ~22 h |
+| 50 | 26.141 | 489.709 | ~30 h |
+
+Misurato con `python3 tools/sim.py progression --hours=4 --seed=N`: un giocatore automatico che cucina, serve, lava, rifornisce, riscuote missioni e regali, mette tavoli e sedie nelle sale nuove, assume un aiutante per ruolo e compra la cosa più economica arriva al livello 2 in 1 minuto, al 4 in 9, al 5 in 18–23, al 7 in 45–60 minuti, al 10 verso le 2,3 ore; assume il lavapiatti a 9–10 minuti e il cameriere verso i 26; in un'ora serve 240–320 piatti con 1–30 clienti andati via e valutazione 3,6–4,4; il negozio resta senza nulla di comprabile al massimo 5–8 minuti (le decorazioni coprono quei momenti).
 
 ---
 
@@ -148,8 +151,8 @@ Riso cotto: il rice cooker trasforma 1 porzione di riso crudo in 1 porzione di r
 | `lic_base` | Base (ramen) | 1 | gratis | — | Shoyu Ramen |
 | `lic_sashimi` | Sashimi | 2 | ¥300 | — | Sashimi di salmone (il salmone): il secondo piatto, facilissimo |
 | `lic_sushi0` | Sushi di base | 3 | ¥800 | Sashimi | Kappa Maki, Sake Nigiri (riso, nori, cetriolo) |
-| `lic_sushi1` | Sushi I | 4 | ¥2.500 | — | Tekka Maki, Maguro Nigiri |
-| `lic_ramen1` | Ramen I | 4 | ¥3.000 | — | Shio Ramen |
+| `lic_sushi1` | Sushi I | 4 | ¥1.800 | — | Tekka Maki, Maguro Nigiri |
+| `lic_ramen1` | Ramen I | 4 | ¥2.200 | — | Shio Ramen |
 | `lic_sides` | Contorni & tè | 5 | ¥4.000 | — | Edamame, Tè verde, Zuppa di miso, postazione bevande |
 | `lic_sushi2` | Sushi II | 8 | ¥12.000 | Sushi I | California Roll, Ebi Nigiri |
 | `lic_ramen2` | Ramen II | 9 | ¥15.000 | Ramen I | Miso Ramen |
@@ -321,15 +324,15 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 
 | ID | Miglioramento | Livelli | Costi | Effetto |
 |---|---|---|---|---|
-| `up_tray` | Vassoio | 1→5 | ¥1.500 (L2) · ¥8.000 (L8) · ¥40.000 (L18) · ¥150.000 (L30) | capienza 1→2→3→4→5 |
-| `up_shoes` | Scarpe da cucina | 0→5 | ¥1.000 × 3^n | +8% velocità per livello |
-| `up_knife` | Coltello (Santoku → Yanagiba → Damasco → Hon-yaki) | 0→4 | ¥2.000 · ¥15.000 · ¥90.000 · ¥400.000 | −10% durata dei passaggi T e U |
-| `up_mat` | Stuoia makisu | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | −12% durata del passaggio A |
-| `up_strainer` | Scolapasta tebo | 0→3 | ¥3.000 · ¥25.000 · ¥150.000 | −12% durata dei passaggi N, B, C, F |
+| `up_tray` | Vassoio | 1→5 | ¥900 (L2) · ¥6.000 (L8) · ¥30.000 (L18) · ¥120.000 (L30) | capienza 1→2→3→4→5 |
+| `up_shoes` | Scarpe da cucina | 0→5 | ¥600 × 3^n | +8% velocità per livello |
+| `up_knife` | Coltello (Santoku → Yanagiba → Damasco → Hon-yaki) | 0→4 | ¥1.200 · ¥12.000 · ¥80.000 · ¥350.000 | −10% durata dei passaggi T e U |
+| `up_mat` | Stuoia makisu | 0→3 | ¥1.800 · ¥18.000 · ¥120.000 | −12% durata del passaggio A |
+| `up_strainer` | Scolapasta tebo | 0→3 | ¥1.800 · ¥18.000 · ¥120.000 | −12% durata dei passaggi N, B, C, F |
 | `up_shelf` | Mensole rinforzate | 0→3 | ¥5.000 · ¥30.000 · ¥200.000 | file di prodotti × 1,25 / 1,5 / 1,75 (arrotondate) |
-| `up_cart` | Carrello per scatole | 0→2 | ¥2.500 (L3) · ¥15.000 (L10) | scatole portate insieme 1 → 2 → 3 (il pass Carrello grande +1). Le consegne sono immediate: il furgone arriva in circa 6 s |
+| `up_cart` | Carrello per scatole | 0→2 | ¥1.500 (L3) · ¥12.000 (L10) | scatole portate insieme 1 → 2 → 3 (il pass Carrello grande +1). Le consegne sono immediate: il furgone arriva in circa 6 s |
 | `up_supplier` | Fornitore premium | 0→2 | ¥20.000 (L10) · ¥200.000 (L25) | scatole grandi −10% / −20% |
-| `up_sign` | Insegna luminosa | 0→5 | ¥2.000 × 4^n | +0,08 popolarità per livello |
+| `up_sign` | Insegna luminosa | 0→5 | ¥1.200 × 4^n | +0,08 popolarità per livello |
 | `up_ticket` | Barra ordini | 0→2 | ¥6.000 · ¥60.000 | 12 → 16 → 20 biglietti (i clienti ordinano da soli: almeno un biglietto per posto) |
 | `up_jukebox` | Jukebox | 0→3 | ¥5.000 · ¥50.000 · ¥300.000 | +15 / +40 / +90 ambiente |
 | `up_safe` | Cassaforte (guadagni offline) | 0→5 | ¥10.000 × 4^n | 2/4/8/12/24 h al 10/15/20/25/30% |
@@ -348,13 +351,13 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 
 | ID | Ruolo | Liv. | Assunzione | Stipendio / giorno | Velocità base |
 |---|---|---|---|---|---|
-| `staff_waiter` | Cameriere | 6 | ¥5.000 | ¥300 | 1,0 |
-| `staff_dishwasher` | Lavapiatti | 7 | ¥4.000 | ¥250 | 1,0 |
-| `staff_stocker` | Magazziniere | 10 | ¥8.000 | ¥400 | 1,0 |
-| `staff_sushi_chef` | Cuoco sushi | 14 | ¥20.000 | ¥900 | 0,8 (piatti/min ≈ 3) |
-| `staff_ramen_chef` | Cuoco ramen | 16 | ¥25.000 | ¥1.000 | 0,8 |
-| `staff_line_cook` | Cuoco di linea | 18 | ¥30.000 | ¥1.100 | 0,8 |
-| `staff_manager` | Manager | 26 | ¥150.000 | ¥3.000 | — (+10% velocità a tutti) |
+| `staff_waiter` | Cameriere | 5 | ¥3.500 | ¥300 | 1,0 |
+| `staff_dishwasher` | Lavapiatti | 4 | ¥2.000 | ¥250 | 1,0 |
+| `staff_stocker` | Magazziniere | 7 | ¥6.000 | ¥400 | 1,0 |
+| `staff_sushi_chef` | Cuoco sushi | 9 | ¥15.000 | ¥900 | 0,8 (piatti/min ≈ 3) |
+| `staff_ramen_chef` | Cuoco ramen | 10 | ¥18.000 | ¥1.000 | 0,8 |
+| `staff_line_cook` | Cuoco di linea | 13 | ¥24.000 | ¥1.100 | 0,8 |
+| `staff_manager` | Manager | 18 | ¥120.000 | ¥3.000 | — (+10% velocità a tutti) |
 
 - **Addestramento** (livelli 1→5): costo `assunzione × 0,8 × 2,2^(livello−1)`; +15% velocità per livello.
 - **Posti personale**: 2 con il locale base, +1 per Sala Est, Sala Ovest, Terrazza; +3 con la Cucina professionale; +3 con il Secondo piano. Massimo 12.
@@ -366,9 +369,9 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | ID | Espansione | Liv. | Costo | Dimensioni (stud) | Note |
 |---|---|---|---|---|---|
 | `zone_base` | Locale base | 1 | — | sala 72×32 + cucina 72×14, magazzino 24×32 | bancone 12 posti |
-| `zone_east` | Sala Est | 3 | ¥5.000 | +32×32 | sblocca i tavoli |
-| `zone_storage2` | Magazzino ampliato | 5 | ¥8.000 | +24×32 | |
-| `zone_west` | Sala Ovest | 8 | ¥25.000 | +32×56 | |
+| `zone_east` | Sala Est | 3 | ¥3.000 | +32×32 | sblocca i tavoli |
+| `zone_storage2` | Magazzino ampliato | 5 | ¥6.000 | +24×32 | |
+| `zone_west` | Sala Ovest | 8 | ¥18.000 | +32×56 | |
 | `zone_terrace` | Terrazza esterna | 12 | ¥60.000 | 72×10 sulla strada | esterno |
 | `zone_garden` | Giardino zen | 15 | ¥100.000 | 48×36 sul retro | esterno |
 | `zone_tatami` | Sala tatami privata | 18 | ¥180.000 | 32×32 | clienti VIP |
@@ -383,10 +386,10 @@ Il locale iniziale è spoglio. Ogni ristrutturazione si compra una volta; l'atmo
 
 | ID | Ristrutturazione | Gruppo | Liv. | Costo | Atmosfera | Altro |
 |---|---|---|---|---|---|---|
-| `reno_storage` | Magazzino in ordine | interno | 2 | ¥1.500 | +2 | |
-| `reno_wainscot` | Boiserie koshi-ita | interno | 3 | ¥3.500 | +5 | |
-| `reno_kitchen_tiles` | Piastrelle in cucina | interno | 4 | ¥4.000 | +3 | |
-| `reno_facade` | Facciata machiya | esterno | 4 | ¥6.000 | +6 | +0,03 popolarità |
+| `reno_storage` | Magazzino in ordine | interno | 2 | ¥800 | +2 | |
+| `reno_wainscot` | Boiserie koshi-ita | interno | 3 | ¥2.500 | +5 | |
+| `reno_kitchen_tiles` | Piastrelle in cucina | interno | 4 | ¥3.000 | +3 | |
+| `reno_facade` | Facciata machiya | esterno | 4 | ¥4.500 | +6 | +0,03 popolarità |
 | `reno_entrance` | Ingresso tradizionale | esterno | 5 | ¥8.000 | +8 | +0,04 popolarità |
 | `reno_counter` | Bancone in hinoki | arredi | 6 | ¥10.000 | +10 | stile `counter` |
 | `reno_eaves` | Tettoia di tegole | esterno | 7 | ¥14.000 | +10 | +0,04 popolarità |
@@ -397,7 +400,7 @@ Il locale iniziale è spoglio. Ogni ristrutturazione si compra una volta; l'atmo
 | `reno_bamboo` | Recinzione inu-yarai | esterno | 13 | ¥40.000 | +18 | richiede la facciata machiya |
 | `reno_furnish` | Rifiniture degli arredi | arredi | 15 | ¥60.000 | +24 | stile `furnish` |
 
-Totale ¥231.000 e +122 atmosfera (circa un livello di ambiente in più a metà partita). Anche `sign_rooftop` e `facade_deluxe` stanno nella scheda Ristrutturazioni. Traguardo *Completa {n} ristrutturazioni*: 3 / 8 / 15 → 🌸5 / 15 / 40.
+Totale ¥226.800 e +122 atmosfera (circa un livello di ambiente in più a metà partita). Anche `sign_rooftop` e `facade_deluxe` stanno nella scheda Ristrutturazioni. Traguardo *Completa {n} ristrutturazioni*: 3 / 8 / 15 → 🌸5 / 15 / 40.
 
 **Si parte con il magazzino vuoto** (¥500 per il primo ordine: gli ingredienti del ramen costano ¥281), ma con il **pentolone già pieno di brodo shoyu** e il **cuociriso pieno**. Oggetti iniziali: bancone (12 moduli da 3 stud + 2 terminali, 40 stud, alto 3 e profondo 3,8), 12 sgabelli allineati ai moduli, postazioni sushi e ramen, 2 mensole, cucina componibile (cuociriso, fornello con pentolone, 2 piani di lavoro, lavello), scaffale del magazzino e **una sola lanterna**: tutte le altre decorazioni si comprano.
 
@@ -442,7 +445,7 @@ Totale ¥231.000 e +122 atmosfera (circa un livello di ambiente in più a metà 
 | Critico 5 ★ | 🌸3 |
 | Obiettivi | traguardi a livelli (piatti, clienti, yen, decorazioni, personale, maestrie, licenze, zone, ristrutturazioni…) con 🌸3–100 |
 | Set di decorazioni | Matsuri, Giardino zen, Samurai, Neon di Tokyo, Ciliegi: +5% mance o +0,1 popolarità ciascuno; Ramen-ya (tettoia, striscione, poster del menù, sgabello rosso, brocca): +4% mance e +0,06 popolarità |
-| Franchise | ogni stella: +25% yen, +10% XP; ¥2.000 iniziali nella nuova città |
+| Franchise | requisiti per città (`Config/Franchise.Steps`): 1ª livello 12, ★4,0, Sala Est + Magazzino ampliato + Sala Ovest · 2ª livello 16, ★4,1, + terrazza e giardino · 3ª livello 20, ★4,2, + sala tatami e cucina professionale · 4ª livello 25, ★4,3, + secondo piano · 5ª livello 30, ★4,4; ogni stella: +25% yen, +10% XP; ¥2.000 iniziali nella nuova città |
 | Regali a tempo (`Config/Rewards.luau`) | minuti di gioco nella sessione: 2 → ¥250 · 5 → 🌸2 · 9 → salmone + noodles · 14 → ¥900 · 20 → 🌸5 · 28 → ¥2.200 · 38 → 2 brodo shoyu + riso · 50 → 🌸10 · 65 → ¥6.000; gli yen × (1 + livello × 0,12); agli aiutanti ¥400 al posto delle scatole |
 | Codici | RAMEN ¥500 · SAKURA 🌸5 · ITADAKIMASU ¥1.500 · OISHII 🌸10 · NEWSHOP ¥3.000 (yen × (1 + livello × 0,12)); una volta per giocatore |
 | Combo di servizio | piatti serviti entro 30 s l'uno dall'altro: +5% di mancia per passo, massimo +50% |

@@ -700,7 +700,15 @@ function Supply.useShelf(actor, e, slot)
 			-- clicked the shelf itself: the slot that already holds this product, else an empty one
 			target = chooseSlot(e, entry.g, nil)
 			if not target then
-				return false, "msg.shelf_full"
+				-- say where it fits instead: another shelf with room, or that a new shelf is needed
+				for _, other in ipairs(Core.S.Entities.ofKind("shelf", e.plot)) do
+					local ing = Ingredients.byId[entry.g]
+					local fishOk = not other.item.fn.fishOnly or (ing and ing.storage == "fish")
+					if other ~= e and fishOk and chooseSlot(other, entry.g, nil) then
+						return false, "msg.shelf_full_other"
+					end
+				end
+				return false, "msg.shelf_full_buy"
 			end
 		end
 		-- one slot per click: what does not fit stays in the box for the slot you click next

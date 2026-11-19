@@ -45,6 +45,11 @@ return {
 		MaxPerRestaurant = 14, -- customers of one restaurant at the same time
 		BaseInterval = 18,
 		MinInterval = 2.5,
+		-- with this many orders waiting (+ BusyTicketsPerCook for every cook on the staff) new
+		-- customers come BusyFactor times less often
+		BusyTickets = 3,
+		BusyTicketsPerCook = 3,
+		BusyFactor = 2.5,
 		MenuReadTime = { 1.5, 3 },
 		FirstCustomerDelay = 2, -- the first customer walks in this soon after the restaurant opens
 		StreetSpawn = { 70, 95 }, -- customers appear this far along the street (studs from the door)

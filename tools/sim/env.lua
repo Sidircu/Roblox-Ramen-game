@@ -112,6 +112,9 @@ local function fail(msg)
 end
 Sim.fail = fail
 
+-- the same run every time (Lua 5.4 seeds math.random at random): tools/sim.py --seed=N changes it
+math.randomseed(__seed or 12345)
+
 ------------------------------------------------------------------ scheduler (binary heap by time)
 local heap = {}
 local function less(a, b)

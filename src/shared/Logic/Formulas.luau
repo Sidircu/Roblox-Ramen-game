@@ -10,7 +10,7 @@ function Formulas.round(x)
 end
 
 function Formulas.xpForLevel(level)
-	return Formulas.round(100 * level ^ 1.65)
+	return Formulas.round(50 * level ^ 1.6)
 end
 
 -- Adds xp to (level, xp) and returns newLevel, newXp, levelsGained

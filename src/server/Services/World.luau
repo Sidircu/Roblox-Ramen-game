@@ -140,6 +140,22 @@ function World.rebuild(plot, data)
 	if plot.openLabel then
 		plot.openLabel.Text = "営業中"
 	end
+	-- a "for sale" sign on every ground-floor room that can be built next (its rooms before it
+	-- are owned); the sign goes when the room is bought (the shell is built again)
+	for _, e in ipairs(Expansions.list) do
+		local z1 = e.zones and e.zones[1]
+		if not e.reno and e.id ~= "zone_base" and z1 and (z1.floor or 0) == 0 and not data.zones[e.id] then
+			local ready = true
+			for _, req in ipairs(e.requires or {}) do
+				if not data.zones[req] then
+					ready = false
+				end
+			end
+			if ready then
+				Scene.forSale(f.shell, e, plot.id)
+			end
+		end
+	end
 	-- the supplier tablet and menu board are per restaurant
 	for _, d in ipairs(f.shell:GetDescendants()) do
 		local uid = d:GetAttribute("Uid")

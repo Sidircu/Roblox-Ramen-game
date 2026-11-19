@@ -11,7 +11,7 @@ UI = [
 ("ui.exit_build","Exit","Esci"),("ui.expansions","Expansions","Espansioni"),
 ("ui.franchise_info","Franchise stars: {stars} · permanent bonus +{yen}% yen and +{xp}% XP.","Stelle franchise: {stars} · bonus permanente +{yen}% yen e +{xp}% XP."),
 ("ui.franchise_open","Open a restaurant in {city}","Apri un locale a {city}"),
-("ui.franchise_req","Requires level {level}, rating {rating}★ and all main expansions. Your decorations go to the inventory.","Serve il livello {level}, valutazione {rating}★ e tutte le espansioni principali. Le decorazioni vanno nell'inventario."),
+
 ("ui.free","Free","Gratis"),("ui.goals","Goals","Obiettivi"),("ui.grid","Grid","Griglia"),("ui.grid_size","Grid size","Dimensione griglia"),
 ("ui.hire","Hire","Assumi"),("ui.holding","In hand:","In mano:"),("ui.ingredients","Ingredients","Ingredienti"),("ui.inventory","Inventory","Inventario"),
 ("ui.inventory_empty","Your inventory is empty.","L'inventario è vuoto."),("ui.invite","Invite","Invita"),("ui.invite_friends","Invite friends","Invita amici"),
@@ -84,7 +84,7 @@ MSG = [
 ("msg.pot_other_broth","This pot has another broth.","Questo pentolone ha un altro brodo."),("msg.purchase_thanks","Thank you for your purchase! ❤️","Grazie per l'acquisto! ❤️"),
 ("msg.quest_bonus","All quests done! +{n} 🌸","Tutte le missioni completate! +{n} 🌸"),("msg.quest_done","🎯 Quest done: {name}","🎯 Missione completata: {name}"),
 ("msg.rack_hint","Bring a box here to put it back.","Porta qui una scatola per rimetterla a posto."),("msg.seat_busy","Someone is using it.","Qualcuno lo sta usando."),
-("msg.shelf_empty","The shelf is empty.","La mensola è vuota."),("msg.shelf_full","The shelf is full.","La mensola è piena."),
+("msg.shelf_empty","The shelf is empty.","La mensola è vuota."),
 ("msg.sink_hint","Bring dirty dishes here.","Porta qui le stoviglie sporche."),("msg.staff_full","No free staff slots: expand the restaurant.","Niente posti liberi per il personale: amplia il locale."),
 ("msg.staff_hired","👋 {name} the {role} joined the team!","👋 {name} ({role}) è entrato nella squadra!"),("msg.staff_one_manager","You can have only one manager.","Puoi avere un solo manager."),
 ("msg.staff_trained","⬆️ {name} is now level {level}!","⬆️ {name} ora è al livello {level}!"),

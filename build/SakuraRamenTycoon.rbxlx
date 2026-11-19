@@ -394,9 +394,9 @@ local list = {
 			{ floor = 0, axis = "z", at = 24, from = 45, to = 55, kind = "loading" },
 		},
 	},
-	{ id = "zone_east", lv = 3, cost = 5000, requires = { "zone_base" }, zones = { { id = "east_dining", rect = { -68, 0, -36, 32 }, floor = 0, area = "dining", room = "main" } } },
-	{ id = "zone_storage2", lv = 5, cost = 8000, requires = { "zone_base" }, zones = { { id = "storage2", rect = { 60, 24, 84, 56 }, floor = 0, area = "storage", room = "storage" } } },
-	{ id = "zone_west", lv = 8, cost = 25000, requires = { "zone_east" }, zones = { { id = "west_dining", rect = { -100, 0, -68, 56 }, floor = 0, area = "dining", room = "main" } } },
+	{ id = "zone_east", lv = 3, cost = 3000, requires = { "zone_base" }, zones = { { id = "east_dining", rect = { -68, 0, -36, 32 }, floor = 0, area = "dining", room = "main" } } },
+	{ id = "zone_storage2", lv = 5, cost = 6000, requires = { "zone_base" }, zones = { { id = "storage2", rect = { 60, 24, 84, 56 }, floor = 0, area = "storage", room = "storage" } } },
+	{ id = "zone_west", lv = 8, cost = 18000, requires = { "zone_east" }, zones = { { id = "west_dining", rect = { -100, 0, -68, 56 }, floor = 0, area = "dining", room = "main" } } },
 	{ id = "zone_terrace", lv = 12, cost = 60000, requires = { "zone_base" }, zones = { { id = "terrace", rect = { -36, -10, 36, 0 }, floor = 0, area = "outdoor", outdoor = true, gaps = { { axis = "z", at = -10, from = -4, to = 4 } } } } },
 	{
 		id = "zone_garden", lv = 15, cost = 100000, requires = { "zone_base" },
@@ -424,10 +424,10 @@ local list = {
 	-- Renovations: the starting restaurant is plain; these add the detailed look piece by piece.
 	-- reno = tab group; the shell builder reads the owned ids, `style` keeps the matching
 	-- Detail_<style> group inside placeable models (see Registry.build).
-	{ id = "reno_storage", lv = 2, cost = 1500, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 2 },
-	{ id = "reno_wainscot", lv = 3, cost = 3500, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 5 },
-	{ id = "reno_kitchen_tiles", lv = 4, cost = 4000, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 3 },
-	{ id = "reno_facade", lv = 4, cost = 6000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 6, popularity = 0.03 },
+	{ id = "reno_storage", lv = 2, cost = 800, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 2 },
+	{ id = "reno_wainscot", lv = 3, cost = 2500, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 5 },
+	{ id = "reno_kitchen_tiles", lv = 4, cost = 3000, requires = { "zone_base" }, cosmetic = true, reno = "interior", ambience = 3 },
+	{ id = "reno_facade", lv = 4, cost = 4500, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 6, popularity = 0.03 },
 	{ id = "reno_entrance", lv = 5, cost = 8000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 8, popularity = 0.04 },
 	{ id = "reno_counter", lv = 6, cost = 10000, requires = { "zone_base" }, cosmetic = true, reno = "furniture", style = "counter", ambience = 10 },
 	{ id = "reno_eaves", lv = 7, cost = 14000, requires = { "zone_base" }, cosmetic = true, reno = "exterior", ambience = 10, popularity = 0.04 },
@@ -514,12 +514,24 @@ for i, c in ipairs(list) do
 	c.order = i
 	byId[c.id] = c
 end
+-- What the next city asks for (index = the star it gives): the first franchise comes after a
+-- few hours of play (level 12, the first three rooms), every next one asks for more.
+local Steps = {
+	{ level = 12, rating = 4.0, zones = { "zone_east", "zone_storage2", "zone_west" } },
+	{ level = 16, rating = 4.1, zones = { "zone_east", "zone_storage2", "zone_west", "zone_terrace", "zone_garden" } },
+	{ level = 20, rating = 4.2, zones = { "zone_east", "zone_storage2", "zone_west", "zone_terrace", "zone_garden", "zone_tatami", "zone_kitchen_pro" } },
+	{ level = 25, rating = 4.3, zones = { "zone_east", "zone_storage2", "zone_west", "zone_terrace", "zone_garden", "zone_tatami", "zone_kitchen_pro", "zone_floor2" } },
+	{ level = 30, rating = 4.4, zones = { "zone_east", "zone_storage2", "zone_west", "zone_terrace", "zone_garden", "zone_tatami", "zone_kitchen_pro", "zone_floor2" } },
+}
+
 return {
 	list = list,
 	byId = byId,
-	RequiredLevel = 40,
-	RequiredRating = 4.5,
-	RequiredZones = { "zone_east", "zone_west", "zone_storage2", "zone_terrace", "zone_garden", "zone_tatami", "zone_kitchen_pro", "zone_floor2" },
+	Steps = Steps,
+	-- the requirements of the next franchise for a restaurant with `stars` stars (nil: all done)
+	nextStep = function(stars)
+		return Steps[(stars or 0) + 1]
+	end,
 	YenPerStar = 0.25,
 	XpPerStar = 0.10,
 	StartYen = 2000,
@@ -572,6 +584,11 @@ return {
 		MaxPerRestaurant = 14, -- customers of one restaurant at the same time
 		BaseInterval = 18,
 		MinInterval = 2.5,
+		-- with this many orders waiting (+ BusyTicketsPerCook for every cook on the staff) new
+		-- customers come BusyFactor times less often
+		BusyTickets = 3,
+		BusyTicketsPerCook = 3,
+		BusyFactor = 2.5,
 		MenuReadTime = { 1.5, 3 },
 		FirstCustomerDelay = 2, -- the first customer walks in this soon after the restaurant opens
 		StreetSpawn = { 70, 95 }, -- customers appear this far along the street (studs from the door)
@@ -882,8 +899,8 @@ local list = {
 	{ id = "lic_base", branch = "base", level = 1, cost = 0, rating = 0, requires = {}, recipes = { "shoyu_ramen" } },
 	{ id = "lic_sashimi", branch = "sushi", level = 2, cost = 300, rating = 0, requires = { "lic_base" }, recipes = { "sake_sashimi" } },
 	{ id = "lic_sushi0", branch = "sushi", level = 3, cost = 800, rating = 0, requires = { "lic_sashimi" }, recipes = { "kappa_maki", "sake_nigiri" } },
-	{ id = "lic_sushi1", branch = "sushi", level = 4, cost = 2500, rating = 0, requires = { "lic_sushi0" }, recipes = { "tekka_maki", "maguro_nigiri" } },
-	{ id = "lic_ramen1", branch = "ramen", level = 4, cost = 3000, rating = 0, requires = { "lic_base" }, recipes = { "shio_ramen" } },
+	{ id = "lic_sushi1", branch = "sushi", level = 4, cost = 1800, rating = 0, requires = { "lic_sushi0" }, recipes = { "tekka_maki", "maguro_nigiri" } },
+	{ id = "lic_ramen1", branch = "ramen", level = 4, cost = 2200, rating = 0, requires = { "lic_base" }, recipes = { "shio_ramen" } },
 	{ id = "lic_sides", branch = "extra", level = 5, cost = 4000, rating = 0, requires = { "lic_base" }, recipes = { "edamame", "green_tea", "miso_soup" } },
 	{ id = "lic_sushi2", branch = "sushi", level = 8, cost = 12000, rating = 0, requires = { "lic_sushi1" }, recipes = { "california_roll", "ebi_nigiri" } },
 	{ id = "lic_ramen2", branch = "ramen", level = 9, cost = 15000, rating = 0, requires = { "lic_ramen1" }, recipes = { "miso_ramen" } },
@@ -1143,13 +1160,13 @@ return { list = list, byId = byId }
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000023"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Staff roles. Training levels 1..5: cost = hire * 0.8 * 2.2^(level-1), +15% speed per level.
 local list = {
-	{ id = "staff_waiter", icon = "🧑‍🍳", lv = 6, hire = 5000, salary = 300, tasks = { "order", "serve", "collect", "wash" }, shirt = "#2E3A5C" },
-	{ id = "staff_dishwasher", icon = "🧽", lv = 7, hire = 4000, salary = 250, tasks = { "wash", "collect" }, shirt = "#4A7A8C" },
-	{ id = "staff_stocker", icon = "📦", lv = 10, hire = 8000, salary = 400, tasks = { "restock", "appliance" }, shirt = "#7A5A2E" },
-	{ id = "staff_sushi_chef", icon = "🍣", lv = 14, hire = 20000, salary = 900, tasks = { "cook" }, stations = { "sushi" }, shirt = "#F4F1EA" },
-	{ id = "staff_ramen_chef", icon = "🍜", lv = 16, hire = 25000, salary = 1000, tasks = { "cook", "appliance" }, stations = { "ramen" }, shirt = "#F4F1EA" },
-	{ id = "staff_line_cook", icon = "🍤", lv = 18, hire = 30000, salary = 1100, tasks = { "cook" }, stations = { "drink", "griddle", "fryer", "takoyaki", "dessert" }, shirt = "#B3262E" },
-	{ id = "staff_manager", icon = "🎩", lv = 26, hire = 150000, salary = 3000, tasks = {}, manager = true, shirt = "#1E1E22" },
+	{ id = "staff_waiter", icon = "🧑‍🍳", lv = 5, hire = 3500, salary = 300, tasks = { "order", "serve", "collect", "wash" }, shirt = "#2E3A5C" },
+	{ id = "staff_dishwasher", icon = "🧽", lv = 4, hire = 2000, salary = 250, tasks = { "wash", "collect" }, shirt = "#4A7A8C" },
+	{ id = "staff_stocker", icon = "📦", lv = 7, hire = 6000, salary = 400, tasks = { "restock", "appliance" }, shirt = "#7A5A2E" },
+	{ id = "staff_sushi_chef", icon = "🍣", lv = 9, hire = 15000, salary = 900, tasks = { "cook" }, stations = { "sushi" }, shirt = "#F4F1EA" },
+	{ id = "staff_ramen_chef", icon = "🍜", lv = 10, hire = 18000, salary = 1000, tasks = { "cook", "appliance" }, stations = { "ramen" }, shirt = "#F4F1EA" },
+	{ id = "staff_line_cook", icon = "🍤", lv = 13, hire = 24000, salary = 1100, tasks = { "cook" }, stations = { "drink", "griddle", "fryer", "takoyaki", "dessert" }, shirt = "#B3262E" },
+	{ id = "staff_manager", icon = "🎩", lv = 18, hire = 120000, salary = 3000, tasks = {}, manager = true, shirt = "#1E1E22" },
 }
 
 local byId = {}
@@ -1305,16 +1322,16 @@ local function geometric(base, factor, count)
 end
 
 local list = {
-	{ id = "up_tray", icon = "🍱", max = 4, costs = { 1500, 8000, 40000, 150000 }, levels = { 2, 8, 18, 30 }, values = { 1, 2, 3, 4, 5 }, effect = "tray" },
-	{ id = "up_shoes", icon = "👟", max = 5, costs = geometric(1000, 3, 5), levels = { 1, 4, 8, 14, 22 }, values = { 1, 1.08, 1.16, 1.24, 1.32, 1.40 }, effect = "walk" },
-	{ id = "up_knife", icon = "🔪", max = 4, costs = { 2000, 15000, 90000, 400000 }, levels = { 2, 8, 16, 28 }, values = { 1, 0.9, 0.81, 0.73, 0.66 }, effect = "step" },
-	{ id = "up_mat", icon = "🎋", max = 3, costs = { 3000, 25000, 150000 }, levels = { 3, 10, 20 }, values = { 1, 0.88, 0.77, 0.68 }, effect = "step" },
-	{ id = "up_strainer", icon = "🥢", max = 3, costs = { 3000, 25000, 150000 }, levels = { 3, 10, 20 }, values = { 1, 0.88, 0.77, 0.68 }, effect = "step" },
+	{ id = "up_tray", icon = "🍱", max = 4, costs = { 900, 6000, 30000, 120000 }, levels = { 2, 8, 18, 30 }, values = { 1, 2, 3, 4, 5 }, effect = "tray" },
+	{ id = "up_shoes", icon = "👟", max = 5, costs = geometric(600, 3, 5), levels = { 1, 4, 8, 14, 22 }, values = { 1, 1.08, 1.16, 1.24, 1.32, 1.40 }, effect = "walk" },
+	{ id = "up_knife", icon = "🔪", max = 4, costs = { 1200, 12000, 80000, 350000 }, levels = { 2, 8, 16, 28 }, values = { 1, 0.9, 0.81, 0.73, 0.66 }, effect = "step" },
+	{ id = "up_mat", icon = "🎋", max = 3, costs = { 1800, 18000, 120000 }, levels = { 3, 10, 20 }, values = { 1, 0.88, 0.77, 0.68 }, effect = "step" },
+	{ id = "up_strainer", icon = "🥢", max = 3, costs = { 1800, 18000, 120000 }, levels = { 3, 10, 20 }, values = { 1, 0.88, 0.77, 0.68 }, effect = "step" },
 	{ id = "up_shelf", icon = "🗄️", max = 3, costs = { 5000, 30000, 200000 }, levels = { 4, 12, 24 }, values = { 1, 1.25, 1.5, 1.75 }, effect = "shelf" },
 	-- deliveries are immediate (the truck takes a few seconds): this upgrade is a box cart instead
-	{ id = "up_cart", icon = "🛒", max = 2, costs = { 2500, 15000 }, levels = { 3, 10 }, values = { 1, 2, 3 }, effect = "cart" },
+	{ id = "up_cart", icon = "🛒", max = 2, costs = { 1500, 12000 }, levels = { 3, 10 }, values = { 1, 2, 3 }, effect = "cart" },
 	{ id = "up_supplier", icon = "📦", max = 2, costs = { 20000, 200000 }, levels = { 10, 25 }, values = { 0, 0.10, 0.20 }, effect = "discount" },
-	{ id = "up_sign", icon = "🏮", max = 5, costs = geometric(2000, 4, 5), levels = { 2, 6, 12, 20, 30 }, values = { 0, 0.08, 0.16, 0.24, 0.32, 0.40 }, effect = "popularity" },
+	{ id = "up_sign", icon = "🏮", max = 5, costs = geometric(1200, 4, 5), levels = { 2, 6, 12, 20, 30 }, values = { 0, 0.08, 0.16, 0.24, 0.32, 0.40 }, effect = "popularity" },
 	-- customers order by themselves: the order bar holds one ticket per seat at least
 	{ id = "up_ticket", icon = "🧾", max = 2, costs = { 6000, 60000 }, levels = { 5, 15 }, values = { 12, 16, 20 }, effect = "tickets" },
 	{ id = "up_jukebox", icon = "🎶", max = 3, costs = { 5000, 50000, 300000 }, levels = { 4, 14, 26 }, values = { 0, 15, 40, 90 }, effect = "ambience" },
@@ -1542,6 +1559,7 @@ return {
 	["hint.board_incomplete"] = "Add more ingredients",
 	["hint.board_need"] = "Bring here: {list}",
 	["hint.broth_status"] = "🥣 {n} portions ready",
+	["hint.buy_room"] = "🏗️ Build {name} · {yen}",
 	["hint.collect"] = "Collect dirty dishes",
 	["hint.cooking"] = "Cooking…",
 	["hint.cooking_now"] = "Cooking {dish}…",
@@ -1875,7 +1893,8 @@ return {
 	["msg.selftest_result"] = "🧪 Self-test: {passed}/{total} passed. Failed: {failed} (details in Output)",
 	["msg.shelf_auto"] = "The stations take the ingredients by themselves: just press the station.",
 	["msg.shelf_empty"] = "The shelf is empty.",
-	["msg.shelf_full"] = "The shelf is full.",
+	["msg.shelf_full_buy"] = "Every shelf is full: buy a new one (🔨 Build → Kitchen).",
+	["msg.shelf_full_other"] = "This shelf is full: another shelf has room for it.",
 	["msg.sink_hint"] = "Bring dirty dishes here.",
 	["msg.slot_full"] = "This slot is full: click another one.",
 	["msg.slot_other"] = "{name} is on this slot: put your box on an empty slot.",
@@ -2060,8 +2079,8 @@ return {
 	["ui.fast"] = "Fast",
 	["ui.fp_keys"] = "Click / E: use · Right click: put the box down · G: put down · Shift: run · Q: mouse · U shop · B build · O supplier · P more · R gifts",
 	["ui.franchise_info"] = "Franchise stars: {stars} · permanent bonus +{yen}% yen and +{xp}% XP.",
+	["ui.franchise_next"] = "To open in {city}:",
 	["ui.franchise_open"] = "Open a restaurant in {city}",
-	["ui.franchise_req"] = "Requires level {level}, rating {rating}★ and all main expansions. Your decorations go to the inventory.",
 	["ui.free"] = "Free",
 	["ui.gift_ready"] = "Claim!",
 	["ui.gifts"] = "Gifts",
@@ -2396,6 +2415,7 @@ return {
 	["hint.board_incomplete"] = "Aggiungi altri ingredienti",
 	["hint.board_need"] = "Porta qui: {list}",
 	["hint.broth_status"] = "🥣 {n} porzioni pronte",
+	["hint.buy_room"] = "🏗️ Costruisci {name} · {yen}",
 	["hint.collect"] = "Raccogli le stoviglie",
 	["hint.cooking"] = "In cottura…",
 	["hint.cooking_now"] = "Sto cucinando {dish}…",
@@ -2729,7 +2749,8 @@ return {
 	["msg.selftest_result"] = "🧪 Autotest: {passed}/{total} superati. Falliti: {failed} (dettagli nell'Output)",
 	["msg.shelf_auto"] = "Le postazioni prendono gli ingredienti da sole: premi la postazione.",
 	["msg.shelf_empty"] = "La mensola è vuota.",
-	["msg.shelf_full"] = "La mensola è piena.",
+	["msg.shelf_full_buy"] = "Tutte le mensole sono piene: comprane un'altra (🔨 Costruisci → Cucina).",
+	["msg.shelf_full_other"] = "Questa mensola è piena: su un'altra c'è posto.",
 	["msg.sink_hint"] = "Porta qui le stoviglie sporche.",
 	["msg.slot_full"] = "Questo ripiano è pieno: clicca un altro ripiano.",
 	["msg.slot_other"] = "Su questo ripiano c'è {name}: metti la scatola su un ripiano vuoto.",
@@ -2914,8 +2935,8 @@ return {
 	["ui.fast"] = "Veloce",
 	["ui.fp_keys"] = "Clic / E: usa · Tasto destro: posa la scatola · G: posa · Shift: corri · Q: mouse · U negozio · B costruisci · O fornitore · P altro · R regali",
 	["ui.franchise_info"] = "Stelle franchise: {stars} · bonus permanente +{yen}% yen e +{xp}% XP.",
+	["ui.franchise_next"] = "Per aprire a {city}:",
 	["ui.franchise_open"] = "Apri un locale a {city}",
-	["ui.franchise_req"] = "Serve il livello {level}, valutazione {rating}★ e tutte le espansioni principali. Le decorazioni vanno nell'inventario.",
 	["ui.free"] = "Gratis",
 	["ui.gift_ready"] = "Ritira!",
 	["ui.gifts"] = "Regali",
@@ -3367,7 +3388,7 @@ function Formulas.round(x)
 end
 
 function Formulas.xpForLevel(level)
-	return Formulas.round(100 * level ^ 1.65)
+	return Formulas.round(50 * level ^ 1.6)
 end
 
 -- Adds xp to (level, xp) and returns newLevel, newXp, levelsGained
@@ -4385,6 +4406,12 @@ function Shop.buyable(w, cfg, rating)
 	local tabs = { upgrades = 0, recipes = 0, staff = 0, rooms = 0, reno = 0 }
 	for _, u in ipairs(cfg.Upgrades.list) do
 		if Shop.upgrade(w, u).state == "buy" then
+			tabs.upgrades = tabs.upgrades + 1
+		end
+	end
+	-- today's advert counts too (it comes back every day)
+	for _, ad in ipairs(cfg.Ads and cfg.Ads.list or {}) do
+		if Shop.ad(w, ad).state == "buy" then
 			tabs.upgrades = tabs.upgrades + 1
 		end
 	end
@@ -11113,6 +11140,49 @@ function Scene.emptyLot(shell)
 	end
 end
 
+-- A "for sale" sign standing where a room can be built, like the buy pads of a tycoon: posts, a
+-- board with a little roof and a lantern. The board's text (icon, name, price or lock) is written
+-- by every client in its own language (Controllers/WorldUI); using the sign buys the room
+-- (Controllers/Interaction -> BuyExpansion, checked by the server).
+function Scene.forSale(shell, e, plotId)
+	local rect = e.zones[1].rect
+	local x, z = (rect[1] + rect[3]) / 2, (rect[2] + rect[4]) / 2
+	-- an outdoor area in front of the door (the terrace): the sign stands at its side, not in the way
+	if e.zones[1].outdoor and rect[3] - rect[1] > 30 then
+		x = rect[1] + 6
+	end
+	local M = P.M
+	local m = Kit.model("ForSale_" .. e.id)
+	local board = Kit.box(m, 7, 3.6, 0.35, x, 4.2, z, P.paper, M.wood, { collide = false })
+	board.Name = "Board"
+	for _, dx in ipairs({ -3.2, 3.2 }) do
+		Kit.box(m, 0.35, 6, 0.35, x + dx, 3, z, P.wood_dark, M.wood, { collide = false })
+	end
+	Kit.box(m, 7.8, 0.3, 1.2, x, 6.25, z, P.wood_dark, M.wood, { collide = false })
+	local lamp = Kit.ball(m, 0.8, x + 3.2, 6.9, z, P.lacquer, M.fabric, { collide = false })
+	Kit.light(lamp, "Point", P.lamp_warm, 12, 1.2)
+	local front = Kit.text(board, Enum.NormalId.Front, "🏗️", { color = "#2B2320", pps = 40 })
+	front.Name = "Front"
+	local back = Kit.text(board, Enum.NormalId.Back, "🏗️", { color = "#2B2320", pps = 40 })
+	back.Name = "Back"
+	m.PrimaryPart = board
+	m:SetAttribute("Kind", "forsale")
+	m:SetAttribute("Uid", "forsale_" .. e.id .. "_" .. tostring(plotId))
+	m:SetAttribute("Expansion", e.id)
+	m:SetAttribute("Price", e.cost)
+	m:SetAttribute("Level", e.lv)
+	m:SetAttribute("PlotId", plotId)
+	game:GetService("CollectionService"):AddTag(m, "Interactable")
+	game:GetService("CollectionService"):AddTag(m, "ForSale")
+	for _, d in ipairs(m:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.CollisionGroup = "Shell"
+		end
+	end
+	m.Parent = shell
+	return m
+end
+
 -- Neighbour facade colour: the city tone mixed with plaster, tile or concrete shades
 local FACADE_MIX = { "#EFE3CC", "#B5B1A8", "#C9B8A0", "#9AA3A8", "#D8CFC0", "#A0705A" }
 local function facadeColor(pal, r)
@@ -13250,6 +13320,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Customers = require(Shared.Config.Customers)
 local Recipes = require(Shared.Config.Recipes)
 local Expansions = require(Shared.Config.Expansions)
+local StaffCfg = require(Shared.Config.Staff)
 local Formulas = require(Shared.Logic.Formulas)
 local TableUtil = require(Shared.Util.TableUtil)
 local Registry = require(Shared.Models.Registry)
@@ -14040,6 +14111,18 @@ local function tick(plot, dt)
 	local interval = Formulas.customerInterval(CFG.BaseInterval, CFG.MinInterval, pop, Day.isPeak(), peakFactor, Core.S.Economy.boostActive(plot, "rush"))
 	if Core.S.Seating.freeCount(plot) == 0 then
 		interval = interval * 1.5
+	end
+	-- a busy kitchen: with many orders still waiting, fewer people walk in, so the restaurant does
+	-- not fill with customers nobody can cook for (every cook on the staff takes more)
+	local cooks = 0
+	for _, s in ipairs(d and d.staff or {}) do
+		local cfg = StaffCfg.byId[s.role]
+		if cfg and table.find(cfg.tasks, "cook") then
+			cooks += 1
+		end
+	end
+	if #Core.S.Cooking.ticketsOf(plot) >= CFG.BusyTickets + CFG.BusyTicketsPerCook * cooks then
+		interval = interval * CFG.BusyFactor
 	end
 	if Day.isNight() then
 		interval = interval * GameConfig.Day.NightFactor
@@ -15262,13 +15345,17 @@ local Core = require(script.Parent.Parent.Core)
 local Service = {}
 
 function Service.check(d, plot)
-	if d.level < Franchise.RequiredLevel then
-		return false, "msg.need_level", { level = Franchise.RequiredLevel }
+	local step = Franchise.nextStep(d.franchise.stars or 0)
+	if not step then
+		return false, "msg.franchise_done"
 	end
-	if Core.S.Progression.rating(plot) < Franchise.RequiredRating then
-		return false, "msg.need_rating", { rating = Franchise.RequiredRating }
+	if d.level < step.level then
+		return false, "msg.need_level", { level = step.level }
 	end
-	for _, z in ipairs(Franchise.RequiredZones) do
+	if Core.S.Progression.rating(plot) < step.rating then
+		return false, "msg.need_rating", { rating = step.rating }
+	end
+	for _, z in ipairs(step.zones) do
 		if not d.zones[z] then
 			return false, "msg.need_zone", { name = "zone." .. z }
 		end
@@ -20170,7 +20257,15 @@ function Supply.useShelf(actor, e, slot)
 			-- clicked the shelf itself: the slot that already holds this product, else an empty one
 			target = chooseSlot(e, entry.g, nil)
 			if not target then
-				return false, "msg.shelf_full"
+				-- say where it fits instead: another shelf with room, or that a new shelf is needed
+				for _, other in ipairs(Core.S.Entities.ofKind("shelf", e.plot)) do
+					local ing = Ingredients.byId[entry.g]
+					local fishOk = not other.item.fn.fishOnly or (ing and ing.storage == "fish")
+					if other ~= e and fishOk and chooseSlot(other, entry.g, nil) then
+						return false, "msg.shelf_full_other"
+					end
+				end
+				return false, "msg.shelf_full_buy"
 			end
 		end
 		-- one slot per click: what does not fit stays in the box for the slot you click next
@@ -20972,6 +21067,22 @@ function World.rebuild(plot, data)
 	plot.openLabel = result.openLabel
 	if plot.openLabel then
 		plot.openLabel.Text = "営業中"
+	end
+	-- a "for sale" sign on every ground-floor room that can be built next (its rooms before it
+	-- are owned); the sign goes when the room is bought (the shell is built again)
+	for _, e in ipairs(Expansions.list) do
+		local z1 = e.zones and e.zones[1]
+		if not e.reno and e.id ~= "zone_base" and z1 and (z1.floor or 0) == 0 and not data.zones[e.id] then
+			local ready = true
+			for _, req in ipairs(e.requires or {}) do
+				if not data.zones[req] then
+					ready = false
+				end
+			end
+			if ready then
+				Scene.forSale(f.shell, e, plot.id)
+			end
+		end
 	end
 	-- the supplier tablet and menu board are per restaurant
 	for _, d in ipairs(f.shell:GetDescendants()) do
@@ -23544,6 +23655,7 @@ local CollectionService = game:GetService("CollectionService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
+local Format = require(Shared.Util.Format)
 local GameConfig = require(Shared.Config.GameConfig)
 local Recipes = require(Shared.Config.Recipes)
 local Ingredients = require(Shared.Config.Ingredients)
@@ -23738,6 +23850,13 @@ local function actionText(model, kind, slot)
 		return t("hint.supplier")
 	elseif kind == "menuboard" then
 		return t("hint.menuboard")
+	elseif kind == "forsale" then
+		local id = model:GetAttribute("Expansion") or ""
+		local need = model:GetAttribute("Level") or 1
+		if (Core.C.Data.w("level") or 1) < need then
+			return "🔒 " .. t("zone." .. id) .. " · " .. t("ui.req_level", { level = need })
+		end
+		return t("hint.buy_room", { name = "zone." .. id, yen = Format.yen(model:GetAttribute("Price") or 0, Locale.get()) })
 	end
 	return nil
 end
@@ -23924,6 +24043,19 @@ act = function(tap)
 	end
 	if current.kind == "supplier" then
 		Core.C.UI.open("Supplier")
+		return
+	elseif current.kind == "forsale" then
+		-- one press buys the room (the server checks level, rooms before it and the price)
+		if not Core.C.Data.canBuild() then
+			Core.C.UI.toast(t("ui.only_owner"), "warning")
+			return
+		end
+		local price = current.model:GetAttribute("Price") or 0
+		if Core.C.Data.wallet() < price then
+			Core.C.UI.toast(t("ui.missing", { yen = Format.yen(price - Core.C.Data.wallet(), Locale.get()) }), "warning")
+			return
+		end
+		NetDef.event("BuyExpansion"):FireServer(current.model:GetAttribute("Expansion"))
 		return
 	elseif current.kind == "menuboard" then
 		Core.C.UI.open("Menu")
@@ -25549,9 +25681,41 @@ local function updateStaff(char, origin)
 	end
 end
 
+-- the "for sale" signs of rooms (Models/Scene.forSale): icon, name and price in your language,
+-- or the level it needs
+local function paintSigns()
+	local Format = require(Shared.Util.Format)
+	local level = Core.C.Data.w("level") or 1
+	local yen = Core.C.Data.wallet()
+	for _, m in ipairs(CollectionService:GetTagged("ForSale")) do
+		local board = m.PrimaryPart
+		local id = m:GetAttribute("Expansion") or ""
+		local price = m:GetAttribute("Price") or 0
+		local need = m:GetAttribute("Level") or 1
+		local text
+		if level < need then
+			text = "🔒\n" .. t("zone." .. id) .. "\n" .. t("ui.req_level", { level = need })
+		else
+			text = "🏗️ " .. t("zone." .. id) .. "\n" .. Format.yen(price, Locale.get()) .. (yen >= price and "  ✅" or "")
+		end
+		for _, side in ipairs({ "Front", "Back" }) do
+			local gui = board and board:FindFirstChild(side)
+			local label = gui and gui:FindFirstChildOfClass("TextLabel")
+			if label and label.Text ~= text then
+				label.Text = text
+			end
+		end
+	end
+end
+
 function WorldUI.Start()
+	local lastSigns = 0
 	while true do
 		task.wait(0.2)
+		if os.clock() - lastSigns > 1 then
+			lastSigns = os.clock()
+			pcall(paintSigns)
+		end
 		local cam = workspace.CurrentCamera
 		local char = player.Character
 		local root = char and char:FindFirstChild("HumanoidRootPart")
@@ -27007,18 +27171,36 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 				nextCity = c
 			end
 		end
-		Kit.label(t("ui.franchise_info", { stars = stars, yen = math.floor(stars * Franchise.YenPerStar * 100), xp = math.floor(stars * Franchise.XpPerStar * 100) }), { Parent = scroll, Size = UDim2.new(1, 0, 0, 60), TextSize = 17 })
-		for _, c in ipairs(Franchise.list) do
-			local mark = (w.franchise and w.franchise.city == c.id) and "📍" or ((c.star <= stars) and "✅" or "🔒")
-			local card = Kit.row(mark, t("city." .. c.id), t("citydesc." .. c.id), 60)
-			card.Parent = scroll
-		end
-		if nextCity then
-			local reqs = t("ui.franchise_req", { level = Franchise.RequiredLevel, rating = Franchise.RequiredRating })
-			Kit.label(reqs, { Parent = scroll, Size = UDim2.new(1, 0, 0, 44), TextSize = 15, TextColor3 = T.muted })
-			Kit.button("🗾 " .. t("ui.franchise_open", { city = "city." .. nextCity.id }), { parent = scroll, size = UDim2.new(1, -8, 0, 50), style = "primary", disabled = Core.C.Data.role() ~= "owner", onClick = function()
+		Kit.label(t("ui.franchise_info", { stars = stars, yen = math.floor(stars * Franchise.YenPerStar * 100), xp = math.floor(stars * Franchise.XpPerStar * 100) }), { Parent = scroll, Size = UDim2.new(1, 0, 0, 50), TextSize = 17, LayoutOrder = 1 })
+		-- first what the next city asks for, ticked off one by one, and the button
+		local step = Franchise.nextStep(stars)
+		if nextCity and step then
+			local rating = Core.C.Data.plotAttr("Rating") or 3
+			local level = w.level or 1
+			local all = true
+			local order = 10
+			local function need(ok, text)
+				all = all and ok
+				order += 1
+				Kit.label((ok and "✅ " or "🔒 ") .. text, { Parent = scroll, Size = UDim2.new(1, -8, 0, 26), TextSize = 16, FontFace = ok and T.body or T.bold, TextColor3 = ok and T.muted or T.ink, LayoutOrder = order })
+			end
+			Kit.title(t("ui.franchise_next", { city = "city." .. nextCity.id }), { Parent = scroll, Size = UDim2.new(1, -8, 0, 30), TextSize = 20, LayoutOrder = 10 })
+			need(level >= step.level, t("ui.req_level", { level = step.level }) .. "  (" .. level .. ")")
+			need(rating >= step.rating, "★ " .. Format.decimal(step.rating, 1, L) .. "  (" .. Format.decimal(rating, 1, L) .. ")")
+			for _, z in ipairs(step.zones) do
+				need(w.zones and w.zones[z] == true, t("zone." .. z))
+			end
+			local b = Kit.button("🗾 " .. t("ui.franchise_open", { city = "city." .. nextCity.id }), { parent = scroll, size = UDim2.new(1, -8, 0, 50), style = all and "primary" or "plain", disabled = Core.C.Data.role() ~= "owner" or not all, onClick = function()
 				NetDef.event("Franchise"):FireServer(nextCity.id)
 			end })
+			b.LayoutOrder = 50
+		end
+		-- then the cities
+		for i, c in ipairs(Franchise.list) do
+			local mark = (w.franchise and w.franchise.city == c.id) and "📍" or ((c.star <= stars) and "✅" or "🔒")
+			local card = Kit.row(mark, t("city." .. c.id), t("citydesc." .. c.id), 60)
+			card.LayoutOrder = 100 + i
+			card.Parent = scroll
 		end
 	end
 end)

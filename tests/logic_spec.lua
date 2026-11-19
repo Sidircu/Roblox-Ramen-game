@@ -18,6 +18,7 @@ local ShelfGrid = require(Shared.Logic.ShelfGrid)
 local Locks = require(Shared.Logic.Locks)
 local Shop = require(Shared.Logic.Shop)
 local TutorialCfg = require(Shared.Config.Tutorial)
+local FranchiseCfg = require(Shared.Config.Franchise)
 local Upgrades = require(Shared.Config.Upgrades)
 local Ads = require(Shared.Config.Ads)
 local StaffCfg = require(Shared.Config.Staff)
@@ -50,11 +51,11 @@ local function allZones()
 end
 
 test("xp curve", function()
-  expect(Formulas.xpForLevel(1) == 100, "level 1 needs 100 xp")
-  expect(Formulas.xpForLevel(10) == 4467, "level 10 xp " .. Formulas.xpForLevel(10))
+  expect(Formulas.xpForLevel(1) == 50, "level 1 needs 50 xp")
+  expect(Formulas.xpForLevel(10) == 1991, "level 10 xp " .. Formulas.xpForLevel(10))
   local lvl, xp, gained = Formulas.addXp(1, 0, 250)
-  expect(lvl == 2 and gained == 1, "one level gained")
-  expect(xp == 150, "remaining xp " .. xp)
+  expect(lvl == 3 and gained == 2, "two levels gained")
+  expect(xp == 48, "remaining xp " .. xp)
 end)
 
 test("mastery and prices", function()
@@ -374,4 +375,27 @@ test("the tutorial gift buys the first upgrade at once", function()
   for _, id in ipairs({ "restock", "dishes", "shop", "staff" }) do
     expect(TutorialCfg.Hints[id] ~= nil, "tip " .. id .. " configured")
   end
+end)
+
+test("each franchise asks for more than the one before", function()
+  local prev = nil
+  for i, st in ipairs(FranchiseCfg.Steps) do
+    expect(FranchiseCfg.nextStep(i - 1) == st, "step " .. i)
+    for _, z in ipairs(st.zones) do
+      expect(Expansions.byId[z] ~= nil, "zone " .. z .. " exists")
+      expect(Expansions.byId[z].lv <= st.level, z .. " is open by level " .. st.level)
+    end
+    if prev then
+      expect(st.level > prev.level and st.rating >= prev.rating and #st.zones >= #prev.zones, "step " .. i .. " asks for more")
+    end
+    prev = st
+  end
+  expect(FranchiseCfg.nextStep(#FranchiseCfg.Steps) == nil, "no step after the last city")
+  expect(#FranchiseCfg.Steps == #FranchiseCfg.list - 1, "one step for every city after Tokyo")
+  -- the first helper comes early: a member of staff by level 5
+  local first = math.huge
+  for _, s in ipairs(StaffCfg.list) do
+    first = math.min(first, s.lv)
+  end
+  expect(first <= 5, "first staff at level " .. first)
 end)
