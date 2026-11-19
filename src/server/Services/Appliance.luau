@@ -305,6 +305,7 @@ local function finishWash(plot, count)
 	d.dishes.clean = math.min(d.dishes.total, d.dishes.clean + count)
 	d.stats.washed = (d.stats.washed or 0) + count
 	Core.S.Data.changed(plot.owner, "dishes")
+	Core.S.Data.changed(plot.owner, "stats")
 	Core.S.Meta.event(plot.owner, "wash", count)
 end
 

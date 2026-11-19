@@ -241,14 +241,19 @@ local function promptFor(model)
 	p.HoldDuration = 0
 	p.MaxActivationDistance = 40
 	p.Enabled = false
+	local pressedAt = 0
 	p.Triggered:Connect(function()
+		pressedAt = os.clock()
 		if current and current.model == model then
-			act(false)
+			-- on a touch screen a tap on the prompt is a tap (it toggles washing)
+			act(UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
 		end
 	end)
-	-- releasing the button stops washing at the sink
+	-- releasing the button stops washing at the sink; a quick tap on a touch screen leaves the
+	-- tap running (washing goes on by itself until the sink is empty or you tap again)
 	p.TriggerEnded:Connect(function()
-		if Core.C.Sink then
+		local touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+		if Core.C.Sink and not (touch and os.clock() - pressedAt < 0.35) then
 			Core.C.Sink.endHold()
 		end
 	end)

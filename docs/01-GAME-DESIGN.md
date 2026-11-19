@@ -453,7 +453,27 @@ Prima le cose che puoi comprare (dalla più economica), poi quelle troppo care, 
 Altre schermate: inventario decorazioni, ricettario, obiettivi, premio giornaliero, guadagni offline, impostazioni (lingua, griglia, rotazione, volume musica/effetti, qualità grafica ridotta per dispositivi deboli).
 
 ### Tutorial
-Si parte con **solo il ramen shoyu**, gli **scaffali già pieni** (noodles, cipollotto, naruto), il pentolone pieno di brodo, il cuociriso pieno e una scatola di riserva in magazzino. Al livello 2 la licenza **Sashimi** (¥300) aggiunge un secondo piatto facilissimo (due fette di salmone, un taglio); il sushi con il riso arriva al livello 3. Postazione sushi e cuociriso mostrano un 🔒 con la licenza e il livello che servono. I primi minuti sono guidati da una scheda in alto al centro con una frase sola e da una freccia luminosa gialla con un indicatore ⬇ sull'oggetto da usare: benvenuto → un cliente ordina → 🍜 noodles → 🥣 brodo → 🌱 condimenti → prendi la ciotola → servi (e incassi) → raccogli la ciotola sporca → lavala. I passi che chiedono un'azione vanno avanti da soli quando la fai. Si può saltare e rivedere dal telefono (❓ Come si gioca).
+Si parte con **solo il ramen shoyu**, gli **scaffali già pieni** (noodles, cipollotto, naruto), il pentolone pieno di brodo, il cuociriso pieno e una scatola di riserva in magazzino. Al livello 2 la licenza **Sashimi** (¥300) aggiunge un secondo piatto facilissimo (due fette di salmone, un taglio); il sushi con il riso arriva al livello 3. Postazione sushi e cuociriso mostrano un 🔒 con la licenza e il livello che servono. Il **tutorial dura circa due minuti** (in prova automatica meno di uno) e insegna tutto il ciclo, un passo alla volta. In alto al centro c'è una scheda con un'icona grande, una frase corta, i pallini dei passi e **Salta**. Una freccia luminosa gialla va da te all'oggetto da usare, con un ⬇ che rimbalza sopra di esso; sui pulsanti dell'interfaccia compaiono una mano 👇 e un anello che pulsa. I passi:
+1. benvenuto (4 s);
+2. arriva un cliente e ordina da solo;
+3. premi la postazione del ramen: 🍜 → 🥣 → 🌱 (con il contatore 1/3, 2/3, 3/3);
+4. prendi la ciotola;
+5. portala al cliente (incassi subito);
+6. **regalo di ¥1.000** e la mano sul pulsante 🛒: apri il negozio;
+7. compra un miglioramento (la mano va sul primo prezzo verde);
+8. raccogli la ciotola sporca;
+9. lavala al lavello;
+10. **regalo di 🌸10** e coriandoli.
+
+I passi che chiedono un'azione vanno avanti da soli quando la fai. I regali li dà il server, una volta sola e solo dopo aver servito (e poi lavato) davvero un piatto. Il tutorial non torna più: si può rivedere da Altro → ❓ Come si gioca, ma senza regali. Chi lo finisce è contato nelle statistiche (`tutorial_done`).
+
+**Consigli della prima volta** (`Controllers/Hints`): dopo il tutorial, la prima volta che succede una cosa compare una scheda con 💡 sopra i pulsanti in basso, con la freccia azzurra sul pulsante o sull'oggetto giusto. Resta qualche secondo o finché non lo fai, e non torna più:
+- gli scaffali di un ingrediente del menu si svuotano → 📦 Fornitore;
+- i piatti sporchi si accumulano → lavello;
+- nel negozio c'è qualcosa da comprare → 🛒;
+- si può assumere il primo aiutante → 🛒 → 👥.
+
+Un consiglio alla volta, mai durante il tutorial o con una finestra aperta.
 
 ### Guida dell'ordine
 Toccando un ordine (a destra) si apre a sinistra una scheda con pochi passaggi brevi, ognuno con la spunta ✅ quando è fatto e il dito 👉 su quello da fare ora: riso o brodo pronti → ingredienti sugli scaffali (✓ o ✗ per ognuno; se manca qualcosa, la freccia va alla sua scatola) → premi la postazione una volta per passaggio (es. Unisci → Arrotola → Taglia, con il contatore) → prendi il piatto → servilo al cliente. Gli spazi degli scaffali con gli ingredienti giusti e la postazione da usare si illuminano, e una freccia verde va da te alla prossima cosa da cliccare (anche al cliente giusto quando hai il piatto in mano).

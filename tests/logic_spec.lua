@@ -17,6 +17,7 @@ local Sets = require(Shared.Config.Sets)
 local ShelfGrid = require(Shared.Logic.ShelfGrid)
 local Locks = require(Shared.Logic.Locks)
 local Shop = require(Shared.Logic.Shop)
+local TutorialCfg = require(Shared.Config.Tutorial)
 local Upgrades = require(Shared.Config.Upgrades)
 local Ads = require(Shared.Config.Ads)
 local StaffCfg = require(Shared.Config.Staff)
@@ -357,4 +358,20 @@ test("the shop says what can be bought, what is missing and what comes first", f
   }
   Shop.sort(list)
   expect(list[1].order == 5 and list[2].order == 4 and list[3].order == 3 and list[4].order == 2 and list[5].order == 1, "buy first (cheapest first), then poor, locked, owned")
+end)
+
+test("the tutorial gift buys the first upgrade at once", function()
+  -- the "buy" step of the tutorial needs a green price right after the first dish
+  local w = { level = 1, yen = GameConfig.StartYen + TutorialCfg.ServeYen, upgrades = {}, licenses = { lic_base = true }, zones = { zone_base = true }, staff = {}, ads = {}, stats = { days = 0 } }
+  local any = false
+  for _, u in ipairs(Upgrades.list) do
+    if Shop.upgrade(w, u).state == "buy" then
+      any = true
+    end
+  end
+  expect(any, "an upgrade is affordable with the start money and the gift")
+  expect(TutorialCfg.DoneSakura > 0, "a last gift")
+  for _, id in ipairs({ "restock", "dishes", "shop", "staff" }) do
+    expect(TutorialCfg.Hints[id] ~= nil, "tip " .. id .. " configured")
+  end
 end)

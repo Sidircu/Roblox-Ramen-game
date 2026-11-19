@@ -450,6 +450,8 @@ Totale ¥231.000 e +122 atmosfera (circa un livello di ambiente in più a metà 
 | Kit di soccorso | se nessun piatto del menu si può fare e i soldi non bastano per gli ingredienti mancanti, il fornitore regala quelli del piatto più economico (al massimo ogni 10 minuti) |
 | Mi piace | chi visita può mettere ❤️ una volta al giorno per ristorante; i Mi piace hanno una classifica globale |
 | Corsa | Shift o 🏃: velocità × 1,45 |
+| Tutorial (`Config/Tutorial.luau`) | dopo il primo piatto servito: ¥1.000 da spendere subito nel negozio; alla fine (primo piatto lavato): 🌸10; una volta per giocatore |
+| Consigli della prima volta | scaffali: un ingrediente del menu a 3 porzioni o meno · piatti: 3 sporchi nel lavello · negozio: qualcosa da comprare · personale: livello 6 senza aiutanti; ognuno resta 12 s, almeno 20 s tra due consigli |
 
 ---
 

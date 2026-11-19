@@ -652,11 +652,15 @@ function Sim.press(key, hold)
 	task.wait(0.05)
 end
 
--- triggers the ProximityPrompt shown on a model (as pressing E or tapping it)
-function Sim.trigger(model)
+-- triggers the ProximityPrompt shown on a model (as pressing E or tapping it); hold = seconds the
+-- button stays down
+function Sim.trigger(model, hold)
 	for _, d in ipairs(model:GetDescendants()) do
 		if d.ClassName == "ProximityPrompt" and d.Enabled then
 			d.Triggered:Fire(Sim.client.player)
+			if hold and hold > 0 then
+				task.wait(hold)
+			end
 			d.TriggerEnded:Fire(Sim.client.player)
 			task.wait(0.1)
 			return true

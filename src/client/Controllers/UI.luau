@@ -146,6 +146,9 @@ function UI.toast(text, kind)
 	if not toastHolder then
 		return
 	end
+	-- under the tutorial banner while it is on screen
+	local tut = Core.C.Tutorial
+	toastHolder.Position = UDim2.new(0.5, 0, 0, (tut and tut.active and tut.active()) and 134 or 92)
 	local f = Kit.panel({ Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = T.paper, Parent = toastHolder })
 	f:FindFirstChildOfClass("UIStroke").Color = KIND_COLOR[kind] or T.wood
 	Kit.padding(12, 8).Parent = f

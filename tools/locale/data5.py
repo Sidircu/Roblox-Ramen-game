@@ -6,9 +6,7 @@ REVAMP = [
 ]
 REVAMP += [
 ("ui.ok","OK","OK"),
-("tut.noodles","Go to the ramen station and press E (or tap the button): 🍜 noodles!","Vai alla postazione del ramen e premi E (o tocca il pulsante): 🍜 noodles!"),
-("tut.toppings","Once more: 🌱 add the toppings.","Ancora una volta: 🌱 aggiungi i condimenti."),
-("tut.take_dish","The bowl is ready: press to pick it up.","La ciotola è pronta: premi per prenderla."),
+("tut.take_dish","Ready! Pick up the bowl.","Pronto! Prendi la ciotola."),
 ("act.boil","🍜 Cook the noodles · {dish} ({i}/{n})","🍜 Cuoci i noodles · {dish} ({i}/{n})"),
 ("act.pour","🥣 Pour the broth · {dish} ({i}/{n})","🥣 Versa il brodo · {dish} ({i}/{n})"),
 ("act.top","🌱 Add the toppings · {dish} ({i}/{n})","🌱 Aggiungi i condimenti · {dish} ({i}/{n})"),
@@ -62,4 +60,17 @@ REVAMP += [
 ("ui.need_manager","You have one","Ne hai già uno"),
 ("ui.missing","{yen} more needed","Mancano {yen}"),
 ("ui.only_owner","Only the owner and co-managers can buy here","Qui possono comprare solo il proprietario e i co-gestori"),
+]
+
+# Phase 5: the two-minute tutorial and the one-time tips
+REVAMP += [
+("tut.cook","Press the ramen station: 🍜 → 🥣 → 🌱","Premi la postazione del ramen: 🍜 → 🥣 → 🌱"),
+("tut.reward","A gift of {yen}! Open the shop 🛒","Un regalo di {yen}! Apri il negozio 🛒"),
+("tut.skipped","Tutorial skipped: you find it again in More → How to play.","Tutorial saltato: lo ritrovi in Altro → Come si gioca."),
+("msg.tutorial_gift","🎁 +¥{yen}: spend it in the shop!","🎁 +¥{yen}: spendili nel negozio!"),
+("msg.tutorial_done","🎉 Tutorial done! +🌸 {n}","🎉 Tutorial completato! +🌸 {n}"),
+("hint.first_restock","The shelves are running out: order boxes from the 📦 supplier and put them on the shelves.","Gli scaffali si svuotano: ordina scatole dal 📦 fornitore e mettile sugli scaffali."),
+("hint.first_dishes","Dirty dishes are piling up: wash them at the sink 🧽, or customers will have no bowls.","I piatti sporchi si accumulano: lavali al lavello 🧽, o i clienti resteranno senza ciotole."),
+("hint.first_shop","You can buy something new in the 🛒 shop!","Puoi comprare qualcosa di nuovo nel 🛒 negozio!"),
+("hint.first_staff","You can hire your first helper: 🛒 shop → 👥 Staff.","Puoi assumere il tuo primo aiutante: 🛒 negozio → 👥 Personale."),
 ]

@@ -109,14 +109,12 @@ HINT = [
 ("hint.wash_pile","Wash dirty dishes ({n})","Lava le stoviglie sporche ({n})"),
 ]
 TUT = [
-("tut.step","Tutorial {i}/{n}","Tutorial {i}/{n}"),
-("tut.welcome","Welcome to your ramen shop! Customers walk in and order by themselves.","Benvenuto nel tuo ramen-ya! I clienti entrano e ordinano da soli."),
-("tut.broth","Press again: 🥣 pour the broth.","Premi di nuovo: 🥣 versa il brodo."),
-("tut.order","A customer ordered 🍜: the order is over their head and on the left.","Un cliente ha ordinato 🍜: l'ordine è sopra la sua testa e a sinistra."),
-("tut.serve","Bring it to the customer and press: you get paid right away! 💴","Portala al cliente e premi: ti paga subito! 💴"),
-("tut.collect","When they leave, pick up the dirty bowl.","Quando se ne va, raccogli la ciotola sporca."),
-("tut.wash","Take it to the sink and hold E (or the button) to wash it.","Portala al lavello e tieni premuto E (o il pulsante) per lavarla."),
-("tut.done","That's it! Serve, earn and grow your restaurant. がんばって!","Fatto! Servi, guadagna e fai crescere il tuo ristorante. がんばって!"),
+("tut.welcome","Welcome to your ramen shop! 🏮","Benvenuto nel tuo ramen-ya! 🏮"),
+("tut.order","A customer is coming in: wait for the order.","Arriva un cliente: aspetta il suo ordine."),
+("tut.serve","Bring it to the customer 💴","Portala al cliente 💴"),
+("tut.collect","Pick up the dirty bowl.","Raccogli la ciotola sporca."),
+("tut.wash","At the sink: hold to wash it 🧽","Al lavello: tieni premuto per lavarla 🧽"),
+("tut.done","Well done! Here are 🌸 {n}. Now grow your restaurant!","Bravo! Ecco 🌸 {n}. Ora fai crescere il tuo ristorante!"),
 ]
 MSG += [
 ("msg.selftest_result","🧪 Self-test: {passed}/{total} passed. Failed: {failed} (details in Output)","🧪 Autotest: {passed}/{total} superati. Falliti: {failed} (dettagli nell'Output)"),
@@ -204,7 +202,7 @@ UI += [
 ]
 
 TUT_FIRST_DAY = [
-("tut.buy","Your storage room is empty! Open the supplier (📦, O or the tablet), press “🍜 All for the menu” and then “Order”: for now only the ramen ingredients are on sale.","Il magazzino è vuoto! Apri il fornitore (📦, O o il tablet), premi «🍜 Tutto per il menu» e poi «Ordina»: per ora si vendono solo gli ingredienti del ramen."),
+("tut.buy","Buy an upgrade: tap a green price.","Compra un miglioramento: tocca un prezzo verde."),
 ("ui.cart_menu","All for the menu","Tutto per il menu"),
 ("msg.rescue_kit","🎁 The supplier saw you were out of money and ingredients: a free kit is on its way!","🎁 Il fornitore ha visto che eri senza soldi e senza ingredienti: ti regala un kit, sta arrivando!"),
 ]

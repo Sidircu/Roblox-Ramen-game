@@ -45,8 +45,8 @@ local function stock(w, g)
 	return shelf, boxes
 end
 
--- one box of every ingredient the dishes on the menu need and that is running low
-local function cartForMenu(w)
+-- the ingredients the dishes on the menu need and that are running low (calls add(g) for each)
+local function lowForMenu(w, add)
 	for id, m in pairs(w.menu or {}) do
 		local r = Recipes.byId[id]
 		if r and m.on then
@@ -62,14 +62,21 @@ local function cartForMenu(w)
 				if ing and unlocked(w, ing) then
 					local shelf, boxes = stock(w, g)
 					if shelf + boxes * ing.units < ing.units / 2 then
-						local q = cart[g] or { small = 0, big = 0 }
-						q.small = math.max(q.small, 1)
-						cart[g] = q
+						add(g)
 					end
 				end
 			end
 		end
 	end
+end
+
+-- one box of every ingredient the dishes on the menu need and that is running low
+local function cartForMenu(w)
+	lowForMenu(w, function(g)
+		local q = cart[g] or { small = 0, big = 0 }
+		q.small = math.max(q.small, 1)
+		cart[g] = q
+	end)
 end
 
 local screen
@@ -114,9 +121,11 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 	end
 	local footer = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.new(0, 0, 1, -58), Size = UDim2.new(1, 0, 0, 56), Parent = content })
 	Kit.label(t("ui.total") .. ": " .. Format.yen(total, L), { Parent = footer, Size = UDim2.new(0.3, 0, 1, 0), TextSize = 22, FontFace = T.title })
-	-- the easy way: everything the menu needs (the tutorial points at this button)
-	local tut = Core.C.Tutorial
-	local guided = tut and tut.currentKey and tut.currentKey() == "tut.buy"
+	-- the easy way: everything the menu needs (stands out when something is running low)
+	local guided = false
+	lowForMenu(w, function()
+		guided = true
+	end)
 	local menuBtn = Kit.button((guided and "👉 " or "") .. "🍜 " .. t("ui.cart_menu"), {
 		parent = footer, size = UDim2.fromOffset(190, 46), position = UDim2.new(1, -600, 0, 5), style = guided and "gold" or "plain", textSize = 15,
 		onClick = function()

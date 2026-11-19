@@ -39,6 +39,8 @@ Net.Events = {
 	"Franchise", -- (cityId)
 	"BuyWithRobux", -- (kind "gamepass"|"product", id)
 	"TutorialStep", -- (step)
+	"TutorialReward", -- (kind "serve"|"done") the tutorial's gifts, checked by the server
+	"HintSeen", -- (id) a one-time tip was shown
 	"Dev", -- (command, arg)
 	-- server -> client
 	"DataChanged", -- (scope "me"|"world", key, value)

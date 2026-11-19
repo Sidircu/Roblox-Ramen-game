@@ -22,7 +22,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 10
+local VERSION = 11
 local profiles = {} -- [player] = { data, loaded, saving, released }
 local releasing = {} -- [userId] = true while the final save of a player who left is running
 local activeSaves = 0
@@ -65,7 +65,7 @@ function Data.newProfile()
 		tipJar = 0,
 		ads = {},
 		boosts = {},
-		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0, codes = {}, onboarding = true, funnel = {} },
+		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, tutorialGifts = {}, hints = {}, offlinePending = 0, codes = {}, onboarding = true, funnel = {} },
 		franchise = { stars = 0, city = "tokyo" },
 		perms = {},
 		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = 1, coop = "friends" },
@@ -237,6 +237,14 @@ local function migrate(d)
 			d.meta.tutorial = 1
 		end
 		d.v = 10
+	end
+	if d.v < 11 then
+		-- v11: a new, two-minute tutorial with gifts; whoever was halfway through starts it again
+		d.meta = d.meta or {}
+		if (d.meta.tutorial or 0) > 0 then
+			d.meta.tutorial = 1
+		end
+		d.v = 11
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION

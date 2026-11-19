@@ -2,6 +2,7 @@
 -- Daily quests, achievements, login streak, offline earnings and tutorial progress.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Quests = require(Shared.Config.Quests)
+local TutorialCfg = require(Shared.Config.Tutorial)
 local Achievements = require(Shared.Config.Achievements)
 local DailyRewards = require(Shared.Config.DailyRewards)
 local Upgrades = require(Shared.Config.Upgrades)
@@ -272,8 +273,47 @@ function Meta.Init()
 	end, 6)
 	Net.on("TutorialStep", function(player, step)
 		local d = Core.S.Data.get(player)
-		if d and type(step) == "number" then
+		if d and type(step) == "number" and step == step and step >= -1 and step <= 50 then
 			d.meta.tutorial = math.floor(step)
+			Core.S.Data.changed(player, "meta")
+		end
+	end, 4)
+	-- the tutorial's two gifts, each once, and only for what really happened: "serve" after the
+	-- first dish served, "done" after the first dish washed too (Config/Tutorial)
+	Net.on("TutorialReward", function(player, kind)
+		local d = Core.S.Data.get(player)
+		if not d or (kind ~= "serve" and kind ~= "done") then
+			return
+		end
+		local gifts = d.meta.tutorialGifts
+		if gifts[kind] then
+			return
+		end
+		if kind == "serve" then
+			if (d.stats.dishes or 0) < 1 then
+				return
+			end
+			gifts.serve = true
+			Core.S.Economy.add(player, TutorialCfg.ServeYen, "tutorial")
+			Net.notify(player, "msg.tutorial_gift", { yen = TutorialCfg.ServeYen }, "success")
+		else
+			if not gifts.serve or (d.stats.washed or 0) < 1 then
+				return
+			end
+			gifts.done = true
+			Core.S.Economy.addSakura(player, TutorialCfg.DoneSakura)
+			Net.notify(player, "msg.tutorial_done", { n = TutorialCfg.DoneSakura }, "level")
+			Net.fx("sparkle", { userId = player.UserId })
+			if Core.S.Analytics then
+				Core.S.Analytics.step(player, "tutorial_done")
+			end
+		end
+		Core.S.Data.changed(player, "meta")
+	end, 2)
+	Net.on("HintSeen", function(player, id)
+		local d = Core.S.Data.get(player)
+		if d and type(id) == "string" and TutorialCfg.Hints[id] then
+			d.meta.hints[id] = true
 			Core.S.Data.changed(player, "meta")
 		end
 	end, 4)
