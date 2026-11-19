@@ -59,6 +59,9 @@ function Economy.add(player, amount, reason, opts)
 		end
 	end
 	Data.changed(player, "yen")
+	if Core.S.Analytics then
+		Core.S.Analytics.source(player, value, reason, data.yen)
+	end
 	if INCOME[reason] then
 		Data.changed(player, "stats")
 		Core.S.Meta.event(player, "earn", value)
@@ -74,13 +77,17 @@ function Economy.canAfford(player, amount)
 	return data ~= nil and data.yen >= amount
 end
 
-function Economy.spend(player, amount, reason)
+-- sku names what is bought, for the analytics (e.g. "upgrade:up_tray")
+function Economy.spend(player, amount, reason, sku)
 	local Data = Core.S.Data
 	local data = Data.get(player)
 	if not data or amount < 0 or data.yen < amount then
 		return false
 	end
 	data.yen -= amount
+	if Core.S.Analytics and amount > 0 then
+		Core.S.Analytics.sink(player, amount, reason, data.yen, sku)
+	end
 	if Economy.ledger and player == Core.S.Session.owner then
 		if reason == "supplies" then
 			Economy.ledger.supplies += amount
@@ -178,15 +185,21 @@ function Economy.addSakura(player, n)
 	end
 	data.sakura += n
 	Core.S.Data.changed(player, "sakura")
+	if Core.S.Analytics then
+		Core.S.Analytics.sakura(player, n, data.sakura, false)
+	end
 end
 
-function Economy.spendSakura(player, n)
+function Economy.spendSakura(player, n, sku)
 	local data = Core.S.Data.get(player)
 	if not data or data.sakura < n then
 		return false
 	end
 	data.sakura -= n
 	Core.S.Data.changed(player, "sakura")
+	if Core.S.Analytics and n > 0 then
+		Core.S.Analytics.sakura(player, n, data.sakura, true, sku)
+	end
 	return true
 end
 

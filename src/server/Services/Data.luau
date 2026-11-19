@@ -13,14 +13,17 @@ local Recipes = require(Shared.Config.Recipes)
 local TableUtil = require(Shared.Util.TableUtil)
 local Uid = require(Shared.Util.Uid)
 local Signal = require(Shared.Util.Signal)
+local Locale = require(Shared.Locale)
 local Core = require(script.Parent.Parent.Core)
 
 local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 8
-local profiles = {} -- [player] = { data, key, loaded, saving }
+local VERSION = 9
+local profiles = {} -- [player] = { data, loaded, saving, released }
+local releasing = {} -- [userId] = true while the final save of a player who left is running
+local activeSaves = 0
 local store = nil
 local storeOk = false
 
@@ -60,7 +63,7 @@ function Data.newProfile()
 		tipJar = 0,
 		ads = {},
 		boosts = {},
-		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0, codes = {} },
+		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0, codes = {}, onboarding = true, funnel = {} },
 		franchise = { stars = 0, city = "tokyo" },
 		perms = {},
 		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, autoDay = false, cam = "first", camSpeed = 1 },
@@ -192,6 +195,12 @@ local function migrate(d)
 		rebuildLayout(d)
 		d.v = 8
 	end
+	if d.v < 9 then
+		-- v9: the onboarding funnel only counts players who start after this version
+		d.meta = d.meta or {}
+		d.meta.onboarding = false
+		d.v = 9
+	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION
 	return d
@@ -277,45 +286,98 @@ function Data.snapshot(player)
 	return { me = me, world = world, session = Session and Session.info(player) or nil }
 end
 
+-- Takes the session lock of a profile. Returns ok (the call worked), the saved data (nil for a new
+-- player), and locked = true when another server still holds the profile (it is finishing the
+-- player's last save there). force takes the lock anyway: a player can only be in one server, so a
+-- lock that is not released in time belongs to a server that will never save this profile again.
+local function acquire(userId, force)
+	local locked = false
+	local ok, result = pcall(function()
+		return store:UpdateAsync(key(userId), function(old)
+			locked = false
+			old = old or {}
+			local lock = old.lock
+			if not force and lock and lock.job ~= game.JobId and os.time() - (lock.time or 0) < GameConfig.SessionLockSeconds then
+				locked = true
+				return nil
+			end
+			old.lock = { job = game.JobId, time = os.time() }
+			return old
+		end)
+	end)
+	if not ok then
+		return false, nil, false, result
+	end
+	if locked then
+		return true, nil, true
+	end
+	return true, result and result.data, false
+end
+
+local function releaseLock(userId)
+	pcall(function()
+		store:UpdateAsync(key(userId), function(old)
+			if not old or not old.lock or old.lock.job ~= game.JobId then
+				return nil
+			end
+			old.lock = nil
+			return old
+		end)
+	end)
+end
+
+local function kick(player, msgKey)
+	if player.Parent then
+		player:Kick(Locale.tFor(player.LocaleId, msgKey))
+	end
+end
+
 local function load(player)
+	-- the same player may still be saving here from a moment ago (left and came back): wait for it
+	local t0 = os.clock()
+	while releasing[player.UserId] and os.clock() - t0 < 30 do
+		task.wait(0.2)
+	end
 	local p = { data = nil, loaded = false }
 	profiles[player] = p
 	local data = nil
 	if storeOk then
-		local ok, result = retry(function()
-			return store:UpdateAsync(key(player.UserId), function(old)
-				old = old or { data = nil, lock = nil }
-				if old.lock and old.lock.job ~= game.JobId and os.time() - (old.lock.time or 0) < GameConfig.SessionLockSeconds then
-					return nil -- locked by another server: do not write, retry later
+		local acquired, attempt, errors, told = false, 0, 0, false
+		local started = os.clock()
+		while player.Parent do
+			attempt += 1
+			local force = os.clock() - started >= GameConfig.LockWaitSeconds
+			local ok, d, locked, err = acquire(player.UserId, force)
+			if ok and not locked then
+				data = d
+				acquired = true
+				break
+			elseif ok then
+				-- another server still holds the profile: it releases it as soon as its save is done
+				if not told then
+					told = true
+					Core.S.Net.notify(player, "msg.loading_wait", nil, "info")
 				end
-				old.lock = { job = game.JobId, time = os.time() }
-				return old
-			end)
-		end, 3)
-		if ok and result then
-			data = result.data
-		elseif ok and not result then
-			-- still locked: wait for the lock to expire (another server is saving)
-			for _ = 1, 6 do
 				task.wait(5)
-				local ok2, r2 = pcall(function()
-					return store:UpdateAsync(key(player.UserId), function(old)
-						old = old or {}
-						if old.lock and old.lock.job ~= game.JobId and os.time() - (old.lock.time or 0) < 30 then
-							return nil
-						end
-						old.lock = { job = game.JobId, time = os.time() }
-						return old
-					end)
-				end)
-				if ok2 and r2 then
-					data = r2.data
+			else
+				errors += 1
+				warn("[Data] load attempt " .. errors .. " failed for " .. player.Name .. ": " .. tostring(err))
+				if errors >= 5 then
 					break
 				end
+				task.wait(2 * errors)
 			end
-		else
-			warn("[Data] load failed for " .. player.Name .. ": " .. tostring(result))
-			p.noSave = true -- do not overwrite a profile we could not read
+		end
+		if not acquired then
+			-- never play on an empty profile: the real one could be overwritten later
+			profiles[player] = nil
+			kick(player, "msg.load_failed")
+			return
+		end
+		if not player.Parent then
+			profiles[player] = nil
+			releaseLock(player.UserId)
+			return
 		end
 	end
 	if not player.Parent then
@@ -332,33 +394,48 @@ local function load(player)
 	Data.Loaded:Fire(player, data)
 end
 
+-- Saves a profile. One save at a time per player: a save asked while another is running waits for
+-- it and then saves again, so the last changes (and the lock release on leaving) are never skipped.
 function Data.save(player, release)
 	local p = profiles[player]
 	if not p or not p.loaded or p.noSave or not storeOk then
 		return false
 	end
-	if p.saving then
-		return false
+	local t0 = os.clock()
+	while p.saving and os.clock() - t0 < 60 do
+		task.wait(0.1)
+	end
+	if p.released then
+		return true
 	end
 	p.saving = true
+	activeSaves += 1
 	p.data.meta.lastSeen = os.time()
 	local snapshot = TableUtil.deepCopy(p.data)
+	local lost = false
 	local ok, err = retry(function()
 		return store:UpdateAsync(key(player.UserId), function(old)
+			lost = false
 			old = old or {}
-			if old.lock and old.lock.job ~= game.JobId and os.time() - (old.lock.time or 0) < GameConfig.SessionLockSeconds then
-				return nil -- another server owns the profile
+			if old.lock and old.lock.job ~= game.JobId then
+				lost = true -- another server took the profile over: never write over its data
+				return nil
 			end
 			old.data = snapshot
 			old.lock = (not release) and { job = game.JobId, time = os.time() } or nil
 			return old
 		end)
 	end, 3)
+	activeSaves -= 1
 	p.saving = false
 	if not ok then
 		warn("[Data] save failed for " .. player.Name .. ": " .. tostring(err))
+	elseif lost then
+		warn("[Data] save skipped for " .. player.Name .. ": the profile is open on another server")
+	elseif release then
+		p.released = true
 	end
-	return ok
+	return ok and not lost
 end
 
 function Data.storeAvailable()
@@ -367,10 +444,6 @@ end
 
 -- Saves immediately (used after Robux purchases).
 function Data.saveNow(player)
-	local p = profiles[player]
-	if p then
-		p.saving = false
-	end
 	return Data.save(player, false)
 end
 
@@ -379,6 +452,20 @@ function Data.reset(player)
 	if p and p.loaded then
 		p.data = Data.newProfile()
 		Data.Loaded:Fire(player, p.data)
+	end
+end
+
+-- Final save of a player who leaves (or of everyone when the server closes)
+local function releaseProfile(player)
+	local p = profiles[player]
+	if not p then
+		return
+	end
+	releasing[player.UserId] = true
+	Data.save(player, true)
+	releasing[player.UserId] = nil
+	if profiles[player] == p then
+		profiles[player] = nil
 	end
 end
 
@@ -400,7 +487,7 @@ function Data.Init()
 	Core.S.Net.invoke("GetSnapshot", function(player)
 		Data.waitFor(player, 30)
 		return Data.snapshot(player)
-	end)
+	end, 1)
 end
 
 function Data.Start()
@@ -410,29 +497,34 @@ function Data.Start()
 	for _, player in ipairs(Players:GetPlayers()) do
 		task.spawn(load, player)
 	end
-	Players.PlayerRemoving:Connect(function(player)
-		Data.save(player, true)
-		profiles[player] = nil
-	end)
+	Players.PlayerRemoving:Connect(releaseProfile)
 	game:BindToClose(function()
-		local pending = 0
+		-- release every profile still open, then wait for every save in flight (including the
+		-- ones started by players leaving at the same moment)
 		for player in pairs(profiles) do
-			pending += 1
-			task.spawn(function()
-				Data.save(player, true)
-				pending -= 1
-			end)
+			task.spawn(releaseProfile, player)
 		end
 		local t0 = os.clock()
-		while pending > 0 and os.clock() - t0 < 25 do
+		while os.clock() - t0 < 25 do
+			local busy = activeSaves > 0 or next(releasing) ~= nil
+			for _, p in pairs(profiles) do
+				if p.loaded and not p.released and not p.noSave and storeOk then
+					busy = true
+				end
+			end
+			if not busy then
+				break
+			end
 			task.wait(0.2)
 		end
 	end)
 	task.spawn(function()
 		while true do
 			task.wait(GameConfig.AutosaveSeconds)
-			for player in pairs(profiles) do
-				task.spawn(Data.save, player, false)
+			for player, p in pairs(profiles) do
+				if p.loaded and not p.saving and not p.released then
+					task.spawn(Data.save, player, false)
+				end
 			end
 		end
 	end)

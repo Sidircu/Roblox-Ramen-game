@@ -21,6 +21,7 @@ python3 tools/check_luau.py        # sintassi a blocchi, variabili non dichiarat
 python3 tools/check_api.py         # chiamate Core.S.X.f / Core.C.X.f esistenti
 python3 tools/run_logic_tests.py   # test della logica (pip install lupa)
 python3 tools/check_roblox_api.py  # enum, classi, servizi, metodi e proprietà Roblox (serve build/API-Dump.json, vedi il file)
+python3 tools/sim.py               # simula il server e gioca gli scenari di tools/sim/scenarios
 python3 tools/build_place.py       # rigenera build/SakuraRamenTycoon.rbxlx
 graphify update .                  # aggiorna il grafo
 ```

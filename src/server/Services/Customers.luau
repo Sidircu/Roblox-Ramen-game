@@ -120,6 +120,9 @@ local function setOrder(c, recipe)
 	if c.npc and c.npc.model then
 		c.npc.model:SetAttribute("Order", c.order or "")
 	end
+	if recipe then
+		Core.S.Analytics.step(Core.S.Session.owner, "first_order")
+	end
 end
 
 local function patienceTick(c, dt)
@@ -275,6 +278,10 @@ local function pay(c, recipe)
 		local share = math.floor((price + tip) * GameConfig.HelperRewardShare + 0.5)
 		Economy.add(helper, share, "helper")
 		Core.S.Progression.addXp(helper, math.floor(recipe.xp * 0.5))
+	end
+	Core.S.Analytics.step(owner, "first_serve")
+	if (d.stats.customers or 0) >= 10 then
+		Core.S.Analytics.step(owner, "served_10")
 	end
 	Core.S.Net.fx("money", { amount = got + gotTip, tip = gotTip, pos = (c.npc and c.npc.root and c.npc.root.Position or c.seat.dish) + Vector3.new(0, 3, 0) })
 	Core.S.Net.fx("sfx", { name = "coin", pos = c.seat.dish })

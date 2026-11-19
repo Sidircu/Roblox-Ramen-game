@@ -73,6 +73,7 @@ function Progression.addXp(player, amount)
 		Core.S.Net.notifyAll("msg.level_up", { level = newLevel }, "level")
 		Core.S.Net.fx("levelup", { level = newLevel, userId = player.UserId })
 		Core.S.Meta.event(player, "level", newLevel)
+		Core.S.Analytics.levelUp(player, newLevel)
 	end
 end
 
@@ -194,7 +195,7 @@ local function buyLicense(player, id)
 	if lic.rating > 0 and Progression.rating() < lic.rating then
 		return Net.notify(player, "msg.need_rating", { rating = lic.rating }, "error")
 	end
-	if not Core.S.Economy.spend(o, lic.cost, "build") then
+	if not Core.S.Economy.spend(o, lic.cost, "build", "license:" .. lic.id) then
 		return Net.notify(player, "msg.not_enough", nil, "error")
 	end
 	d.licenses[id] = true
@@ -261,7 +262,7 @@ local function buyUpgrade(player, id)
 			return Net.notify(player, "msg.need_staff", { role = "staff." .. up.needsStaff }, "error")
 		end
 	end
-	if not Core.S.Economy.spend(o, up.costs[nextLvl], "build") then
+	if not Core.S.Economy.spend(o, up.costs[nextLvl], "build", "upgrade:" .. up.id) then
 		return Net.notify(player, "msg.not_enough", nil, "error")
 	end
 	d.upgrades[id] = nextLvl
@@ -288,7 +289,7 @@ local function buyAd(player, id)
 	if d.ads[id] == day then
 		return Net.notify(player, "msg.ad_active", nil, "error")
 	end
-	if not Core.S.Economy.spend(o, ad.cost, "other") then
+	if not Core.S.Economy.spend(o, ad.cost, "other", "ad:" .. ad.id) then
 		return Net.notify(player, "msg.not_enough", nil, "error")
 	end
 	d.ads[id] = day
@@ -311,7 +312,7 @@ local function buyExpansion(player, id)
 			return Net.notify(player, "msg.need_zone", { name = "zone." .. req }, "error")
 		end
 	end
-	if not Core.S.Economy.spend(o, exp.cost, "build") then
+	if not Core.S.Economy.spend(o, exp.cost, "build", "expansion:" .. exp.id) then
 		return Net.notify(player, "msg.not_enough", nil, "error")
 	end
 	d.zones[id] = true

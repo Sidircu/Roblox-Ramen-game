@@ -39,8 +39,8 @@ function Locale.has(key)
 	return tables.en[key] ~= nil
 end
 
-function Locale.t(key, params)
-	local s = tables[current][key] or tables.en[key]
+local function translate(lang, key, params)
+	local s = (tables[lang] or tables.en)[key] or tables.en[key]
 	if not s then
 		return key
 	end
@@ -52,18 +52,27 @@ function Locale.t(key, params)
 			end
 			if type(v) == "number" then
 				if math.floor(v) == v then
-					return Format.number(v, current)
+					return Format.number(v, lang)
 				end
-				return Format.decimal(v, 1, current)
+				return Format.decimal(v, 1, lang)
 			end
 			if type(v) == "string" and v ~= key and Locale.has(v) then
 				-- nested key (e.g. a dish name); it may use the same params ({n})
-				return Locale.t(v, params)
+				return translate(lang, v, params)
 			end
 			return tostring(v)
 		end)
 	end
 	return s
+end
+
+function Locale.t(key, params)
+	return translate(current, key, params)
+end
+
+-- Text in a given language (the server uses it for a player's own language, e.g. kick messages)
+function Locale.tFor(lang, key, params)
+	return translate(Locale.resolve(lang), key, params)
 end
 
 -- Display name helpers for config ids

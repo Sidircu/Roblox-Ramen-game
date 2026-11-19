@@ -393,6 +393,7 @@ function Cooking.step(e, speed, actor)
 		st.step = 0
 		st.recipe = nil
 		st.ready = { recipe = recipe.id, fresh = fresh, perfect = st.perfect == true }
+		Core.S.Analytics.step(Core.S.Session.owner, "first_cook")
 		showDish(e, recipe.id)
 		Core.S.Net.fx("dishReady", { pos = e.model.PrimaryPart.Position + Vector3.new(0, 4, 0), recipe = recipe.id })
 	end

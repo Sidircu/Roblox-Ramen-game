@@ -221,10 +221,14 @@ function SelfTest.run(player)
 		local plain = Registry.build("counter_straight", { styles = {} })
 		local full = Registry.build("counter_straight", { styles = Expansions.allStyles() })
 		assert(not plain:FindFirstChild("Detail_counter"), "the plain counter has renovation details")
-		assert(full:FindFirstChild("Detail_counter") and full:FindFirstChild("Detail_tableware"), "the renovated counter misses its details")
+		assert(full:FindFirstChild("Detail_counter"), "the renovated counter misses its details")
 		assert(#full:GetDescendants() > #plain:GetDescendants(), "the renovated counter is not more detailed")
+		-- the condiment tray of the tableware renovation sits on the corner modules
+		local corner = Registry.build("counter_corner", { styles = Expansions.allStyles() })
+		assert(corner:FindFirstChild("Detail_tableware"), "the renovated corner misses its condiments")
 		plain:Destroy()
 		full:Destroy()
+		corner:Destroy()
 		for _, e in ipairs(Expansions.list) do
 			if e.reno then
 				assert(e.cosmetic and not e.zones, e.id .. " must be cosmetic")

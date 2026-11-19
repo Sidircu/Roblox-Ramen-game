@@ -375,6 +375,8 @@ return {
 	["msg.like_done"] = "Oggi hai già messo Mi piace a questo ristorante.",
 	["msg.like_sent"] = "❤️ Grazie! Il proprietario lo vedrà.",
 	["msg.liked"] = "❤️ A {name} piace il tuo ristorante!",
+	["msg.load_failed"] = "Non riesco a caricare il tuo ristorante (servizio dati di Roblox). I tuoi progressi sono al sicuro: rientra tra un minuto.",
+	["msg.loading_wait"] = "Il tuo ristorante si sta ancora salvando su un altro server: si apre tra pochi secondi…",
 	["msg.mastery_up"] = "⭐ {dish}: maestria {level}!",
 	["msg.max_level"] = "Già al livello massimo.",
 	["msg.need_broth"] = "Nessun {name} pronto nei pentoloni.",

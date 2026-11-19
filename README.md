@@ -43,7 +43,18 @@ python3 tools/check_luau.py
 python3 tools/check_api.py
 python3 tools/check_roblox_api.py   # dopo aver scaricato build/API-Dump.json (istruzioni nel file)
 pip install lupa && python3 tools/run_logic_tests.py
+python3 tools/sim.py                # il server vero su un Roblox simulato, con scenari di gioco
 python3 tools/build_place.py
+```
+
+## Simulatore del server (senza Studio)
+`tools/sim.py` fa girare tutti i servizi del server su un Roblox simulato (orologio virtuale, istanze,
+eventi, DataStore in memoria, giocatori finti) e gioca gli scenari di `tools/sim/scenarios/`:
+il server parte, entra un giocatore, l'autotest del gioco fa tutto il ciclo, arrivano clienti, si salva
+all'uscita; e i casi difficili dei salvataggi. Ogni errore del gioco fa fallire la prova.
+```
+python3 tools/sim.py                 # tutti gli scenari
+python3 tools/sim.py --verbose core  # uno scenario, con notifiche e stampe del gioco
 ```
 
 ## Anteprima dei modelli (senza Studio)

@@ -105,7 +105,9 @@ return {
 
 	-- Saving
 	AutosaveSeconds = 120,
-	SessionLockSeconds = 600,
+	SessionLockSeconds = 600, -- a lock older than this belongs to a crashed server
+	LockWaitSeconds = 40, -- a joining server waits this long for the old one to release a profile
+
 	DataStoreName = "Profiles_v1",
 
 	-- Staff

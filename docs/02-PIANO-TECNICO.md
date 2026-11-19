@@ -203,9 +203,10 @@ Permessi (salvati nei dati del proprietario): `helper` (cucina, serve, pulisce, 
 
 ### Regole
 - DataStore `Profiles_v1`, chiave `u_<userId>`; scrittura sempre con `UpdateAsync`.
-- **Blocco di sessione**: il salvataggio contiene `{ jobId, time }`; un altro server non lo usa finché il blocco è recente (< 10 min), poi lo considera abbandonato. Evita duplicazioni.
-- Autosalvataggio ogni 120 s, all'uscita e in `game:BindToClose`; tentativi con attesa crescente; controllo del budget delle richieste.
-- `migrate(data)` porta i salvataggi vecchi alla versione corrente; i campi mancanti si riempiono dai valori predefiniti. Versione 2: locale ingrandito; versione 3: bancone da 12 sgabelli, mensole grandi e prima persona; versione 4: cucina componibile e mensole a scacchiera; versione 5: il sushi di base passa alla licenza `lic_sushi0` (chi aveva già giocato la riceve); versione 6: mensole vicino alla porta del magazzino, barattolo delle mance, licenza `lic_sashimi`, pentolone e cuociriso pieni nella cucina ricostruita; versione 7: bancone basso e profondo in moduli da 3 stud con un posto ciascuno; versione 8: cucina profonda 14 stud con tutto sul muro di fondo (gli oggetti comprati tornano nell'inventario, le scorte delle mensole tornano nelle scatole).
+- **Blocco di sessione**: il salvataggio contiene `{ jobId, time }`. Chi entra aspetta che l'altro server lo liberi (finisce lì l'ultimo salvataggio); dopo `LockWaitSeconds` (40 s) lo prende comunque, perché un giocatore non può stare in due server. Un salvataggio non scrive mai sopra un profilo il cui blocco è passato a un altro server.
+- **Mai un profilo vuoto al posto di quello vero**: se il profilo non si riesce a leggere (servizio dati di Roblox fuori uso), il giocatore viene espulso con un messaggio («rientra tra un minuto») invece di giocare su un profilo nuovo che potrebbe poi sovrascrivere quello vero.
+- Autosalvataggio ogni 120 s, all'uscita e in `game:BindToClose`; tentativi con attesa crescente. **Un salvataggio alla volta per giocatore**: quello chiesto mentre un altro è in corso aspetta e poi salva di nuovo, così l'ultimo salvataggio all'uscita (con lo sblocco) non viene mai saltato. `BindToClose` aspetta anche i salvataggi iniziati da chi è appena uscito; se un giocatore rientra nello stesso server mentre il suo salvataggio d'uscita è in corso, il caricamento aspetta che finisca.
+- `migrate(data)` porta i salvataggi vecchi alla versione corrente; i campi mancanti si riempiono dai valori predefiniti. Versione 2: locale ingrandito; versione 3: bancone da 12 sgabelli, mensole grandi e prima persona; versione 4: cucina componibile e mensole a scacchiera; versione 5: il sushi di base passa alla licenza `lic_sushi0` (chi aveva già giocato la riceve); versione 6: mensole vicino alla porta del magazzino, barattolo delle mance, licenza `lic_sashimi`, pentolone e cuociriso pieni nella cucina ricostruita; versione 7: bancone basso e profondo in moduli da 3 stud con un posto ciascuno; versione 8: cucina profonda 14 stud con tutto sul muro di fondo (gli oggetti comprati tornano nell'inventario, le scorte delle mensole tornano nelle scatole); versione 9: il funnel di onboarding conta solo i giocatori nuovi (`meta.onboarding`).
 - Lo stato "in corso" (clienti seduti, piatti in mano) **non** si salva: alla riapertura il locale riparte pulito in fase di preparazione; le scorte (scatole, mensole, lotti pronti) invece si salvano.
 
 ### Replica al client
@@ -301,11 +302,17 @@ Il server manda una copia iniziale e poi solo i cambiamenti (`DataChanged(percor
 ## 13. Rete e sicurezza
 
 - Tutti i remoti sono definiti in `Net/` con il tipo di ogni argomento; gli argomenti sbagliati vengono scartati prima di arrivare ai servizi.
-- Limite di frequenza per giocatore e per remoto.
+- Limite di frequenza per giocatore e per remoto, anche sulle RemoteFunction (`GetSnapshot`, `GetLeaderboard`: le chiamate in più ricevono `nil`); i contatori di chi esce vengono liberati.
 - Il client non manda mai prezzi, quantità guadagnate o risultati finali: manda intenzioni ("clicco questo", "piazza questo oggetto qui", "compra questa licenza").
 - Acquisti Robux: `ProcessReceipt` concede il premio solo dopo averlo salvato, e registra il `PurchaseId` per non concederlo due volte.
 
 Remoti principali: `Interact`, `OrderSupplies`, `PlaceItem`, `MoveItem`, `RemoveItem`, `PaintSurface`, `BuyLicense`, `BuyUpgrade`, `BuyExpansion`, `BuyAd`, `HireStaff`, `TrainStaff`, `FireStaff`, `SetMenu`, `SetDayState`, `ClaimQuest`, `ClaimDaily`, `ClaimOffline`, `SetSetting`, `SetPermission`, `Franchise`, `GetSnapshot` (funzione); dal server: `DataChanged`, `Notify`, `PlaySfx`, `Tickets`.
+
+### Statistiche (Roblox Analytics)
+Servizio `Analytics` (impostazioni in `Config/Analytics.luau`), ogni chiamata è protetta e non può rompere il gioco:
+- **Funnel di onboarding** (`LogOnboardingFunnelStepEvent`), una volta per giocatore nuovo: profilo creato → primo ordine → primo piatto cucinato → primo cliente servito → tutorial finito → primo acquisto → 10 clienti → livello 3 → livello 5. Si legge nella dashboard Creator: mostra a che punto escono i giocatori nuovi.
+- **Economia** (`LogEconomyEvent`): ogni spesa in yen con il codice di cosa si compra (`upgrade:up_tray`, `license:lic_sashimi`, `item:stool_wood`…); premi (regali, giornaliero, missioni, offline, Robux) uno per uno; vendite e mance sommate ogni 2 minuti.
+- **Progressione** (`LogProgressionCompleteEvent`): ogni livello raggiunto.
 
 ---
 
@@ -328,6 +335,7 @@ Animazioni decorative, treno e particelle girano solo sul client.
 
 - **Test della logica** (`tests/logic_spec.lua`, eseguiti con lupa): formule (XP, prezzi, mance, recensioni), griglia 1/5/10, sovrapposizioni, muri e porte, validità del layout iniziale, piazzamento a terra/parete/soffitto/su bancone, blocco dei passaggi, locale completo su tre piani, ambiente, integrità della configurazione.
 - **Controllo statico** (`tools/check_luau.py`, `tools/check_api.py`): blocchi, variabili non dichiarate, require, parità delle lingue, chiamate tra servizi.
+- **Simulatore del server** (`tools/sim.py`): esegue il codice vero del server (tutti i servizi, `Init` e `Start`) su un Roblox simulato in Lua 5.4: orologio virtuale con `task.wait/spawn/delay`, istanze con proprietà, figli, attributi, tag ed eventi, i servizi usati dal gioco, DataStore in memoria che rifiutano i valori che Roblox non salverebbe (array con buchi, tabelle miste, NaN), giocatori finti con personaggio. Gli scenari in `tools/sim/scenarios/` aggiungono giocatori, mandano remoti, fanno passare il tempo e controllano il risultato: `core` (avvio, autotest del gioco, clienti per 3 minuti, statistiche, salvataggio all'uscita), `saves` (profilo bloccato da un altro server, uscita durante un salvataggio, spegnimento del server, guasto dei DataStore). Qualsiasi errore del gioco fa fallire la prova.
 - **Costruzione**: `tools/build_place.py` produce il `.rbxlx`.
 - **In Studio** (tu): lista di controllo di gioco per la prima giornata, la costruzione, le espansioni e il personale, più il pannello sviluppatore per arrivare velocemente ai livelli alti.
 - **graphify**: `graphify update .` alla fine di ogni blocco di lavoro, così il grafo `graphify-out/` resta allineato al codice.

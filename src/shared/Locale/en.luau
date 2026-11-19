@@ -375,6 +375,8 @@ return {
 	["msg.like_done"] = "You already liked this restaurant today.",
 	["msg.like_sent"] = "❤️ Thanks! The owner will see it.",
 	["msg.liked"] = "❤️ {name} likes your restaurant!",
+	["msg.load_failed"] = "Your restaurant could not be loaded (Roblox data service). Your progress is safe: please join again in a minute.",
+	["msg.loading_wait"] = "Your restaurant is still being saved on another server: it opens in a few seconds…",
 	["msg.mastery_up"] = "⭐ {dish}: mastery {level}!",
 	["msg.max_level"] = "Already at max level.",
 	["msg.need_broth"] = "No {name} ready in the pots.",

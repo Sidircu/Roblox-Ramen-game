@@ -11,6 +11,12 @@ local limiters = {}
 
 function Net.Init()
 	NetDef.event("Interact") -- creates the folder with all remotes
+	-- forget the rate limit buckets of players who left
+	Players.PlayerRemoving:Connect(function(player)
+		for _, limiter in pairs(limiters) do
+			limiter:clear(player)
+		end
+	end)
 end
 
 -- handler(player, ...) ; rate = calls per second allowed (burst = 2x)
@@ -28,8 +34,14 @@ function Net.on(name, handler, rate)
 	end)
 end
 
-function Net.invoke(name, handler)
+-- rate = calls per second allowed for each player (burst = 3x); extra calls get nil
+function Net.invoke(name, handler, rate)
+	local limiter = RateLimit.new(rate or 1, (rate or 1) * 3)
+	limiters[name] = limiter
 	NetDef.func(name).OnServerInvoke = function(player, ...)
+		if not limiter:check(player) then
+			return nil
+		end
 		local ok, result = pcall(handler, player, ...)
 		if not ok then
 			warn("[Net] " .. name .. " invoke error: " .. tostring(result))

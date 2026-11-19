@@ -272,7 +272,7 @@ function Placement.place(player, rawReq, fromInventory)
 			return
 		end
 	else
-		if not Economy.spend(Session.owner, item.price, "build") then
+		if not Economy.spend(Session.owner, item.price, "build", "item:" .. item.id) then
 			return Net.notify(player, "msg.not_enough", nil, "error")
 		end
 	end
@@ -418,7 +418,7 @@ function Placement.paint(player, zoneId, kind, styleId)
 	if data.surfaces[zoneId][kind] == styleId then
 		return
 	end
-	if style.price > 0 and not Economy.spend(Session.owner, style.price, "build") then
+	if style.price > 0 and not Economy.spend(Session.owner, style.price, "build", "surface:" .. tostring(styleId)) then
 		return Net.notify(player, "msg.not_enough", nil, "error")
 	end
 	data.surfaces[zoneId][kind] = styleId

@@ -474,7 +474,7 @@ local function hire(player, role)
 			end
 		end
 	end
-	if not Economy.spend(Session.owner, cfg.hire, "build") then
+	if not Economy.spend(Session.owner, cfg.hire, "build", "staff:" .. cfg.id) then
 		return Net.notify(player, "msg.not_enough", nil, "error")
 	end
 	local rec = { u = Uid.new("s"), role = role, lvl = 1, name = StaffCfg.Names[math.random(1, #StaffCfg.Names)] }
@@ -498,7 +498,7 @@ local function train(player, uid)
 			end
 			local cfg = StaffCfg.byId[rec.role]
 			local cost = Formulas.staffTrainCost(cfg.hire, rec.lvl + 1)
-			if not Economy.spend(Session.owner, cost, "build") then
+			if not Economy.spend(Session.owner, cost, "build", "train") then
 				return Net.notify(player, "msg.not_enough", nil, "error")
 			end
 			rec.lvl += 1
