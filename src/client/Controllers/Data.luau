@@ -1,17 +1,18 @@
 --!nonstrict
--- Local copy of the player's profile ("me"), the restaurant owner's data ("world"),
--- session info, day state and tickets.
+-- Local copy of the player's profile ("me"), the data of the restaurant you work in when it is
+-- not yours ("world"), session info (plot, role, plot origins), day state and tickets.
 local Players = game:GetService("Players")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Signal = require(Shared.Util.Signal)
 local Locale = require(Shared.Locale)
+local PlotsCfg = require(Shared.Config.Plots)
 
 local Data = {}
 Data.me = nil
 Data.world = nil
-Data.session = { role = "helper", mode = "world" }
+Data.session = { role = "visitor", plot = nil, home = nil, originX = 0, homeX = 0, plots = {} }
 Data.day = { phase = "prep", clock = 9.5, day = 1 }
 Data.tickets = {}
 Data.Changed = Signal.new() -- (scope, key)
@@ -31,7 +32,50 @@ function Data.m(key)
 end
 
 function Data.role()
-	return Data.session and Data.session.role or "helper"
+	return Data.session and Data.session.role or "visitor"
+end
+
+-- the plot you work in (your own restaurant, or the one you help in)
+function Data.plotId()
+	return Data.session and Data.session.plot or nil
+end
+
+function Data.plotFolder(id)
+	local plots = workspace:FindFirstChild("Plots")
+	local pid = id or Data.plotId()
+	return plots and pid and plots:FindFirstChild("Plot" .. pid) or nil
+end
+
+-- an attribute of the restaurant you work in (Rating, AmbienceTier, SinkPile, Likes, Seats)
+function Data.plotAttr(name)
+	local f = Data.plotFolder()
+	return f and f:GetAttribute(name) or nil
+end
+
+-- world position of the plot you work in / of your own restaurant (local coordinates + origin)
+function Data.origin()
+	return Vector3.new(Data.session and Data.session.originX or 0, 0, 0)
+end
+
+function Data.homeOrigin()
+	return Vector3.new(Data.session and Data.session.homeX or 0, 0, 0)
+end
+
+-- the plot a world position belongs to
+function Data.plotAt(pos)
+	local half = PlotsCfg.HalfWidth
+	for _, p in ipairs(Data.session and Data.session.plots or {}) do
+		if math.abs(pos.X - p.x) < half then
+			return p
+		end
+	end
+	return nil
+end
+
+-- true when a model belongs to the restaurant you work in
+function Data.isMine(model)
+	local id = model and model:GetAttribute("PlotId")
+	return id ~= nil and id == Data.plotId()
 end
 
 function Data.canBuild()
@@ -69,6 +113,11 @@ function Data.Init()
 		end
 		Data.Changed:Fire(scope, key)
 	end)
+	-- the restaurant you work in changed (nil = your own)
+	NetDef.event("WorldSnapshot").OnClientEvent:Connect(function(world)
+		Data.world = world
+		Data.Changed:Fire("all", "all")
+	end)
 	NetDef.event("DayState").OnClientEvent:Connect(function(state)
 		Data.day = state
 		Data.DayChanged:Fire(state)
@@ -97,7 +146,7 @@ function Data.Start()
 	end
 	if snap then
 		Data.me = snap.me
-		Data.world = snap.world or snap.me
+		Data.world = snap.world
 		if snap.session then
 			Data.session = snap.session
 		end
@@ -111,7 +160,7 @@ function Data.Start()
 		local ok, result = pcall(function()
 			return NetDef.func("GetSnapshot"):InvokeServer()
 		end)
-		if ok and result and result.world then
+		if ok and result then
 			Data.world = result.world
 			if result.session then
 				Data.session = result.session

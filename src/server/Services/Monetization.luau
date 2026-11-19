@@ -36,15 +36,11 @@ function Monetization.has(player, id)
 	return owned[player] ~= nil and owned[player][id] == true
 end
 
-function Monetization.ownerHas(id)
-	local owner = Core.S.Session.owner
-	return owner ~= nil and Monetization.has(owner, id)
-end
-
-function Monetization.ownerYenMultiplier()
+-- yen multiplier of a player's passes (applies to the income of their own restaurant)
+function Monetization.yenMultiplier(player)
 	local m = 1
 	for _, gp in ipairs(Config.GamePasses) do
-		if gp.effect.yenMult and Monetization.ownerHas(gp.id) then
+		if gp.effect.yenMult and Monetization.has(player, gp.id) then
 			m *= gp.effect.yenMult
 		end
 	end

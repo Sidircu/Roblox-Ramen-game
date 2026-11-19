@@ -38,7 +38,7 @@ function Interaction.perform(actor, e, extra)
 			local items = hands.items
 			S.Hands.clear(actor)
 			for _, entry in ipairs(items) do
-				S.Supply.returnBox(entry)
+				S.Supply.returnBox(e.plot, entry)
 			end
 			return true
 		end
@@ -59,7 +59,7 @@ function Interaction.perform(actor, e, extra)
 	elseif kind == "dirty" then
 		return S.Customers.collectDirty(actor, e)
 	elseif kind == "tipjar" then
-		return S.Economy.collectTips(actor)
+		return S.Economy.collectTips(actor, e.plot)
 	end
 	return false, nil
 end
@@ -75,15 +75,16 @@ function Interaction.Init()
 		if type(uid) ~= "string" or #uid > 40 then
 			return
 		end
-		if not S.Session.canWork(player) or not S.Session.owner then
-			return
-		end
 		if busy[player] then
 			return
 		end
 		local e = S.Entities.get(uid)
 		if not e then
 			return
+		end
+		-- only in a restaurant where the player may work (their own, or one they help in)
+		if not e.plot or not e.plot.owner or not S.Plots.canWork(player, e.plot) then
+			return S.Net.notify(player, "msg.not_your_restaurant", nil, "info")
 		end
 		local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 		if not hrp then

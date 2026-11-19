@@ -24,7 +24,7 @@ local T = Kit.Theme
 local function orderStation()
 	local best = nil
 	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
-		if m:GetAttribute("Kind") == "station" and m:IsDescendantOf(workspace) then
+		if m:GetAttribute("Kind") == "station" and m:IsDescendantOf(workspace) and Core.C.Data.isMine(m) then
 			if (m:GetAttribute("Ready") or "") ~= "" or (m:GetAttribute("Recipe") or "") ~= "" then
 				return m
 			end
@@ -103,7 +103,7 @@ local function findTarget(target)
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 	local best, bestD = nil, math.huge
 	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
-		if m:GetAttribute("Kind") == kind and m:IsDescendantOf(workspace) then
+		if m:GetAttribute("Kind") == kind and m:IsDescendantOf(workspace) and Core.C.Data.isMine(m) then
 			local ok = true
 			if filter and kind == "box" then
 				ok = filter[m:GetAttribute("Ingredient") or ""] == true

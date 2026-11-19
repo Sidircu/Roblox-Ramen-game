@@ -68,7 +68,7 @@ function Data.newProfile()
 		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, offlinePending = 0, codes = {}, onboarding = true, funnel = {} },
 		franchise = { stars = 0, city = "tokyo" },
 		perms = {},
-		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = 1 },
+		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = 1, coop = "friends" },
 		passes = {},
 		receipts = {},
 		created = os.time(),
@@ -285,7 +285,8 @@ local function payload(value)
 	return TableUtil.deepCopy(value)
 end
 
--- Notify clients that `k` changed in `player`'s profile.
+-- Notify clients that `k` changed in `player`'s profile: the player gets it as "me"; the helpers
+-- working in their restaurant get the restaurant keys as "world".
 function Data.changed(player, k)
 	local d = Data.get(player)
 	if not d then
@@ -293,13 +294,29 @@ function Data.changed(player, k)
 	end
 	local Net = Core.S.Net
 	Net.fire(player, "DataChanged", "me", k, payload(d[k]))
-	local Session = Core.S.Session
-	if WORLD_KEY_SET[k] and Session and Session.owner == player then
-		for _, other in ipairs(Players:GetPlayers()) do
-			Net.fire(other, "DataChanged", "world", k, payload(d[k]))
+	local Plots = Core.S.Plots
+	local plot = WORLD_KEY_SET[k] and Plots and Plots.ofPlayer(player)
+	if plot then
+		for _, other in ipairs(Plots.workers(plot)) do
+			if other ~= player then
+				Net.fire(other, "DataChanged", "world", k, payload(d[k]))
+			end
 		end
 	end
 	Data.Changed:Fire(player, k)
+end
+
+-- the restaurant keys of a plot's owner (what helpers see as "world")
+function Data.worldOf(plot)
+	local od = plot and plot.owner and Data.get(plot.owner)
+	if not od then
+		return nil
+	end
+	local world = {}
+	for _, k in ipairs(Data.WorldKeys) do
+		world[k] = TableUtil.deepCopy(od[k])
+	end
+	return world
 end
 
 function Data.snapshot(player)
@@ -309,18 +326,11 @@ function Data.snapshot(player)
 	end
 	local me = TableUtil.deepCopy(d)
 	me.receipts = nil
-	local Session = Core.S.Session
-	local world = nil
-	if Session and Session.owner then
-		local od = Data.get(Session.owner)
-		if od then
-			world = {}
-			for _, k in ipairs(Data.WorldKeys) do
-				world[k] = TableUtil.deepCopy(od[k])
-			end
-		end
-	end
-	return { me = me, world = world, session = Session and Session.info(player) or nil }
+	local Plots = Core.S.Plots
+	local plot = Plots and Plots.of(player)
+	-- in your own restaurant "world" is your own data (the client uses "me")
+	local world = (plot and plot.owner ~= player) and Data.worldOf(plot) or nil
+	return { me = me, world = world, session = Plots and Plots.info(player) or nil }
 end
 
 -- Takes the session lock of a profile. Returns ok (the call worked), the saved data (nil for a new
@@ -528,6 +538,11 @@ function Data.Init()
 end
 
 function Data.Start()
+	-- a player who starts working in another restaurant gets its data
+	Core.S.Plots.WorkChanged:Connect(function(player, plot)
+		local world = (plot and plot.owner ~= player) and Data.worldOf(plot) or nil
+		Core.S.Net.fire(player, "WorldSnapshot", world)
+	end)
 	Players.PlayerAdded:Connect(function(player)
 		load(player)
 	end)

@@ -50,7 +50,8 @@ local function runTrain()
 	local sound = Audio and Audio.attachTrain(train.PrimaryPart or train:FindFirstChildWhichIsA("BasePart"))
 	while true do
 		local dir = rng:NextNumber() < 0.5 and 1 or -1
-		local x0, x1 = -(Expansions.Street.reach + 280) * dir, (Expansions.Street.reach + 280) * dir
+		local reach = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.Plots).StreetReach
+		local x0, x1 = -(reach + 280) * dir, (reach + 280) * dir
 		local t0 = os.clock()
 		local duration = 22
 		if sound then

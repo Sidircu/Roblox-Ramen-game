@@ -1,14 +1,14 @@
 # Sakura Ramen & Sushi Tycoon (titolo provvisorio)
 
-Gioco Roblox tycoon: gestisci un ristorante giapponese di ramen e sushi, cucini al bancone con un clic per ogni passaggio, rifornisci le mensole dal magazzino, assumi personale, ingrandisci il locale fino al tetto e lo arredi su una griglia da 1, 5 o 10 stud. Mondo personale con inviti agli amici, inglese e italiano.
+Gioco Roblox tycoon: gestisci un ristorante giapponese di ramen e sushi, cucini al bancone con un clic per ogni passaggio, rifornisci le mensole dal magazzino, assumi personale, ingrandisci il locale fino al tetto e lo arredi su una griglia da 1, 5 o 10 stud. Una strada con quattro ristoranti per server: gli amici possono aiutarti nel tuo locale. Inglese e italiano.
 
 ## Aprire il gioco in Roblox Studio
 1. Scarica `build/SakuraRamenTycoon.rbxlx` dal repository.
 2. In Roblox Studio: **File → Open from File…** e scegli il file.
 3. Controlla **Lighting → Technology = Future** (dovrebbe già esserlo) e **Workspace → StreamingEnabled = false**.
 4. **Game Settings → Security → Enable Studio Access to API Services** per i salvataggi (pubblica prima il gioco, File → Publish to Roblox).
-5. **Game Settings → Places → Max Players: 6**. Lascia disattivati i server privati Roblox.
-6. Premi **Play**. In Studio il server è direttamente il tuo mondo (i teletrasporti al mondo personale funzionano solo nel gioco pubblicato).
+5. **Game Settings → Places → Max Players: 4** (un ristorante per giocatore lungo la strada).
+6. Premi **Play**. Per provare la strada con più giocatori: **Test → Clients and Servers** con 2–4 giocatori. In Studio tutti contano come amici, quindi ognuno può aiutare negli altri locali; nel gioco pubblicato possono aiutare gli amici del proprietario (o tutti, se lo sceglie nell'app Amici).
 
 **Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, tasto destro posa la scatola, G posa, Shift corri, Q per liberare il mouse e cliccare i pulsanti (di nuovo Q per tornare a guardare), B costruisci, O fornitore, P telefono, R regali. Mentre i noodles bollono, clicca nel verde della barra per una ciotola perfetta.
 
@@ -51,7 +51,7 @@ python3 tools/build_place.py
 `tools/sim.py` fa girare tutti i servizi del server su un Roblox simulato (orologio virtuale, istanze,
 eventi, DataStore in memoria, giocatori finti) e gioca gli scenari di `tools/sim/scenarios/`:
 il server parte, entra un giocatore, l'autotest del gioco fa tutto il ciclo, arrivano clienti, si salva
-all'uscita; e i casi difficili dei salvataggi. Ogni errore del gioco fa fallire la prova.
+all'uscita; il ciclo base con i tempi; la strada con quattro giocatori e gli aiutanti; e i casi difficili dei salvataggi. Ogni errore del gioco fa fallire la prova.
 ```
 python3 tools/sim.py                 # tutti gli scenari
 python3 tools/sim.py --verbose core  # uno scenario, con notifiche e stampe del gioco
@@ -66,6 +66,7 @@ python3 tools/preview.py category seating out.png
 python3 tools/preview.py facade out.png            # facciata del ristorante
 python3 tools/preview.py interior out.png --zones=dining,kitchen
 python3 tools/preview.py street out.png --focus=-60,20,-40,0
+python3 tools/preview.py plots out.png              # la strada con i 4 lotti (2 locali e 2 lotti liberi)
 python3 tools/preview.py interior out.png --basic          # locale iniziale, senza ristrutturazioni
 python3 tools/preview.py interior out.png --swap=stool_wood:stool_red \
   "--place=ramenya_canopy@-6,15.6,0,c;water_pitcher@-7.5,14.6,0,t,3.5" --clip=-19,19,0.8,30 --view=14,72,2.4

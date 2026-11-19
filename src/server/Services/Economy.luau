@@ -7,28 +7,43 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Core = require(script.Parent.Parent.Core)
 
 local Economy = {}
-Economy.ledger = nil
 
 local INCOME = { sale = true, tip = true, offline = true }
 
-function Economy.resetLedger()
-	Economy.ledger = { sales = 0, tips = 0, supplies = 0, salaries = 0, build = 0, other = 0, customers = 0, served = 0, walkouts = 0, stars = 0, reviews = 0, bestDish = {} }
+local function newLedger()
+	return { sales = 0, tips = 0, supplies = 0, salaries = 0, build = 0, other = 0, customers = 0, served = 0, walkouts = 0, stars = 0, reviews = 0, bestDish = {} }
 end
 
-function Economy.boostActive(name)
-	local data = Core.S.Session.ownerData()
+-- the day's accounts of a restaurant
+function Economy.ledgerOf(plot)
+	if not plot then
+		return newLedger()
+	end
+	plot.ledger = plot.ledger or newLedger()
+	return plot.ledger
+end
+
+function Economy.resetLedger(plot)
+	if plot then
+		plot.ledger = newLedger()
+	end
+end
+
+function Economy.boostActive(plot, name)
+	local data = Core.S.Plots.data(plot)
 	return data and data.boosts and (data.boosts[name] or 0) > os.time() or false
 end
 
-function Economy.multiplier()
-	local data = Core.S.Session.ownerData()
+-- income multiplier of a restaurant owner (franchise stars and passes)
+function Economy.multiplier(player)
+	local data = Core.S.Data.get(player)
 	if not data then
 		return 1
 	end
 	local passMult = 1
 	local Monetization = Core.S.Monetization
 	if Monetization then
-		passMult = Monetization.ownerYenMultiplier()
+		passMult = Monetization.yenMultiplier(player)
 	end
 	return Formulas.incomeMultiplier({ franchiseStars = data.franchise.stars or 0, yenPerStar = Franchise.YenPerStar, passMult = passMult })
 end
@@ -41,9 +56,10 @@ function Economy.add(player, amount, reason, opts)
 		return 0
 	end
 	local value = amount
-	if INCOME[reason] and not (opts and opts.raw) and player == Core.S.Session.owner then
-		value = math.floor(amount * Economy.multiplier() + 0.5)
-		if reason == "tip" and Economy.boostActive("golden") then
+	local own = Core.S.Plots.ofPlayer(player)
+	if INCOME[reason] and not (opts and opts.raw) and own then
+		value = math.floor(amount * Economy.multiplier(player) + 0.5)
+		if reason == "tip" and Economy.boostActive(own, "golden") then
 			value = math.floor(value * 1.5 + 0.5)
 		end
 	end
@@ -51,11 +67,12 @@ function Economy.add(player, amount, reason, opts)
 	if INCOME[reason] then
 		data.stats.earned += value
 	end
-	if Economy.ledger and player == Core.S.Session.owner then
+	if own then
+		local L = Economy.ledgerOf(own)
 		if reason == "sale" then
-			Economy.ledger.sales += value
+			L.sales += value
 		elseif reason == "tip" then
-			Economy.ledger.tips += value
+			L.tips += value
 		end
 	end
 	Data.changed(player, "yen")
@@ -88,15 +105,17 @@ function Economy.spend(player, amount, reason, sku)
 	if Core.S.Analytics and amount > 0 then
 		Core.S.Analytics.sink(player, amount, reason, data.yen, sku)
 	end
-	if Economy.ledger and player == Core.S.Session.owner then
+	local own = Core.S.Plots.ofPlayer(player)
+	if own then
+		local L = Economy.ledgerOf(own)
 		if reason == "supplies" then
-			Economy.ledger.supplies += amount
+			L.supplies += amount
 		elseif reason == "salary" then
-			Economy.ledger.salaries += amount
+			L.salaries += amount
 		elseif reason == "build" then
-			Economy.ledger.build += amount
+			L.build += amount
 		else
-			Economy.ledger.other += amount
+			L.other += amount
 		end
 	end
 	Data.changed(player, "yen")
@@ -118,13 +137,13 @@ end
 
 ------------------------------------------------------------------ tip jar
 
-local function jars()
-	return Core.S.Entities.ofKind("tipjar")
+local function jars(plot)
+	return Core.S.Entities.ofKind("tipjar", plot)
 end
 
--- shows the coins of every jar (height grows with the amount, full at TipJarFull)
-local function drawJars(amount)
-	for _, e in ipairs(jars()) do
+-- shows the coins of every jar of a restaurant (height grows with the amount, full at TipJarFull)
+local function drawJars(plot, amount)
+	for _, e in ipairs(jars(plot)) do
 		local coins = e.model and e.model:FindFirstChild("Coins")
 		if coins then
 			local base = coins:GetAttribute("Base") or 0.09
@@ -139,31 +158,32 @@ local function drawJars(amount)
 	end
 end
 
--- a tip goes into the jar when the restaurant has one; returns true if it did
-function Economy.tipToJar(amount)
-	local d = Core.S.Session.ownerData()
-	if not d or amount <= 0 or #jars() == 0 then
+-- a tip goes into the restaurant's jar when it has one; returns true if it did
+function Economy.tipToJar(plot, amount)
+	local d = Core.S.Plots.data(plot)
+	if not d or amount <= 0 or #jars(plot) == 0 then
 		return false
 	end
 	d.tipJar = (d.tipJar or 0) + amount
-	drawJars(d.tipJar)
-	Core.S.Data.changed(Core.S.Session.owner, "tipJar")
+	drawJars(plot, d.tipJar)
+	Core.S.Data.changed(plot.owner, "tipJar")
 	return true
 end
 
--- empties the jar into the owner's wallet (click on the jar, or automatically at closing time)
-function Economy.collectTips(player)
-	local d = Core.S.Session.ownerData()
-	local owner = Core.S.Session.owner
+-- empties a restaurant's jar into its owner's wallet (click on the jar, or at the end of the day)
+function Economy.collectTips(player, plot)
+	plot = plot or Core.S.Plots.of(player)
+	local d = Core.S.Plots.data(plot)
+	local owner = plot and plot.owner
 	if not d or not owner or (d.tipJar or 0) <= 0 then
 		return false, "msg.tipjar_empty"
 	end
 	local amount = d.tipJar
 	d.tipJar = 0
-	drawJars(0)
+	drawJars(plot, 0)
 	local got = Economy.add(owner, amount, "tip")
 	local pos = nil
-	local jar = jars()[1]
+	local jar = jars(plot)[1]
 	if jar and jar.model and jar.model.PrimaryPart then
 		pos = jar.model.PrimaryPart.Position
 	end
@@ -173,9 +193,9 @@ function Economy.collectTips(player)
 	return true
 end
 
-function Economy.redrawJars()
-	local d = Core.S.Session.ownerData()
-	drawJars(d and d.tipJar or 0)
+function Economy.redrawJars(plot)
+	local d = Core.S.Plots.data(plot)
+	drawJars(plot, d and d.tipJar or 0)
 end
 
 function Economy.addSakura(player, n)
@@ -203,19 +223,18 @@ function Economy.spendSakura(player, n, sku)
 	return true
 end
 
-function Economy.Init()
-	Economy.resetLedger()
-end
+function Economy.Init() end
 
 function Economy.Start()
 	-- a jar placed (or rebuilt after a move) shows the tips it holds
 	Core.S.Placement.ItemAdded:Connect(function(e)
 		if e.kind == "tipjar" then
-			task.defer(Economy.redrawJars)
+			task.defer(Economy.redrawJars, e.plot)
 		end
 	end)
-	Core.S.Session.OwnerReady:Connect(function()
-		task.defer(Economy.redrawJars)
+	Core.S.Plots.Claimed:Connect(function(plot)
+		plot.ledger = nil
+		task.defer(Economy.redrawJars, plot)
 	end)
 end
 

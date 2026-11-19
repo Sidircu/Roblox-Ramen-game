@@ -93,6 +93,10 @@ end
 
 -- Text shown above the hovered object
 local function actionText(model, kind, slot)
+	-- only the restaurant you work in (your own, or one you help in)
+	if not Core.C.Data.isMine(model) then
+		return nil
+	end
 	local hands = handsKind()
 	local lock = Interaction.lockOf(model, kind)
 	if lock then
@@ -189,7 +193,7 @@ local function actionText(model, kind, slot)
 		if model:GetAttribute("Washing") and model:GetAttribute("Washer") == player.UserId then
 			return t("hint.washing")
 		end
-		local pile = workspace:GetAttribute("SinkPile") or 0
+		local pile = Core.C.Data.plotAttr("SinkPile") or 0
 		return pile > 0 and t("hint.wash_hold", { n = pile }) or t("hint.sink")
 	elseif kind == "dishwasher" then
 		return hands == "dirty" and t("hint.load_dishwasher") or t("hint.dishwasher", { n = model:GetAttribute("Queue") or 0 })
@@ -349,7 +353,7 @@ end
 
 -- washing is held: true when this click starts (or a tap toggles) washing at the sink
 local function washHold(tap)
-	if current.kind ~= "sink" or handsKind() ~= nil or (workspace:GetAttribute("SinkPile") or 0) <= 0 then
+	if current.kind ~= "sink" or handsKind() ~= nil or (Core.C.Data.plotAttr("SinkPile") or 0) <= 0 then
 		return false
 	end
 	local Sink = Core.C.Sink

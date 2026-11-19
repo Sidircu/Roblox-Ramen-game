@@ -59,7 +59,8 @@ local function setRoofs(hidden, floor)
 			end
 		end
 	end
-	local items = workspace:FindFirstChild("Restaurant") and workspace.Restaurant:FindFirstChild("Items")
+	local plot = Core.C.Data and Core.C.Data.plotFolder and Core.C.Data.plotFolder()
+	local items = plot and plot:FindFirstChild("Items")
 	if items then
 		for _, m in ipairs(items:GetChildren()) do
 			local above = hidden and floor and (m:GetAttribute("FloorIndex") or 0) > floor
@@ -112,14 +113,18 @@ local function clearDistance(focus, dir, dist)
 	if player.Character then
 		table.insert(ignore, player.Character)
 	end
-	local rest = workspace:FindFirstChild("Restaurant")
-	if rest then
-		for _, name in ipairs({ "Npcs", "Dynamic", "Items" }) do
+	local plots = workspace:FindFirstChild("Plots")
+	for _, rest in ipairs(plots and plots:GetChildren() or {}) do
+		for _, name in ipairs({ "Dynamic", "Items" }) do
 			local f = rest:FindFirstChild(name)
 			if f then
 				table.insert(ignore, f)
 			end
 		end
+	end
+	local npcs = workspace:FindFirstChild("NPCs")
+	if npcs then
+		table.insert(ignore, npcs)
 	end
 	for _, p in ipairs(CollectionService:GetTagged("Roof")) do
 		table.insert(ignore, p)
@@ -135,15 +140,16 @@ local function clearDistance(focus, dir, dist)
 	return dist
 end
 
--- True when the player stands inside the restaurant (an indoor room of their storey)
+-- True when the player stands inside the restaurant they work in (an indoor room of their storey)
 local function indoors(pos, floor)
 	local Build = Core.C.Build
 	local geo = Build and Build.geometry and Build.geometry()
 	if not geo then
 		return false
 	end
+	local lx = pos.X - Core.C.Data.origin().X
 	for _, z in ipairs(geo.zones) do
-		if z.floor == floor and not z.outdoor and Footprint.pointInRect(pos.X, pos.Z, z.rect) then
+		if z.floor == floor and not z.outdoor and Footprint.pointInRect(lx, pos.Z, z.rect) then
 			return true
 		end
 	end

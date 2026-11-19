@@ -1,8 +1,9 @@
 --!nonstrict
--- Invite friends to the personal world and set their permissions.
+-- Friends and helpers: invite friends to this street (they get a restaurant of their own and can
+-- help in yours), choose who may help in your restaurant (friends or everyone), give players a
+-- role in your restaurant (helper / co-manager / none) and go back to your own door.
 local Players = game:GetService("Players")
 local SocialService = game:GetService("SocialService")
-local HttpService = game:GetService("HttpService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -13,18 +14,18 @@ local Core = require(script.Parent.Parent.Parent.Core)
 
 local t = Locale.t
 
-return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.66), function(content)
-	local session = Core.C.Data.session or {}
+return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.7), function(content)
+	local Data = Core.C.Data
 	local me = Players.LocalPlayer
-	Kit.label(t("ui.invite_text"), { Parent = content, Size = UDim2.new(1, 0, 0, 60), TextSize = 17 })
-	Kit.button("📨 " .. t("ui.invite_friends"), { parent = content, size = UDim2.new(1, 0, 0, 48), position = UDim2.fromOffset(0, 64), style = "green", onClick = function()
+	local scroll = Kit.scroll({ Parent = content })
+	Kit.label(t("ui.invite_text"), { Parent = scroll, Size = UDim2.new(1, -8, 0, 48), TextSize = 16, LayoutOrder = 1 })
+	Kit.button("📨 " .. t("ui.invite_friends"), { parent = scroll, size = UDim2.new(1, -8, 0, 46), style = "green", order = 2, onClick = function()
 		local ok, can = pcall(function()
 			return SocialService:CanSendGameInviteAsync(me)
 		end)
 		if ok and can then
 			local opts = Instance.new("ExperienceInviteOptions")
 			opts.PromptMessage = t("ui.invite_prompt")
-			opts.LaunchData = HttpService:JSONEncode({ owner = session.ownerId or me.UserId })
 			pcall(function()
 				SocialService:PromptGameInvite(me, opts)
 			end)
@@ -32,16 +33,42 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.66), function(con
 			Core.C.UI.toast(t("msg.invite_unavailable"), "warning")
 		end
 	end })
-	local scroll = Kit.scroll({ Position = UDim2.fromOffset(0, 124), Size = UDim2.new(1, 0, 1, -124), Parent = content })
-	local perms = (Core.C.Data.world and Core.C.Data.world.perms) or {}
+	Kit.button("🏠 " .. t("ui.go_home"), { parent = scroll, size = UDim2.new(1, -8, 0, 40), style = "plain", order = 3, onClick = function()
+		NetDef.event("GoHome"):FireServer()
+		Core.C.UI.close("Invite")
+	end })
+	-- who may help in my restaurant
+	local settings = Data.m("settings") or {}
+	local coop = settings.coop or "friends"
+	local row = Kit.card({ Size = UDim2.new(1, -8, 0, 56), LayoutOrder = 4, Parent = scroll })
+	Kit.label("🤝 " .. t("ui.coop_who"), { Parent = row, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(0.45, 0, 1, 0), FontFace = Kit.Theme.bold, TextYAlignment = Enum.TextYAlignment.Center })
+	local holder = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromScale(0.45, 0), Size = UDim2.new(0.55, -10, 1, 0), Parent = row }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
+	for i, o in ipairs({ { value = "friends", label = t("ui.coop_friends") }, { value = "everyone", label = t("ui.coop_everyone") } }) do
+		Kit.button(o.label, { parent = holder, size = UDim2.fromOffset(110, 36), style = coop == o.value and "primary" or "plain", order = i, textSize = 14, onClick = function()
+			NetDef.event("SetSetting"):FireServer("coop", o.value)
+		end })
+	end
+	-- the players on this street and their role in my restaurant
+	local perms = Data.m("perms") or {}
+	Kit.title(t("ui.street_players"), { Parent = scroll, Size = UDim2.new(1, -8, 0, 30), LayoutOrder = 5, TextSize = 20 })
+	local order = 10
 	for _, p in ipairs(Players:GetPlayers()) do
-		local role = p.UserId == session.ownerId and "owner" or (perms[tostring(p.UserId)] == "comanager" and "comanager" or "helper")
-		local card, right = Kit.row(role == "owner" and "👑" or "🧑‍🍳", p.DisplayName, t("role." .. role), 64)
-		card.Parent = scroll
-		if session.role == "owner" and role ~= "owner" then
-			Kit.button(role == "comanager" and t("ui.make_helper") or t("ui.make_comanager"), { parent = right, size = UDim2.fromOffset(160, 36), style = "plain", textSize = 14, onClick = function()
+		if p ~= me then
+			order += 1
+			local perm = perms[tostring(p.UserId)]
+			local role = perm == "comanager" and "comanager" or (perm == "helper" and "helper" or "default")
+			local card, right = Kit.row(role == "comanager" and "🛠️" or "🧑‍🍳", p.DisplayName, t("perm." .. role), 64)
+			card.LayoutOrder = order
+			card.Parent = scroll
+			local actions = Kit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(170, 36), Parent = right }, { Kit.list(Enum.FillDirection.Horizontal, 4, Enum.HorizontalAlignment.Right) })
+			Kit.button(role == "comanager" and t("ui.make_helper") or t("ui.make_comanager"), { parent = actions, size = UDim2.fromOffset(120, 34), style = "plain", textSize = 13, order = 1, onClick = function()
 				NetDef.event("SetPermission"):FireServer(p.UserId, role == "comanager" and "helper" or "comanager")
 			end })
+			if perm then
+				Kit.button("✕", { parent = actions, size = UDim2.fromOffset(40, 34), style = "plain", order = 2, onClick = function()
+					NetDef.event("SetPermission"):FireServer(p.UserId, "none")
+				end })
+			end
 		end
 	end
 end)

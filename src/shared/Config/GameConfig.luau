@@ -41,7 +41,8 @@ return {
 		-- easy mode: every customer type waits this many times its base patience, and the timer
 		-- starts again from full when you take the order (full time to cook it)
 		PatienceMult = 1.8,
-		MaxNpcs = 40,
+		MaxNpcs = 60, -- customers and staff of the whole street
+		MaxPerRestaurant = 14, -- customers of one restaurant at the same time
 		BaseInterval = 18,
 		MinInterval = 2.5,
 		MenuReadTime = { 1.5, 3 },

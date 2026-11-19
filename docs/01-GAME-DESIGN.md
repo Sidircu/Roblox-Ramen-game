@@ -12,8 +12,8 @@
 |---|---|
 | Genere | Tycoon/gestionale a lungo termine, ispirato a *Pet Store Tycoon* e *Supermarket Together* |
 | Tema | Ristorante giapponese di **ramen e sushi**, tutto a tema (arredi, decorazioni, strada, luci) |
-| Mondo | **Mondo personale**: ogni giocatore è da solo nel suo mondo con il suo ristorante. Nessun estraneo |
-| Co-op | **Ibrido**: puoi **invitare amici** nel tuo mondo come aiutanti (cucinano, servono, riforniscono) |
+| Mondo | **Una strada con 4 ristoranti per server**: ogni giocatore ha il suo locale, uno accanto all'altro, e vede gli altri lavorare |
+| Co-op | **Ibrido**: gli amici (o tutti, se lo decidi tu) possono **aiutare nel tuo locale** (cucinano, servono, riforniscono) e guadagnano una quota |
 | Lingua | **Inglese + Italiano**, scelta automatica in base alla lingua del giocatore, modificabile nelle impostazioni |
 | Interazione | **Movimento libero** con joystick/WASD come in ogni gioco Roblox. Quando sei vicino a un oggetto, **lo clicchi (o lo tocchi)** e l'azione avviene |
 | Cucina | **Fisica + clic, senza tempismo**: gli ingredienti si prendono davvero dalle mensole e si portano in mano; alla postazione ogni clic esegue un passaggio (il coltello taglia, gli ingredienti si uniscono, il maki si arrotola). Nessun minigioco a tempo, nessun gesto da fare |
@@ -51,26 +51,30 @@ Apri un piccolo ramen-ya in un vicolo giapponese illuminato da lanterne. All'ini
 
 ## 2. Il mondo
 
-### 2.1 Struttura delle sessioni (mondo personale)
+### 2.1 Struttura delle sessioni (una strada, quattro ristoranti)
 
-- Quando entri nel gioco vedi per pochi secondi una schermata di caricamento ("Preparing your restaurant…" / "Stiamo preparando il tuo ristorante…") e vieni portato nel **tuo mondo privato**, creato solo per te.
-- Nel tuo mondo ci sei solo tu e chi inviti.
-- **Invita amici**: pulsante nell'interfaccia → invito Roblox. L'amico che accetta entra nel tuo mondo.
-  - Gli amici sono **Aiutanti**: possono cucinare, servire, pulire, rifornire.
-  - Non possono comprare, vendere o spostare oggetti, a meno che tu non dia loro il permesso **Co-gestore**.
-  - Gli aiutanti guadagnano XP e un piccolo compenso in yen per il **proprio** salvataggio (pagato dal gioco, non tolto a te).
-- Se il proprietario esce, il mondo si chiude: gli aiutanti vengono riportati nel proprio mondo con un messaggio.
+- Ogni server è **una strada con 4 lotti** affiancati (`Config/Plots`: 4 lotti a 240 stud l'uno dall'altro). Il server accetta al massimo 4 giocatori (in Studio: Game Settings → Max Players = 4).
+- Quando entri vedi per pochi secondi una schermata di caricamento ("Preparing your restaurant…" / "Stiamo preparando il tuo ristorante…"), ricevi il **primo lotto libero** e il tuo ristorante viene costruito lì dal tuo salvataggio. Il personaggio compare davanti alla tua porta.
+- I lotti liberi mostrano un recinto e il cartello "空き地 · 近日オープン" (terreno libero, apertura a breve). Quando un giocatore esce, il suo lotto torna libero: clienti, personale e oggetti spariscono e i suoi aiutanti tornano a lavorare nel proprio locale.
+- Puoi passeggiare nella strada ed entrare negli altri ristoranti. **Lavori nel locale in cui ti trovi** se il proprietario te lo permette, altrimenti nel tuo.
+- **Ruoli nel ristorante di un altro** (decide il proprietario dall'app Amici):
+  - **Aiutante**: cucina, serve, pulisce, rifornisce. Lo sono automaticamente gli **amici Roblox** del proprietario, oppure **tutti** se il proprietario apre la cucina a tutti; il proprietario può anche nominare aiutante un singolo giocatore.
+  - **Co-gestore**: come l'aiutante, in più può comprare, vendere e spostare oggetti.
+  - **Visitatore**: chiunque altro. Può guardare, ma le postazioni rispondono "Questo non è il tuo ristorante".
+  - Gli aiutanti guadagnano XP e una **quota** in yen per il **proprio** salvataggio (pagata dal gioco, non tolta al proprietario).
+- **Invita amici**: pulsante nell'app Amici → invito Roblox. L'amico che accetta entra nello stesso server, riceve un lotto suo e può aiutarti. Il pulsante **Torna al tuo ristorante** riporta alla tua porta.
 
 ### 2.2 La strada (yokochō)
 
-Il ristorante si trova a metà di una via giapponese, sempre visibile e decorativa. **Tutto è in proporzione al locale** (come in Supermarket Together): il quartiere è grande e il negozio ci sta dentro in modo credibile.
+I quattro ristoranti stanno lungo la stessa via giapponese, sempre visibile e decorativa. **Tutto è in proporzione al locale** (come in Supermarket Together): il quartiere è grande e i negozi ci stanno dentro in modo credibile. Tra un lotto e l'altro ci sono edifici vicini più bassi, un distributore automatico e alberi.
 - Davanti all'ingresso un marciapiede largo 20 stud, poi un **viale a 4 corsie** largo 36 stud (strisce gialle centrali, attraversamento pedonale, tombini, fermata dell'autobus) e un secondo marciapiede.
-- Di fronte, una fila di **palazzi di 3–6 piani** (alti 32–70 stud, il doppio o più del locale) con negozi al piano terra, insegne verticali, balconi, condizionatori, cartelloni e cisterne sui tetti. Ai lati del lotto, due edifici vicini più bassi.
+- Di fronte, una fila di **palazzi di 3–6 piani** (alti 32–70 stud, il doppio o più del locale) con negozi al piano terra, insegne verticali, balconi, condizionatori, cartelloni e cisterne sui tetti. Ogni lotto ha la sua recinzione di bambù sul retro.
 - Edifici vicini non accessibili (negozietti, una lavanderia, una casa con le luci accese), pali della luce con i fili, lampioni su entrambi i marciapiedi, distributori automatici luminosi, biciclette parcheggiate, vasi di piante.
 - Ciliegi lungo la strada, petali che cadono.
 - Un treno che passa su un cavalcavia sullo sfondo, soprattutto la sera.
 - Da entrambe le estremità del vicolo arrivano e se ne vanno i clienti.
-- Sul lato del ristorante c'è la **porta di carico del magazzino**, dove arriva il furgoncino delle consegne (kei truck).
+- Sul lato di ogni ristorante c'è la **porta di carico del magazzino**, dove arriva il furgoncino delle consegne (kei truck).
+- Il quartiere (palette e cielo) è quello di Tokyo per tutta la strada; la città del Franchise cambia solo il tuo locale.
 
 ### 2.3 Il ristorante iniziale
 
@@ -502,7 +506,7 @@ Tutto verrà implementato in un unico intervento, in quest'ordine (così ogni pa
 | **Indispensabile** | modalità costruzione con griglia 1/5/10, rotazione, vendita, inventario, catalogo decorazioni, pavimenti e pareti |
 | **Indispensabile** | livelli, licenze, tutte le ricette, upgrade, espansioni, valutazione e recensioni, prezzi del menu |
 | **Importante** | personale e automazione, tavoli e gruppi, sala tatami e VIP, missioni giornaliere, obiettivi, premio giornaliero, guadagni offline, tutorial |
-| **Importante** | mondo personale con inviti agli amici, monetizzazione predisposta, impostazioni |
+| **Importante** | strada con 4 ristoranti e aiutanti, inviti agli amici, monetizzazione predisposta, impostazioni |
 | **Completamento** | secondo piano e tetto, maestrie, set di decorazioni, franchise con città, eventi stagionali, classifiche |
 
 ---

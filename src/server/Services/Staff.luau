@@ -1,5 +1,6 @@
 --!nonstrict
--- Staff: hiring, training, salaries and the AI that automates the restaurant.
+-- Staff: hiring, training, salaries and the AI that automates each restaurant (every actor
+-- works for one plot: a.plot).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local StaffCfg = require(Shared.Config.Staff)
@@ -10,15 +11,17 @@ local Core = require(script.Parent.Parent.Core)
 local Staff = {}
 local actors = {} -- [uid] = actor
 
+-- where idle staff wait (restaurant-local coordinates)
 local HOME = { Vector3.new(10, 0.5, 21), Vector3.new(-14, 0.5, 21), Vector3.new(4, 0.5, 23), Vector3.new(-2, 0.5, 21) }
 
-local function data()
-	return Core.S.Session.ownerData()
+local function homeOf(a)
+	local h = HOME[(a.index % #HOME) + 1]
+	return Core.S.Plots.toWorld(a.plot, h.X, h.Y, h.Z)
 end
 
-local function managerBonus()
+local function managerBonus(plot)
 	for _, a in pairs(actors) do
-		if a.role == "staff_manager" then
+		if a.plot == plot and a.role == "staff_manager" then
 			return GameConfig.ManagerSpeedBonus
 		end
 	end
@@ -26,7 +29,7 @@ local function managerBonus()
 end
 
 local function speed(a)
-	return Formulas.staffSpeed(a.lvl, GameConfig.StaffSpeedPerLevel, managerBonus())
+	return Formulas.staffSpeed(a.lvl, GameConfig.StaffSpeedPerLevel, managerBonus(a.plot))
 end
 
 local function walk(a, pos)
@@ -38,7 +41,7 @@ local function walk(a, pos)
 end
 
 local function idleAt(a)
-	local home = HOME[(a.index % #HOME) + 1]
+	local home = homeOf(a)
 	if a.npc.root and (a.npc.root.Position - home).Magnitude > 4 then
 		walk(a, home)
 	end
@@ -50,10 +53,10 @@ local function dropHands(a)
 	local h = Hands.get(a)
 	if h.kind == "box" then
 		for _, b in ipairs(h.items) do
-			Core.S.Supply.returnBox(b)
+			Core.S.Supply.returnBox(a.plot, b)
 		end
 	elseif h.kind == "dish" or h.kind == "dirty" then
-		Core.S.Appliance.addDirtyToSink(#h.items)
+		Core.S.Appliance.addDirtyToSink(a.plot, #h.items)
 	end
 	Hands.clear(a)
 end
@@ -67,7 +70,7 @@ end
 ------------------------------------------------------------------ jobs
 
 local function doOrder(a)
-	local c = Tasks.findOrder()
+	local c = Tasks.findOrder(a.plot)
 	if not c or not Tasks.claim(c, a) then
 		return false
 	end
@@ -82,7 +85,7 @@ end
 
 local function deliverDish(a, recipeId)
 	-- find a waiting customer for the dish in hand
-	for _, c in ipairs(Core.S.Customers.list("waiting")) do
+	for _, c in ipairs(Core.S.Customers.list(a.plot, "waiting")) do
 		if c.order == recipeId and Tasks.claim(c, a) then
 			walk(a, Tasks.nearCustomer(c))
 			local e = customerEntity(c)
@@ -100,7 +103,7 @@ local function deliverDish(a, recipeId)
 end
 
 local function doServe(a)
-	local station, c = Tasks.findServe()
+	local station, c = Tasks.findServe(a.plot)
 	if not station then
 		return false
 	end
@@ -124,9 +127,9 @@ local function doServe(a)
 	return true
 end
 
-local function nearestOf(kind, pos)
+local function nearestOf(plot, kind, pos)
 	local best, bestD = nil, math.huge
-	for _, e in ipairs(Core.S.Entities.ofKind(kind)) do
+	for _, e in ipairs(Core.S.Entities.ofKind(kind, plot)) do
 		local p = Core.S.Entities.position(e)
 		local dd = (p - pos).Magnitude
 		if dd < bestD then
@@ -139,7 +142,7 @@ end
 local function washHeld(a)
 	local Appliance = Core.S.Appliance
 	local pos = a.npc.root and a.npc.root.Position or Vector3.new()
-	local washer = nearestOf("dishwasher", pos)
+	local washer = nearestOf(a.plot, "dishwasher", pos)
 	if washer then
 		walk(a, Tasks.frontOf(washer))
 		Appliance.useDishwasher(a, washer)
@@ -147,11 +150,11 @@ local function washHeld(a)
 	end
 	local hasDishwasherStaff = false
 	for _, other in pairs(actors) do
-		if other.role == "staff_dishwasher" and other ~= a then
+		if other.plot == a.plot and other.role == "staff_dishwasher" and other ~= a then
 			hasDishwasherStaff = true
 		end
 	end
-	local sink = nearestOf("sink", pos)
+	local sink = nearestOf(a.plot, "sink", pos)
 	if not sink then
 		return dropHands(a)
 	end
@@ -159,14 +162,14 @@ local function washHeld(a)
 	if hasDishwasherStaff and a.role ~= "staff_dishwasher" then
 		local n = Core.S.Hands.count(a)
 		Core.S.Hands.clear(a)
-		Appliance.addDirtyToSink(n)
+		Appliance.addDirtyToSink(a.plot, n)
 	else
 		Appliance.useSink(a, sink, speed(a))
 	end
 end
 
 local function doCollect(a)
-	local e = Tasks.findDirty()
+	local e = Tasks.findDirty(a.plot)
 	if not e or not Tasks.claim(e, a) then
 		return false
 	end
@@ -178,7 +181,7 @@ local function doCollect(a)
 	-- grab more while there is room, then wash
 	local Hands = Core.S.Hands
 	while Hands.count(a) < Hands.capacity(a, "dirty") do
-		local nxt = Tasks.findDirty()
+		local nxt = Tasks.findDirty(a.plot)
 		if not nxt or not Tasks.claim(nxt, a) then
 			break
 		end
@@ -196,10 +199,10 @@ end
 
 local function doWash(a)
 	local Appliance = Core.S.Appliance
-	if Appliance.sinkPile() <= 0 or #Core.S.Entities.ofKind("dishwasher") > 0 then
+	if Appliance.sinkPile(a.plot) <= 0 or #Core.S.Entities.ofKind("dishwasher", a.plot) > 0 then
 		return false
 	end
-	local sink = nearestOf("sink", a.npc.root.Position)
+	local sink = nearestOf(a.plot, "sink", a.npc.root.Position)
 	if not sink or not Tasks.claim(sink, a) then
 		return false
 	end
@@ -214,7 +217,7 @@ local function carryBoxTo(a, box, targetEntity, useFn)
 	if not Tasks.claim(box, a) then
 		return false
 	end
-	local _, boxEntity = Supply.findBox(box.g)
+	local _, boxEntity = Supply.findBox(a.plot, box.g)
 	local boxModel = boxEntity and boxEntity.model
 	if boxModel then
 		walk(a, boxModel:GetPivot().Position)
@@ -237,7 +240,7 @@ local function carryBoxTo(a, box, targetEntity, useFn)
 end
 
 local function doRestock(a)
-	local box, g = Tasks.findRestock()
+	local box, g = Tasks.findRestock(a.plot)
 	if not box then
 		return false
 	end
@@ -245,14 +248,14 @@ local function doRestock(a)
 	local ing = Ingredients.byId[g]
 	-- target shelf: neta case for fish when available
 	local target = nil
-	for _, e in ipairs(Core.S.Entities.ofKind("shelf")) do
+	for _, e in ipairs(Core.S.Entities.ofKind("shelf", a.plot)) do
 		if ing.storage == "fish" and e.item.fn.fishOnly then
 			target = e
 			break
 		end
 	end
 	if not target then
-		for _, e in ipairs(Core.S.Entities.ofKind("shelf")) do
+		for _, e in ipairs(Core.S.Entities.ofKind("shelf", a.plot)) do
 			if not e.item.fn.fishOnly then
 				target = e
 				break
@@ -274,7 +277,7 @@ local function doRestock(a)
 end
 
 local function doRefill(a, kinds)
-	local e, box = Tasks.findRefill(kinds)
+	local e, box = Tasks.findRefill(a.plot, kinds)
 	if not e or not Tasks.claim(e, a) then
 		return false
 	end
@@ -286,7 +289,7 @@ local function doRefill(a, kinds)
 end
 
 local function doCook(a)
-	local t, recipe, station = Tasks.findCook(a.cfg.stations or {})
+	local t, recipe, station = Tasks.findCook(a.plot, a.cfg.stations or {})
 	if not t then
 		return false
 	end
@@ -313,7 +316,7 @@ local function doCook(a)
 	-- serve it ourselves when there are no waiters
 	local hasWaiter = false
 	for _, other in pairs(actors) do
-		if other.role == "staff_waiter" then
+		if other.plot == a.plot and other.role == "staff_waiter" then
 			hasWaiter = true
 		end
 	end
@@ -368,7 +371,7 @@ end
 
 ------------------------------------------------------------------ actors
 
-local function spawnActor(record, index)
+local function spawnActor(plot, record, index)
 	local cfg = StaffCfg.byId[record.role]
 	if not cfg then
 		return
@@ -379,12 +382,13 @@ local function spawnActor(record, index)
 		return
 	end
 	npc.isStaff = true
-	local a = { uid = record.u, role = record.role, cfg = cfg, lvl = record.lvl or 1, name = record.name, npc = npc, model = npc.model, alive = true, index = index, record = record }
+	local a = { uid = record.u, role = record.role, cfg = cfg, lvl = record.lvl or 1, name = record.name, npc = npc, model = npc.model, alive = true, index = index, record = record, plot = plot }
 	actors[record.u] = a
 	npc.model:SetAttribute("StaffName", record.name)
 	npc.model:SetAttribute("StaffRole", record.role)
 	npc.model:SetAttribute("StaffLevel", a.lvl)
-	Core.S.Npc.spawn(npc, CFrame.new(HOME[(index % #HOME) + 1] + Vector3.new(0, 3, 0)))
+	npc.model:SetAttribute("PlotId", plot.id)
+	Core.S.Npc.spawn(npc, CFrame.new(homeOf(a) + Vector3.new(0, 3, 0)))
 	task.spawn(function()
 		while a.alive do
 			-- the restaurant is always open: staff always work
@@ -417,21 +421,37 @@ local function despawnActor(uid)
 	actors[uid] = nil
 end
 
-function Staff.spawnAll(d)
-	for uid in pairs(actors) do
-		despawnActor(uid)
-	end
-	for i, rec in ipairs(d.staff) do
-		spawnActor(rec, i)
+local function despawnPlot(plot)
+	for uid, a in pairs(actors) do
+		if a.plot == plot then
+			despawnActor(uid)
+		end
 	end
 end
 
+function Staff.spawnAll(plot, d)
+	despawnPlot(plot)
+	for i, rec in ipairs(d.staff) do
+		spawnActor(plot, rec, i)
+	end
+end
+
+-- the restaurant a player manages right now (hiring, training, firing)
+local function managed(player)
+	local Plots = Core.S.Plots
+	local plot = Plots.of(player)
+	if plot and Plots.canBuild(player, plot) then
+		return plot, Plots.data(plot)
+	end
+	return nil
+end
+
 local function hire(player, role)
-	local Session, Net, Economy = Core.S.Session, Core.S.Net, Core.S.Economy
-	if not Session.canBuild(player) then
+	local Net, Economy = Core.S.Net, Core.S.Economy
+	local plot, d = managed(player)
+	if not plot then
 		return Net.notify(player, "msg.no_permission", nil, "error")
 	end
-	local d = data()
 	local cfg = StaffCfg.byId[role]
 	if not d or not cfg then
 		return
@@ -449,23 +469,23 @@ local function hire(player, role)
 			end
 		end
 	end
-	if not Economy.spend(Session.owner, cfg.hire, "build", "staff:" .. cfg.id) then
+	if not Economy.spend(plot.owner, cfg.hire, "build", "staff:" .. cfg.id) then
 		return Net.notify(player, "msg.not_enough", nil, "error")
 	end
 	local rec = { u = Uid.new("s"), role = role, lvl = 1, name = StaffCfg.Names[math.random(1, #StaffCfg.Names)] }
 	table.insert(d.staff, rec)
-	spawnActor(rec, #d.staff)
-	Core.S.Data.changed(Session.owner, "staff")
-	Net.notifyAll("msg.staff_hired", { name = rec.name, role = "staff." .. role }, "success")
-	Core.S.Meta.event(Session.owner, "staff", 1)
+	spawnActor(plot, rec, #d.staff)
+	Core.S.Data.changed(plot.owner, "staff")
+	Core.S.Plots.notify(plot, "msg.staff_hired", { name = rec.name, role = "staff." .. role }, "success")
+	Core.S.Meta.event(plot.owner, "staff", 1)
 end
 
 local function train(player, uid)
-	local Session, Net, Economy = Core.S.Session, Core.S.Net, Core.S.Economy
-	if not Session.canBuild(player) then
+	local Net, Economy = Core.S.Net, Core.S.Economy
+	local plot, d = managed(player)
+	if not plot then
 		return
 	end
-	local d = data()
 	for _, rec in ipairs(d.staff) do
 		if rec.u == uid then
 			if rec.lvl >= StaffCfg.MaxTrainLevel then
@@ -473,7 +493,7 @@ local function train(player, uid)
 			end
 			local cfg = StaffCfg.byId[rec.role]
 			local cost = Formulas.staffTrainCost(cfg.hire, rec.lvl + 1)
-			if not Economy.spend(Session.owner, cost, "build", "train") then
+			if not Economy.spend(plot.owner, cost, "build", "train") then
 				return Net.notify(player, "msg.not_enough", nil, "error")
 			end
 			rec.lvl += 1
@@ -482,23 +502,22 @@ local function train(player, uid)
 				a.lvl = rec.lvl
 				a.model:SetAttribute("StaffLevel", rec.lvl)
 			end
-			Core.S.Data.changed(Session.owner, "staff")
+			Core.S.Data.changed(plot.owner, "staff")
 			return Net.notify(player, "msg.staff_trained", { name = rec.name, level = rec.lvl }, "success")
 		end
 	end
 end
 
 local function fire(player, uid)
-	local Session = Core.S.Session
-	if not Session.canBuild(player) then
+	local plot, d = managed(player)
+	if not plot then
 		return
 	end
-	local d = data()
 	for i, rec in ipairs(d.staff) do
 		if rec.u == uid then
 			table.remove(d.staff, i)
 			despawnActor(uid)
-			Core.S.Data.changed(Session.owner, "staff")
+			Core.S.Data.changed(plot.owner, "staff")
 			return
 		end
 	end
@@ -525,11 +544,15 @@ function Staff.Init()
 end
 
 function Staff.Start()
-	Core.S.Session.OwnerReady:Connect(function(_, d)
+	local Plots = Core.S.Plots
+	Plots.Claimed:Connect(function(plot, _, d)
 		task.delay(2, function()
-			Staff.spawnAll(d)
+			if plot.owner and Plots.data(plot) == d then
+				Staff.spawnAll(plot, d)
+			end
 		end)
 	end)
+	Plots.Released:Connect(despawnPlot)
 end
 
 return Staff

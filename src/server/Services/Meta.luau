@@ -257,6 +257,10 @@ function Meta.Init()
 		camSpeed = function(v)
 			return type(v) == "number" and v >= 0.3 and v <= 2
 		end,
+		-- who may help in your restaurant: "friends" or "everyone"
+		coop = function(v)
+			return v == "friends" or v == "everyone"
+		end,
 	}
 	Net.on("SetSetting", function(player, key, value)
 		local d = Core.S.Data.get(player)

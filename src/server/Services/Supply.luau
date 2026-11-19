@@ -13,16 +13,20 @@ local Footprint = require(Shared.Logic.Footprint)
 local ShelfGrid = require(Shared.Logic.ShelfGrid)
 local Registry = require(Shared.Models.Registry)
 local Uid = require(Shared.Util.Uid)
+local PlotsCfg = require(Shared.Config.Plots)
 local Core = require(script.Parent.Parent.Core)
 
 local Supply = {}
 local boxModels = {} -- [boxUid] = entity
 local slotVisuals = {} -- [shelfUid .. "#" .. slot] = { holder, g, cols, rows, cells = { [k] = { kind, inst } } }
-local pending = {} -- deliveries { t, boxes }
-local truckBusy = false
+-- per restaurant: plot.supply = { pending = { {t, boxes} }, truckBusy }
+local function sup(plot)
+	plot.supply = plot.supply or { pending = {}, truckBusy = false }
+	return plot.supply
+end
 
-local function data()
-	return Core.S.Session.ownerData()
+local function pdata(plot)
+	return Core.S.Plots.data(plot)
 end
 
 local function ingUnlocked(d, ing)
@@ -40,12 +44,12 @@ end
 
 -- Product grid of one slot for ingredient g (Logic/ShelfGrid): half a supplier box laid out like
 -- a chessboard, plus rows from the shelf upgrade. A box therefore fills at most two slots.
-function Supply.slotGrid(g)
+function Supply.slotGrid(plot, g)
 	local ing = Ingredients.byId[g]
 	if not ing then
 		return 1, 1
 	end
-	local d = data()
+	local d = pdata(plot)
 	local mult = d and Upgrades.value(d.upgrades, "up_shelf") or 1
 	return ShelfGrid.forIngredient(ing.units, GameConfig.BoxShelfSlots, mult)
 end
@@ -54,7 +58,7 @@ function Supply.slotCap(entity, g)
 	if not Ingredients.byId[g] then
 		return 0
 	end
-	local cols, rows = Supply.slotGrid(g)
+	local cols, rows = Supply.slotGrid(entity and entity.plot, g)
 	return cols * rows
 end
 
@@ -62,9 +66,9 @@ end
 
 local chooseSlot, shelfState
 
-local function rackSlots()
+local function rackSlots(plot)
 	local slots = {}
-	local racks = Core.S.Entities.ofKind("rack")
+	local racks = Core.S.Entities.ofKind("rack", plot)
 	table.sort(racks, function(a, b)
 		return a.uid < b.uid
 	end)
@@ -79,8 +83,9 @@ local function rackSlots()
 	return slots
 end
 
-local function overflowSlots()
-	local d = data()
+local function overflowSlots(plot)
+	local d = pdata(plot)
+	local o = plot.origin
 	local slots = {}
 	local World = Core.S.World
 	local blocked = {}
@@ -90,12 +95,12 @@ local function overflowSlots()
 			table.insert(blocked, Footprint.inflate(Footprint.new(e.x, e.z, item.size[1], item.size[3], e.r), 0.6))
 		end
 	end
-	for _, fx in ipairs(World.fixedRects()) do
+	for _, fx in ipairs(World.fixedRects(plot)) do
 		table.insert(blocked, Footprint.rectToFp(fx.rect))
 	end
 	local dz = Expansions.DropZone
 	table.insert(blocked, Footprint.rectToFp({ dz.x0, dz.z0, dz.x1, dz.z1 }))
-	for _, z in ipairs(World.zones) do
+	for _, z in ipairs(World.geo(plot).zones) do
 		if z.area == "storage" then
 			local r = z.rect
 			for x = r[1] + 1.6, r[3] - 1.6, 2.2 do
@@ -110,7 +115,7 @@ local function overflowSlots()
 					end
 					if free then
 						for level = 0, 1 do
-							table.insert(slots, CFrame.new(x, 0.65 + level * 1.32, zz))
+							table.insert(slots, CFrame.new(x + o.X, 0.65 + level * 1.32, zz + o.Z))
 						end
 					end
 				end
@@ -151,8 +156,8 @@ local function freeDropSpot(d)
 end
 
 -- boxes the restaurant can hold: rack slots in the storage room plus the drop zone outside
-function Supply.capacity()
-	return #rackSlots() + #dropSpots()
+function Supply.capacity(plot)
+	return #rackSlots(plot) + #dropSpots()
 end
 
 local function boxModel(entry)
@@ -160,13 +165,16 @@ local function boxModel(entry)
 	return m
 end
 
-function Supply.layout()
-	local d = data()
+-- draws the boxes of a restaurant: on the racks, on the floor where they were left (positions
+-- are saved in restaurant-local coordinates), the rest in free storage spots
+function Supply.layout(plot)
+	local d = pdata(plot)
 	if not d then
 		return
 	end
-	local slots = rackSlots()
-	for _, s in ipairs(overflowSlots()) do
+	local o = plot.origin
+	local slots = rackSlots(plot)
+	for _, s in ipairs(overflowSlots(plot)) do
 		table.insert(slots, s)
 	end
 	local idx = 0
@@ -194,16 +202,16 @@ function Supply.layout()
 			if entry.px then
 				-- box on the floor (left by the truck or put down by a player): it stays exactly there
 				local y = Core.S.World.floorY(entry.pf or 0) + 0.65 + (level[entry] or 0) * 1.32
-				cf = CFrame.new(entry.px, y, entry.pz) * CFrame.Angles(0, math.rad(entry.pr or 0), 0)
+				cf = CFrame.new(entry.px + o.X, y, entry.pz + o.Z) * CFrame.Angles(0, math.rad(entry.pr or 0), 0)
 			else
 				idx += 1
-				cf = slots[idx] or CFrame.new(Expansions.LoadingBay.x, 0.65 + idx * 0.05, Expansions.LoadingBay.z)
+				cf = slots[idx] or CFrame.new(Expansions.LoadingBay.x + o.X, 0.65 + idx * 0.05, Expansions.LoadingBay.z + o.Z)
 			end
 			local e = boxModels[entry.u]
 			if not e then
 				local m = boxModel(entry)
-				m.Parent = Core.S.World.folders().dynamic
-				e = Core.S.Entities.register(entry.u, "box", m, { box = entry })
+				m.Parent = Core.S.World.folders(plot).dynamic
+				e = Core.S.Entities.register(entry.u, "box", m, { box = entry, plot = plot })
 				boxModels[entry.u] = e
 			end
 			e.model:PivotTo(cf)
@@ -211,7 +219,7 @@ function Supply.layout()
 		end
 	end
 	for uid, e in pairs(boxModels) do
-		if not keep[uid] then
+		if e.plot == plot and not keep[uid] then
 			Core.S.Entities.unregister(uid)
 			if e.model then
 				e.model:Destroy()
@@ -239,8 +247,8 @@ local function updateBoxLabel(entry)
 	end
 end
 
-function Supply.returnBox(entry)
-	local d = data()
+function Supply.returnBox(plot, entry)
+	local d = pdata(plot)
 	if not d then
 		return
 	end
@@ -253,20 +261,23 @@ function Supply.returnBox(entry)
 			end
 		end
 	end
-	Supply.layout()
-	Core.S.Data.changed(Core.S.Session.owner, "storage")
+	Supply.layout(plot)
+	Core.S.Data.changed(plot.owner, "storage")
 end
 
-function Supply.removeBox(entry)
-	local d = data()
+function Supply.removeBox(plot, entry)
+	local d = pdata(plot)
+	if not d then
+		return
+	end
 	for i, b in ipairs(d.storage) do
 		if b.u == entry.u then
 			table.remove(d.storage, i)
 			break
 		end
 	end
-	Supply.layout()
-	Core.S.Data.changed(Core.S.Session.owner, "storage")
+	Supply.layout(plot)
+	Core.S.Data.changed(plot.owner, "storage")
 end
 
 function Supply.takeBox(actor, e)
@@ -277,13 +288,13 @@ function Supply.takeBox(actor, e)
 	end
 	local entry = e.box
 	local pos = Core.S.Entities.position(e)
-	local ok, reason = Hands.add(actor, "box", entry)
+	local ok, reason = Hands.add(actor, "box", entry, e.plot)
 	if not ok then
 		return false, reason
 	end
 	entry.h = true
 	entry.px, entry.pz, entry.pf, entry.pr, entry.pl = nil, nil, nil, nil, nil
-	Supply.layout()
+	Supply.layout(e.plot)
 	if pos then
 		Core.S.Net.fx("sfx", { name = "box", pos = pos })
 	end
@@ -292,16 +303,19 @@ end
 
 -- Puts a held box down: on a free rack slot when a rack is close, otherwise on the floor in front
 -- of the actor. Returns "rack" or "floor".
-function Supply.dropBox(entry, pos, look, floor)
+function Supply.dropBox(plot, entry, pos, look, floor)
 	entry.h = nil
 	Core.S.Net.fx("sfx", { name = "box", pos = pos })
 	if entry.n <= 0 then
-		Supply.returnBox(entry)
+		Supply.returnBox(plot, entry)
 		return "gone"
 	end
-	local d = data()
+	local d = pdata(plot)
+	if not d then
+		return "gone"
+	end
 	local nearRack = false
-	for _, r in ipairs(Core.S.Entities.ofKind("rack")) do
+	for _, r in ipairs(Core.S.Entities.ofKind("rack", plot)) do
 		if r.model and r.model.PrimaryPart and (r.model.PrimaryPart.Position - pos).Magnitude < 9 then
 			nearRack = true
 		end
@@ -312,39 +326,41 @@ function Supply.dropBox(entry, pos, look, floor)
 			onRacks += 1
 		end
 	end
-	if nearRack and onRacks < #rackSlots() then
+	if nearRack and onRacks < #rackSlots(plot) then
 		entry.px, entry.pz, entry.pf, entry.pr = nil, nil, nil, nil
-		Supply.layout()
-		Core.S.Data.changed(Core.S.Session.owner, "storage")
+		Supply.layout(plot)
+		Core.S.Data.changed(plot.owner, "storage")
 		return "rack"
 	end
-	local target = pos + look * 3
+	-- saved in restaurant-local coordinates
+	local o = plot.origin
+	local target = pos + look * 3 - o
 	local World = Core.S.World
-	if not World.zoneAt(target.X, target.Z, floor or 0) then
-		target = pos
+	if not World.zoneAt(plot, target.X, target.Z, floor or 0) then
+		target = pos - o
 	end
 	entry.px, entry.pz, entry.pf = math.floor(target.X * 10) / 10, math.floor(target.Z * 10) / 10, floor or 0
 	entry.pr = math.floor(math.deg(math.atan2(-look.X, -look.Z)))
 	entry.pl = 9 -- on top of anything already there
-	Supply.layout()
-	Core.S.Data.changed(Core.S.Session.owner, "storage")
+	Supply.layout(plot)
+	Core.S.Data.changed(plot.owner, "storage")
 	return "floor"
 end
 
 -- Puts one ingredient back on the nearest shelf that can take it. Returns the shelf or nil.
-function Supply.returnIngredient(g, pos)
+function Supply.returnIngredient(plot, g, pos)
 	local ing = Ingredients.byId[g]
 	if not ing then
 		return nil
 	end
 	local best, bestSlot, bestD = nil, nil, math.huge
-	for _, e in ipairs(Core.S.Entities.ofKind("shelf")) do
+	for _, e in ipairs(Core.S.Entities.ofKind("shelf", plot)) do
 		if not (e.item.fn.fishOnly and ing.storage ~= "fish") and e.model and e.model.PrimaryPart then
 			local slot = chooseSlot(e, g, nil)
 			if slot then
 				local dist = (e.model.PrimaryPart.Position - pos).Magnitude
 				-- prefer a slot that already holds this ingredient
-				local st = shelfState(e.uid)[tostring(slot)]
+				local st = shelfState(e)[tostring(slot)]
 				if st and st.g == g then
 					dist -= 1000
 				end
@@ -357,7 +373,7 @@ function Supply.returnIngredient(g, pos)
 	if not best then
 		return nil
 	end
-	local st = shelfState(best.uid)
+	local st = shelfState(best)
 	local s = st[tostring(bestSlot)]
 	if not s or s.n == 0 then
 		s = { g = g, n = 0 }
@@ -365,12 +381,15 @@ function Supply.returnIngredient(g, pos)
 	end
 	s.n += 1
 	Supply.refreshShelf(best)
-	Core.S.Data.changed(Core.S.Session.owner, "shelves")
+	Core.S.Data.changed(plot.owner, "shelves")
 	return best
 end
 
-function Supply.findBox(g)
-	local d = data()
+function Supply.findBox(plot, g)
+	local d = pdata(plot)
+	if not d then
+		return nil
+	end
 	for _, entry in ipairs(d.storage) do
 		if entry.g == g and not entry.h and entry.n > 0 then
 			return entry, boxModels[entry.u]
@@ -379,9 +398,12 @@ function Supply.findBox(g)
 	return nil
 end
 
-function Supply.boxCount(g)
-	local d = data()
+function Supply.boxCount(plot, g)
+	local d = pdata(plot)
 	local n, portions = 0, 0
+	if not d then
+		return 0, 0
+	end
 	for _, entry in ipairs(d.storage) do
 		if entry.g == g then
 			n += 1
@@ -393,10 +415,14 @@ end
 
 ------------------------------------------------------------------ shelves
 
-function shelfState(uid)
-	local d = data()
-	d.shelves[uid] = d.shelves[uid] or {}
-	return d.shelves[uid]
+-- the slots of a shelf entity: { ["slot"] = { g, n } } (saved in its restaurant's data)
+function shelfState(e)
+	local d = pdata(e.plot)
+	if not d then
+		return {}
+	end
+	d.shelves[e.uid] = d.shelves[e.uid] or {}
+	return d.shelves[e.uid]
 end
 
 -- how big a product is drawn in a cell (fits the cell, never bigger than ShelfItemScale)
@@ -468,14 +494,14 @@ function Supply.cellTarget(e, slot, k, g)
 	if not part then
 		return nil
 	end
-	local cols, rows = Supply.slotGrid(g)
+	local cols, rows = Supply.slotGrid(e.plot, g)
 	local floorCf, cw, cd = cellFloor(part, k, cols, rows)
 	local scale, turned = productFit(g, cw, cd, part.Size.Y)
 	return { g = g, cf = floorCf, s = scale, rot = turned }
 end
 
 local function refreshSlot(e, slot)
-	local st = shelfState(e.uid)
+	local st = shelfState(e)
 	local part = e.model:FindFirstChild("Slot" .. slot)
 	local key = e.uid .. "#" .. slot
 	local cur = slotVisuals[key]
@@ -493,7 +519,7 @@ local function refreshSlot(e, slot)
 		end
 		return
 	end
-	local cols, rows = Supply.slotGrid(g)
+	local cols, rows = Supply.slotGrid(e.plot, g)
 	if not cur or cur.g ~= g or cur.cols ~= cols or cur.rows ~= rows or not cur.holder.Parent then
 		if cur then
 			cur.holder:Destroy()
@@ -546,10 +572,10 @@ local function handPos(actor)
 end
 Supply.handPos = handPos
 
-function Supply.shelfStock(g)
+function Supply.shelfStock(plot, g)
 	local total = 0
-	for _, e in ipairs(Core.S.Entities.ofKind("shelf")) do
-		for _, s in pairs(shelfState(e.uid)) do
+	for _, e in ipairs(Core.S.Entities.ofKind("shelf", plot)) do
+		for _, s in pairs(shelfState(e)) do
 			if s.g == g then
 				total += s.n
 			end
@@ -561,12 +587,12 @@ end
 -- Takes one product of ingredient g from the shelf slot nearest to pos (stations fetch their
 -- ingredients by themselves). Returns where the product stood (for the fly animation) and whether
 -- it was fresh (neta case), or nil when there is none on the shelves.
-function Supply.takeIngredient(g, pos)
-	local shelf, slot = Supply.findShelfWith(g, pos)
+function Supply.takeIngredient(plot, g, pos)
+	local shelf, slot = Supply.findShelfWith(plot, g, pos)
 	if not shelf then
 		return nil
 	end
-	local st = shelfState(shelf.uid)
+	local st = shelfState(shelf)
 	local s = st[tostring(slot)]
 	if not s or s.n <= 0 then
 		return nil
@@ -577,16 +603,16 @@ function Supply.takeIngredient(g, pos)
 		st[tostring(slot)] = nil
 	end
 	Supply.refreshShelf(shelf, slot)
-	Core.S.Data.changed(Core.S.Session.owner, "shelves")
+	Core.S.Data.changed(plot.owner, "shelves")
 	local from = target and target.cf and target.cf.Position or shelf.model.PrimaryPart.Position
 	return from, shelf.item.fn.fresh == true
 end
 
 -- Nearest shelf slot holding ingredient g (for staff)
-function Supply.findShelfWith(g, pos)
+function Supply.findShelfWith(plot, g, pos)
 	local best, bestSlot, bestD = nil, nil, math.huge
-	for _, e in ipairs(Core.S.Entities.ofKind("shelf")) do
-		for slot, s in pairs(shelfState(e.uid)) do
+	for _, e in ipairs(Core.S.Entities.ofKind("shelf", plot)) do
+		for slot, s in pairs(shelfState(e)) do
 			if s.g == g and s.n > 0 then
 				local p = e.model.PrimaryPart.Position
 				local dist = pos and (p - pos).Magnitude or 0
@@ -600,7 +626,7 @@ function Supply.findShelfWith(g, pos)
 end
 
 function chooseSlot(e, g, requested)
-	local st = shelfState(e.uid)
+	local st = shelfState(e)
 	local cap = Supply.slotCap(e, g)
 	local slots = e.item.fn.slots
 	if requested and requested >= 1 and requested <= slots then
@@ -628,7 +654,10 @@ end
 function Supply.useShelf(actor, e, slot)
 	local Hands = Core.S.Hands
 	local hands = Hands.get(actor)
-	local st = shelfState(e.uid)
+	local st = shelfState(e)
+	if hands.kind and hands.plot and hands.plot ~= e.plot then
+		return false, "msg.other_restaurant"
+	end
 	if hands.kind == "box" then
 		-- with a cart you may hold several boxes: use one that fits this shelf, preferring the
 		-- ingredient of the clicked slot
@@ -696,7 +725,7 @@ function Supply.useShelf(actor, e, slot)
 		end
 		local left = entry.n
 		if entry.n <= 0 then
-			Supply.removeBox(entry)
+			Supply.removeBox(e.plot, entry)
 			Hands.removeAt(actor, index)
 		else
 			Hands.refresh(actor)
@@ -724,8 +753,8 @@ function Supply.useShelf(actor, e, slot)
 				part:SetAttribute("N", s.n)
 			end
 		end
-		Core.S.Data.changed(Core.S.Session.owner, "shelves")
-		Core.S.Meta.event(Core.S.Session.owner, "restock", 1)
+		Core.S.Data.changed(e.plot.owner, "shelves")
+		Core.S.Meta.event(e.plot.owner, "restock", 1)
 		Core.S.Net.fx("sfx", { name = "restock", pos = e.model.PrimaryPart.Position })
 		return true
 	elseif typeof(actor) == "Instance" and hands.kind == nil then
@@ -745,7 +774,7 @@ function Supply.useShelf(actor, e, slot)
 		if not s or s.n <= 0 then
 			return false, "msg.shelf_empty"
 		end
-		local ok, reason = Hands.add(actor, "ing", { g = s.g, fresh = e.item.fn.fresh == true })
+		local ok, reason = Hands.add(actor, "ing", { g = s.g, fresh = e.item.fn.fresh == true }, e.plot)
 		if not ok then
 			return false, reason
 		end
@@ -759,7 +788,7 @@ function Supply.useShelf(actor, e, slot)
 			st[tostring(slot)] = nil
 		end
 		Supply.refreshShelf(e, slot)
-		Core.S.Data.changed(Core.S.Session.owner, "shelves")
+		Core.S.Data.changed(e.plot.owner, "shelves")
 		return true
 	end
 	return false, "msg.hands_busy"
@@ -772,13 +801,15 @@ local function deliveryTime()
 	return 0
 end
 
-function Supply.order(player, cart)
-	local Session, Net = Core.S.Session, Core.S.Net
-	if not Session.canBuild(player) then
+-- orders boxes for the restaurant the player manages (staff restock orders pass the plot)
+function Supply.order(player, cart, forPlot)
+	local Plots, Net = Core.S.Plots, Core.S.Net
+	local plot = forPlot or Plots.of(player)
+	if not plot or not Plots.canBuild(player, plot) then
 		return Net.notify(player, "msg.no_permission", nil, "error")
 	end
-	local d = data()
-	if type(cart) ~= "table" then
+	local d = pdata(plot)
+	if not d or type(cart) ~= "table" then
 		return
 	end
 	local discount = Upgrades.value(d.upgrades, "up_supplier")
@@ -803,28 +834,30 @@ function Supply.order(player, cart)
 		return
 	end
 	local queued = 0
-	for _, p in ipairs(pending) do
+	for _, p in ipairs(sup(plot).pending) do
 		queued += #p.boxes
 	end
-	if #d.storage + queued + #boxes > Supply.capacity() then
-		return Net.notify(player, "msg.storage_full", { n = Supply.capacity() }, "error")
+	if #d.storage + queued + #boxes > Supply.capacity(plot) then
+		return Net.notify(player, "msg.storage_full", { n = Supply.capacity(plot) }, "error")
 	end
-	if not Core.S.Economy.spend(Session.owner, total, "supplies") then
+	if not Core.S.Economy.spend(plot.owner, total, "supplies", "supplies") then
 		return Net.notify(player, "msg.not_enough", nil, "error")
 	end
-	table.insert(pending, { t = os.clock() + deliveryTime(), boxes = boxes })
-	Net.notifyAll("msg.order_placed", { n = #boxes, seconds = math.floor(deliveryTime()) }, "success")
+	table.insert(sup(plot).pending, { t = os.clock() + deliveryTime(), boxes = boxes })
+	Core.S.Plots.notify(plot, "msg.order_placed", { n = #boxes, seconds = math.floor(deliveryTime()) }, "success")
 	Net.fxTo(player, "action", { kind = "order" })
 	return true
 end
 
-local function animateTruck(onArrive)
-	local folders = Core.S.World.folders()
+local function animateTruck(plot, onArrive)
+	local folders = Core.S.World.folders(plot)
 	local truck = Registry.Street.truck()
 	truck.Parent = folders.dynamic
-	local bay = Expansions.LoadingBay
+	local o = plot.origin
+	local reach = PlotsCfg.StreetReach
+	local bay = { x = Expansions.LoadingBay.x + o.X, z = Expansions.LoadingBay.z + o.Z }
 	local lane = Expansions.Street.truckLane
-	local startCf = CFrame.new(Expansions.Street.reach, 2.1, lane) * CFrame.Angles(0, 0, 0)
+	local startCf = CFrame.new(reach, 2.1, lane) * CFrame.Angles(0, 0, 0)
 	local roadCf = CFrame.new(bay.x + 2, 2.1, lane)
 	-- backs into the bay: the cargo door faces the storage room
 	local bayCf = CFrame.new(bay.x, 2.1, bay.z) * CFrame.Angles(0, math.rad(-90), 0)
@@ -852,7 +885,7 @@ local function animateTruck(onArrive)
 	local t3 = TweenService:Create(value, TweenInfo.new(1.6, Enum.EasingStyle.Sine), { Value = CFrame.new(bay.x - 4, 2.1, lane) })
 	t3:Play()
 	t3.Completed:Wait()
-	local t4 = TweenService:Create(value, TweenInfo.new(7, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Value = CFrame.new(-Expansions.Street.reach, 2.1, lane) })
+	local t4 = TweenService:Create(value, TweenInfo.new(7, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Value = CFrame.new(-reach, 2.1, lane) })
 	t4:Play()
 	t4.Completed:Wait()
 	truck:Destroy()
@@ -862,7 +895,7 @@ end
 ------------------------------------------------------------------ rescue kit
 
 -- ingredients of recipe r that are nowhere (shelves, boxes, hands, pot, rice cooker)
-local function missingFor(d, r)
+local function missingFor(plot, d, r)
 	local need = table.clone(r.ing)
 	if r.broth then
 		table.insert(need, r.broth)
@@ -872,7 +905,7 @@ local function missingFor(d, r)
 	end
 	local missing = {}
 	for _, g in ipairs(need) do
-		local have = Supply.shelfStock(g) > 0
+		local have = Supply.shelfStock(plot, g) > 0
 		if not have then
 			for _, b in ipairs(d.storage) do
 				if b.g == g and b.n > 0 then
@@ -882,9 +915,9 @@ local function missingFor(d, r)
 			end
 		end
 		if not have and g == r.broth then
-			have = Core.S.Appliance.hasBroth(g) or Core.S.Appliance.willHave("pot", g)
+			have = Core.S.Appliance.hasBroth(plot, g) or Core.S.Appliance.willHave(plot, "pot", g)
 		elseif not have and g == "rice" then
-			have = Core.S.Appliance.hasRice() or Core.S.Appliance.willHave("ricecooker")
+			have = Core.S.Appliance.hasRice(plot) or Core.S.Appliance.willHave(plot, "ricecooker")
 		end
 		if not have then
 			table.insert(missing, g)
@@ -896,10 +929,11 @@ end
 -- Safety net: no dish of the menu can be made and there is not enough money to buy what is
 -- missing (spent it all on decorations, for example): the supplier sends a free kit for the
 -- cheapest dish, at most once every GameConfig.RescueCooldown seconds
-local function rescueCheck()
-	local d = data()
-	local owner = Core.S.Session.owner
-	if not d or not owner or truckBusy or #pending > 0 then
+local function rescueCheck(plot)
+	local d = pdata(plot)
+	local owner = plot.owner
+	local sp = sup(plot)
+	if not d or not owner or sp.truckBusy or #sp.pending > 0 then
 		return
 	end
 	if os.time() - (d.meta.rescueAt or 0) < (GameConfig.RescueCooldown or 600) then
@@ -909,7 +943,7 @@ local function rescueCheck()
 	for id, m in pairs(d.menu or {}) do
 		local r = Recipes.byId[id]
 		if r and m.on then
-			local missing = missingFor(d, r)
+			local missing = missingFor(plot, d, r)
 			if #missing == 0 then
 				return -- something can still be cooked
 			end
@@ -930,25 +964,26 @@ local function rescueCheck()
 		table.insert(boxes, { u = Uid.new("b"), g = g, n = Ingredients.byId[g].units })
 	end
 	d.meta.rescueAt = os.time()
-	table.insert(pending, { t = os.clock(), boxes = boxes })
+	table.insert(sp.pending, { t = os.clock(), boxes = boxes })
 	Core.S.Net.notify(owner, "msg.rescue_kit", nil, "success")
 end
 
-local function deliveryLoop()
-	while true do
-		task.wait(0.5)
-		if not truckBusy and #pending > 0 and pending[1].t <= os.clock() then
-			local batch = {}
-			while #pending > 0 and pending[1].t <= os.clock() + 2 do
-				local p = table.remove(pending, 1)
-				for _, b in ipairs(p.boxes) do
-					table.insert(batch, b)
-				end
+local function deliver(plot)
+	local sp = sup(plot)
+	if not sp.truckBusy and #sp.pending > 0 and sp.pending[1].t <= os.clock() then
+		local pending = sp.pending
+		local batch = {}
+		while #pending > 0 and pending[1].t <= os.clock() + 2 do
+			local p = table.remove(pending, 1)
+			for _, b in ipairs(p.boxes) do
+				table.insert(batch, b)
 			end
-			truckBusy = true
-			task.spawn(function()
-				local ok, err = pcall(animateTruck, function()
-					local d = data()
+		end
+		sp.truckBusy = true
+		task.spawn(function()
+			local o = plot.origin
+				local ok, err = pcall(animateTruck, plot, function()
+					local d = pdata(plot)
 					if d then
 						-- the driver puts the boxes down on the ground one by one
 						for _, b in ipairs(batch) do
@@ -957,35 +992,44 @@ local function deliveryLoop()
 								b.px, b.pz, b.pf, b.pr, b.pl = sp.x, sp.z, 0, 0, sp.l
 							end
 							table.insert(d.storage, b)
-							Supply.layout()
-							Core.S.Net.fx("sfx", { name = "box", pos = Vector3.new(b.px or Expansions.LoadingBay.x, 1, b.pz or Expansions.LoadingBay.z) })
+							Supply.layout(plot)
+							Core.S.Net.fx("sfx", { name = "box", pos = Vector3.new((b.px or Expansions.LoadingBay.x) + o.X, 1, (b.pz or Expansions.LoadingBay.z) + o.Z) })
 							task.wait(0.2)
 						end
-						Core.S.Data.changed(Core.S.Session.owner, "storage")
-						Core.S.Net.notifyAll("msg.delivery_arrived", { n = #batch }, "success")
+						Core.S.Data.changed(plot.owner, "storage")
+						Core.S.Plots.notify(plot, "msg.delivery_arrived", { n = #batch }, "success")
 					end
 				end)
 				if not ok then
 					warn("[Supply] truck: " .. tostring(err))
-					local d = data()
+					local d = pdata(plot)
 					if d then
 						for _, b in ipairs(batch) do
 							table.insert(d.storage, b)
 						end
-						Supply.layout()
+						Supply.layout(plot)
 					end
 				end
-				truckBusy = false
+				sp.truckBusy = false
 			end)
+	end
+end
+
+local function deliveryLoop()
+	while true do
+		task.wait(0.5)
+		for _, plot in ipairs(Core.S.Plots.list) do
+			if plot.owner then
+				deliver(plot)
+			end
 		end
 	end
 end
 
 -- Auto restock (upgrade + stocker): keeps at least one box of each menu ingredient
-local function autoRestock()
-	while true do
-		task.wait(GameConfig.AutoRestockCheck)
-		local d = data()
+local function autoRestockPlot(plot)
+	local d = pdata(plot)
+	do
 		if d and (d.upgrades.up_autorestock or 0) > 0 then
 			local hasStocker = false
 			for _, s in ipairs(d.staff) do
@@ -1009,14 +1053,25 @@ local function autoRestock()
 				local cart = {}
 				for g in pairs(needed) do
 					local ing = Ingredients.byId[g]
-					local boxes = Supply.boxCount(g)
-					if ing and boxes == 0 and Supply.shelfStock(g) < ing.units then
+					local boxes = Supply.boxCount(plot, g)
+					if ing and boxes == 0 and Supply.shelfStock(plot, g) < ing.units then
 						cart[g] = { small = 2 }
 					end
 				end
 				if next(cart) then
-					Supply.order(Core.S.Session.owner, cart)
+					Supply.order(plot.owner, cart, plot)
 				end
+			end
+		end
+	end
+end
+
+local function autoRestock()
+	while true do
+		task.wait(GameConfig.AutoRestockCheck)
+		for _, plot in ipairs(Core.S.Plots.list) do
+			if plot.owner then
+				pcall(autoRestockPlot, plot)
 			end
 		end
 	end
@@ -1028,17 +1083,18 @@ function Supply.Init()
 		Supply.order(player, cart)
 	end, 2)
 	Net.on("BuyDishes", function(player, count)
-		local Session = Core.S.Session
-		if not Session.canBuild(player) then
+		local Plots = Core.S.Plots
+		local plot = Plots.of(player)
+		if not plot or not Plots.canBuild(player, plot) then
 			return
 		end
-		local d = data()
+		local d = pdata(plot)
 		local n = math.clamp(math.floor(tonumber(count) or 1), 1, 10)
 		local cost = n * GameConfig.DishSetPrice
-		if Core.S.Economy.spend(Session.owner, cost, "supplies") then
+		if d and Core.S.Economy.spend(plot.owner, cost, "supplies", "dishes") then
 			d.dishes.total += n * GameConfig.DishSetSize
 			d.dishes.clean += n * GameConfig.DishSetSize
-			Core.S.Data.changed(Session.owner, "dishes")
+			Core.S.Data.changed(plot.owner, "dishes")
 			Net.notify(player, "msg.dishes_bought", { n = n * GameConfig.DishSetSize }, "success")
 		else
 			Net.notify(player, "msg.not_enough", nil, "error")
@@ -1049,24 +1105,32 @@ function Supply.Init()
 		if e.kind == "shelf" then
 			Supply.refreshShelf(e)
 		elseif e.kind == "rack" then
-			task.defer(Supply.layout)
+			task.defer(Supply.layout, e.plot)
 		end
 	end)
 	Placement.ItemMoved:Connect(function(e)
 		if e.kind == "shelf" then
 			Supply.refreshShelf(e)
 		elseif e.kind == "rack" then
-			task.defer(Supply.layout)
+			task.defer(Supply.layout, e.plot)
 		end
 	end)
 	Placement.ItemRemoved:Connect(function(e)
 		if e.kind == "rack" then
-			task.defer(Supply.layout)
+			task.defer(Supply.layout, e.plot)
+		elseif e.kind == "shelf" then
+			-- forget the drawn products of a shelf that is gone
+			for key, v in pairs(slotVisuals) do
+				if string.sub(key, 1, #e.uid + 1) == e.uid .. "#" then
+					v.holder:Destroy()
+					slotVisuals[key] = nil
+				end
+			end
 		end
 	end)
 	Placement.addVeto(function(e)
 		if e.kind == "shelf" then
-			for _, s in pairs(shelfState(e.uid)) do
+			for _, s in pairs(shelfState(e)) do
 				if s.n > 0 then
 					return false, "msg.empty_first"
 				end
@@ -1074,23 +1138,41 @@ function Supply.Init()
 		end
 		return true
 	end)
-	Placement.LayoutChanged:Connect(function()
-		task.defer(Supply.layout)
+	Placement.LayoutChanged:Connect(function(plot)
+		task.defer(Supply.layout, plot)
 	end)
 end
 
 function Supply.Start()
-	Core.S.Session.OwnerReady:Connect(function(_, d)
+	local Plots = Core.S.Plots
+	Plots.Claimed:Connect(function(plot, _, d)
 		for _, b in ipairs(d.storage) do
 			b.h = nil
 		end
-		task.delay(0.5, Supply.layout)
+		plot.supply = { pending = {}, truckBusy = false }
+		task.delay(0.5, Supply.layout, plot)
+	end)
+	Plots.Released:Connect(function(plot)
+		plot.supply = nil
+		for uid, e in pairs(boxModels) do
+			if e.plot == plot then
+				Core.S.Entities.unregister(uid)
+				if e.model then
+					e.model:Destroy()
+				end
+				boxModels[uid] = nil
+			end
+		end
 	end)
 	task.spawn(deliveryLoop)
 	task.spawn(function()
 		while true do
 			task.wait(15)
-			pcall(rescueCheck)
+			for _, plot in ipairs(Plots.list) do
+				if plot.owner then
+					pcall(rescueCheck, plot)
+				end
+			end
 		end
 	end)
 	task.spawn(autoRestock)

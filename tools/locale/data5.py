@@ -34,3 +34,18 @@ REVAMP += [
 REVAMP += [
 ("msg.shelf_auto","The stations take the ingredients by themselves: just press the station.","Le postazioni prendono gli ingredienti da sole: premi la postazione."),
 ]
+REVAMP += [
+("msg.other_restaurant","That belongs to another restaurant: bring it back where you took it.","Questo è di un altro ristorante: riportalo dove l'hai preso."),
+("msg.not_your_restaurant","This is someone else's restaurant: you can help only if the owner is your friend or invites you.","Questo è il ristorante di un altro: puoi aiutare solo se il proprietario è tuo amico o ti invita."),
+("msg.no_plot","All four restaurants on this street are taken: you can visit and help your friends.","I quattro ristoranti di questa strada sono occupati: puoi visitare e aiutare i tuoi amici."),
+]
+REVAMP += [
+("ui.go_home","Back to my restaurant","Torna al mio ristorante"),
+("ui.coop_who","Who may help in my restaurant","Chi può aiutare nel mio ristorante"),
+("ui.coop_friends","Friends","Amici"),
+("ui.coop_everyone","Everyone","Tutti"),
+("ui.street_players","Players on this street","Giocatori su questa strada"),
+("perm.default","Helps if they are your friend","Aiuta se è tuo amico"),
+("perm.helper","Helper in your restaurant","Aiutante nel tuo ristorante"),
+("perm.comanager","Co-manager: can build and buy","Co-gestore: può costruire e comprare"),
+]

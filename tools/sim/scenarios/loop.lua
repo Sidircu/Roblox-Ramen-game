@@ -11,7 +11,10 @@ local d = Sim.waitFor(function()
 end, 30)
 Sim.check("profile loaded", d ~= nil)
 local t0 = Sim.now
-Sim.check("the starter shelves are stocked", S.Supply.shelfStock("noodles") >= 10 and S.Supply.shelfStock("naruto") >= 10 and S.Supply.shelfStock("scallion") >= 10)
+task.wait(0.6)
+local plot = S.Plots.ofPlayer(p)
+Sim.check("the player has a restaurant", plot ~= nil)
+Sim.check("the starter shelves are stocked", S.Supply.shelfStock(plot, "noodles") >= 10 and S.Supply.shelfStock(plot, "naruto") >= 10 and S.Supply.shelfStock(plot, "scallion") >= 10)
 
 local function goTo(model)
 	local pos = model:GetPivot().Position
@@ -21,7 +24,7 @@ end
 
 -- the first customer orders by themselves
 local ticket = Sim.waitFor(function()
-	return S.Cooking.tickets[1]
+	return S.Cooking.ticketsOf(plot)[1]
 end, 60)
 Sim.check("first order within 20 s", ticket and Sim.now - t0 <= 20, ticket and string.format("%.1f s", Sim.now - t0) or "no order")
 if not ticket then
@@ -29,7 +32,7 @@ if not ticket then
 end
 local recipe = Recipes.byId[ticket.recipe]
 local station
-for _, e in ipairs(S.Entities.ofKind("station")) do
+for _, e in ipairs(S.Entities.ofKind("station", plot)) do
 	if e.item.fn.station == recipe.station then
 		station = e
 		break
@@ -65,22 +68,22 @@ Sim.say(string.format("core loop: first order %.1f s, served and paid %.1f s aft
 
 -- after eating: collect the dirty dish and wash it
 local dirty = Sim.waitFor(function()
-	return S.Entities.ofKind("dirty")[1]
+	return S.Entities.ofKind("dirty", plot)[1]
 end, 40)
 Sim.check("the customer leaves a dirty dish", dirty ~= nil)
 if dirty then
 	goTo(dirty.model)
 	Sim.fire(p, "Interact", dirty.uid, {})
 	task.wait(0.3)
-	local sink = S.Entities.ofKind("sink")[1]
+	local sink = S.Entities.ofKind("sink", plot)[1]
 	goTo(sink.model)
 	Sim.fire(p, "Interact", sink.uid, {})
 	task.wait(0.3)
-	Sim.check("the dish goes in the sink", (workspace:GetAttribute("SinkPile") or 0) >= 1)
+	Sim.check("the dish goes in the sink", (plot.folder:GetAttribute("SinkPile") or 0) >= 1)
 	Sim.fire(p, "Wash", sink.uid, true)
 	task.wait(4)
 	Sim.fire(p, "Wash", sink.uid, false)
-	Sim.check("washed while holding", (workspace:GetAttribute("SinkPile") or 0) == 0)
+	Sim.check("washed while holding", (plot.folder:GetAttribute("SinkPile") or 0) == 0)
 end
 
 -- the day goes on by itself: a whole day later the day was closed and summed up

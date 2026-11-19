@@ -1,6 +1,7 @@
 --!nonstrict
--- Works out which seats are usable (stool in front of a counter, chair next to a table,
--- booths), where the dish goes, and keeps reservations / dirty dishes per seat.
+-- Works out which seats of each restaurant are usable (stool in front of a counter, chair next to
+-- a table, booths), where the dish goes, and keeps reservations / dirty dishes per seat.
+-- Per plot: plot.seats (list), plot.seatById, plot.benches. Seat positions are in world space.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Items = require(Shared.Config.Items)
 local GameConfig = require(Shared.Config.GameConfig)
@@ -8,9 +9,6 @@ local Footprint = require(Shared.Logic.Footprint)
 local Core = require(script.Parent.Parent.Core)
 
 local Seating = {}
-Seating.seats = {} -- list of seat records
-local byId = {}
-local benches = {}
 
 local SURFACES = { counter = true, table = true }
 local PAIR_DISTANCE = 1.6 -- max gap between seat edge and surface edge
@@ -43,14 +41,20 @@ local function gap(fpA, fpB)
 	return math.max(0, best)
 end
 
-function Seating.refresh()
-	local d = Core.S.Session.ownerData()
+-- the seats of a restaurant
+function Seating.list(plot)
+	return (plot and plot.seats) or {}
+end
+
+function Seating.refresh(plot)
+	local d = Core.S.Plots.data(plot)
 	if not d then
 		return
 	end
-	local old = byId
+	local o = plot.origin
+	local old = plot.seatById or {}
 	local seats, newById = {}, {}
-	benches = {}
+	local benches = {}
 	local surfaces = {}
 	for _, e in ipairs(d.placed) do
 		local item = Items.byId[e.i]
@@ -74,7 +78,7 @@ function Seating.refresh()
 		local item = Items.byId[e.i]
 		local ent = Core.S.Entities.get(e.u)
 		if item and item.fn and ent and ent.model and e.s == "f" then
-			local zone = Core.S.World.zoneAt(e.x, e.z, e.f)
+			local zone = Core.S.World.zoneAt(plot, e.x, e.z, e.f)
 			local area = zone and zone.area or "dining"
 			if item.fn.type == "seat" then
 				local fp = Footprint.new(e.x, e.z, item.size[1], item.size[3], e.r)
@@ -97,10 +101,10 @@ function Seating.refresh()
 					if len > 0.001 then
 						px, pz = px + dx / len * inset, pz + dz / len * inset
 					end
-					local dish = Vector3.new(px, topY(best.entry) + 0.05, pz)
+					local dish = Vector3.new(px + o.X, topY(best.entry) + 0.05, pz + o.Z)
 					local sitY = Core.S.World.floorY(e.f) + item.fn.height
-					local seatPos = Vector3.new(e.x, sitY, e.z)
-					local look = Vector3.new(px, sitY, pz)
+					local seatPos = Vector3.new(e.x + o.X, sitY, e.z + o.Z)
+					local look = Vector3.new(px + o.X, sitY, pz + o.Z)
 					local sitCf
 					if item.fn.symmetric then
 						sitCf = CFrame.lookAt(seatPos, look)
@@ -137,22 +141,23 @@ function Seating.refresh()
 			end
 		end
 	end
-	Seating.seats = seats
-	byId = newById
-	workspace:SetAttribute("Seats", #seats)
+	plot.seats = seats
+	plot.seatById = newById
+	plot.benches = benches
+	plot.folder:SetAttribute("Seats", #seats)
 end
 
-function Seating.get(id)
-	return byId[id]
+function Seating.get(plot, id)
+	return plot.seatById and plot.seatById[id] or nil
 end
 
 local function free(s)
 	return not s.occupant and not s.reserved and not s.dirty
 end
 
-function Seating.freeCount()
+function Seating.freeCount(plot)
 	local n = 0
-	for _, s in ipairs(Seating.seats) do
+	for _, s in ipairs(Seating.list(plot)) do
 		if free(s) then
 			n += 1
 		end
@@ -161,9 +166,9 @@ function Seating.freeCount()
 end
 
 -- Finds seats for a group. needsTable: only table/booth groups. vip: tatami seats only.
-function Seating.find(size, needsTable, vip)
+function Seating.find(plot, size, needsTable, vip)
 	local candidates = {}
-	for _, s in ipairs(Seating.seats) do
+	for _, s in ipairs(Seating.list(plot)) do
 		if free(s) and ((vip and s.vip) or (not vip and not s.vip)) then
 			table.insert(candidates, s)
 		end
@@ -210,8 +215,8 @@ function Seating.release(s)
 	end
 end
 
-function Seating.benchSpot(who)
-	for _, b in ipairs(benches) do
+function Seating.benchSpot(plot, who)
+	for _, b in ipairs(plot.benches or {}) do
 		if not b.taken then
 			b.taken = who
 			return b
@@ -226,13 +231,13 @@ function Seating.freeBench(b)
 	end
 end
 
-function Seating.queueCapacity()
-	return #benches
+function Seating.queueCapacity(plot)
+	return #(plot.benches or {})
 end
 
 -- Veto: occupied seats and surfaces with diners cannot be moved
-local function busy(uid)
-	for _, s in ipairs(Seating.seats) do
+local function busy(plot, uid)
+	for _, s in ipairs(Seating.list(plot)) do
 		if (s.itemUid == uid or s.surface == uid) and (s.occupant or s.reserved or s.dirty) then
 			return true
 		end
@@ -242,14 +247,20 @@ end
 
 function Seating.Init()
 	local Placement = Core.S.Placement
-	Placement.LayoutChanged:Connect(function()
-		task.defer(Seating.refresh)
+	Placement.LayoutChanged:Connect(function(plot)
+		task.defer(Seating.refresh, plot)
 	end)
 	Placement.addVeto(function(e)
-		if busy(e.uid) then
+		if busy(e.plot, e.uid) then
 			return false, "msg.seat_busy"
 		end
 		return true
+	end)
+end
+
+function Seating.Start()
+	Core.S.Plots.Released:Connect(function(plot)
+		plot.seats, plot.seatById, plot.benches = nil, nil, nil
 	end)
 end
 

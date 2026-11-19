@@ -1,6 +1,7 @@
 --!nonstrict
--- Stations: ingredients go on the board, each click runs the next step (cut, combine, roll,
--- boil, pour, top, fry...), then the dish waits on the plate. Also the order tickets.
+-- Stations: ingredients go on the board, each press runs the next step (cut, combine, roll,
+-- boil, pour, top, fry...), then the dish waits on the plate. Also the order tickets of every
+-- restaurant (plot.tickets).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local Recipes = require(Shared.Config.Recipes)
@@ -12,15 +13,24 @@ local Uid = require(Shared.Util.Uid)
 local Core = require(script.Parent.Parent.Core)
 
 local Cooking = {}
-Cooking.tickets = {}
 
 local TOOL_FOR_STEP = {
 	cut = "knife", combine = "knife", roll = "mat", mold = "mat", boil = "strainer", pour = "ladle",
 	top = "ladle", batter = "ladle", fry = "strainer", flip = "spatula",
 }
 
-local function data()
-	return Core.S.Session.ownerData()
+-- the owner's data of the restaurant an entity belongs to
+local function dataOf(e)
+	return Core.S.Plots.data(e and e.plot)
+end
+
+-- the order tickets of a restaurant
+function Cooking.ticketsOf(plot)
+	if not plot then
+		return {}
+	end
+	plot.tickets = plot.tickets or {}
+	return plot.tickets
 end
 
 local function station(e)
@@ -35,7 +45,7 @@ local function stationType(e)
 end
 
 local function unlockedRecipes(e)
-	local d = data()
+	local d = dataOf(e)
 	local out = {}
 	if not d then
 		return out
@@ -117,7 +127,7 @@ local function publish(e)
 		local _, r = Cooking.nextOrder(e)
 		if r then
 			nextId = r.id
-			missing = table.concat(Cooking.missing(r), ",")
+			missing = table.concat(Cooking.missing(e.plot, r), ",")
 		end
 	end
 	if m:GetAttribute("Next") ~= nextId then
@@ -164,9 +174,9 @@ end
 
 -- dishes already on their way, by recipe: cooking on a station, waiting on its plate, or in
 -- someone's hands
-local function coverage()
+local function coverage(plot)
 	local cov = {}
-	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+	for _, e in ipairs(Core.S.Entities.ofKind("station", plot)) do
 		local st = station(e)
 		local r = st.recipe
 		if not r and #st.board > 0 then
@@ -180,7 +190,7 @@ local function coverage()
 			cov[st.ready.recipe] = (cov[st.ready.recipe] or 0) + 1
 		end
 	end
-	for id, n in pairs(Core.S.Hands.dishCounts()) do
+	for id, n in pairs(Core.S.Hands.dishCounts(plot)) do
 		cov[id] = (cov[id] or 0) + n
 	end
 	return cov
@@ -188,16 +198,16 @@ end
 
 -- The oldest order this station can make that nobody is making yet: ticket, recipe
 function Cooking.nextOrder(e)
-	if not data() then
+	if not dataOf(e) then
 		return nil
 	end
 	local unlocked = {}
 	for _, r in ipairs(unlockedRecipes(e)) do
 		unlocked[r.id] = r
 	end
-	local cov = coverage()
+	local cov = coverage(e.plot)
 	local seen = {}
-	for _, t in ipairs(Cooking.tickets) do
+	for _, t in ipairs(Cooking.ticketsOf(e.plot)) do
 		seen[t.recipe] = (seen[t.recipe] or 0) + 1
 		local r = unlocked[t.recipe]
 		if r and seen[t.recipe] > (cov[t.recipe] or 0) then
@@ -209,22 +219,22 @@ end
 
 -- What is missing to start recipe r: ingredient ids not on the shelves (rice and broths included)
 -- and "dishes" when every plate is dirty
-function Cooking.missing(r)
+function Cooking.missing(plot, r)
 	local Supply, Appliance = Core.S.Supply, Core.S.Appliance
 	local out = {}
 	for g, n in pairs(counts(r.ing)) do
-		if Supply.shelfStock(g) < n then
+		if Supply.shelfStock(plot, g) < n then
 			table.insert(out, g)
 		end
 	end
 	table.sort(out)
-	if r.rice and not Appliance.hasRice() then
+	if r.rice and not Appliance.hasRice(plot) then
 		table.insert(out, "rice")
 	end
-	if r.broth and not Appliance.hasBroth(r.broth) then
+	if r.broth and not Appliance.hasBroth(plot, r.broth) then
 		table.insert(out, r.broth)
 	end
-	local d = data()
+	local d = Core.S.Plots.data(plot)
 	if d and d.dishes.clean <= 0 then
 		table.insert(out, "dishes")
 	end
@@ -327,8 +337,8 @@ local function layoutBoard(e)
 end
 
 -- new orders change what the idle boards ask for
-local function relayoutIdleBoards()
-	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+local function relayoutIdleBoards(plot)
+	for _, e in ipairs(Core.S.Entities.ofKind("station", plot)) do
 		local st = station(e)
 		if not st.busy and st.step == 0 and not st.ready then
 			layoutBoard(e)
@@ -337,7 +347,7 @@ local function relayoutIdleBoards()
 end
 
 local function stepDuration(e, stepName, recipe, speed)
-	local d = data()
+	local d = dataOf(e)
 	local cfg = GameConfig.Steps[stepName] or { time = 1, tool = "up_knife" }
 	local t = cfg.time * Upgrades.value(d.upgrades, cfg.tool)
 	local mastery = Formulas.masteryLevel(d.mastery[recipe.id] or 0)
@@ -399,8 +409,8 @@ local function showDish(e, recipeId)
 	if not att then
 		return
 	end
-	local d = data()
-	local gold = Formulas.masteryLevel(d.mastery[recipeId] or 0) >= #Formulas.MasteryThresholds
+	local d = dataOf(e)
+	local gold = d ~= nil and Formulas.masteryLevel(d.mastery[recipeId] or 0) >= #Formulas.MasteryThresholds
 	local mdl = Registry.food("dish", recipeId, gold)
 	mdl:PivotTo(att.WorldCFrame * CFrame.new(0, 0.5, 0))
 	for _, d in ipairs(mdl:GetDescendants()) do
@@ -418,7 +428,7 @@ local function isFresh(e, st)
 			return true
 		end
 	end
-	return Core.S.Appliance.fridgeNear(e.model.PrimaryPart.Position)
+	return Core.S.Appliance.fridgeNear(e.plot, e.model.PrimaryPart.Position)
 end
 
 -- Runs the next step. Returns ok, messageKey, params
@@ -434,22 +444,26 @@ function Cooking.step(e, speed, actor)
 		layoutBoard(e)
 	end
 	if st.step == 0 then
-		if recipe.rice and not Appliance.hasRice() then
+		local d = dataOf(e)
+		if not d then
+			return false
+		end
+		if recipe.rice and not Appliance.hasRice(e.plot) then
 			return false, "msg.need_rice"
 		end
-		if recipe.broth and not Appliance.hasBroth(recipe.broth) then
+		if recipe.broth and not Appliance.hasBroth(e.plot, recipe.broth) then
 			return false, "msg.need_broth", { name = "ing." .. recipe.broth }
 		end
-		if data().dishes.clean <= 0 then
+		if d.dishes.clean <= 0 then
 			return false, "msg.no_dishes"
 		end
 		if recipe.rice then
-			Appliance.takeRice()
+			Appliance.takeRice(e.plot)
 		end
 		if recipe.broth then
-			Appliance.takeBroth(recipe.broth)
+			Appliance.takeBroth(e.plot, recipe.broth)
 		end
-		Appliance.takeCleanDish()
+		Appliance.takeCleanDish(e.plot)
 		st.recipe = recipe.id
 		st.perfect = false
 	end
@@ -474,7 +488,7 @@ function Cooking.step(e, speed, actor)
 		st.step = 0
 		st.recipe = nil
 		st.ready = { recipe = recipe.id, fresh = fresh, perfect = st.perfect == true }
-		Core.S.Analytics.step(Core.S.Session.owner, "first_cook")
+		Core.S.Analytics.step(e.plot.owner, "first_cook")
 		showDish(e, recipe.id)
 		Core.S.Net.fx("dishReady", { pos = e.model.PrimaryPart.Position + Vector3.new(0, 4, 0), recipe = recipe.id })
 	end
@@ -488,12 +502,12 @@ local function start(e, speed, actor)
 	local st = station(e)
 	local t, r = Cooking.nextOrder(e)
 	if not t then
-		if #Cooking.tickets == 0 then
+		if #Cooking.ticketsOf(e.plot) == 0 then
 			return false, "msg.no_orders"
 		end
 		return false, "msg.no_orders_here", { station = "station." .. stationType(e) }
 	end
-	local missing = Cooking.missing(r)
+	local missing = Cooking.missing(e.plot, r)
 	if #missing > 0 then
 		local first = missing[1]
 		if first == "dishes" then
@@ -510,7 +524,7 @@ local function start(e, speed, actor)
 	local origins = {}
 	st.board = {}
 	for _, g in ipairs(r.ing) do
-		local from, fresh = Supply.takeIngredient(g, pos)
+		local from, fresh = Supply.takeIngredient(e.plot, g, pos)
 		table.insert(st.board, { g = g, fresh = fresh })
 		table.insert(origins, from)
 	end
@@ -537,6 +551,9 @@ function Cooking.use(actor, e, speed)
 	local hands = Hands.get(actor)
 	if st.busy then
 		return false, "msg.busy"
+	end
+	if hands.kind and hands.plot and hands.plot ~= e.plot then
+		return false, "msg.other_restaurant"
 	end
 	if hands.kind == "ing" then
 		local deposited = 0
@@ -582,7 +599,7 @@ function Cooking.use(actor, e, speed)
 		return true
 	elseif hands.kind == "dish" or hands.kind == nil then
 		if st.ready then
-			local ok, reason = Hands.add(actor, "dish", { recipe = st.ready.recipe, fresh = st.ready.fresh, perfect = st.ready.perfect })
+			local ok, reason = Hands.add(actor, "dish", { recipe = st.ready.recipe, fresh = st.ready.fresh, perfect = st.ready.perfect }, e.plot)
 			if not ok then
 				return false, reason
 			end
@@ -618,43 +635,50 @@ end
 
 ------------------------------------------------------------------ tickets
 
-function Cooking.maxTickets()
-	return Upgrades.value(data().upgrades, "up_ticket")
+function Cooking.maxTickets(plot)
+	local d = Core.S.Plots.data(plot)
+	return Upgrades.value(d and d.upgrades, "up_ticket")
 end
 
-local function broadcast()
+local function ticketList(plot)
 	local list = {}
-	for _, t in ipairs(Cooking.tickets) do
+	for _, t in ipairs(Cooking.ticketsOf(plot)) do
 		table.insert(list, { id = t.id, recipe = t.recipe, created = t.created, customer = t.customer, claimed = t.claimed ~= nil })
 	end
-	Core.S.Net.fireAll("Tickets", list)
+	return list
 end
 
-function Cooking.addTicket(customerUid, recipeId)
-	if #Cooking.tickets >= Cooking.maxTickets() then
+local function broadcast(plot)
+	Core.S.Plots.fire(plot, "Tickets", ticketList(plot))
+end
+
+function Cooking.addTicket(plot, customerUid, recipeId)
+	local tickets = Cooking.ticketsOf(plot)
+	if #tickets >= Cooking.maxTickets(plot) then
 		return nil
 	end
 	local t = { id = Uid.new("t"), recipe = recipeId, customer = customerUid, created = workspace:GetServerTimeNow() }
-	table.insert(Cooking.tickets, t)
-	broadcast()
-	relayoutIdleBoards()
+	table.insert(tickets, t)
+	broadcast(plot)
+	relayoutIdleBoards(plot)
 	return t
 end
 
-function Cooking.removeTicket(id)
-	for i, t in ipairs(Cooking.tickets) do
+function Cooking.removeTicket(plot, id)
+	local tickets = Cooking.ticketsOf(plot)
+	for i, t in ipairs(tickets) do
 		if t.id == id then
-			table.remove(Cooking.tickets, i)
-			broadcast()
-			relayoutIdleBoards()
+			table.remove(tickets, i)
+			broadcast(plot)
+			relayoutIdleBoards(plot)
 			return t
 		end
 	end
 	return nil
 end
 
-function Cooking.ticketFor(customerUid)
-	for _, t in ipairs(Cooking.tickets) do
+function Cooking.ticketFor(plot, customerUid)
+	for _, t in ipairs(Cooking.ticketsOf(plot)) do
 		if t.customer == customerUid then
 			return t
 		end
@@ -662,15 +686,15 @@ function Cooking.ticketFor(customerUid)
 	return nil
 end
 
-function Cooking.clearTickets()
-	Cooking.tickets = {}
-	broadcast()
+function Cooking.clearTickets(plot)
+	plot.tickets = {}
+	broadcast(plot)
 end
 
--- Dishes ready on stations (for waiters)
-function Cooking.readyDishes()
+-- Dishes ready on the stations of a restaurant (for waiters)
+function Cooking.readyDishes(plot)
 	local out = {}
-	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+	for _, e in ipairs(Core.S.Entities.ofKind("station", plot)) do
 		local st = station(e)
 		if st.ready then
 			table.insert(out, { entity = e, recipe = st.ready.recipe })
@@ -683,9 +707,9 @@ function Cooking.stationState(e)
 	return station(e)
 end
 
-function Cooking.isRecipeInProgress(recipeId)
+function Cooking.isRecipeInProgress(plot, recipeId)
 	local n = 0
-	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+	for _, e in ipairs(Core.S.Entities.ofKind("station", plot)) do
 		local st = station(e)
 		if st.recipe == recipeId or (st.ready and st.ready.recipe == recipeId) then
 			n += 1
@@ -720,6 +744,17 @@ local function timingHit(player, uid, k)
 end
 
 function Cooking.Start()
+	local Plots = Core.S.Plots
+	-- a player who starts working in a restaurant gets its order tickets
+	Plots.WorkChanged:Connect(function(player, plot)
+		Core.S.Net.fire(player, "Tickets", ticketList(plot))
+	end)
+	Plots.Claimed:Connect(function(plot)
+		plot.tickets = {}
+	end)
+	Plots.Released:Connect(function(plot)
+		plot.tickets = {}
+	end)
 	-- stations always show what the next press does (orders, stock and dishes change all the time)
 	while true do
 		task.wait(0.5)

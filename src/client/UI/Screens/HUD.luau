@@ -92,7 +92,7 @@ function HUD.create(root)
 	refs.like = Kit.new("TextButton", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 48), Size = UDim2.fromOffset(150, 28), BackgroundColor3 = T.paper, Text = "", Parent = top }, { Kit.corner(14), Kit.stroke(T.red, 2, 0.2) })
 	refs.likeLabel = Kit.label("", { Parent = refs.like, Size = UDim2.fromScale(1, 1), TextSize = 14, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center })
 	refs.like.MouseButton1Click:Connect(function()
-		if Core.C.Data.role() ~= "owner" then
+		if HUD.likeTarget then
 			NetDef.event("Like"):FireServer()
 		end
 	end)
@@ -232,14 +232,22 @@ function HUD.currentGoal()
 	return nil
 end
 
+-- likes of the restaurant you stand in: yours shows the count, someone else's has a like button
 function HUD.refreshLike()
-	local n = workspace:GetAttribute("Likes") or 0
-	if Core.C.Data.role() == "owner" then
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	local here = root and Core.C.Data.plotAt(root.Position)
+	local folder = here and Core.C.Data.plotFolder(here.id)
+	local n = folder and folder:GetAttribute("Likes") or 0
+	local mine = here == nil or here.ownerId == player.UserId or here.ownerId == 0
+	refs.like.Visible = here ~= nil and here.ownerId ~= 0
+	if mine then
 		refs.likeLabel.Text = "❤️ " .. n
 		refs.like.AutoButtonColor = false
 	else
 		refs.likeLabel.Text = "❤️ " .. t("ui.like") .. "  " .. n
+		refs.like.AutoButtonColor = true
 	end
+	HUD.likeTarget = (not mine) and here or nil
 end
 
 function HUD.refreshGoal()
@@ -322,13 +330,14 @@ function HUD.day(state)
 end
 
 function HUD.refreshInfo()
-	local rating = workspace:GetAttribute("Rating") or 3
-	local tier = workspace:GetAttribute("AmbienceTier") or 0
+	local Data = Core.C.Data
+	local rating = Data.plotAttr("Rating") or 3
+	local tier = Data.plotAttr("AmbienceTier") or 0
 	local text = "★ " .. Format.decimal(rating, 1, lang()) .. "   ✨ " .. t("amb.tier" .. tier)
 	local d = Core.C.Data.w("dishes")
 	if d then
 		text ..= "   🍽️ " .. d.clean .. "/" .. d.total
-		local pile = workspace:GetAttribute("SinkPile") or 0
+		local pile = Data.plotAttr("SinkPile") or 0
 		if pile > 0 then
 			text ..= "  🧽" .. pile
 		end

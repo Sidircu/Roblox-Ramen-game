@@ -88,16 +88,13 @@ end
 
 local t0 = os.clock()
 while os.clock() - t0 < 25 do
-	local mode = workspace:GetAttribute("SessionMode")
-	if mode == "lobby" then
-		status.Text = isItalian and "Ti stiamo portando nel tuo mondo…" or "Taking you to your own world…"
-	elseif workspace:GetAttribute("WorldReady") then
+	if workspace:GetAttribute("WorldReady") then
 		break
 	end
 	task.wait(0.2)
 end
 
-if workspace:GetAttribute("SessionMode") ~= "lobby" then
+do
 	task.wait(0.5)
 	local info = TweenInfo.new(0.6)
 	for _, d in ipairs(bg:GetDescendants()) do

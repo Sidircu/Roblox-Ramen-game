@@ -34,13 +34,15 @@ Net.Events = {
 	"ClaimGift", -- (index) free gift for minutes played
 	"RedeemCode", -- (code)
 	"SetSetting", -- (key, value)
-	"SetPermission", -- (userId, level)
+	"SetPermission", -- (userId, level "helper"|"comanager"|"none") in your restaurant
+	"GoHome", -- back to the door of your restaurant
 	"Franchise", -- (cityId)
 	"BuyWithRobux", -- (kind "gamepass"|"product", id)
 	"TutorialStep", -- (step)
 	"Dev", -- (command, arg)
 	-- server -> client
 	"DataChanged", -- (scope "me"|"world", key, value)
+	"WorldSnapshot", -- (world) the restaurant you now work in (nil = your own)
 	"Notify", -- (key, params, kind)
 	"Tickets", -- (list)
 	"Fx", -- (kind, data)

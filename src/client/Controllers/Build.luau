@@ -42,9 +42,15 @@ local touchPos = nil
 local worldTouch = nil
 local lastResolved = nil
 
+-- the restaurant you build in (your own, or one you co-manage): its items folder and origin.
+-- Requests and validation use restaurant-local coordinates (world minus the plot origin).
 local function itemsFolder()
-	local r = workspace:FindFirstChild("Restaurant")
+	local r = Core.C.Data.plotFolder()
 	return r and r:FindFirstChild("Items")
+end
+
+local function ox()
+	return Core.C.Data.origin().X
 end
 
 local function geometry()
@@ -211,10 +217,11 @@ end
 
 local function onFloor(tagName)
 	local floor = Core.C.Camera.floor or 0
+	local plot = Core.C.Data.plotFolder()
 	local out = {}
 	for _, p in ipairs(CollectionService:GetTagged(tagName)) do
 		local f = p:GetAttribute("FloorIndex") or 0
-		if f == floor then
+		if f == floor and plot and p:IsDescendantOf(plot) then
 			table.insert(out, p)
 		end
 	end
@@ -236,7 +243,7 @@ local function buildRequest()
 		if not p then
 			return nil
 		end
-		local x, z = Grid.snapFloor(p.X, p.Z, w, d, Build.rot, g)
+		local x, z = Grid.snapFloor(p.X - ox(), p.Z, w, d, Build.rot, g)
 		return { i = item.id, x = x, z = z, r = Build.rot, f = f, s = code }
 	elseif code == "f" then
 		local hit = cast(onFloor("Floor"))
@@ -256,7 +263,7 @@ local function buildRequest()
 		if f < 0 then
 			return nil
 		end
-		local x, z = Grid.snapFloor(px, pz, w, d, Build.rot, g)
+		local x, z = Grid.snapFloor(px - ox(), pz, w, d, Build.rot, g)
 		return { i = item.id, x = x, z = z, r = Build.rot, f = f, s = code }
 	elseif code == "w" then
 		local hit = cast(onFloor("Wall"))
@@ -266,10 +273,11 @@ local function buildRequest()
 		local f = hit.Instance:GetAttribute("FloorIndex") or 0
 		local n = hit.Normal
 		local alongX = math.abs(n.Z) > math.abs(n.X)
-		local along = alongX and hit.Position.X or hit.Position.Z
+		local hx = hit.Position.X - ox()
+		local along = alongX and hx or hit.Position.Z
 		local a, y = Grid.snapWall(along, hit.Position.Y, w, h, g, floorY(f))
 		local off = 0.4 + d / 2 + 0.05
-		local x = alongX and a or hit.Position.X + n.X * off
+		local x = alongX and a or hx + n.X * off
 		local z = alongX and hit.Position.Z + n.Z * off or a
 		return { i = item.id, x = x, z = z, y = y, r = 0, f = f, s = code }
 	elseif code == "t" then
@@ -296,7 +304,7 @@ local function buildRequest()
 		if not parent then
 			return nil
 		end
-		local x, z = Grid.snapFloor(hit.Position.X, hit.Position.Z, w, d, Build.rot, math.min(g, 0.5))
+		local x, z = Grid.snapFloor(hit.Position.X - ox(), hit.Position.Z, w, d, Build.rot, math.min(g, 0.5))
 		return { i = item.id, x = x, z = z, r = Build.rot, f = parent.f or 0, s = "t", p = uid }
 	end
 	return nil
@@ -348,10 +356,10 @@ local function step()
 	end
 	local r = lastResolved or req
 	local pos = { x = r.x, z = r.z, r = r.r or req.r, y = r.y, f = r.f or req.f, s = req.s }
-	Registry.place(ghost, pos.x, worldY(pos, item), pos.z, pos.r)
+	Registry.place(ghost, pos.x + ox(), worldY(pos, item), pos.z, pos.r)
 	highlight.FillColor = Build.valid and Color.hex("#6DDC5A") or Color.hex("#FF3B4A")
 	highlight.OutlineColor = highlight.FillColor
-	drawGrid(req.x, req.z, floorY(req.f), Build.grid)
+	drawGrid(req.x + ox(), req.z, floorY(req.f), Build.grid)
 end
 
 ------------------------------------------------------------------ actions

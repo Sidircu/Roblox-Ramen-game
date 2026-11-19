@@ -12,26 +12,35 @@ local Registry = require(Shared.Models.Registry)
 local Core = require(script.Parent.Parent.Core)
 
 local Appliance = {}
-local sinkPile = 0
 local washerQueue = {} -- [uid] = count waiting
 local sessions = {} -- [sink uid] = { actor, e, start, dur, staff }
 local WASH = GameConfig.Washing
 
-local function data()
-	return Core.S.Session.ownerData()
+-- dirty plates waiting in the sink of each restaurant: plot.sinkPile
+local function pile(plot)
+	return plot and plot.sinkPile or 0
 end
 
-local function state(uid)
-	local d = data()
-	d.appliances[uid] = d.appliances[uid] or { g = nil, n = 0, c = 0, t = 0 }
-	return d.appliances[uid]
+local function setPile(plot, n)
+	plot.sinkPile = math.max(0, n)
+	plot.folder:SetAttribute("SinkPile", plot.sinkPile)
+end
+
+-- saved state of a cooker / pot entity: { g, n, c, t }
+local function state(e)
+	local d = Core.S.Plots.data(e.plot)
+	if not d then
+		return { g = nil, n = 0, c = 0, t = 0 }
+	end
+	d.appliances[e.uid] = d.appliances[e.uid] or { g = nil, n = 0, c = 0, t = 0 }
+	return d.appliances[e.uid]
 end
 
 local function refresh(e)
 	if not e or not e.model then
 		return
 	end
-	local st = state(e.uid)
+	local st = state(e)
 	local m = e.model
 	m:SetAttribute("G", st.g or "")
 	m:SetAttribute("N", st.n)
@@ -71,7 +80,10 @@ Appliance.refresh = refresh
 function Appliance.load(actor, e)
 	local Hands = Core.S.Hands
 	local hands = Hands.get(actor)
-	local st = state(e.uid)
+	local st = state(e)
+	if hands.kind and hands.plot and hands.plot ~= e.plot then
+		return false, "msg.other_restaurant"
+	end
 	if hands.kind ~= "box" then
 		if st.c > 0 then
 			return false, "msg.cooking_wait"
@@ -108,20 +120,20 @@ function Appliance.load(actor, e)
 	end
 	entry.n -= amount
 	if entry.n <= 0 then
-		Core.S.Supply.removeBox(entry)
+		Core.S.Supply.removeBox(e.plot, entry)
 		Hands.removeAt(actor, index)
 	else
 		Hands.refresh(actor)
 	end
 	refresh(e)
 	Core.S.Net.fx("sfx", { name = e.kind == "ricecooker" and "rice" or "pour", pos = e.model.PrimaryPart.Position })
-	Core.S.Data.changed(Core.S.Session.owner, "appliances")
+	Core.S.Data.changed(e.plot.owner, "appliances")
 	return true
 end
 
-local function takeFrom(kind, g)
-	for _, e in ipairs(Core.S.Entities.ofKind(kind)) do
-		local st = state(e.uid)
+local function takeFrom(plot, kind, g)
+	for _, e in ipairs(Core.S.Entities.ofKind(kind, plot)) do
+		local st = state(e)
 		if st.n > 0 and (g == nil or st.g == g) then
 			st.n -= 1
 			if st.n <= 0 and st.c <= 0 then
@@ -134,18 +146,18 @@ local function takeFrom(kind, g)
 	return false
 end
 
-function Appliance.hasRice()
-	for _, e in ipairs(Core.S.Entities.ofKind("ricecooker")) do
-		if state(e.uid).n > 0 then
+function Appliance.hasRice(plot)
+	for _, e in ipairs(Core.S.Entities.ofKind("ricecooker", plot)) do
+		if state(e).n > 0 then
 			return true
 		end
 	end
 	return false
 end
 
-function Appliance.hasBroth(g)
-	for _, e in ipairs(Core.S.Entities.ofKind("pot")) do
-		local st = state(e.uid)
+function Appliance.hasBroth(plot, g)
+	for _, e in ipairs(Core.S.Entities.ofKind("pot", plot)) do
+		local st = state(e)
 		if st.n > 0 and st.g == g then
 			return true
 		end
@@ -154,9 +166,9 @@ function Appliance.hasBroth(g)
 end
 
 -- pending portions (cooking) count as "coming soon" for customer menus
-function Appliance.willHave(kind, g)
-	for _, e in ipairs(Core.S.Entities.ofKind(kind)) do
-		local st = state(e.uid)
+function Appliance.willHave(plot, kind, g)
+	for _, e in ipairs(Core.S.Entities.ofKind(kind, plot)) do
+		local st = state(e)
 		if (st.n + st.c) > 0 and (g == nil or st.g == g) then
 			return true
 		end
@@ -164,20 +176,20 @@ function Appliance.willHave(kind, g)
 	return false
 end
 
-function Appliance.takeRice()
-	return takeFrom("ricecooker", nil)
+function Appliance.takeRice(plot)
+	return takeFrom(plot, "ricecooker", nil)
 end
 
-function Appliance.takeBroth(g)
-	return takeFrom("pot", g)
+function Appliance.takeBroth(plot, g)
+	return takeFrom(plot, "pot", g)
 end
 
--- Appliances that need refilling (for staff)
-function Appliance.needsRefill()
+-- Appliances of a restaurant that need refilling (for staff)
+function Appliance.needsRefill(plot)
 	local out = {}
 	for _, kind in ipairs({ "ricecooker", "pot" }) do
-		for _, e in ipairs(Core.S.Entities.ofKind(kind)) do
-			local st = state(e.uid)
+		for _, e in ipairs(Core.S.Entities.ofKind(kind, plot)) do
+			local st = state(e)
 			if st.c == 0 and st.n <= math.floor((e.item.fn.batch or 8) * 0.3) then
 				table.insert(out, { entity = e, g = st.n > 0 and st.g or nil })
 			end
@@ -188,19 +200,20 @@ end
 
 ------------------------------------------------------------------ dishes
 
-function Appliance.takeCleanDish()
-	local d = data()
-	if d.dishes.clean > 0 then
+function Appliance.takeCleanDish(plot)
+	local d = Core.S.Plots.data(plot)
+	if d and d.dishes.clean > 0 then
 		d.dishes.clean -= 1
-		Core.S.Data.changed(Core.S.Session.owner, "dishes")
+		Core.S.Data.changed(plot.owner, "dishes")
 		return true
 	end
 	return false
 end
 
-function Appliance.addDirtyToSink(n)
-	sinkPile += n
-	workspace:SetAttribute("SinkPile", sinkPile)
+function Appliance.addDirtyToSink(plot, n)
+	if plot then
+		setPile(plot, pile(plot) + n)
+	end
 end
 
 local function sinkLocal(e, x, y, z)
@@ -210,8 +223,8 @@ local function sinkLocal(e, x, y, z)
 end
 
 -- the sink that shows the pile (the first one placed)
-local function mainSink()
-	local list = Core.S.Entities.ofKind("sink")
+local function mainSink(plot)
+	local list = Core.S.Entities.ofKind("sink", plot)
 	table.sort(list, function(a, b)
 		return a.uid < b.uid
 	end)
@@ -219,21 +232,21 @@ local function mainSink()
 end
 
 -- dirty plates stacked in the soaking basin of the main sink
-local function refreshPiles()
+local function refreshPiles(plot)
 	Registry.load()
-	local main = mainSink()
-	for _, e in ipairs(Core.S.Entities.ofKind("sink")) do
+	local main = mainSink(plot)
+	for _, e in ipairs(Core.S.Entities.ofKind("sink", plot)) do
 		if e.model and e.model.PrimaryPart then
-			local want = (e == main) and math.min(sinkPile, WASH.MaxPile) or 0
-			local pile = e.model:FindFirstChild("DirtyPile")
-			if (pile and pile:GetAttribute("N") or 0) ~= want then
-				if pile then
-					pile:Destroy()
+			local want = (e == main) and math.min(pile(plot), WASH.MaxPile) or 0
+			local stack = e.model:FindFirstChild("DirtyPile")
+			if (stack and stack:GetAttribute("N") or 0) ~= want then
+				if stack then
+					stack:Destroy()
 				end
 				if want > 0 then
-					pile = Instance.new("Model")
-					pile.Name = "DirtyPile"
-					pile:SetAttribute("N", want)
+					stack = Instance.new("Model")
+					stack.Name = "DirtyPile"
+					stack:SetAttribute("N", want)
 					for i = 1, want do
 						local m = Registry.food("dirty", "plate")
 						for _, d in ipairs(m:GetDescendants()) do
@@ -245,9 +258,9 @@ local function refreshPiles()
 						-- a slightly messy stack: aiming at it aims at the sink
 						local yaw = (i * 47) % 360
 						m:PivotTo(sinkLocal(e, -1.1 + ((i % 3) - 1) * 0.05, 2.95 + (i - 1) * 0.13, -0.05) * CFrame.Angles(0, math.rad(yaw), 0))
-						m.Parent = pile
+						m.Parent = stack
 					end
-					pile.Parent = e.model
+					stack.Parent = e.model
 				end
 			end
 		end
@@ -280,29 +293,31 @@ local function setWashing(e, on, dur, actor)
 	end
 end
 
-function Appliance.sinkPile()
-	return sinkPile
+function Appliance.sinkPile(plot)
+	return pile(plot)
 end
 
-local function finishWash(count)
-	local d = data()
+local function finishWash(plot, count)
+	local d = Core.S.Plots.data(plot)
+	if not d then
+		return
+	end
 	d.dishes.clean = math.min(d.dishes.total, d.dishes.clean + count)
 	d.stats.washed = (d.stats.washed or 0) + count
-	Core.S.Data.changed(Core.S.Session.owner, "dishes")
-	Core.S.Meta.event(Core.S.Session.owner, "wash", count)
+	Core.S.Data.changed(plot.owner, "dishes")
+	Core.S.Meta.event(plot.owner, "wash", count)
 end
 
 -- one plate from the pile is clean: it slides to the drying rack on every client
 local function washOne(e, actor)
-	sinkPile = math.max(0, sinkPile - 1)
-	workspace:SetAttribute("SinkPile", sinkPile)
-	finishWash(1)
+	setPile(e.plot, pile(e.plot) - 1)
+	finishWash(e.plot, 1)
 	Core.S.Net.fx("washed", { uid = e.uid })
 	Core.S.Net.fx("sfx", { name = "plate", pos = e.model.PrimaryPart.Position })
 	if typeof(actor) == "Instance" then
 		Core.S.Net.fxTo(actor, "action", { kind = "wash" })
 	end
-	refreshPiles()
+	refreshPiles(e.plot)
 end
 
 -- Sink: dirty dishes in hand go on the pile. Players then hold to wash (Appliance.hold); staff (and
@@ -311,20 +326,24 @@ function Appliance.useSink(actor, e, speed)
 	local Hands = Core.S.Hands
 	local hands = Hands.get(actor)
 	local isPlayer = typeof(actor) == "Instance"
+	local plot = e.plot
+	if hands.kind and hands.plot and hands.plot ~= plot then
+		return false, "msg.other_restaurant"
+	end
 	if hands.kind == "dirty" then
 		local n = #hands.items
 		Hands.clear(actor)
-		Appliance.addDirtyToSink(n)
-		refreshPiles()
+		Appliance.addDirtyToSink(plot, n)
+		refreshPiles(plot)
 		Core.S.Net.fx("sfx", { name = "plate", pos = e.model.PrimaryPart.Position })
 		if isPlayer then
 			return true
 		end
 	elseif hands.kind ~= nil then
-		return false, sinkPile > 0 and "msg.hands_busy" or "msg.sink_hint"
+		return false, pile(plot) > 0 and "msg.hands_busy" or "msg.sink_hint"
 	end
 	if isPlayer then
-		return false, sinkPile > 0 and "msg.wash_hold" or "msg.sink_hint"
+		return false, pile(plot) > 0 and "msg.wash_hold" or "msg.sink_hint"
 	end
 	if sessions[e.uid] then
 		return false, "msg.busy"
@@ -332,7 +351,7 @@ function Appliance.useSink(actor, e, speed)
 	local dur = WASH.Time / (speed or 1)
 	sessions[e.uid] = { actor = actor, e = e, staff = true }
 	local count = 0
-	while sinkPile > 0 and count < WASH.StaffBatch and e.model and e.model.Parent do
+	while pile(plot) > 0 and count < WASH.StaffBatch and e.model and e.model.Parent do
 		setWashing(e, true, dur, actor)
 		task.wait(dur)
 		washOne(e, actor)
@@ -370,7 +389,7 @@ function Appliance.hold(player, uid, on)
 		end
 		return
 	end
-	if not Core.S.Session.canWork(player) then
+	if not Core.S.Plots.canWork(player, e.plot) then
 		return
 	end
 	if s then
@@ -382,7 +401,7 @@ function Appliance.hold(player, uid, on)
 	if not Core.S.Hands.isEmpty(player) then
 		return Core.S.Net.notify(player, "msg.hands_busy", nil, "info")
 	end
-	if sinkPile <= 0 then
+	if pile(e.plot) <= 0 then
 		return Core.S.Net.notify(player, "msg.sink_hint", nil, "info")
 	end
 	if not near(player, e) then
@@ -401,12 +420,12 @@ local function washLoop()
 				local e = s.e
 				local valid = e.model ~= nil and e.model.Parent ~= nil and Core.S.Entities.get(uid) ~= nil
 				valid = valid and s.actor.Parent ~= nil and Core.S.Hands.isEmpty(s.actor) and near(s.actor, e)
-				if not valid or sinkPile <= 0 then
+				if not valid or pile(e.plot) <= 0 then
 					sessions[uid] = nil
 					setWashing(e, false)
 				elseif os.clock() - s.start >= s.dur then
 					washOne(e, s.actor)
-					if sinkPile > 0 then
+					if pile(e.plot) > 0 then
 						s.start = os.clock()
 						setWashing(e, true, s.dur, s.actor)
 					else
@@ -425,6 +444,9 @@ function Appliance.useDishwasher(actor, e)
 	if hands.kind ~= "dirty" then
 		return false, "msg.sink_hint"
 	end
+	if hands.plot and hands.plot ~= e.plot then
+		return false, "msg.other_restaurant"
+	end
 	washerQueue[e.uid] = (washerQueue[e.uid] or 0) + #hands.items
 	Hands.clear(actor)
 	e.model:SetAttribute("Queue", washerQueue[e.uid])
@@ -437,10 +459,10 @@ local function dishwasherLoop()
 		local now = os.clock()
 		for _, e in ipairs(Core.S.Entities.ofKind("dishwasher")) do
 			-- pull dirty dishes from the sink pile automatically
-			if sinkPile > 0 and (washerQueue[e.uid] or 0) < e.item.fn.cap then
-				local take = math.min(sinkPile, e.item.fn.cap - (washerQueue[e.uid] or 0))
-				sinkPile -= take
-				workspace:SetAttribute("SinkPile", sinkPile)
+			local plot = e.plot
+			if plot and pile(plot) > 0 and (washerQueue[e.uid] or 0) < e.item.fn.cap then
+				local take = math.min(pile(plot), e.item.fn.cap - (washerQueue[e.uid] or 0))
+				setPile(plot, pile(plot) - take)
 				washerQueue[e.uid] = (washerQueue[e.uid] or 0) + take
 			end
 			e.nextWash = e.nextWash or (now + e.item.fn.interval)
@@ -453,7 +475,7 @@ local function dishwasherLoop()
 			if q > 0 and now >= e.nextWash then
 				local n = math.min(q, e.item.fn.cap)
 				washerQueue[e.uid] = q - n
-				finishWash(n)
+				finishWash(plot, n)
 				e.nextWash = now + e.item.fn.interval
 			elseif q == 0 then
 				e.nextWash = now + e.item.fn.interval
@@ -469,22 +491,22 @@ local function cookLoop()
 		local now = workspace:GetServerTimeNow()
 		for _, kind in ipairs({ "ricecooker", "pot" }) do
 			for _, e in ipairs(Core.S.Entities.ofKind(kind)) do
-				local d = data()
+				local d = Core.S.Plots.data(e.plot)
 				local st = d and d.appliances[e.uid]
 				if st and st.c > 0 and now >= st.t then
 					st.n += st.c
 					st.c = 0
 					refresh(e)
 					Core.S.Net.fx("ready", { pos = e.model.PrimaryPart.Position })
-					Core.S.Data.changed(Core.S.Session.owner, "appliances")
+					Core.S.Data.changed(e.plot.owner, "appliances")
 				end
 			end
 		end
 	end
 end
 
-function Appliance.fridgeNear(pos)
-	for _, e in ipairs(Core.S.Entities.ofKind("fridge")) do
+function Appliance.fridgeNear(plot, pos)
+	for _, e in ipairs(Core.S.Entities.ofKind("fridge", plot)) do
 		local p = e.model.PrimaryPart.Position
 		if (p - pos).Magnitude <= e.item.fn.radius then
 			return true
@@ -498,7 +520,7 @@ function Appliance.Init()
 	local Placement = Core.S.Placement
 	Placement.ItemAdded:Connect(function(e)
 		if e.kind == "ricecooker" or e.kind == "pot" then
-			local st = state(e.uid)
+			local st = state(e)
 			if e.kind == "ricecooker" then
 				st.g = st.g or "rice"
 			end
@@ -512,7 +534,7 @@ function Appliance.Init()
 	end)
 	Placement.addVeto(function(e)
 		if e.kind == "ricecooker" or e.kind == "pot" then
-			local st = state(e.uid)
+			local st = state(e)
 			if st.c > 0 then
 				return false, "msg.cooking_wait"
 			end
@@ -524,10 +546,13 @@ function Appliance.Init()
 end
 
 function Appliance.Start()
-	Core.S.Session.OwnerReady:Connect(function(_, d)
+	local Plots = Core.S.Plots
+	Plots.Claimed:Connect(function(plot, _, d)
 		d.dishes.clean = d.dishes.total -- everything was washed overnight
-		sinkPile = 0
-		workspace:SetAttribute("SinkPile", 0)
+		setPile(plot, 0)
+	end)
+	Plots.Released:Connect(function(plot)
+		setPile(plot, 0)
 	end)
 	task.spawn(cookLoop)
 	task.spawn(dishwasherLoop)
@@ -536,7 +561,11 @@ function Appliance.Start()
 	task.spawn(function()
 		while true do
 			task.wait(1)
-			refreshPiles()
+			for _, plot in ipairs(Plots.list) do
+				if plot.owner then
+					refreshPiles(plot)
+				end
+			end
 		end
 	end)
 end

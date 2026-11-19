@@ -290,8 +290,11 @@ function WorldUI.Start()
 				local kind = model:GetAttribute("Kind")
 				local pos = model:GetPivot().Position
 				local near = (pos - origin).Magnitude < RANGE
-				-- shelves need no label: their products stand in a grid with the free spots marked
-				if near and (kind == "customer" or kind == "station" or kind == "ricecooker" or kind == "pot" or kind == "dirty" or kind == "dishwasher" or kind == "tipjar") then
+				-- shelves need no label: their products stand in a grid with the free spots marked;
+				-- customers show their bubble everywhere, the other boards only in the restaurant you
+				-- work in
+				local mine = kind == "customer" or Core.C.Data.isMine(model)
+				if near and mine and (kind == "customer" or kind == "station" or kind == "ricecooker" or kind == "pot" or kind == "dirty" or kind == "dishwasher" or kind == "tipjar") then
 					local b = boards[model]
 					if not b then
 						local adornee = model:FindFirstChild("Head") or model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")

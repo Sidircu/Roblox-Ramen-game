@@ -32,8 +32,14 @@ function SelfTest.run(player)
 	end
 	running = true
 	local S = Core.S
-	local d = S.Session.ownerData()
-	local actor = { uid = "selftest", alive = true, model = nil }
+	-- the test plays in the restaurant of the player who started it
+	local plot = S.Plots.ofPlayer(player)
+	local d = S.Plots.data(plot)
+	if not d then
+		running = false
+		return 0, 0
+	end
+	local actor = { uid = "selftest", alive = true, model = nil, plot = plot }
 	local results = {}
 
 	local function check(name, fn)
@@ -49,12 +55,12 @@ function SelfTest.run(player)
 	end
 
 	local function ensureBox(g)
-		local entry = S.Supply.findBox(g)
+		local entry = S.Supply.findBox(plot, g)
 		if not entry then
 			table.insert(d.storage, { u = Uid.new("b"), g = g, n = Ingredients.byId[g].units })
-			S.Supply.layout()
+			S.Supply.layout(plot)
 		end
-		local e, ent = S.Supply.findBox(g)
+		local e, ent = S.Supply.findBox(plot, g)
 		assert(e and ent, "no box entity for " .. g)
 		return e, ent
 	end
@@ -63,14 +69,14 @@ function SelfTest.run(player)
 		local h = S.Hands.get(actor)
 		if h.kind == "box" then
 			for _, b in ipairs(h.items) do
-				S.Supply.returnBox(b)
+				S.Supply.returnBox(plot, b)
 			end
 		end
 		S.Hands.clear(actor)
 	end
 
 	local function firstOf(kind, filter)
-		for _, e in ipairs(S.Entities.ofKind(kind)) do
+		for _, e in ipairs(S.Entities.ofKind(kind, plot)) do
 			if not filter or filter(e) then
 				return e
 			end
@@ -79,7 +85,7 @@ function SelfTest.run(player)
 	end
 
 	check("world and starter objects", function()
-		assert(#S.World.zones > 0, "no zones")
+		assert(#S.World.geo(plot).zones > 0, "no zones")
 		assert(firstOf("shelf"), "no shelf")
 		assert(firstOf("station", function(e)
 			return e.item.fn.station == "sushi"
@@ -90,31 +96,31 @@ function SelfTest.run(player)
 	end)
 
 	check("seats around the counter", function()
-		S.Seating.refresh()
-		assert(#S.Seating.seats >= 6, "only " .. #S.Seating.seats .. " seats")
+		S.Seating.refresh(plot)
+		assert(#S.Seating.list(plot) >= 6, "only " .. #S.Seating.list(plot) .. " seats")
 	end)
 
 	check("restock a shelf", function()
 		-- three noodles are used, then a box of noodles fills the free spots of that slot only
 		local _, ent = ensureBox("noodles")
 		for _ = 1, 3 do
-			assert(S.Supply.takeIngredient("noodles"), "no noodles on the shelves")
+			assert(S.Supply.takeIngredient(plot, "noodles"), "no noodles on the shelves")
 		end
-		local shelf = S.Supply.findShelfWith("noodles")
+		local shelf = S.Supply.findShelfWith(plot, "noodles")
 		assert(shelf, "no shelf with noodles")
-		local before = S.Supply.shelfStock("noodles")
+		local before = S.Supply.shelfStock(plot, "noodles")
 		assert(S.Supply.takeBox(actor, ent), "could not take the box")
 		local ok, msg = S.Supply.useShelf(actor, shelf, nil)
 		assert(ok, "useShelf: " .. tostring(msg))
 		returnLeftover()
-		local after = S.Supply.shelfStock("noodles")
+		local after = S.Supply.shelfStock(plot, "noodles")
 		assert(after == before + 3, "the slot got " .. (after - before) .. " noodles instead of 3")
 	end)
 
 	check("pour the shoyu broth", function()
 		local pot = firstOf("pot")
 		assert(pot, "no broth pot")
-		if not S.Appliance.hasBroth("broth_shoyu") then
+		if not S.Appliance.hasBroth(plot, "broth_shoyu") then
 			local _, ent = ensureBox("broth_shoyu")
 			assert(S.Supply.takeBox(actor, ent), "could not take the broth box")
 			local ok, msg = S.Appliance.load(actor, pot)
@@ -125,7 +131,7 @@ function SelfTest.run(player)
 				st.t = workspace:GetServerTimeNow() - 1 -- fast-forward
 			end
 			assert(waitFor(function()
-				return S.Appliance.hasBroth("broth_shoyu")
+				return S.Appliance.hasBroth(plot, "broth_shoyu")
 			end, 5), "the broth never got ready")
 		end
 	end)
@@ -135,10 +141,10 @@ function SelfTest.run(player)
 		for uid in pairs(S.Customers.active) do
 			known[uid] = true
 		end
-		assert(S.Customers.trySpawn("cust_student"), "no customer could be spawned (seats? menu?)")
+		assert(S.Customers.trySpawn(plot, "cust_student"), "no customer could be spawned (seats? menu?)")
 		local c = waitFor(function()
 			for uid, cust in pairs(S.Customers.active) do
-				if not known[uid] and cust.state == "waiting" and cust.ticket then
+				if not known[uid] and cust.plot == plot and cust.state == "waiting" and cust.ticket then
 					return cust
 				end
 			end
@@ -178,7 +184,7 @@ function SelfTest.run(player)
 	check("the customer is served and pays", function()
 		local c = actor.customer
 		assert(c and actor.keepDish, "no customer or no dish from the previous steps")
-		S.Hands.set(actor, "dish", { actor.keepDish })
+		S.Hands.set(actor, "dish", { actor.keepDish }, plot)
 		local before = d.yen
 		local e = S.Entities.get(c.uid)
 		local ok, msg = S.Customers.use(actor, e)
@@ -269,7 +275,7 @@ function SelfTest.run(player)
 	end)
 
 	check("placement rules", function()
-		local ctx = S.World.ctx(d.placed)
+		local ctx = S.World.ctx(plot, d.placed)
 		local ok, reason = PlacementLogic.validate(ctx, { i = "bamboo_pot", x = 12, z = 4, r = 0, f = 0, s = "f" })
 		assert(ok, "valid spot refused: " .. tostring(reason))
 		ok = PlacementLogic.validate(ctx, { i = "stool_wood", x = 0, z = 47, r = 0, f = 0, s = "f" })

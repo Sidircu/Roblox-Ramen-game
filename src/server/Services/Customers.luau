@@ -1,5 +1,6 @@
 --!nonstrict
--- Customers: arrive from the street, take a seat, order, wait (patience), eat, pay, review, leave.
+-- Customers of every restaurant (c.plot): arrive along the street, take a seat, order by
+-- themselves, wait (patience), pay when served, eat, review, leave.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local Customers = require(Shared.Config.Customers)
@@ -12,62 +13,63 @@ local Uid = require(Shared.Util.Uid)
 local Core = require(script.Parent.Parent.Core)
 
 local Service = {}
-Service.active = {} -- [uid] = customer
-local queue = {} -- waiting groups
+Service.active = {} -- [uid] = customer (c.plot = its restaurant)
 local rng = Random.new()
-local menuCache, menuCacheTime = nil, 0
 
 local CFG = GameConfig.Customers
 local RewardsCfg = require(Shared.Config.Rewards)
 local MAIN = { sushi = true, ramen = true }
 
-local function data()
-	return Core.S.Session.ownerData()
+local function pdata(plot)
+	return Core.S.Plots.data(plot)
 end
 
 ------------------------------------------------------------------ menu availability
 
-function Service.availableMenu()
-	if menuCache and os.clock() - menuCacheTime < 2 then
-		return menuCache
+function Service.availableMenu(plot)
+	if plot.menuCache and os.clock() - (plot.menuCacheTime or 0) < 2 then
+		return plot.menuCache
 	end
-	local d = data()
+	local d = pdata(plot)
 	local out = {}
 	if not d then
 		return out
 	end
 	local Supply, Appliance = Core.S.Supply, Core.S.Appliance
 	local stations = {}
-	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+	for _, e in ipairs(Core.S.Entities.ofKind("station", plot)) do
 		stations[e.item.fn.station] = true
 	end
 	for _, r in ipairs(Core.S.Progression.menuRecipes(d)) do
 		local ok = stations[r.station] == true
 		if ok then
 			for _, g in ipairs(r.ing) do
-				if Supply.shelfStock(g) <= 0 and Supply.boxCount(g) <= 0 then
+				if Supply.shelfStock(plot, g) <= 0 and Supply.boxCount(plot, g) <= 0 then
 					ok = false
 					break
 				end
 			end
 		end
-		if ok and r.rice and not (Appliance.willHave("ricecooker") or Supply.boxCount("rice") > 0) then
+		if ok and r.rice and not (Appliance.willHave(plot, "ricecooker") or Supply.boxCount(plot, "rice") > 0) then
 			ok = false
 		end
-		if ok and r.broth and not (Appliance.willHave("pot", r.broth) or Supply.boxCount(r.broth) > 0) then
+		if ok and r.broth and not (Appliance.willHave(plot, "pot", r.broth) or Supply.boxCount(plot, r.broth) > 0) then
 			ok = false
 		end
 		if ok then
 			table.insert(out, r)
 		end
 	end
-	menuCache, menuCacheTime = out, os.clock()
+	plot.menuCache, plot.menuCacheTime = out, os.clock()
 	return out
 end
 
 local function chooseOrder(c, mainOnly)
-	local d = data()
-	local menu = Service.availableMenu()
+	local d = pdata(c.plot)
+	if not d then
+		return nil
+	end
+	local menu = Service.availableMenu(c.plot)
 	local list = {}
 	for _, r in ipairs(menu) do
 		local isMain = MAIN[r.cat] == true
@@ -122,8 +124,8 @@ local function setOrder(c, recipe)
 	if c.npc and c.npc.model then
 		c.npc.model:SetAttribute("Order", c.order or "")
 	end
-	if recipe then
-		Core.S.Analytics.step(Core.S.Session.owner, "first_order")
+	if recipe and c.plot then
+		Core.S.Analytics.step(c.plot.owner, "first_order")
 	end
 end
 
@@ -132,7 +134,7 @@ placeOrder = function(c)
 	if c.state ~= "order" or not c.order then
 		return false
 	end
-	local t = Core.S.Cooking.addTicket(c.uid, c.order)
+	local t = Core.S.Cooking.addTicket(c.plot, c.uid, c.order)
 	if not t then
 		return false
 	end
@@ -161,8 +163,8 @@ local function floorPos(seat)
 	return Vector3.new(p.X + back.X, floorY + 0.5, p.Z + back.Z)
 end
 
-local function dirtyNear(pos)
-	for _, e in ipairs(Core.S.Entities.ofKind("dirty")) do
+local function dirtyNear(plot, pos)
+	for _, e in ipairs(Core.S.Entities.ofKind("dirty", plot)) do
 		local p = Core.S.Entities.position(e)
 		if p and (p - pos).Magnitude < 6 then
 			return true
@@ -171,13 +173,14 @@ local function dirtyNear(pos)
 	return false
 end
 
-local function streetPoint(side)
+-- along the sidewalk, on one side of the restaurant's door
+local function streetPoint(plot, side)
 	local a, b = CFG.StreetSpawn[1], CFG.StreetSpawn[2]
-	return Vector3.new(side * (a + rng:NextNumber() * (b - a)), 0, Expansions.StreetWalkZ)
+	return Vector3.new(plot.origin.X + side * (a + rng:NextNumber() * (b - a)), 0, Expansions.StreetWalkZ)
 end
 
-local function entrance()
-	return Vector3.new(Expansions.Entrance.x + rng:NextNumber() * 2 - 1, 0, Expansions.Entrance.z - 1)
+local function entrance(plot)
+	return Core.S.Plots.toWorld(plot, Expansions.Entrance.x + rng:NextNumber() * 2 - 1, 0, Expansions.Entrance.z - 1)
 end
 
 local function dishKind(recipeId)
@@ -191,10 +194,11 @@ end
 ------------------------------------------------------------------ lifecycle
 
 local function release(c)
+	c.gone = true
 	Service.active[c.uid] = nil
 	Core.S.Entities.unregister(c.uid)
 	if c.ticket then
-		Core.S.Cooking.removeTicket(c.ticket.id)
+		Core.S.Cooking.removeTicket(c.plot, c.ticket.id)
 		c.ticket = nil
 	end
 	if c.seat then
@@ -223,27 +227,31 @@ local function leaveRestaurant(c)
 	setOrder(c, nil)
 	if c.npc then
 		Npc.stand(c.npc)
-		Npc.walkTo(c.npc, entrance())
-		Npc.walkTo(c.npc, streetPoint(c.side))
+		Npc.walkTo(c.npc, entrance(c.plot))
+		Npc.walkTo(c.npc, streetPoint(c.plot, c.side))
 	end
 	release(c)
 end
 
 local function review(c, walkedOut)
 	local Progression, Economy = Core.S.Progression, Core.S.Economy
-	local amb = Core.S.Placement.ambience
+	local plot = c.plot
+	if not pdata(plot) then
+		return
+	end
+	local amb = Core.S.Placement.ambienceOf(plot)
 	local pos = c.seat and c.seat.dish or Vector3.new()
 	local stars = Formulas.review({
 		left = walkedOut,
 		patienceLeft = c.minPatience,
-		dirtyNearby = dirtyNear(pos),
+		dirtyNearby = dirtyNear(plot, pos),
 		fresh = c.fresh,
 		freshBonus = GameConfig.FreshReviewBonus,
 		ambienceTier = amb.tier,
 		comfort = c.seat and c.seat.comfort or 0,
 	})
-	Progression.addReview(stars, c.cfg.reviewWeight or 1)
-	local L = Economy.ledger
+	Progression.addReview(plot, stars, c.cfg.reviewWeight or 1)
+	local L = Economy.ledgerOf(plot)
 	L.reviews += 1
 	L.stars += stars
 	if walkedOut then
@@ -251,36 +259,40 @@ local function review(c, walkedOut)
 	else
 		L.customers += 1
 	end
-	local owner = Core.S.Session.owner
+	local owner = plot.owner
 	Core.S.Net.fx("review", { stars = stars, pos = (c.npc and c.npc.root and c.npc.root.Position or pos) + Vector3.new(0, 3, 0), type = c.cfg.id })
 	if not walkedOut then
 		Core.S.Meta.event(owner, "customers", 1)
 		if stars >= 4 then
 			Core.S.Meta.event(owner, "happy", 1)
 		end
-		local d = data()
+		local d = pdata(plot)
 		if not d then
 			return
 		end
 		d.stats.customers += 1
 		if stars >= 5 and c.cfg.reviewWeight then
 			Economy.addSakura(owner, 3)
-			Core.S.Net.notifyAll("msg.critic_happy", nil, "success")
+			Core.S.Plots.notify(plot, "msg.critic_happy", nil, "success")
 		end
 		if stars >= 5 and c.cfg.influencer then
 			d.boosts.influencer = (d.stats.days or 0) + 2
-			Core.S.Net.notifyAll("msg.influencer_happy", nil, "success")
+			Core.S.Plots.notify(plot, "msg.influencer_happy", nil, "success")
 		end
 	else
-		Core.S.Net.notifyAll("msg.customer_left", nil, "warning")
+		Core.S.Plots.notify(plot, "msg.customer_left", nil, "warning")
 	end
 end
 
 local function pay(c, recipe)
-	local d = data()
+	local plot = c.plot
+	local d = pdata(plot)
+	if not d then
+		return
+	end
 	local Economy = Core.S.Economy
-	local owner = Core.S.Session.owner
-	local amb = Core.S.Placement.ambience
+	local owner = plot.owner
+	local amb = Core.S.Placement.ambienceOf(plot)
 	local price = Core.S.Progression.priceOf(d, recipe)
 	local tip = Formulas.tip(price, {
 		fresh = c.fresh,
@@ -294,7 +306,7 @@ local function pay(c, recipe)
 	local got = Economy.add(owner, price, "sale")
 	-- with a tip jar on the counter the tip waits there until you collect it
 	local gotTip = 0
-	local inJar = Economy.tipToJar(tip)
+	local inJar = Economy.tipToJar(plot, tip)
 	if not inJar then
 		gotTip = Economy.add(owner, tip, "tip")
 	end
@@ -342,14 +354,14 @@ local function eat(c, recipe)
 end
 
 local function leaveDirty(c)
-	if not c.seat or c.eaten == 0 then
+	if not c.seat or c.eaten == 0 or not pdata(c.plot) then
 		return
 	end
 	local m = Registry.food("dirty", c.dishKind or "plate")
 	m:PivotTo(CFrame.new(c.seat.dish + Vector3.new(0, 0.3, 0)))
-	m.Parent = Core.S.World.folders().dynamic
+	m.Parent = Core.S.World.folders(c.plot).dynamic
 	local uid = Uid.new("d")
-	Core.S.Entities.register(uid, "dirty", m, { seat = c.seat })
+	Core.S.Entities.register(uid, "dirty", m, { seat = c.seat, plot = c.plot })
 	c.seat.dirty = uid
 end
 
@@ -357,13 +369,14 @@ end
 local function run(c)
 	local Npc = Core.S.Npc
 	local Seating = Core.S.Seating
+	local plot = c.plot
 	-- walk in: the wind chime over the door rings
-	Npc.walkTo(c.npc, entrance())
-	Core.S.Net.fx("sfx", { name = "chime", pos = entrance() + Vector3.new(0, 7, 0) })
+	Npc.walkTo(c.npc, entrance(plot))
+	Core.S.Net.fx("sfx", { name = "chime", pos = entrance(plot) + Vector3.new(0, 7, 0) })
 	-- wait in queue until a seat is free
 	if not c.seat then
 		setState(c, "queue")
-		c.bench = Seating.benchSpot(c.uid)
+		c.bench = Seating.benchSpot(plot, c.uid)
 		if c.bench then
 			Npc.walkTo(c.npc, c.bench.sit.Position)
 			Npc.sit(c.npc, c.bench.sit)
@@ -444,7 +457,7 @@ local function run(c)
 	leaveRestaurant(c)
 end
 
-local function spawnCustomer(cfg, side, seat, group)
+local function spawnCustomer(plot, cfg, side, seat, group)
 	-- in a family the third and fourth members are children
 	local child = cfg.id == "cust_family" and group ~= nil and #group.members >= 2
 	local npc = Core.S.Npc.acquireCustomer(cfg.look, child)
@@ -452,8 +465,7 @@ local function spawnCustomer(cfg, side, seat, group)
 		return nil
 	end
 	local uid = Uid.new("c")
-	local d = data()
-	local amb = Core.S.Placement.ambience
+	local amb = Core.S.Placement.ambienceOf(plot)
 	local patience = cfg.patience
 	local clock = Core.S.Day.clock or 12
 	if cfg.lunchPatience and clock >= 12 and clock < 14 then
@@ -462,18 +474,18 @@ local function spawnCustomer(cfg, side, seat, group)
 	patience = patience * (1 + amb.patience) * (CFG.PatienceMult or 1)
 	local c = {
 		uid = uid, cfg = cfg, npc = npc, seat = seat, side = side, state = "arriving", group = group,
-		patienceMax = patience, patience = patience, minPatience = 1, eaten = 0, fresh = false,
+		patienceMax = patience, patience = patience, minPatience = 1, eaten = 0, fresh = false, plot = plot,
 	}
-	local _ = d
 	Service.active[uid] = c
-	Core.S.Entities.register(uid, "customer", npc.model, { customer = c })
+	Core.S.Entities.register(uid, "customer", npc.model, { customer = c, plot = plot })
 	npc.model:SetAttribute("Type", cfg.id)
 	npc.model:SetAttribute("Patience", 1)
-	local start = streetPoint(side)
+	local start = streetPoint(plot, side)
 	Core.S.Npc.spawn(npc, CFrame.new(start + Vector3.new(0, 3, 0)) * CFrame.Angles(0, math.rad(side > 0 and 90 or -90), 0))
 	task.spawn(function()
 		local ok, err = pcall(run, c)
-		if not ok then
+		-- a customer removed while walking (the owner left) just stops
+		if not ok and not c.gone then
 			warn("[Customers] " .. tostring(err))
 			release(c)
 		end
@@ -481,11 +493,11 @@ local function spawnCustomer(cfg, side, seat, group)
 	return c
 end
 
-local function pickType(d)
+local function pickType(plot, d)
 	local list = {}
 	local hasTables = false
 	local hasVip = false
-	for _, s in ipairs(Core.S.Seating.seats) do
+	for _, s in ipairs(Core.S.Seating.list(plot)) do
 		if s.group and not s.vip then
 			hasTables = true
 		end
@@ -512,53 +524,65 @@ local function pickType(d)
 	end, rng)
 end
 
-function Service.trySpawn(forcedType)
-	local d = data()
+-- customers of a restaurant (alive)
+local function countOf(plot)
+	local n = 0
+	for _, c in pairs(Service.active) do
+		if c.plot == plot then
+			n += 1
+		end
+	end
+	return n
+end
+
+function Service.trySpawn(plot, forcedType)
+	local d = pdata(plot)
 	if not d then
 		return false
 	end
-	if Core.S.Npc.count() >= CFG.MaxNpcs then
+	if Core.S.Npc.count() >= CFG.MaxNpcs or countOf(plot) >= CFG.MaxPerRestaurant then
 		return false
 	end
-	if #Service.availableMenu() == 0 then
-		if not Service.warnedMenu then
-			Service.warnedMenu = true
-			Core.S.Net.notifyAll("msg.no_menu", nil, "warning")
+	if #Service.availableMenu(plot) == 0 then
+		if not plot.warnedMenu then
+			plot.warnedMenu = true
+			Core.S.Plots.notify(plot, "msg.no_menu", nil, "warning")
 		end
 		return false
 	end
-	Service.warnedMenu = false
-	local cfg = forcedType and Customers.byId[forcedType] or pickType(d)
+	plot.warnedMenu = false
+	local cfg = forcedType and Customers.byId[forcedType] or pickType(plot, d)
 	if not cfg then
 		return false
 	end
 	local size = rng:NextInteger(cfg.group[1], cfg.group[2])
 	local needsTable = cfg.needsTable or size > 1
-	local seats = Core.S.Seating.find(size, needsTable, cfg.vip == true)
+	local seats = Core.S.Seating.find(plot, size, needsTable, cfg.vip == true)
 	local side = rng:NextNumber() < 0.5 and -1 or 1
 	if not seats then
 		-- queue (only if there is room)
+		plot.queue = plot.queue or {}
 		local waiting = 0
-		for _, g in ipairs(queue) do
+		for _, g in ipairs(plot.queue) do
 			waiting += #g.members
 		end
-		if waiting + size > CFG.BaseQueue + Core.S.Seating.queueCapacity() then
+		if waiting + size > CFG.BaseQueue + Core.S.Seating.queueCapacity(plot) then
 			return false
 		end
 		local group = { members = {}, size = size, needsTable = needsTable, vip = cfg.vip == true }
 		for _ = 1, size do
-			local c = spawnCustomer(cfg, side, nil, group)
+			local c = spawnCustomer(plot, cfg, side, nil, group)
 			if c then
 				table.insert(group.members, c)
 			end
 		end
-		table.insert(queue, group)
+		table.insert(plot.queue, group)
 		return true
 	end
 	Core.S.Seating.reserve(seats, "pending")
 	local group = { members = {} }
 	for i = 1, size do
-		local c = spawnCustomer(cfg, side, seats[i], group)
+		local c = spawnCustomer(plot, cfg, side, seats[i], group)
 		if c then
 			seats[i].reserved = c.uid
 			table.insert(group.members, c)
@@ -568,18 +592,19 @@ function Service.trySpawn(forcedType)
 		task.wait(0.4)
 	end
 	if cfg.celebrity then
-		Core.S.Net.notifyAll("msg.celebrity", nil, "success")
+		Core.S.Plots.notify(plot, "msg.celebrity", nil, "success")
 		task.spawn(function()
 			for _ = 1, 4 do
 				task.wait(2)
-				Service.trySpawn("cust_student")
+				Service.trySpawn(plot, "cust_student")
 			end
 		end)
 	end
 	return true
 end
 
-local function serveQueue()
+local function serveQueue(plot)
+	local queue = plot.queue or {}
 	for i = #queue, 1, -1 do
 		local g = queue[i]
 		local alive = {}
@@ -591,7 +616,7 @@ local function serveQueue()
 		if #alive == 0 then
 			table.remove(queue, i)
 		else
-			local seats = Core.S.Seating.find(#alive, g.needsTable and #alive > 1, g.vip)
+			local seats = Core.S.Seating.find(plot, #alive, g.needsTable and #alive > 1, g.vip)
 			if seats then
 				for k, c in ipairs(alive) do
 					seats[k].reserved = c.uid
@@ -618,6 +643,9 @@ function Service.use(actor, e)
 		return true
 	elseif c.state == "waiting" then
 		local hands = Hands.get(actor)
+		if hands.kind == "dish" and hands.plot and hands.plot ~= c.plot then
+			return false, "msg.other_restaurant"
+		end
 		if hands.kind == "dish" then
 			for i, dish in ipairs(hands.items) do
 				if dish.recipe == c.order then
@@ -635,11 +663,11 @@ function Service.use(actor, e)
 	return false, "msg.customer_happy"
 end
 
--- Serving combo: dishes served close together raise the tip (Config/Rewards.Combo)
-local combo = { n = 0, last = -1e9 }
-
+-- Serving combo: dishes served close together raise the tip (Config/Rewards.Combo), per restaurant
 local function bumpCombo(c)
 	local cfg = RewardsCfg.Combo
+	c.plot.combo = c.plot.combo or { n = 0, last = -1e9 }
+	local combo = c.plot.combo
 	local now = os.clock()
 	if now - combo.last <= cfg.Window then
 		combo.n += 1
@@ -657,13 +685,18 @@ function Service.serve(c, dish, actor)
 	local recipe = Recipes.byId[dish.recipe]
 	bumpCombo(c)
 	if c.ticket then
-		Core.S.Cooking.removeTicket(c.ticket.id)
+		Core.S.Cooking.removeTicket(c.plot, c.ticket.id)
 		c.ticket = nil
 	end
 	c.fresh = dish.fresh == true
 	c.perfect = dish.perfect == true
 	c.servedBy = actor
-	local served = data().mastery[dish.recipe] or 0
+	local plot = c.plot
+	local d = pdata(plot)
+	if not d then
+		return
+	end
+	local served = d.mastery[dish.recipe] or 0
 	local m = Registry.food("dish", dish.recipe, Formulas.masteryLevel(served) >= #Formulas.MasteryThresholds)
 	m:PivotTo(CFrame.new(c.seat.dish + Vector3.new(0, 0.5, 0)) * CFrame.Angles(0, math.rad(rng:NextInteger(0, 359)), 0))
 	for _, d in ipairs(m:GetDescendants()) do
@@ -671,16 +704,16 @@ function Service.serve(c, dish, actor)
 			d.CanQuery = false
 		end
 	end
-	m.Parent = Core.S.World.folders().dynamic
+	m.Parent = Core.S.World.folders(plot).dynamic
 	c.dishModel = m
 	Core.S.Net.fx("sfx", { name = "plate", pos = c.seat.dish })
 	setState(c, "served")
-	local d = data()
-	local owner = Core.S.Session.owner
+	local owner = plot.owner
+	local L = Core.S.Economy.ledgerOf(plot)
 	d.stats.dishes += 1
-	Core.S.Economy.ledger.served += 1
-	Core.S.Economy.ledger.bestDish[recipe.id] = (Core.S.Economy.ledger.bestDish[recipe.id] or 0) + 1
-	Core.S.Progression.addMastery(recipe.id)
+	L.served += 1
+	L.bestDish[recipe.id] = (L.bestDish[recipe.id] or 0) + 1
+	Core.S.Progression.addMastery(plot, recipe.id)
 	Core.S.Progression.addXp(owner, recipe.xp)
 	Core.S.Meta.event(owner, "serve", 1, { recipe = recipe.id })
 	if recipe.cat == "sushi" then
@@ -698,7 +731,7 @@ end
 
 function Service.collectDirty(actor, e)
 	local Hands = Core.S.Hands
-	local ok, reason = Hands.add(actor, "dirty", { dish = "plate" })
+	local ok, reason = Hands.add(actor, "dirty", { dish = "plate" }, e.plot)
 	if not ok then
 		return false, reason
 	end
@@ -715,63 +748,86 @@ function Service.collectDirty(actor, e)
 	return true
 end
 
--- customers waiting to order (for waiters) and waiting food
-function Service.list(state)
+-- customers of a restaurant in a state (for waiters)
+function Service.list(plot, state)
 	local out = {}
 	for _, c in pairs(Service.active) do
-		if c.state == state then
+		if c.plot == plot and c.state == state then
 			table.insert(out, c)
 		end
 	end
 	return out
 end
 
-function Service.sendAllHome()
+function Service.sendAllHome(plot)
 	for _, c in pairs(Service.active) do
-		c.state = "leaving"
+		if c.plot == plot then
+			c.state = "leaving"
+		end
 	end
+end
+
+-- the owner left: the customers of that restaurant vanish right away
+local function removeAll(plot)
+	for _, c in pairs(Service.active) do
+		if c.plot == plot then
+			c.state = "leaving"
+			pcall(release, c)
+		end
+	end
+	plot.queue = {}
 end
 
 ------------------------------------------------------------------ loop
 
-local firstAt = nil -- the first customer comes this soon after the restaurant is ready
+-- one restaurant's arrivals: an interval from its popularity, the rush hours and the night
+local function tick(plot, dt)
+	serveQueue(plot)
+	local Day = Core.S.Day
+	plot.spawnTimer = (plot.spawnTimer or 0) + dt
+	if plot.firstAt and os.clock() >= plot.firstAt then
+		plot.firstAt = nil
+		plot.spawnTimer = math.huge
+	end
+	local d = pdata(plot)
+	local pop = Core.S.Progression.popularity(plot)
+	local days = (d and d.stats.days) or 0
+	local peakFactor = days < (GameConfig.Day.EarlyDays or 0) and GameConfig.Day.EarlyPeakFactor or GameConfig.Day.PeakFactor
+	local interval = Formulas.customerInterval(CFG.BaseInterval, CFG.MinInterval, pop, Day.isPeak(), peakFactor, Core.S.Economy.boostActive(plot, "rush"))
+	if Core.S.Seating.freeCount(plot) == 0 then
+		interval = interval * 1.5
+	end
+	if Day.isNight() then
+		interval = interval * GameConfig.Day.NightFactor
+	end
+	if plot.spawnTimer >= interval then
+		plot.spawnTimer = 0
+		local ok, err = pcall(Service.trySpawn, plot)
+		if not ok then
+			warn("[Customers] spawn failed: " .. tostring(err))
+		end
+	end
+end
 
 local function spawnLoop()
-	local timer = 0
 	while true do
 		local dt = task.wait(0.5)
-		serveQueue()
-		local Day = Core.S.Day
-		if Day and Day.phase == "open" and Core.S.Session.owner then
-			timer += dt
-			if firstAt and os.clock() >= firstAt then
-				firstAt = nil
-				timer = math.huge
+		for _, plot in ipairs(Core.S.Plots.list) do
+			if plot.owner and pdata(plot) then
+				tick(plot, dt)
 			end
-			local pop = Core.S.Progression.popularity()
-			local days = (data() and data().stats.days) or 0
-			local peakFactor = days < (GameConfig.Day.EarlyDays or 0) and GameConfig.Day.EarlyPeakFactor or GameConfig.Day.PeakFactor
-			local interval = Formulas.customerInterval(CFG.BaseInterval, CFG.MinInterval, pop, Day.isPeak(), peakFactor, Core.S.Economy.boostActive("rush"))
-			if Core.S.Seating.freeCount() == 0 then
-				interval = interval * 1.5
-			end
-			if Day.isNight() then
-				interval = interval * GameConfig.Day.NightFactor
-			end
-			if timer >= interval then
-				timer = 0
-				pcall(Service.trySpawn)
-			end
-		else
-			timer = 0
 		end
 	end
 end
 
 function Service.Start()
-	Core.S.Session.OwnerReady:Connect(function()
-		firstAt = os.clock() + (CFG.FirstCustomerDelay or 2)
+	local Plots = Core.S.Plots
+	Plots.Claimed:Connect(function(plot)
+		plot.queue = {}
+		plot.spawnTimer = 0
+		plot.firstAt = os.clock() + (CFG.FirstCustomerDelay or 2)
 	end)
+	Plots.Released:Connect(removeAll)
 	task.spawn(spawnLoop)
 end
 

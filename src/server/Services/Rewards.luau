@@ -35,7 +35,8 @@ local function grant(player, reward)
 		Core.S.Economy.addSakura(player, reward.sakura)
 	end
 	if reward.boxes then
-		if player == Core.S.Session.owner then
+		local plot = Core.S.Plots.ofPlayer(player)
+		if plot then
 			for g, n in pairs(reward.boxes) do
 				local ing = Ingredients.byId[g]
 				if ing then
@@ -44,7 +45,7 @@ local function grant(player, reward)
 					end
 				end
 			end
-			Core.S.Supply.layout()
+			Core.S.Supply.layout(plot)
 			Core.S.Data.changed(player, "storage")
 		else
 			Core.S.Economy.add(player, RewardsCfg.GiftBoxYen or 400, "gift")
@@ -125,7 +126,9 @@ end
 -- ❤️ a visitor likes the restaurant they are in: once a day per restaurant, counts for the
 -- owner's likes (shown on the restaurant and on the leaderboard)
 local function like(player)
-	local owner = Core.S.Session.owner
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	local plot = root and Core.S.Plots.at(root.Position) or nil
+	local owner = plot and plot.owner
 	if not owner or owner == player then
 		return
 	end
@@ -141,7 +144,7 @@ local function like(player)
 	end
 	pd.meta.liked[key] = today
 	od.stats.likes = (od.stats.likes or 0) + 1
-	workspace:SetAttribute("Likes", od.stats.likes)
+	plot.folder:SetAttribute("Likes", od.stats.likes)
 	Core.S.Data.changed(owner, "stats")
 	Core.S.Data.changed(player, "meta")
 	Core.S.Net.notify(owner, "msg.liked", { name = player.DisplayName }, "success")
@@ -161,8 +164,8 @@ function Rewards.Start()
 		onPlayer(p)
 	end
 	Players.PlayerAdded:Connect(onPlayer)
-	Core.S.Session.OwnerReady:Connect(function(_, d)
-		workspace:SetAttribute("Likes", d and d.stats.likes or 0)
+	Core.S.Plots.Claimed:Connect(function(plot, _, d)
+		plot.folder:SetAttribute("Likes", d and d.stats.likes or 0)
 	end)
 	Players.PlayerRemoving:Connect(function(p)
 		claimed[p] = nil

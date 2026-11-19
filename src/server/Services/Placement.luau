@@ -1,6 +1,7 @@
 --!nonstrict
--- Placed objects: spawning models from the owner's data, building remotes, inventory, painting,
--- ambience. Functional services subscribe to ItemAdded / ItemRemoved / ItemMoved.
+-- Placed objects of every restaurant: spawning models from the owner's data (restaurant-local
+-- coordinates moved onto the plot), building remotes, inventory, painting, ambience. Functional
+-- services subscribe to ItemAdded / ItemRemoved / ItemMoved (the entity knows its plot).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
@@ -21,8 +22,13 @@ local Placement = {}
 Placement.ItemAdded = Signal.new() -- (entity)
 Placement.ItemRemoved = Signal.new() -- (entity)
 Placement.ItemMoved = Signal.new() -- (entity)
-Placement.LayoutChanged = Signal.new()
-Placement.ambience = { points = 0, tier = 0, patience = 0, tip = 0, popularity = 0, sets = {} }
+Placement.LayoutChanged = Signal.new() -- (plot)
+local NO_AMBIENCE = { points = 0, tier = 0, patience = 0, tip = 0, popularity = 0, sets = {} }
+
+-- ambience of a restaurant: { points, tier, patience, tip, popularity, sets }
+function Placement.ambienceOf(plot)
+	return (plot and plot.ambience) or NO_AMBIENCE
+end
 
 local vetoes = {} -- functions(entity) -> ok, reason
 
@@ -44,8 +50,14 @@ function Placement.addVeto(fn)
 	table.insert(vetoes, fn)
 end
 
-local function ownerData()
-	return Core.S.Session.ownerData()
+-- the restaurant a player builds in: the one they stand in when they may build there
+local function buildPlot(player)
+	local Plots = Core.S.Plots
+	local plot = Plots.of(player)
+	if plot and Plots.canBuild(player, plot) then
+		return plot
+	end
+	return nil
 end
 
 local function findEntry(data, uid)
@@ -72,14 +84,14 @@ local function worldY(entry)
 	return 0
 end
 
-local function spawn(entry)
-	local data = ownerData()
+local function spawn(plot, entry)
+	local data = Core.S.Plots.data(plot)
 	local model = Registry.build(entry.i, { styles = Expansions.styles(data and data.zones) })
-	Registry.place(model, entry.x, worldY(entry), entry.z, entry.r)
+	Registry.place(model, entry.x + plot.origin.X, worldY(entry), entry.z + plot.origin.Z, entry.r)
 	model:SetAttribute("FloorIndex", entry.f or 0)
-	model.Parent = Core.S.World.folders().items
+	model.Parent = Core.S.World.folders(plot).items
 	local item = Items.byId[entry.i]
-	local e = Core.S.Entities.register(entry.u, Placement.kindOf(entry.i), model, { entry = entry, item = item, isItem = true })
+	local e = Core.S.Entities.register(entry.u, Placement.kindOf(entry.i), model, { entry = entry, item = item, isItem = true, plot = plot })
 	Placement.ItemAdded:Fire(e)
 	return e
 end
@@ -94,8 +106,8 @@ local function despawn(uid)
 	end
 end
 
-function Placement.recomputeAmbience()
-	local data = ownerData()
+function Placement.recomputeAmbience(plot)
+	local data = Core.S.Plots.data(plot)
 	if not data then
 		return
 	end
@@ -105,9 +117,9 @@ function Placement.recomputeAmbience()
 			extra += e.ambience
 		end
 	end
-	Placement.ambience = Ambience.compute(data.placed, Items.byId, Surfaces.byId, data.surfaces, extra, Sets.list)
-	workspace:SetAttribute("Ambience", Placement.ambience.points)
-	workspace:SetAttribute("AmbienceTier", Placement.ambience.tier)
+	plot.ambience = Ambience.compute(data.placed, Items.byId, Surfaces.byId, data.surfaces, extra, Sets.list)
+	plot.folder:SetAttribute("Ambience", plot.ambience.points)
+	plot.folder:SetAttribute("AmbienceTier", plot.ambience.tier)
 	local decor = 0
 	for _, e in ipairs(data.placed) do
 		if Placement.kindOf(e.i) == "decor" then
@@ -117,20 +129,24 @@ function Placement.recomputeAmbience()
 	data.stats.decor = math.max(data.stats.decor or 0, decor)
 end
 
-local function changed()
-	local Session = Core.S.Session
-	Placement.recomputeAmbience()
-	Core.S.Data.changed(Session.owner, "placed")
-	Core.S.Data.changed(Session.owner, "inventory")
-	Placement.LayoutChanged:Fire()
+local function changed(plot)
+	Placement.recomputeAmbience(plot)
+	Core.S.Data.changed(plot.owner, "placed")
+	Core.S.Data.changed(plot.owner, "inventory")
+	Placement.LayoutChanged:Fire(plot)
 end
 
-function Placement.spawnAll(data)
-	for _, e in pairs(Core.S.Entities.all()) do
+-- removes every placed object of a restaurant (its owner left)
+function Placement.despawnAll(plot)
+	for _, e in ipairs(Core.S.Entities.ofPlot(plot)) do
 		if e.isItem then
 			despawn(e.uid)
 		end
 	end
+end
+
+function Placement.spawnAll(plot, data)
+	Placement.despawnAll(plot)
 	-- floor items first so tops find their parents
 	table.sort(data.placed, function(a, b)
 		local order = { f = 1, w = 2, c = 3, t = 4 }
@@ -138,19 +154,19 @@ function Placement.spawnAll(data)
 	end)
 	for _, entry in ipairs(data.placed) do
 		if Items.byId[entry.i] then
-			local ok, err = pcall(spawn, entry)
+			local ok, err = pcall(spawn, plot, entry)
 			if not ok then
 				warn("[Placement] could not spawn " .. tostring(entry.i) .. ": " .. tostring(err))
 			end
 		end
 	end
-	Placement.recomputeAmbience()
-	Placement.LayoutChanged:Fire()
+	Placement.recomputeAmbience(plot)
+	Placement.LayoutChanged:Fire(plot)
 end
 
 -- Removes objects that are no longer valid (e.g. after stairs appear) into the inventory
-function Placement.revalidate(data)
-	local ctx = Core.S.World.ctx(data.placed)
+function Placement.revalidate(plot, data)
+	local ctx = Core.S.World.ctx(plot, data.placed)
 	local removed = 0
 	for i = #data.placed, 1, -1 do
 		local e = data.placed[i]
@@ -232,11 +248,13 @@ local function checkVetoes(uid)
 end
 
 function Placement.place(player, rawReq, fromInventory)
-	local Session, Net, Economy = Core.S.Session, Core.S.Net, Core.S.Economy
-	if not Session.canBuild(player) then
+	local Net, Economy = Core.S.Net, Core.S.Economy
+	local plot = buildPlot(player)
+	if not plot then
 		return Net.notify(player, "msg.no_permission", nil, "error")
 	end
-	local data = ownerData()
+	local owner = plot.owner
+	local data = Core.S.Plots.data(plot)
 	local req = parseReq(rawReq)
 	if not data or not req then
 		return
@@ -251,13 +269,13 @@ function Placement.place(player, rawReq, fromInventory)
 			return Net.notify(player, reason, { level = item.lv }, "error")
 		end
 	end
-	if item.gamepass and not fromInventory and Core.S.Monetization.ownerHas(item.gamepass) then
+	if item.gamepass and not fromInventory and Core.S.Monetization.has(owner, item.gamepass) then
 		fromInventory = (data.inventory[item.id] or 0) > 0
 	end
 	if not canAfford(player, data, item, fromInventory) then
 		return Net.notify(player, "msg.not_enough", nil, "error")
 	end
-	local ctx = Core.S.World.ctx(data.placed)
+	local ctx = Core.S.World.ctx(plot, data.placed)
 	local ok, reason, resolved = PlacementLogic.validate(ctx, req)
 	if not ok then
 		return Net.notify(player, reason or "msg.place_invalid", nil, "error")
@@ -268,11 +286,11 @@ function Placement.place(player, rawReq, fromInventory)
 			data.inventory[item.id] = nil
 		end
 	elseif item.sakura then
-		if not Economy.spendSakura(Session.owner, item.sakura) then
+		if not Economy.spendSakura(owner, item.sakura, "item:" .. item.id) then
 			return
 		end
 	else
-		if not Economy.spend(Session.owner, item.price, "build", "item:" .. item.id) then
+		if not Economy.spend(owner, item.price, "build", "item:" .. item.id) then
 			return Net.notify(player, "msg.not_enough", nil, "error")
 		end
 	end
@@ -285,10 +303,10 @@ function Placement.place(player, rawReq, fromInventory)
 	end
 	entry.paid = (not fromInventory) and (item.sakura and 0 or item.price) or 0
 	table.insert(data.placed, entry)
-	spawn(entry)
-	changed()
+	spawn(plot, entry)
+	changed(plot)
 	Net.fxTo(player, "sfx", { name = "place" })
-	Core.S.Meta.event(Session.owner, "place", 1, { item = item.id })
+	Core.S.Meta.event(owner, "place", 1, { item = item.id })
 end
 
 local function children(data, uid)
@@ -302,11 +320,12 @@ local function children(data, uid)
 end
 
 function Placement.move(player, uid, rawReq)
-	local Session, Net = Core.S.Session, Core.S.Net
-	if not Session.canBuild(player) or type(uid) ~= "string" then
+	local Net = Core.S.Net
+	local plot = buildPlot(player)
+	if not plot or type(uid) ~= "string" then
 		return
 	end
-	local data = ownerData()
+	local data = Core.S.Plots.data(plot)
 	local entry = data and findEntry(data, uid)
 	local req = parseReq(rawReq)
 	if not entry or not req or req.i ~= entry.i then
@@ -317,7 +336,7 @@ function Placement.move(player, uid, rawReq)
 		return Net.notify(player, vetoReason, nil, "error")
 	end
 	req.u = uid
-	local ctx = Core.S.World.ctx(data.placed)
+	local ctx = Core.S.World.ctx(plot, data.placed)
 	local ok, reason, resolved = PlacementLogic.validate(ctx, req)
 	if not ok then
 		return Net.notify(player, reason or "msg.place_invalid", nil, "error")
@@ -345,20 +364,21 @@ function Placement.move(player, uid, rawReq)
 		local ent = Core.S.Entities.get(e.u)
 		if ent and ent.model then
 			ent.model:SetAttribute("FloorIndex", e.f or 0)
-			Registry.place(ent.model, e.x, worldY(e), e.z, e.r)
+			Registry.place(ent.model, e.x + plot.origin.X, worldY(e), e.z + plot.origin.Z, e.r)
 			Placement.ItemMoved:Fire(ent)
 		end
 	end
-	changed()
+	changed(plot)
 	Net.fxTo(player, "sfx", { name = "place" })
 end
 
 function Placement.remove(player, uid, mode)
-	local Session, Net, Economy = Core.S.Session, Core.S.Net, Core.S.Economy
-	if not Session.canBuild(player) or type(uid) ~= "string" then
+	local Net, Economy = Core.S.Net, Core.S.Economy
+	local plot = buildPlot(player)
+	if not plot or type(uid) ~= "string" then
 		return
 	end
-	local data = ownerData()
+	local data = Core.S.Plots.data(plot)
 	local entry, index = nil, nil
 	if data then
 		entry, index = findEntry(data, uid)
@@ -384,26 +404,27 @@ function Placement.remove(player, uid, mode)
 		local paid = entry.paid or item.price
 		local refund = (os.time() - (entry.t or 0) <= GameConfig.FullRefundSeconds) and paid or math.floor(paid * GameConfig.SellRefund)
 		if refund > 0 then
-			Economy.add(Session.owner, refund, "refund", { raw = true })
+			Economy.add(plot.owner, refund, "refund", { raw = true })
 		end
 	else
 		data.inventory[entry.i] = (data.inventory[entry.i] or 0) + 1
 	end
-	changed()
+	changed(plot)
 end
 
 function Placement.paint(player, zoneId, kind, styleId)
-	local Session, Net, Economy = Core.S.Session, Core.S.Net, Core.S.Economy
-	if not Session.canBuild(player) then
+	local Net, Economy = Core.S.Net, Core.S.Economy
+	local plot = buildPlot(player)
+	if not plot then
 		return
 	end
-	local data = ownerData()
+	local data = Core.S.Plots.data(plot)
 	local style = Surfaces.byId[styleId]
 	if not data or not style or style.kind ~= kind then
 		return
 	end
 	local zone = nil
-	for _, z in ipairs(Core.S.World.zones) do
+	for _, z in ipairs(Core.S.World.geo(plot).zones) do
 		if z.id == zoneId and not z.outdoor then
 			zone = z
 		end
@@ -418,20 +439,20 @@ function Placement.paint(player, zoneId, kind, styleId)
 	if data.surfaces[zoneId][kind] == styleId then
 		return
 	end
-	if style.price > 0 and not Economy.spend(Session.owner, style.price, "build", "surface:" .. tostring(styleId)) then
+	if style.price > 0 and not Economy.spend(plot.owner, style.price, "build", "surface:" .. tostring(styleId)) then
 		return Net.notify(player, "msg.not_enough", nil, "error")
 	end
 	data.surfaces[zoneId][kind] = styleId
-	Core.S.World.rebuild(data)
-	Core.S.Data.changed(Session.owner, "surfaces")
-	Placement.recomputeAmbience()
+	Core.S.World.rebuild(plot, data)
+	Core.S.Data.changed(plot.owner, "surfaces")
+	Placement.recomputeAmbience(plot)
 	Net.fxTo(player, "sfx", { name = "place" })
 end
 
--- Items whose footprint is close to a point (used by seating / freshness)
-function Placement.near(x, z, f, radius, filterFn)
+-- Items of a restaurant whose footprint is close to a local point (used by seating / freshness)
+function Placement.near(plot, x, z, f, radius, filterFn)
 	local out = {}
-	local data = ownerData()
+	local data = Core.S.Plots.data(plot)
 	if not data then
 		return out
 	end
@@ -471,10 +492,14 @@ function Placement.Init()
 end
 
 function Placement.Start()
-	Core.S.Session.OwnerReady:Connect(function(_, data)
+	Core.S.Plots.Claimed:Connect(function(plot, _, data)
 		task.defer(function()
-			Placement.spawnAll(data)
+			Placement.spawnAll(plot, data)
 		end)
+	end)
+	Core.S.Plots.Released:Connect(function(plot)
+		Placement.despawnAll(plot)
+		plot.ambience = nil
 	end)
 end
 

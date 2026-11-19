@@ -1,8 +1,8 @@
 --!nonstrict
--- Time of day. The restaurant is always open: the clock turns continuously for the light (day,
--- sunset, lantern-lit evening, a quick night) and the lunch and dinner rush. Every day at
--- Day.DayStartHour the day's accounts are closed: salaries, stats, daily quests and a short summary
--- for the owner (never a screen that stops the game).
+-- Time of day, the same for the whole street. The restaurants are always open: the clock turns
+-- continuously for the light (day, sunset, lantern-lit evening, a quick night) and the lunch and
+-- dinner rush. Every day at Day.DayStartHour each restaurant closes its accounts: salaries, stats,
+-- daily quests and a short summary for its owner (never a screen that stops the game).
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 
@@ -15,12 +15,7 @@ local Day = {}
 local DAY = GameConfig.Day
 Day.phase = "open" -- kept for older checks: the restaurant never closes
 Day.clock = DAY.StartClock
-Day.report = nil
 local hours = DAY.StartClock -- game hours since the server started (never wraps)
-
-local function data()
-	return Core.S.Session.ownerData()
-end
 
 function Day.isPeak()
 	for _, p in ipairs(DAY.Peaks) do
@@ -35,33 +30,36 @@ function Day.isNight()
 	return Day.clock >= DAY.NightFrom or Day.clock < DAY.NightTo
 end
 
-local function payload()
-	local d = data()
+-- what a player sees: the clock, their own day number and the last summary of their restaurant
+local function payload(player)
+	local d = Core.S.Data.get(player)
+	local plot = Core.S.Plots.ofPlayer(player)
 	return {
 		phase = Day.phase,
 		clock = Day.clock,
 		day = d and (d.stats.days or 0) + 1 or 1,
 		night = Day.isNight(),
-		report = Day.report,
+		report = plot and plot.report or nil,
 	}
 end
 
 function Day.broadcast()
-	Core.S.Net.fireAll("DayState", payload())
+	for _, p in ipairs(Players:GetPlayers()) do
+		Core.S.Net.fire(p, "DayState", payload(p))
+	end
 	workspace:SetAttribute("DayPhase", Day.phase)
 end
 
--- closes the day's accounts and starts a new day
-local function finish()
-	local d = data()
-	local owner = Core.S.Session.owner
+-- closes the day's accounts of one restaurant
+local function finishPlot(plot)
+	local d = Core.S.Plots.data(plot)
+	local owner = plot.owner
 	if not d or not owner then
-		Core.S.Economy.resetLedger()
 		return
 	end
 	-- tips left in the jar go to the wallet before the summary
-	pcall(Core.S.Economy.collectTips, owner)
-	local L = Core.S.Economy.ledger
+	pcall(Core.S.Economy.collectTips, owner, plot)
+	local L = Core.S.Economy.ledgerOf(plot)
 	local salaries = 0
 	for _, s in ipairs(d.staff) do
 		local cfg = Staff.byId[s.role]
@@ -78,7 +76,7 @@ local function finish()
 	end
 	local income = L.sales + L.tips
 	local costs = L.supplies + paid + L.build + L.other
-	Day.report = {
+	plot.report = {
 		day = (d.stats.days or 0) + 1,
 		sales = L.sales, tips = L.tips, supplies = L.supplies, salaries = paid, build = L.build, other = L.other,
 		profit = income - costs, customers = L.customers, served = L.served, walkouts = L.walkouts,
@@ -93,13 +91,24 @@ local function finish()
 	Core.S.Data.changed(owner, "stats")
 	Core.S.Meta.event(owner, "days", 1)
 	Core.S.Meta.dayEnded(owner)
-	Core.S.Economy.resetLedger()
-	Core.S.Net.notify(owner, "msg.day_summary", { day = Day.report.day, yen = income, served = L.served }, "success")
-	Day.broadcast()
+	Core.S.Economy.resetLedger(plot)
+	Core.S.Net.notify(owner, "msg.day_summary", { day = plot.report.day, yen = income, served = L.served }, "success")
 	task.spawn(Core.S.Data.save, owner, false)
 end
 
+-- a new day for the whole street
+local function finish()
+	for _, plot in ipairs(Core.S.Plots.list) do
+		local ok, err = pcall(finishPlot, plot)
+		if not ok then
+			warn("[Day] closing the day failed: " .. tostring(err))
+		end
+	end
+	Day.broadcast()
+end
+
 Day.finish = finish
+Day.finishPlot = finishPlot
 
 -- compatibility: the restaurant does not open or close any more
 function Day.open() end
@@ -114,9 +123,10 @@ end
 function Day.Start()
 	Players.PlayerAdded:Connect(function(p)
 		task.wait(2)
-		Core.S.Net.fire(p, "DayState", payload())
+		Core.S.Net.fire(p, "DayState", payload(p))
 	end)
-	Core.S.Session.OwnerReady:Connect(function()
+	Core.S.Plots.Claimed:Connect(function(plot)
+		plot.report = nil
 		Day.broadcast()
 	end)
 	local last = os.clock()
@@ -134,10 +144,7 @@ function Day.Start()
 		local idx = math.floor((hours - DAY.DayStartHour) / 24)
 		if idx > dayIndex then
 			dayIndex = idx
-			local ok, err = pcall(finish)
-			if not ok then
-				warn("[Day] closing the day failed: " .. tostring(err))
-			end
+			finish()
 		end
 		if now - lastBroadcast > 5 then
 			lastBroadcast = now

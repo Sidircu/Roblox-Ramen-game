@@ -1,5 +1,7 @@
 --!nonstrict
 -- Restaurant level, licenses, upgrades, ads, expansions, menu, mastery, rating and popularity.
+-- Purchases apply to the restaurant the player manages (their own, or one where they co-manage);
+-- rating, popularity and mastery belong to a restaurant (plot).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local Licenses = require(Shared.Config.Licenses)
@@ -16,24 +18,16 @@ local Core = require(script.Parent.Parent.Core)
 
 local Progression = {}
 
-local function owner()
-	return Core.S.Session.owner
-end
-
-local function data()
-	return Core.S.Session.ownerData()
-end
-
-function Progression.rating()
-	local d = data()
+function Progression.rating(plot)
+	local d = Core.S.Plots.data(plot)
 	if not d then
 		return GameConfig.Customers.DefaultRating
 	end
 	return Formulas.rating(d.reviews.recent, GameConfig.Customers.DefaultRating)
 end
 
-function Progression.addReview(stars, weight)
-	local d = data()
+function Progression.addReview(plot, stars, weight)
+	local d = Core.S.Plots.data(plot)
 	if not d then
 		return
 	end
@@ -45,10 +39,10 @@ function Progression.addReview(stars, weight)
 	d.reviews.sum += stars
 	if stars >= 5 then
 		d.stats.five_stars = (d.stats.five_stars or 0) + 1
-		Core.S.Meta.event(owner(), "five_stars", 1)
+		Core.S.Meta.event(plot.owner, "five_stars", 1)
 	end
-	workspace:SetAttribute("Rating", Progression.rating())
-	Core.S.Data.changed(owner(), "reviews")
+	plot.folder:SetAttribute("Rating", Progression.rating(plot))
+	Core.S.Data.changed(plot.owner, "reviews")
 end
 
 function Progression.addXp(player, amount)
@@ -70,7 +64,7 @@ function Progression.addXp(player, amount)
 			end
 		end
 		Core.S.Data.changed(player, "level")
-		Core.S.Net.notifyAll("msg.level_up", { level = newLevel }, "level")
+		Core.S.Net.notify(player, "msg.level_up", { level = newLevel }, "level")
 		Core.S.Net.fx("levelup", { level = newLevel, userId = player.UserId })
 		Core.S.Meta.event(player, "level", newLevel)
 		Core.S.Analytics.levelUp(player, newLevel)
@@ -107,8 +101,8 @@ function Progression.priceOf(d, recipe)
 	return Formulas.dishPrice(recipe.price, d.mastery[recipe.id] or 0, m and m.price or 1)
 end
 
-function Progression.addMastery(recipeId)
-	local d = data()
+function Progression.addMastery(plot, recipeId)
+	local d = Core.S.Plots.data(plot)
 	if not d then
 		return
 	end
@@ -116,16 +110,16 @@ function Progression.addMastery(recipeId)
 	d.mastery[recipeId] = (d.mastery[recipeId] or 0) + 1
 	local after = Formulas.masteryLevel(d.mastery[recipeId])
 	if after > before then
-		Core.S.Net.notifyAll("msg.mastery_up", { dish = "rec." .. recipeId, level = after }, "level")
+		Core.S.Plots.notify(plot, "msg.mastery_up", { dish = "rec." .. recipeId, level = after }, "level")
 		if after == #Formulas.MasteryThresholds then
 			d.stats.gold_mastery = (d.stats.gold_mastery or 0) + 1
 		end
-		Core.S.Data.changed(owner(), "mastery")
+		Core.S.Data.changed(plot.owner, "mastery")
 	end
 end
 
-function Progression.popularity()
-	local d = data()
+function Progression.popularity(plot)
+	local d = Core.S.Plots.data(plot)
 	if not d then
 		return 0
 	end
@@ -146,10 +140,10 @@ function Progression.popularity()
 		extra += 0.25
 	end
 	local ev = Events.active(os.time())
-	local amb = Core.S.Placement.ambience
+	local amb = Core.S.Placement.ambienceOf(plot)
 	return Formulas.popularity({
 		level = d.level,
-		rating = Progression.rating(),
+		rating = Progression.rating(plot),
 		ambience = amb.popularity,
 		sign = Upgrades.value(d.upgrades, "up_sign"),
 		ads = ads,
@@ -168,17 +162,19 @@ function Progression.staffSlots(d)
 	return math.min(slots, GameConfig.MaxStaff)
 end
 
+-- the restaurant the player manages right now: owner (who pays), data, plot
 local function payer(player)
-	local Session = Core.S.Session
-	if not Session.canBuild(player) then
+	local Plots = Core.S.Plots
+	local plot = Plots.of(player)
+	if not plot or not Plots.canBuild(player, plot) then
 		Core.S.Net.notify(player, "msg.no_permission", nil, "error")
 		return nil
 	end
-	return Session.owner, Session.ownerData()
+	return plot.owner, Plots.data(plot), plot
 end
 
 local function buyLicense(player, id)
-	local o, d = payer(player)
+	local o, d, plot = payer(player)
 	local lic = Licenses.byId[id]
 	if not o or not d or not lic or d.licenses[id] then
 		return
@@ -192,7 +188,7 @@ local function buyLicense(player, id)
 			return Net.notify(player, "msg.need_license", nil, "error")
 		end
 	end
-	if lic.rating > 0 and Progression.rating() < lic.rating then
+	if lic.rating > 0 and Progression.rating(plot) < lic.rating then
 		return Net.notify(player, "msg.need_rating", { rating = lic.rating }, "error")
 	end
 	if not Core.S.Economy.spend(o, lic.cost, "build", "license:" .. lic.id) then
@@ -204,7 +200,7 @@ local function buyLicense(player, id)
 	end
 	Core.S.Data.changed(o, "licenses")
 	Core.S.Data.changed(o, "menu")
-	Net.notifyAll("msg.license_bought", { name = "lic." .. id }, "success")
+	Core.S.Plots.notify(plot, "msg.license_bought", { name = "lic." .. id }, "success")
 	-- new recipes for a kind of station you do not have yet: say which one to buy
 	local needed = {}
 	for _, rid in ipairs(lic.recipes) do
@@ -215,7 +211,7 @@ local function buyLicense(player, id)
 	end
 	for stationType in pairs(needed) do
 		local have = false
-		for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+		for _, e in ipairs(Core.S.Entities.ofKind("station", plot)) do
 			if e.item and e.item.fn.station == stationType then
 				have = true
 			end
@@ -237,7 +233,7 @@ local function buyLicense(player, id)
 end
 
 local function buyUpgrade(player, id)
-	local o, d = payer(player)
+	local o, d, plot = payer(player)
 	local up = Upgrades.byId[id]
 	if not o or not d or not up then
 		return
@@ -267,16 +263,16 @@ local function buyUpgrade(player, id)
 	end
 	d.upgrades[id] = nextLvl
 	Core.S.Data.changed(o, "upgrades")
-	Net.notifyAll("msg.upgrade_bought", { name = "upg." .. id, level = nextLvl }, "success")
+	Core.S.Plots.notify(plot, "msg.upgrade_bought", { name = "upg." .. id, level = nextLvl }, "success")
 	if id == "up_jukebox" then
-		Core.S.Placement.recomputeAmbience()
+		Core.S.Placement.recomputeAmbience(plot)
 	elseif id == "up_shoes" then
-		Progression.applyWalkSpeed()
+		Progression.applyWalkSpeed(o)
 	end
 end
 
 local function buyAd(player, id)
-	local o, d = payer(player)
+	local o, d, plot = payer(player)
 	local ad = Ads.byId[id]
 	if not o or not d or not ad then
 		return
@@ -294,11 +290,11 @@ local function buyAd(player, id)
 	end
 	d.ads[id] = day
 	Core.S.Data.changed(o, "ads")
-	Net.notifyAll("msg.ad_bought", { name = "ad." .. id }, "success")
+	Core.S.Plots.notify(plot, "msg.ad_bought", { name = "ad." .. id }, "success")
 end
 
 local function buyExpansion(player, id)
-	local o, d = payer(player)
+	local o, d, plot = payer(player)
 	local exp = Expansions.byId[id]
 	if not o or not d or not exp or d.zones[id] then
 		return
@@ -321,16 +317,16 @@ local function buyExpansion(player, id)
 			d.surfaces[z.id] = d.surfaces[z.id] or { floor = z.floorStyle, wall = z.wallStyle }
 		end
 	end
-	Net.fx("construction", { zone = id })
+	Net.fx("construction", { zone = id, plotX = plot.origin.X })
 	task.wait(1.5)
 	local World, Placement = Core.S.World, Core.S.Placement
-	World.rebuild(d)
-	local moved = Placement.revalidate(d)
-	Placement.spawnAll(d)
+	World.rebuild(plot, d)
+	local moved = Placement.revalidate(plot, d)
+	Placement.spawnAll(plot, d)
 	Core.S.Data.changed(o, "zones")
 	Core.S.Data.changed(o, "placed")
 	Core.S.Data.changed(o, "inventory")
-	Net.notifyAll(exp.reno and "msg.reno_bought" or "msg.expansion_bought", { name = "zone." .. id }, "success")
+	Core.S.Plots.notify(plot, exp.reno and "msg.reno_bought" or "msg.expansion_bought", { name = "zone." .. id }, "success")
 	if moved > 0 then
 		Net.notify(o, "msg.items_to_inventory", { n = moved })
 	end
@@ -354,19 +350,18 @@ local function setMenu(player, recipeId, on, priceMult)
 	Core.S.Data.changed(o, "menu")
 end
 
-function Progression.applyWalkSpeed()
-	local d = data()
+-- a player's walking speed comes from the kitchen shoes of their own restaurant
+function Progression.applyWalkSpeed(p)
+	local d = p and Core.S.Data.get(p)
 	if not d then
 		return
 	end
 	local speed = GameConfig.WalkSpeed * Upgrades.value(d.upgrades, "up_shoes")
-	for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
-		-- the client multiplies this while running (Controllers/FirstPerson)
-		p:SetAttribute("WalkSpeed", speed)
-		local hum = p.Character and p.Character:FindFirstChildOfClass("Humanoid")
-		if hum then
-			hum.WalkSpeed = speed
-		end
+	-- the client multiplies this while running (Controllers/FirstPerson)
+	p:SetAttribute("WalkSpeed", speed)
+	local hum = p.Character and p.Character:FindFirstChildOfClass("Humanoid")
+	if hum then
+		hum.WalkSpeed = speed
 	end
 end
 
@@ -380,14 +375,14 @@ function Progression.Init()
 end
 
 function Progression.Start()
-	Core.S.Session.OwnerReady:Connect(function()
-		workspace:SetAttribute("Rating", Progression.rating())
-		Progression.applyWalkSpeed()
+	Core.S.Plots.Claimed:Connect(function(plot, player)
+		plot.folder:SetAttribute("Rating", Progression.rating(plot))
+		Progression.applyWalkSpeed(player)
 	end)
 	game:GetService("Players").PlayerAdded:Connect(function(p)
 		p.CharacterAdded:Connect(function()
 			task.wait(0.2)
-			Progression.applyWalkSpeed()
+			Progression.applyWalkSpeed(p)
 		end)
 	end)
 end

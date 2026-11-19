@@ -10,6 +10,7 @@ It runs the real builder modules (src/shared/Models) on a small Roblox API mock
   python3 tools/preview.py facade out.png        (street view of the restaurant)
   python3 tools/preview.py interior out.png      (roof removed, starter layout)
   python3 tools/preview.py street out.png   [--focus=xmin,xmax,zmin,zmax] frames an area
+  python3 tools/preview.py plots out.png     (the street of four restaurants, two of them empty lots)
   python3 tools/preview.py people casual suit tourist elder trendy vip child:casual staff:staff_waiter casual@angry out.png
   --basic   plain starting look (no renovations / detail styles); default is the finished look
   --swap=stool_wood:stool_red   --place=id@x,z,r,s[,y];...   --surfaces=zone=floor_id/wall_id
@@ -271,6 +272,35 @@ function scene_street()
   return root
 end
 
+-- the street of restaurants (Config/Plots): the first two plots with a basic restaurant, the
+-- others as empty lots
+function scene_plots()
+  local Scene = require(Shared.Models.Scene)
+  local PlotsCfg = require(Shared.Config.Plots)
+  local Expansions = require(Shared.Config.Expansions)
+  local Geometry = require(Shared.Logic.Geometry)
+  local root = Instance.new("Model")
+  local street = Instance.new("Folder")
+  street.Parent = root
+  Scene.street(street, "tokyo", PlotsCfg.OriginsX, PlotsCfg.StreetReach)
+  local geo = Geometry.compute(Expansions.list, { zone_base = true }, Expansions.Supplier)
+  for i, ox in ipairs(PlotsCfg.OriginsX) do
+    local shell = Instance.new("Folder")
+    shell.Parent = root
+    if i <= 2 then
+      Scene.shell(shell, geo, { zones = { zone_base = true }, surfaces = {}, franchise = { city = "tokyo" } })
+    else
+      Scene.emptyLot(shell)
+    end
+    for _, d in ipairs(shell:GetDescendants()) do
+      if d:IsA("BasePart") then
+        d.CFrame = d.CFrame + Vector3.new(ox, 0, 0)
+      end
+    end
+  end
+  return root
+end
+
 function collect(root, skipRoof, bounds)
   local out = {}
   for _, d in ipairs(root:GetDescendants()) do
@@ -504,6 +534,11 @@ def main():
         out = args[0]
         skip_roof = True
         opts = {"elev": 55, "azim": 100, "zoom": 1.4} if "--view=" not in " ".join(sys.argv) else opts
+    elif kind == "plots":
+        root = lua.eval("scene_plots")()
+        out = args[0]
+        bounds = lua.table_from([-560, 560, -90, 110])
+        opts = {"elev": 60, "azim": 90, "zoom": 1.1} if "--view=" not in " ".join(sys.argv) else opts
     elif kind == "street":
         root = lua.eval("scene_street")()
         out = args[0]

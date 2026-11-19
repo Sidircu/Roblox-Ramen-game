@@ -1,37 +1,30 @@
 --!nonstrict
--- Builds the street and the restaurant shell from the unlocked zones; exposes the geometry
--- (zones, walls, stairs, openings) used by placement, seating and NPC services.
-local CollectionService = game:GetService("CollectionService")
+-- Builds the street (once, with a lot for every plot) and the shell of each restaurant from the
+-- zones its owner unlocked; exposes each plot's geometry (zones, walls, stairs, openings) to
+-- placement, seating and NPC services. Geometry is in restaurant-local coordinates; the shell is
+-- built there and then moved onto the plot.
 local PhysicsService = game:GetService("PhysicsService")
 local Lighting = game:GetService("Lighting")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local Expansions = require(Shared.Config.Expansions)
-local Surfaces = require(Shared.Config.Surfaces)
-local Franchise = require(Shared.Config.Franchise)
 local Items = require(Shared.Config.Items)
+local PlotsCfg = require(Shared.Config.Plots)
 local Geometry = require(Shared.Logic.Geometry)
 local Footprint = require(Shared.Logic.Footprint)
 local Registry = require(Shared.Models.Registry)
 local Scene = require(Shared.Models.Scene)
-local Kit = require(Shared.Models.Kit)
-local P = require(Shared.Models.Palette)
-local Color = require(Shared.Util.Color)
 local Signal = require(Shared.Util.Signal)
 local Core = require(script.Parent.Parent.Core)
 
 local World = {}
-World.Rebuilt = Signal.new()
-World.zones = {}
-World.openings = {}
-World.stairs = {}
-World.walls = {}
-World.expansions = {}
+World.Rebuilt = Signal.new() -- (plot)
 World.city = "tokyo"
 
-local root, shell, street, itemsFolder, dynamicFolder, npcFolder
+local street, npcFolder
 local streetBuilt = false
+local emptyGeo = nil
 
 local function folder(name, parent)
 	local f = parent:FindFirstChild(name)
@@ -47,25 +40,37 @@ function World.floorY(f)
 	return (f or 0) * GameConfig.FloorHeight
 end
 
-function World.folders()
-	return { root = root, shell = shell, items = itemsFolder, dynamic = dynamicFolder, npcs = npcFolder, street = street }
-end
-
--- Recomputes the unlocked geometry from the owner's data
-function World.recompute(data)
-	local geo = Geometry.compute(Expansions.list, data.zones, Expansions)
-	World.zones, World.openings, World.stairs, World.expansions = geo.zones, geo.openings, geo.stairs, geo.expansions
-	World.walls = geo.walls
-	World.fixed = geo.fixed
-end
-
 -- Floor index for a world height (players and NPCs standing on that floor)
 function World.floorOf(y)
 	return math.max(0, math.floor((y + 2) / GameConfig.FloorHeight))
 end
 
-function World.zoneAt(x, z, f)
-	for _, zone in ipairs(World.zones) do
+-- the folders of a plot (and the shared ones)
+function World.folders(plot)
+	local f = plot and plot.folder
+	return {
+		root = f,
+		shell = f and folder("Shell", f),
+		items = f and folder("Items", f),
+		dynamic = f and folder("Dynamic", f),
+		npcs = npcFolder,
+		street = street,
+	}
+end
+
+-- geometry of a plot: { zones, openings, stairs, walls, expansions, fixed }
+function World.geo(plot)
+	return (plot and plot.geo) or emptyGeo
+end
+
+-- Recomputes the unlocked geometry of a plot from its owner's data
+function World.recompute(plot, data)
+	plot.geo = Geometry.compute(Expansions.list, data.zones, Expansions)
+end
+
+-- zone at restaurant-local x, z on floor f
+function World.zoneAt(plot, x, z, f)
+	for _, zone in ipairs(World.geo(plot).zones) do
 		if zone.floor == (f or 0) and Footprint.pointInRect(x, z, zone.rect) then
 			return zone
 		end
@@ -73,8 +78,18 @@ function World.zoneAt(x, z, f)
 	return nil
 end
 
-function World.hasExpansion(id)
-	for _, e in ipairs(World.expansions) do
+-- zone at a world position (the plot is found from the position)
+function World.zoneAtWorld(pos, f)
+	local plot = Core.S.Plots.at(pos)
+	if not plot then
+		return nil
+	end
+	local p = Core.S.Plots.toLocal(plot, pos)
+	return World.zoneAt(plot, p.X, p.Z, f), plot
+end
+
+function World.hasExpansion(plot, id)
+	for _, e in ipairs(World.geo(plot).expansions or {}) do
 		if e.id == id then
 			return true
 		end
@@ -83,59 +98,77 @@ function World.hasExpansion(id)
 end
 
 -- Door clearances that must stay free of objects
-function World.fixedRects()
-	return World.fixed or {}
+function World.fixedRects(plot)
+	return World.geo(plot).fixed or {}
 end
 
--- Placement validation context (see Shared.Logic.Placement)
-function World.ctx(placed)
-	return Geometry.ctx({ zones = World.zones, walls = World.walls, stairs = World.stairs, fixed = World.fixed }, Items.byId, placed, GameConfig)
+-- Placement validation context (see Shared.Logic.Placement), in local coordinates
+function World.ctx(plot, placed)
+	local g = World.geo(plot)
+	return Geometry.ctx({ zones = g.zones, walls = g.walls, stairs = g.stairs, fixed = g.fixed }, Items.byId, placed, GameConfig)
 end
 
 function World.surfaceOf(data, zone, kind)
 	return Scene.surfaceOf(data, zone, kind)
 end
 
-local function geo()
-	return { zones = World.zones, openings = World.openings, stairs = World.stairs, walls = World.walls, fixed = World.fixed }
-end
-
-local function buildShell(data)
-	local result = Scene.shell(shell, geo(), data)
-	World.openLabel = result.openLabel
-end
-
 local function buildStreet(cityId)
-	local result = Scene.street(street, cityId)
+	local lots = {}
+	for _, plot in ipairs(Core.S.Plots.list) do
+		table.insert(lots, plot.origin.X)
+	end
+	local result = Scene.street(street, cityId, lots, PlotsCfg.StreetReach)
 	Lighting:SetAttribute("City", cityId)
 	Lighting:SetAttribute("Sky", result.sky)
 	streetBuilt = true
 end
 
-function World.rebuild(data)
-	World.recompute(data)
-	if not streetBuilt or World.city ~= (data.franchise.city or "tokyo") then
-		World.city = data.franchise.city or "tokyo"
-		buildStreet(World.city)
-	end
-	buildShell(data)
-	workspace:SetAttribute("WorldReady", true)
-	World.Rebuilt:Fire()
+-- the shell of an empty lot: a fence and a sign while nobody owns it
+local function buildEmptyLot(plot)
+	local shell = World.folders(plot).shell
+	shell:ClearAllChildren()
+	Scene.emptyLot(shell)
+	Core.S.Plots.shift(shell, plot)
 end
 
-function World.setOpenSign(open)
-	if World.openLabel then
-		World.openLabel.Text = open and "営業中" or "準備中"
+-- (re)builds the restaurant of a plot from its owner's data
+function World.rebuild(plot, data)
+	World.recompute(plot, data)
+	local f = World.folders(plot)
+	local result = Scene.shell(f.shell, World.geo(plot), data)
+	plot.openLabel = result.openLabel
+	if plot.openLabel then
+		plot.openLabel.Text = "営業中"
 	end
+	-- the supplier tablet and menu board are per restaurant
+	for _, d in ipairs(f.shell:GetDescendants()) do
+		local uid = d:GetAttribute("Uid")
+		if uid == "fixed_supplier" or uid == "fixed_menu" then
+			d:SetAttribute("Uid", uid .. "_" .. plot.id)
+			d:SetAttribute("PlotId", plot.id)
+		end
+	end
+	Core.S.Plots.shift(f.shell, plot)
+	plot.folder:SetAttribute("City", data.franchise and data.franchise.city or "tokyo")
+	plot.folder:SetAttribute("Ready", true)
+	World.Rebuilt:Fire(plot)
+end
+
+-- the owner left: back to an empty lot
+function World.clear(plot)
+	plot.geo = nil
+	plot.openLabel = nil
+	local f = World.folders(plot)
+	f.items:ClearAllChildren()
+	f.dynamic:ClearAllChildren()
+	plot.folder:SetAttribute("Ready", false)
+	buildEmptyLot(plot)
+	World.Rebuilt:Fire(plot)
 end
 
 function World.Init()
 	Registry.load()
-	root = folder("Restaurant", workspace)
-	shell = folder("Shell", root)
 	street = folder("Street", workspace)
-	itemsFolder = folder("Items", root)
-	dynamicFolder = folder("Dynamic", root)
 	npcFolder = folder("NPCs", workspace)
 	pcall(function()
 		PhysicsService:RegisterCollisionGroup("Shell")
@@ -145,15 +178,26 @@ function World.Init()
 		PhysicsService:CollisionGroupSetCollidable("NPC", "Player", false)
 		PhysicsService:CollisionGroupSetCollidable("Player", "Player", false)
 	end)
-	-- default world until the owner's data arrives
-	local Data = Core.S.Data
-	World.recompute(Data.newProfile())
+	-- geometry of a brand-new restaurant (used before an owner's data arrives)
+	emptyGeo = Geometry.compute(Expansions.list, { zone_base = true }, Expansions)
 end
 
 function World.Start()
-	local Session = Core.S.Session
-	Session.OwnerReady:Connect(function(_, data)
-		World.rebuild(data)
+	local Plots = Core.S.Plots
+	if not streetBuilt then
+		buildStreet(World.city)
+	end
+	for _, plot in ipairs(Plots.list) do
+		if not plot.owner then
+			buildEmptyLot(plot)
+		end
+	end
+	workspace:SetAttribute("WorldReady", true)
+	Plots.Claimed:Connect(function(plot, _, data)
+		World.rebuild(plot, data)
+	end)
+	Plots.Released:Connect(function(plot)
+		World.clear(plot)
 	end)
 	local players = game:GetService("Players")
 	local function setGroup(character)
@@ -169,16 +213,7 @@ function World.Start()
 		end)
 	end
 	local function onPlayer(p)
-		p.CharacterAdded:Connect(function(character)
-			setGroup(character)
-			-- spawn in front of the restaurant
-			task.defer(function()
-				local hrp = character:WaitForChild("HumanoidRootPart", 5)
-				if hrp then
-					character:PivotTo(CFrame.new(0, 3, -6) * CFrame.Angles(0, math.rad(180), 0))
-				end
-			end)
-		end)
+		p.CharacterAdded:Connect(setGroup)
 		if p.Character then
 			setGroup(p.Character)
 		end
@@ -186,9 +221,6 @@ function World.Start()
 	players.PlayerAdded:Connect(onPlayer)
 	for _, p in ipairs(players:GetPlayers()) do
 		onPlayer(p)
-	end
-	if not streetBuilt then
-		buildStreet("tokyo")
 	end
 end
 

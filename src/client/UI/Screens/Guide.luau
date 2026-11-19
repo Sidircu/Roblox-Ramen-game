@@ -37,7 +37,7 @@ end
 local function interactables(kind)
 	local out = {}
 	for _, m in ipairs(CollectionService:GetTagged("Interactable")) do
-		if m:GetAttribute("Kind") == kind and m:IsDescendantOf(workspace) then
+		if m:GetAttribute("Kind") == kind and m:IsDescendantOf(workspace) and Core.C.Data.isMine(m) then
 			table.insert(out, m)
 		end
 	end

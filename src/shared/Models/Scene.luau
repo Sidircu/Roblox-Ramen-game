@@ -314,6 +314,31 @@ function Scene.shell(shell, geo, data)
 	return { openLabel = label }
 end
 
+-- A plot nobody owns yet: a low construction fence along the street and a lantern sign
+-- ("a new ramen shop opens here"), built in local coordinates like the shell
+function Scene.emptyLot(shell)
+	local pb = Expansions.PlotBounds
+	local M = P.M
+	for x = pb[1] + 4, pb[3] - 4, 6 do
+		Kit.box(shell, 0.3, 3.2, 0.3, x, 1.6, -1, P.wood_dark, M.wood)
+	end
+	Kit.box(shell, pb[3] - pb[1] - 8, 0.3, 0.2, (pb[1] + pb[3]) / 2, 2.9, -1, P.vermilion, M.smooth, { collide = false })
+	Kit.box(shell, pb[3] - pb[1] - 8, 0.3, 0.2, (pb[1] + pb[3]) / 2, 1.4, -1, P.vermilion, M.smooth, { collide = false })
+	local sign = Kit.box(shell, 16, 4, 0.4, 0, 6, 2, P.paper, M.wood, { collide = false })
+	Kit.text(sign, Enum.NormalId.Front, "空き地 · 近日オープン", { color = "#2B2320" })
+	Kit.text(sign, Enum.NormalId.Back, "空き地", { color = "#2B2320" })
+	for _, x in ipairs({ -7, 7 }) do
+		Kit.box(shell, 0.4, 6, 0.4, x, 3, 2, P.wood_dark, M.wood, { collide = false })
+	end
+	local lamp = Kit.ball(shell, 1.2, 9, 8.6, 2, P.lacquer, M.fabric, { collide = false })
+	Kit.light(lamp, "Point", P.lamp_warm, 14, 1.5)
+	for _, d in ipairs(shell:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.CollisionGroup = "Shell"
+		end
+	end
+end
+
 -- Neighbour facade colour: the city tone mixed with plaster, tile or concrete shades
 local FACADE_MIX = { "#EFE3CC", "#B5B1A8", "#C9B8A0", "#9AA3A8", "#D8CFC0", "#A0705A" }
 local function facadeColor(pal, r)
@@ -321,15 +346,17 @@ local function facadeColor(pal, r)
 	return Color.hex(pal.building):Lerp(mix, 0.35 + r:NextNumber() * 0.5)
 end
 
-function Scene.street(street, cityId)
+-- lots = the X of every restaurant plot along the street; reach = how far the street runs each way
+function Scene.street(street, cityId, lots, reachOverride)
 	street:ClearAllChildren()
+	lots = lots or { 0 }
 	local city = Franchise.byId[cityId] or Franchise.byId.tokyo
 	local pal = city.palette
 	local S = Registry.Street
 	local r = S.rng(42)
 	local M = P.M
 	local L = Expansions.Street
-	local reach = L.reach
+	local reach = reachOverride or L.reach
 	local curb, roadFar, farFront = L.curb, L.roadFar, L.farFront
 	local roadW = curb - roadFar
 	local roadZ = (curb + roadFar) / 2
@@ -393,45 +420,52 @@ function Scene.street(street, cityId)
 	for _, bx in ipairs({ -44, -42.8, -41.6, 34, 35.2, 118, 119.2, -150 }) do
 		S.bicycle(street, bx, farFront + 2.2, 90, ({ P.white, P.navy, P.lacquer, P.matcha, P.sakura_dark })[r:NextInteger(1, 5)])
 	end
-	-- plot lot and loading bay
+	-- every plot: its lot and loading bay, a bamboo fence and trees along the back
 	local pb = Expansions.PlotBounds
-	Kit.box(street, pb[3] - pb[1], 1, pb[4], (pb[1] + pb[3]) / 2, -0.9, pb[4] / 2, P.stone_dark, M.pavement)
 	local bay = Expansions.LoadingBay
-	Kit.box(street, 12, 0.1, 18, bay.x, -0.38, bay.z, P.concrete, M.concrete, { collide = false })
-	for _, x in ipairs({ bay.x - 5.7, bay.x + 5.7 }) do
-		Kit.box(street, 0.25, 0.05, 18, x, -0.33, bay.z, P.neon_yellow, M.smooth, { collide = false, shadow = false })
+	for _, ox in ipairs(lots) do
+		Kit.box(street, pb[3] - pb[1], 1, pb[4], ox + (pb[1] + pb[3]) / 2, -0.9, pb[4] / 2, P.stone_dark, M.pavement)
+		Kit.box(street, 12, 0.1, 18, ox + bay.x, -0.38, bay.z, P.concrete, M.concrete, { collide = false })
+		for _, x in ipairs({ bay.x - 5.7, bay.x + 5.7 }) do
+			Kit.box(street, 0.25, 0.05, 18, ox + x, -0.33, bay.z, P.neon_yellow, M.smooth, { collide = false, shadow = false })
+		end
+		for fx = pb[1], pb[3] - 2, 3 do
+			Kit.box(street, 0.3, 5, 0.3, ox + fx, 2.1, pb[4], P.bamboo, M.wood)
+		end
+		Kit.box(street, pb[3] - pb[1], 0.3, 0.3, ox + (pb[1] + pb[3]) / 2, 4.2, pb[4], P.bamboo, M.wood, { collide = false })
+		Kit.box(street, pb[3] - pb[1], 0.3, 0.3, ox + (pb[1] + pb[3]) / 2, 1.5, pb[4], P.bamboo, M.wood, { collide = false })
+		for _, tx in ipairs({ -100, -60, -20, 20, 60 }) do
+			S.planterTree(street, ox + tx, pb[4] + 8, (tx % 40 == 0) and P.sakura or P.leaf, 1.6)
+		end
 	end
-	-- big buildings: the opposite row and the neighbours on our side, in scale with the restaurant
+	-- big buildings: the opposite row and the neighbours on our side (between the plots and past
+	-- the outer ones), in scale with the restaurants
 	local K = 1.6
 	local x = -reach
 	while x < reach do
 		local w = r:NextInteger(34, 62)
 		local cx = x + w / 2
-		S.building(street, x, x + w - 1, farFront, r:NextInteger(36, 48), r:NextInteger(32, 70), -1, facadeColor(pal, r), r, K, math.abs(cx) < 200)
+		S.building(street, x, x + w - 1, farFront, r:NextInteger(36, 48), r:NextInteger(32, 70), -1, facadeColor(pal, r), r, K, math.abs(cx) < reach - 150)
 		x += w
 	end
-	x = -reach
-	while x < pb[1] - 4 do
-		local w = math.min(r:NextInteger(30, 54), pb[1] - 4 - x)
-		if w >= 16 then
-			S.building(street, x, x + w - 1, 0, 70, r:NextInteger(28, 52), 1, facadeColor(pal, r), r, K, x + w > -220)
+	local gaps = {}
+	local sorted = table.clone(lots)
+	table.sort(sorted)
+	local from = -reach
+	for _, ox in ipairs(sorted) do
+		table.insert(gaps, { from, ox + pb[1] - 4 })
+		from = ox + pb[3] + 4
+	end
+	table.insert(gaps, { from, reach })
+	for _, gap in ipairs(gaps) do
+		x = gap[1]
+		while x < gap[2] - 16 do
+			local w = math.min(r:NextInteger(26, 54), gap[2] - x)
+			if w >= 16 then
+				S.building(street, x, x + w - 1, 0, 70, r:NextInteger(28, 52), 1, facadeColor(pal, r), r, K, true)
+			end
+			x += math.max(w, 16)
 		end
-		x += math.max(w, 16)
-	end
-	x = pb[3] + 4
-	while x < reach do
-		local w = r:NextInteger(30, 54)
-		S.building(street, x, x + w - 1, 0, 70, r:NextInteger(28, 52), 1, facadeColor(pal, r), r, K, x < 220)
-		x += w
-	end
-	-- back fence and trees
-	for fx = pb[1], pb[3] - 2, 3 do
-		Kit.box(street, 0.3, 5, 0.3, fx, 2.1, pb[4], P.bamboo, M.wood)
-	end
-	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 4.2, pb[4], P.bamboo, M.wood, { collide = false })
-	Kit.box(street, pb[3] - pb[1], 0.3, 0.3, (pb[1] + pb[3]) / 2, 1.5, pb[4], P.bamboo, M.wood, { collide = false })
-	for _, tx in ipairs({ -100, -60, -20, 20, 60 }) do
-		S.planterTree(street, tx, pb[4] + 8, (tx % 40 == 0) and P.sakura or P.leaf, 1.6)
 	end
 	-- tall lamps on both kerbs, utility poles with wires on the far side
 	for lx = -reach + 10, reach - 10, 36 do
@@ -451,22 +485,21 @@ function Scene.street(street, cityId)
 		end
 		prev = top
 	end
-	for _, tx in ipairs({ -330, -260, -190, -150, 130, 170, 230, 300 }) do
-		S.planterTree(street, tx, curb + 3, (tx % 20 == 0) and P.sakura or P.leaf_light, 1.5)
+	for tx = -reach + 40, reach - 40, 70 do
+		S.planterTree(street, tx, curb + 3, (math.floor(tx / 70) % 2 == 0) and P.sakura or P.leaf_light, 1.5)
+		S.planterTree(street, tx + 35, roadFar - 5, P.sakura, 1.5)
 	end
-	for _, tx in ipairs({ -300, -210, -130, -60, 10, 80, 150, 220, 290 }) do
-		S.planterTree(street, tx, roadFar - 5, P.sakura, 1.5)
-	end
-	-- a few street vending machines next to the neighbours
-	for _, vx in ipairs({ pb[1] - 7, pb[3] + 7, pb[1] - 48 }) do
+	-- a street vending machine next to every restaurant
+	for _, ox in ipairs(lots) do
+		local vx = ox + pb[3] + 7
 		local vm = Registry.build("vending_machine")
 		Registry.place(vm, vx, -0.4, -1.4, 180)
 		vm.Parent = street
-		S.bins(street, vx + (vx < 0 and -2.6 or 2.6), -1.3)
+		S.bins(street, vx + 2.6, -1.3)
 	end
 	S.viaduct(street, L.railZ, L.railY, -reach - 300, reach + 300)
 	if city.snow then
-		local snow = Kit.box(street, 500, 1, 360, 0, 90, -20, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
+		local snow = Kit.box(street, reach * 2, 1, 360, 0, 90, -20, P.white, M.smooth, { transparency = 1, collide = false, shadow = false })
 		snow.CanQuery = false
 		Kit.particles(snow, "snow", { rate = 60 })
 	end

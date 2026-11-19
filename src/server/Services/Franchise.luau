@@ -6,11 +6,11 @@ local Core = require(script.Parent.Parent.Core)
 
 local Service = {}
 
-function Service.check(d)
+function Service.check(d, plot)
 	if d.level < Franchise.RequiredLevel then
 		return false, "msg.need_level", { level = Franchise.RequiredLevel }
 	end
-	if Core.S.Progression.rating() < Franchise.RequiredRating then
+	if Core.S.Progression.rating(plot) < Franchise.RequiredRating then
 		return false, "msg.need_rating", { rating = Franchise.RequiredRating }
 	end
 	for _, z in ipairs(Franchise.RequiredZones) do
@@ -33,12 +33,13 @@ end
 local KEEP = { sakura = true, mastery = true, stats = true, meta = true, settings = true, passes = true, receipts = true, created = true, inventory = true, perms = true }
 
 local function open(player)
-	local Session, Net = Core.S.Session, Core.S.Net
-	if player ~= Session.owner then
+	local Plots, Net = Core.S.Plots, Core.S.Net
+	local plot = Plots.ofPlayer(player)
+	local d = Plots.data(plot)
+	if not plot or not d then
 		return
 	end
-	local d = Session.ownerData()
-	local ok, reason, params, city = Service.check(d)
+	local ok, reason, params, city = Service.check(d, plot)
 	if not ok then
 		return Net.notify(player, reason, params, "error")
 	end
@@ -68,11 +69,10 @@ local function open(player)
 			end
 		end
 	end
-	Net.fx("construction", { zone = "franchise" })
+	Net.fx("construction", { zone = "franchise", plotX = plot.origin.X })
 	Net.notifyAll("msg.franchise_opened", { city = "city." .. city.id }, "level")
-	Core.S.Customers.sendAllHome()
-	Core.S.Cooking.clearTickets()
-	Session.OwnerReady:Fire(player, d)
+	-- the restaurant starts again in the new city: same plot, rebuilt from scratch
+	Plots.rebuild(plot)
 	for _, k in ipairs(Core.S.Data.WorldKeys) do
 		Core.S.Data.changed(player, k)
 	end

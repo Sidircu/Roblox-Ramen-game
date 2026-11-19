@@ -1,5 +1,6 @@
 --!nonstrict
--- Task board helpers for staff: finds work, claims targets so two workers never do the same job.
+-- Task board helpers for staff: finds work in their restaurant (every finder takes the plot),
+-- claims targets so two workers never do the same job.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Recipes = require(Shared.Config.Recipes)
 local Ingredients = require(Shared.Config.Ingredients)
@@ -57,12 +58,12 @@ function Tasks.claimedBy(obj)
 end
 
 -- Waiter: a ready dish that matches a waiting customer
-function Tasks.findServe()
+function Tasks.findServe(plot)
 	local Customers = Core.S.Customers
-	for _, rd in ipairs(Core.S.Cooking.readyDishes()) do
+	for _, rd in ipairs(Core.S.Cooking.readyDishes(plot)) do
 		local st = Core.S.Cooking.stationState(rd.entity)
 		if not claimed(st) then
-			for _, c in ipairs(Customers.list("waiting")) do
+			for _, c in ipairs(Customers.list(plot, "waiting")) do
 				if c.order == rd.recipe and not claimed(c) then
 					return rd.entity, c
 				end
@@ -72,8 +73,8 @@ function Tasks.findServe()
 	return nil
 end
 
-function Tasks.findOrder()
-	for _, c in ipairs(Core.S.Customers.list("order")) do
+function Tasks.findOrder(plot)
+	for _, c in ipairs(Core.S.Customers.list(plot, "order")) do
 		if not claimed(c) then
 			return c
 		end
@@ -81,8 +82,8 @@ function Tasks.findOrder()
 	return nil
 end
 
-function Tasks.findDirty()
-	for _, e in ipairs(Core.S.Entities.ofKind("dirty")) do
+function Tasks.findDirty(plot)
+	for _, e in ipairs(Core.S.Entities.ofKind("dirty", plot)) do
 		if not claimed(e) then
 			return e
 		end
@@ -92,14 +93,14 @@ end
 
 -- Chef: a free station of the chef's kinds with an order to start and everything it needs
 -- (the station fetches the ingredients from the shelves by itself)
-function Tasks.findCook(stations)
+function Tasks.findCook(plot, stations)
 	local Cooking = Core.S.Cooking
-	for _, e in ipairs(Core.S.Entities.ofKind("station")) do
+	for _, e in ipairs(Core.S.Entities.ofKind("station", plot)) do
 		if table.find(stations, e.item.fn.station) then
 			local st = Cooking.stationState(e)
 			if not st.busy and #st.board == 0 and not st.ready and not claimed(st) then
 				local t, r = Cooking.nextOrder(e)
-				if t and #Cooking.missing(r) == 0 then
+				if t and #Cooking.missing(plot, r) == 0 then
 					return t, r, e
 				end
 			end
@@ -109,8 +110,11 @@ function Tasks.findCook(stations)
 end
 
 -- Stocker: ingredient running low on shelves with a box available
-function Tasks.findRestock()
-	local d = Core.S.Session.ownerData()
+function Tasks.findRestock(plot)
+	local d = Core.S.Plots.data(plot)
+	if not d then
+		return nil
+	end
 	local Supply = Core.S.Supply
 	local wanted = {}
 	for _, r in ipairs(Core.S.Progression.menuRecipes(d)) do
@@ -120,8 +124,8 @@ function Tasks.findRestock()
 	end
 	for g in pairs(wanted) do
 		local ing = Ingredients.byId[g]
-		if ing and (ing.storage == "shelf" or ing.storage == "fish") and Supply.shelfStock(g) < 6 then
-			local box = Supply.findBox(g)
+		if ing and (ing.storage == "shelf" or ing.storage == "fish") and Supply.shelfStock(plot, g) < 6 then
+			local box = Supply.findBox(plot, g)
 			if box and not claimed(box) then
 				return box, g
 			end
@@ -131,8 +135,11 @@ function Tasks.findRestock()
 end
 
 -- Stocker / ramen chef: a rice cooker or pot that needs refilling (and a box to do it)
-function Tasks.findRefill(kinds)
-	local d = Core.S.Session.ownerData()
+function Tasks.findRefill(plot, kinds)
+	local d = Core.S.Plots.data(plot)
+	if not d then
+		return nil
+	end
 	local Supply = Core.S.Supply
 	local broths = {}
 	for _, r in ipairs(Core.S.Progression.menuRecipes(d)) do
@@ -140,11 +147,11 @@ function Tasks.findRefill(kinds)
 			broths[r.broth] = (broths[r.broth] or 0) + 1
 		end
 	end
-	for _, need in ipairs(Core.S.Appliance.needsRefill()) do
+	for _, need in ipairs(Core.S.Appliance.needsRefill(plot)) do
 		local e = need.entity
 		if table.find(kinds, e.kind) and not claimed(e) then
 			if e.kind == "ricecooker" then
-				local box = Supply.findBox("rice")
+				local box = Supply.findBox(plot, "rice")
 				if box and not claimed(box) then
 					return e, box
 				end
@@ -154,13 +161,13 @@ function Tasks.findRefill(kinds)
 					-- empty pot: pick the broth most used by the menu that no other pot is making
 					local best, bestN = nil, 0
 					for b, n in pairs(broths) do
-						if n > bestN and not Core.S.Appliance.willHave("pot", b) then
+						if n > bestN and not Core.S.Appliance.willHave(plot, "pot", b) then
 							best, bestN = b, n
 						end
 					end
 					g = best
 				end
-				local box = g and Supply.findBox(g)
+				local box = g and Supply.findBox(plot, g)
 				if box and not claimed(box) then
 					return e, box
 				end

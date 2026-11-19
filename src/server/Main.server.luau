@@ -4,7 +4,7 @@ local Core = require(script.Parent.Core)
 local Services = script.Parent.Services
 
 local ORDER = {
-	"Net", "Data", "Analytics", "Session", "Economy", "Progression", "World", "Entities", "Placement", "Hands",
+	"Net", "Data", "Analytics", "Plots", "Economy", "Progression", "World", "Entities", "Placement", "Hands",
 	"Supply", "Appliance", "Seating", "Cooking", "Npc", "Customers", "Tasks", "Staff", "Day",
 	"Meta", "Rewards", "Franchise", "Monetization", "Leaderboard", "Interaction", "SelfTest", "Dev",
 }

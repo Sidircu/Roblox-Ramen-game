@@ -1,5 +1,7 @@
 --!nonstrict
 -- What every actor (player or staff NPC) is carrying, with visuals welded in front of the body.
+-- Everything in hand belongs to one restaurant (s.plot): boxes go back to its storage, plates to
+-- its sink, and a dish can only be served to a customer of that restaurant.
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 
@@ -46,12 +48,16 @@ end
 
 -- Capacity for a kind of item
 function Hands.capacity(actor, kind)
+	-- upgrades and passes of the restaurant the actor works in
+	local plot = Hands.get(actor).plot or Core.S.Plots.of(actor)
+	local od = Core.S.Plots.data(plot)
+	local owner = plot and plot.owner
+	local Monetization = Core.S.Monetization
 	if kind == "box" then
 		-- the cart upgrade (and the big cart pass) lets players carry more boxes at once
 		if typeof(actor) == "Instance" and actor:IsA("Player") then
-			local od = Core.S.Session.ownerData()
 			local n = od and Upgrades.value(od.upgrades, "up_cart") or 1
-			if Core.S.Monetization and Core.S.Monetization.ownerHas("gp_express") then
+			if Monetization and owner and Monetization.has(owner, "gp_express") then
 				n += 1
 			end
 			return n
@@ -60,12 +66,9 @@ function Hands.capacity(actor, kind)
 	elseif kind == "ing" then
 		return GameConfig.IngredientHandCapacity
 	end
-	local Session = Core.S.Session
-	local od = Session.ownerData()
 	local tray = od and Upgrades.value(od.upgrades, "up_tray") or 1
 	if typeof(actor) == "Instance" and actor:IsA("Player") then
-		local Monetization = Core.S.Monetization
-		if Monetization and Monetization.ownerHas("gp_big_tray") then
+		if Monetization and owner and Monetization.has(owner, "gp_big_tray") then
 			tray += 2
 		end
 	elseif type(actor) == "table" then
@@ -172,26 +175,35 @@ local function publish(actor)
 	end
 end
 
-function Hands.set(actor, kind, items)
+-- plot = the restaurant the items belong to (defaults to the one the actor works in)
+function Hands.set(actor, kind, items, plot)
 	local s = Hands.get(actor)
 	s.kind = (#items > 0) and kind or nil
 	s.items = items
+	if #items > 0 then
+		s.plot = plot or s.plot or Core.S.Plots.of(actor)
+	else
+		s.plot = nil
+	end
 	refreshVisual(actor)
 	publish(actor)
 end
 
 -- Adds an item; returns false when the hands hold something else or are full.
-function Hands.add(actor, kind, item)
+function Hands.add(actor, kind, item, plot)
 	local s = Hands.get(actor)
 	if s.kind and s.kind ~= kind then
 		return false, "msg.hands_busy"
+	end
+	if s.kind and plot and s.plot and s.plot ~= plot then
+		return false, "msg.other_restaurant"
 	end
 	if #s.items >= Hands.capacity(actor, kind) then
 		return false, "msg.hands_full"
 	end
 	local items = table.clone(s.items)
 	table.insert(items, item)
-	Hands.set(actor, kind, items)
+	Hands.set(actor, kind, items, plot)
 	return true
 end
 
@@ -203,7 +215,7 @@ function Hands.removeAt(actor, index)
 	local s = Hands.get(actor)
 	local items = table.clone(s.items)
 	local it = table.remove(items, index)
-	Hands.set(actor, s.kind, items)
+	Hands.set(actor, s.kind, items, s.plot)
 	return it
 end
 
@@ -212,11 +224,11 @@ function Hands.refresh(actor)
 	publish(actor)
 end
 
--- dishes held by anyone, by recipe (a dish in hand is on its way to a customer)
-function Hands.dishCounts()
+-- dishes of a restaurant held by anyone, by recipe (a dish in hand is on its way to a customer)
+function Hands.dishCounts(plot)
 	local out = {}
 	for _, s in pairs(state) do
-		if s.kind == "dish" then
+		if s.kind == "dish" and (plot == nil or s.plot == plot) then
 			for _, it in ipairs(s.items) do
 				if it.recipe then
 					out[it.recipe] = (out[it.recipe] or 0) + 1
@@ -241,10 +253,10 @@ function Hands.Start()
 	Players.PlayerRemoving:Connect(function(player)
 		-- boxes in hand go back to storage
 		local s = state[player]
-		if s and s.kind == "box" then
+		if s and s.kind == "box" and s.plot then
 			local Supply = Core.S.Supply
 			for _, b in ipairs(s.items) do
-				Supply.returnBox(b)
+				Supply.returnBox(s.plot, b)
 			end
 		end
 		Hands.forget(player)
@@ -254,9 +266,9 @@ function Hands.Start()
 			task.wait(0.5)
 			-- respawn: drop everything (boxes return to storage)
 			local s = state[player]
-			if s and s.kind == "box" then
+			if s and s.kind == "box" and s.plot then
 				for _, b in ipairs(s.items) do
-					Core.S.Supply.returnBox(b)
+					Core.S.Supply.returnBox(s.plot, b)
 				end
 			end
 			Hands.forget(player)
@@ -273,10 +285,22 @@ function Hands.Start()
 		local pos = root and root.Position or Vector3.new()
 		local look = root and root.CFrame.LookVector or Vector3.new(0, 0, -1)
 		local floor = Core.S.World.floorOf(pos.Y)
+		local plot = s.plot
+		if s.kind and not plot then
+			Hands.clear(player)
+			return
+		end
 		if s.kind == "box" then
 			local where = "floor"
+			-- a box carried into another restaurant goes back to its own storage
+			local home = Core.S.Plots.at(pos) == plot
 			for _, b in ipairs(s.items) do
-				where = Core.S.Supply.dropBox(b, pos, Vector3.new(look.X, 0, look.Z).Unit, floor)
+				if home then
+					where = Core.S.Supply.dropBox(plot, b, pos, Vector3.new(look.X, 0, look.Z).Unit, floor)
+				else
+					Core.S.Supply.returnBox(plot, b)
+					where = "rack"
+				end
 			end
 			Hands.clear(player)
 			Net.notify(player, where == "rack" and "msg.box_on_rack" or "msg.box_on_floor", nil, "info")
@@ -284,7 +308,7 @@ function Hands.Start()
 		elseif s.kind == "ing" then
 			local back, lost = 0, 0
 			for _, it in ipairs(s.items) do
-				if Core.S.Supply.returnIngredient(it.g, pos) then
+				if Core.S.Supply.returnIngredient(plot, it.g, pos) then
 					back += 1
 				else
 					lost += 1
@@ -299,7 +323,7 @@ function Hands.Start()
 			return
 		elseif s.kind == "dish" or s.kind == "dirty" then
 			-- plates are never lost: they go to the sink as dirty dishes
-			Core.S.Appliance.addDirtyToSink(#s.items)
+			Core.S.Appliance.addDirtyToSink(plot, #s.items)
 			Hands.clear(player)
 			Net.notify(player, "msg.dish_to_sink", nil, "info")
 			return

@@ -1,5 +1,6 @@
 --!nonstrict
 -- Registry of interactable things in the world (placed items, boxes, customers, fixed props).
+-- Every entity belongs to a restaurant: e.plot (also published as the PlotId attribute).
 local CollectionService = game:GetService("CollectionService")
 
 local Entities = {}
@@ -16,6 +17,7 @@ function Entities.register(uid, kind, model, data)
 	if model then
 		model:SetAttribute("Uid", uid)
 		model:SetAttribute("Kind", kind)
+		model:SetAttribute("PlotId", e.plot and e.plot.id or 0)
 		CollectionService:AddTag(model, "Interactable")
 	end
 	return e
@@ -31,10 +33,22 @@ function Entities.get(uid)
 	return byUid[uid]
 end
 
-function Entities.ofKind(kind)
+-- every entity of a kind; with a plot, only the ones of that restaurant
+function Entities.ofKind(kind, plot)
 	local out = {}
 	for _, e in pairs(byUid) do
-		if e.kind == kind then
+		if e.kind == kind and (plot == nil or e.plot == plot) then
+			table.insert(out, e)
+		end
+	end
+	return out
+end
+
+-- every entity of a restaurant
+function Entities.ofPlot(plot)
+	local out = {}
+	for _, e in pairs(byUid) do
+		if e.plot == plot then
 			table.insert(out, e)
 		end
 	end

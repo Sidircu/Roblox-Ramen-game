@@ -22,11 +22,12 @@ end
 
 local function run(player, cmd, arg)
 	local S = Core.S
-	local d = S.Session.ownerData()
+	local plot = S.Plots.ofPlayer(player)
+	local d = S.Plots.data(plot)
 	if not d then
 		return
 	end
-	local owner = S.Session.owner
+	local owner = player
 	if cmd == "yen" then
 		S.Economy.add(owner, tonumber(arg) or 10000, "dev", { raw = true })
 	elseif cmd == "sakura" then
@@ -50,7 +51,7 @@ local function run(player, cmd, arg)
 		for _, e in ipairs(Expansions.list) do
 			d.zones[e.id] = true
 		end
-		S.Session.OwnerReady:Fire(owner, d)
+		S.Plots.rebuild(plot)
 	elseif cmd == "renos" or cmd == "plain" then
 		-- all renovations on (detailed look) or off (plain starting look)
 		for _, e in ipairs(Expansions.list) do
@@ -59,9 +60,9 @@ local function run(player, cmd, arg)
 			end
 		end
 		S.Data.changed(owner, "zones")
-		S.Session.OwnerReady:Fire(owner, d)
+		S.Plots.rebuild(plot)
 	elseif cmd == "spawn" then
-		task.spawn(S.Customers.trySpawn, type(arg) == "string" and arg or nil)
+		task.spawn(S.Customers.trySpawn, plot, type(arg) == "string" and arg or nil)
 	elseif cmd == "time" then
 		S.Day.finish()
 	elseif cmd == "stock" then
@@ -72,17 +73,17 @@ local function run(player, cmd, arg)
 				end
 			end
 		end
-		S.Supply.layout()
+		S.Supply.layout(plot)
 	elseif cmd == "rating" then
 		for _ = 1, 20 do
-			S.Progression.addReview(5, 1)
+			S.Progression.addReview(plot, 5, 1)
 		end
 	elseif cmd == "selftest" then
 		task.spawn(S.SelfTest.run, player)
 		return
 	elseif cmd == "reset" and RunService:IsStudio() then
 		S.Data.reset(owner)
-		S.Session.OwnerReady:Fire(owner, S.Data.get(owner))
+		S.Plots.rebuild(plot)
 		for _, k in ipairs(S.Data.WorldKeys) do
 			S.Data.changed(owner, k)
 		end

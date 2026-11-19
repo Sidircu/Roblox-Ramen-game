@@ -104,9 +104,9 @@ Un test controlla l'integrità: ogni ingrediente usato esiste, ogni licenza punt
 
 | Servizio | Responsabilità |
 |---|---|
-| `SessionService` | modalità del server (ingresso o mondo), proprietario, aiutanti, inviti, teletrasporti (§6) |
+| `PlotsService` | la strada di `Config/Plots.Count` lotti: assegna il primo lotto libero a chi entra, lo libera quando esce, ruoli (proprietario, co-gestore, aiutante, visitatore), locale in cui lavora ogni giocatore, rinomina gli id salvati che si sovrappongono (§6) |
 | `DataService` | caricamento/salvataggio con blocco di sessione, autosalvataggio, migrazioni, replica dei dati al client (§7) |
-| `WorldService` | costruisce la strada e l'edificio dalle zone sbloccate; ricostruisce dopo un'espansione (§8) |
+| `WorldService` | costruisce la strada (una volta, con un lotto per ogni plot) e l'edificio di ogni ristorante dalle zone sbloccate dal suo proprietario; il lotto vuoto ha recinto e cartello; ricostruisce dopo un'espansione (§8) |
 | `PlacementService` | piazzamento, spostamento, vendita, inventario, verniciatura; validazione (§11) |
 | `InteractionService` | riceve i clic, controlla distanza e stato, smista all'azione giusta; gestisce cosa ha in mano ogni giocatore |
 | `SupplyService` | ordini al fornitore, furgone, scatole nel magazzino, mensole e slot. Ripiani a scacchiera (`Logic/ShelfGrid`: colonne × file per ingrediente, caselle libere segnate), aggiornati un ripiano e una casella alla volta; `Fx("stock")` fa volare i prodotti dalla scatola alle caselle (il ripiano si ridisegna quando atterra l'ultimo), `Fx("take")` dalla casella alla mano. Le scatole in mano sono aperte con alcuni prodotti visibili. Il furgone lascia le scatole a terra nella `Expansions.DropZone` (posti a griglia, due livelli; le scatole a terra nello stesso punto si impilano) e la capienza è scaffali del magazzino + posti a terra |
@@ -149,27 +149,24 @@ Un test controlla l'integrità: ogni ingrediente usato esiste, ogni licenza punt
 
 ---
 
-## 6. Mondo personale e inviti
+## 6. La strada dei ristoranti e gli aiutanti
 
-Un solo *place* che funziona in due modi:
+Ogni server è una strada con `Config/Plots.Count` (4) lotti lungo l'asse X, a `Plots.Spacing` (240) stud l'uno dall'altro (`OriginsX` = −360, −120, 120, 360). Niente teletrasporti né server riservati: tutti giocano nello stesso place pubblico (Max Players = 4).
 
-**Modalità ingresso** (server pubblici):
-1. Il giocatore vede la schermata di caricamento (`ReplicatedFirst`).
-2. Se arriva da un invito (`player:GetJoinData().LaunchData` con l'ID del proprietario) e quel mondo è attivo (MemoryStore `LiveWorlds`) ed è amico del proprietario → viene mandato nel mondo dell'amico.
-3. Altrimenti → nel proprio mondo: il codice di accesso del suo server riservato è salvato in DataStore (`WorldCodes[userId]`); se non c'è, si crea con `TeleportService:ReserveServer` e si salva anche `WorldOwners[privateServerId] = userId`.
-4. `TeleportService:TeleportAsync` con `ReservedServerAccessCode`; in caso di errore riprova 3 volte, poi in ultima istanza fa giocare il giocatore direttamente lì.
+**Coordinate**: ogni ristorante è costruito e calcolato in **coordinate locali** (le stesse di prima, con l'ingresso a z = 0), poi spostato sul suo lotto (`Plots.shift` aggiunge l'origine alle parti). Geometria, zone, piazzamento e posti lavorano in coordinate locali; `Plots.toWorld`/`toLocal` convertono. Gli oggetti dei salvataggi restano in coordinate locali, quindi un ristorante si può costruire su qualsiasi lotto.
 
-**Modalità mondo** (server riservato):
-- Legge il proprietario da `WorldOwners[game.PrivateServerId]` (dato sicuro, non arriva dal client).
-- Chi entra: il proprietario → gestore; amici del proprietario o invitati → aiutanti; chiunque altro → rimandato al proprio mondo.
-- Registra il mondo come attivo in MemoryStore ogni 60 s (per gli inviti).
-- Se esce il proprietario: salvataggio, messaggio agli aiutanti e teletrasporto al loro mondo.
+**Stato per ristorante**: ogni plot (`{ id, origin, cf, owner, ownerId, folder }`) porta anche lo stato che gli altri servizi gli appendono (biglietti, registro del giorno, geometria, posti, scorte, pila del lavello, coda, combo, ambiente, resoconto…). Le entità hanno `e.plot` e l'attributo `PlotId`; `Entities.ofKind(kind, plot)` e `Entities.ofPlot(plot)` filtrano per ristorante. Nel workspace: `workspace.Plots.PlotN` con le cartelle `Shell`, `Items`, `Dynamic` e gli attributi `PlotId`, `OriginX`, `OwnerId`, `OwnerName`, `City`, `Ready`.
 
-**In Studio**: niente teletrasporti; il server è subito "mondo" e il primo giocatore è il proprietario.
+**Ingresso e uscita**:
+1. `Data.Loaded` → `claim`: primo lotto libero (se non ce n'è: `msg.no_plot`), `dedupe` rinomina gli id salvati (oggetti, scatole, personale) già usati da un altro ristorante, `Plots.Claimed` fa costruire il locale a `World`, ai clienti, al personale; il personaggio va alla porta (`Plots.sendHome`, anche a ogni respawn e con il remote `GoHome`).
+2. `PlayerRemoving` → `Plots.Released`: clienti e personale spariscono, il lotto torna vuoto, gli aiutanti che lavoravano lì tornano al proprio locale.
+3. `Plots.rebuild(plot)` (franchise, strumenti di sviluppo) = rilascio + nuova costruzione dallo stesso profilo.
 
-Permessi (salvati nei dati del proprietario): `helper` (cucina, serve, pulisce, rifornisce) e `comanager` (anche costruire e comprare con gli yen del proprietario).
+**Ruoli** (`Plots.role(player, plot)`): `owner`; `comanager` o `helper` se il proprietario lo ha deciso (`perms` nei suoi dati, remote `SetPermission(userId, "helper"|"comanager"|"none")`); `helper` anche per gli amici Roblox del proprietario o per tutti se `settings.coop == "everyone"`; altrimenti `visitor`. `canWork` = owner/comanager/helper, `canBuild` = owner/comanager. In Studio tutti contano come amici (per provare con più giocatori in locale).
 
----
+**Locale di lavoro**: ogni 0,5 s il server sceglie per ogni giocatore il locale in cui lavora: quello in cui si trova (`Plots.at(pos)`, metà larghezza del lotto) se ci può lavorare, altrimenti il suo. Al cambio parte `Plots.WorkChanged`: il client riceve `Session` (lotto, casa, origine, ruolo, elenco dei lotti) e `WorldSnapshot` (le chiavi dei dati del proprietario che servono a disegnare il locale: mensole, oggetti, zone, menu…). Finché ci lavora, i cambiamenti di quelle chiavi arrivano anche a lui. L'interazione rifiuta le azioni di chi non può lavorare in quel locale (`msg.not_your_restaurant`).
+
+**Guadagni degli aiutanti**: chi serve in un locale non suo riceve XP e una quota in yen nel proprio salvataggio, pagata dal gioco; il proprietario incassa il conto per intero.
 
 ## 7. Salvataggi
 
@@ -322,12 +319,12 @@ Servizio `Analytics` (impostazioni in `Config/Analytics.luau`), ogni chiamata è
 
 | Voce | Limite |
 |---|---|
-| NPC contemporanei | 40 (clienti + personale) |
+| NPC contemporanei | 60 in tutta la strada (`GameConfig.MaxNpcs`), al massimo 14 clienti per ristorante (`MaxPerRestaurant`) |
 | Parti per oggetto decorativo | ≤ 60 (≤ 150 per alberi, laghetto, armatura) |
 | Parti della strada | ≤ 6.000 (tutte ancorate, costruite una volta) |
 | Luci attive | ≤ 40 vicine alla telecamera; modalità ridotta: ≤ 10 |
 | Ricalcolo percorsi | al massimo 10 al secondo (coda) |
-| `StreamingEnabled` | disattivato (mondo piccolo e privato) |
+| `StreamingEnabled` | disattivato per ora; con 4 ristoranti nella stessa strada (strada ≈ 7.400 parti con due locali base, più oggetti e NPC) va valutato nella fase grafica/prestazioni |
 
 Animazioni decorative, treno e particelle girano solo sul client.
 
@@ -337,7 +334,7 @@ Animazioni decorative, treno e particelle girano solo sul client.
 
 - **Test della logica** (`tests/logic_spec.lua`, eseguiti con lupa): formule (XP, prezzi, mance, recensioni), griglia 1/5/10, sovrapposizioni, muri e porte, validità del layout iniziale, piazzamento a terra/parete/soffitto/su bancone, blocco dei passaggi, locale completo su tre piani, ambiente, integrità della configurazione.
 - **Controllo statico** (`tools/check_luau.py`, `tools/check_api.py`): blocchi, variabili non dichiarate, require, parità delle lingue, chiamate tra servizi.
-- **Simulatore del server** (`tools/sim.py`): esegue il codice vero del server (tutti i servizi, `Init` e `Start`) su un Roblox simulato in Lua 5.4: orologio virtuale con `task.wait/spawn/delay`, istanze con proprietà, figli, attributi, tag ed eventi, i servizi usati dal gioco, DataStore in memoria che rifiutano i valori che Roblox non salverebbe (array con buchi, tabelle miste, NaN), giocatori finti con personaggio. Gli scenari in `tools/sim/scenarios/` aggiungono giocatori, mandano remoti, fanno passare il tempo e controllano il risultato: `core` (avvio, autotest del gioco, clienti per 3 minuti, statistiche, salvataggio all'uscita), `loop` (un giocatore nuovo gioca il ciclo base con i remoti veri e ne misura i tempi: primo ordine entro 20 s, servito e pagato entro 35 s, una giornata intera senza premere nulla), `saves` (profilo bloccato da un altro server, uscita durante un salvataggio, spegnimento del server, guasto dei DataStore). Qualsiasi errore del gioco fa fallire la prova.
+- **Simulatore del server** (`tools/sim.py`): esegue il codice vero del server (tutti i servizi, `Init` e `Start`) su un Roblox simulato in Lua 5.4: orologio virtuale con `task.wait/spawn/delay`, istanze con proprietà, figli, attributi, tag ed eventi, i servizi usati dal gioco, DataStore in memoria che rifiutano i valori che Roblox non salverebbe (array con buchi, tabelle miste, NaN), giocatori finti con personaggio. Gli scenari in `tools/sim/scenarios/` aggiungono giocatori, mandano remoti, fanno passare il tempo e controllano il risultato: `core` (avvio, autotest del gioco, clienti per 3 minuti, statistiche, salvataggio all'uscita), `loop` (un giocatore nuovo gioca il ciclo base con i remoti veri e ne misura i tempi: primo ordine entro 20 s, servito e pagato entro 35 s, una giornata intera senza premere nulla), `saves` (profilo bloccato da un altro server, uscita durante un salvataggio, spegnimento del server, guasto dei DataStore), `street` (quattro giocatori con un locale ciascuno, id salvati in comune rinominati, un quinto giocatore senza lotto, ordini in ogni locale, un amico cucina e serve nel locale di un altro e riceve la quota, un estraneo viene rifiutato, il proprietario esce e il lotto si svuota). Qualsiasi errore del gioco fa fallire la prova.
 - **Costruzione**: `tools/build_place.py` produce il `.rbxlx`.
 - **In Studio** (tu): lista di controllo di gioco per la prima giornata, la costruzione, le espansioni e il personale, più il pannello sviluppatore per arrivare velocemente ai livelli alti.
 - **graphify**: `graphify update .` alla fine di ogni blocco di lavoro, così il grafo `graphify-out/` resta allineato al codice.
@@ -357,7 +354,7 @@ Tutto in un'unica sessione di lavoro, a blocchi, con un commit per blocco:
 | **B4 Progressione** | livelli, licenze, tutte le ricette e postazioni, upgrade, pubblicità, espansioni, valutazione, prezzi del menu, maestrie | si arriva al livello 20 con il pannello sviluppatore senza blocchi |
 | **B5 Personale** | bacheca dei compiti, tutti i ruoli, stipendi, addestramento, tavoli e gruppi, sala tatami e VIP | il locale va avanti da solo con il personale |
 | **B6 Meta** | missioni, obiettivi, premio giornaliero, guadagni offline, set, classifiche, franchise e città, eventi | ciclo a lungo termine completo |
-| **B7 Sessioni & Robux** | mondo personale, inviti, permessi, monetizzazione, impostazioni, tutorial | flusso completo dall'ingresso al tutorial |
+| **B7 Sessioni & Robux** | strada con 4 ristoranti, inviti, permessi, monetizzazione, impostazioni, tutorial | flusso completo dall'ingresso al tutorial |
 | **B8 Rifinitura** | suoni, particelle, bilanciamento, test finali, `.rbxl` compilato, `graphify update .` | consegna |
 
 ---
