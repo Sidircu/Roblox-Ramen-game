@@ -22,7 +22,7 @@
 | Picchi pranzo/cena | intervallo × 0,6 |
 | Domanda in base al prezzo del menu | `probabilità ordine × (1 − 1,2 × (moltiplicatore − 1))` |
 | Rimborso vendita oggetti | 75% (100% entro 30 s dal piazzamento) |
-| Guadagno offline | `incassoMedioOrario × percentualeCassaforte × ore (max ore cassaforte)` |
+| Guadagno offline | `incassoMedioOrario × percentuale × ore` (ore ≤ massimo del livello di cassaforte; senza cassaforte 1 ora al 5%); `incassoMedioOrario = media degli incassi giornalieri × 3600 / durata di una giornata` (870 s: 17 ore da 45 s e 7 ore di notte da 15 s) |
 
 ### Andamento previsto dei livelli
 
@@ -30,7 +30,7 @@
 |---|---|---|---|
 | 5 | 657 | 951 | ~20 min |
 | 10 | 1.991 | 6.687 | ~2–2,5 h |
-| 12 | 2.665 | 10.996 | ~2,5–3,5 h (primo franchise) |
+| 11 | 2.318 | 8.678 | ~3,2–3,4 h (primo franchise) |
 | 20 | 6.034 | 43.440 | ~8 h |
 | 30 | 11.544 | 127.481 | ~15 h |
 | 40 | 18.292 | 272.332 | ~22 h |
@@ -249,6 +249,7 @@ Stoviglie iniziali: 20. Il set di stoviglie si compra dal Fornitore (non si piaz
 | `condiment_caddy` | Portacondimenti (bacchette, aglio, peperoncino, pepe, fazzoletti) | Sul tavolo | ¥180 | 2 | 1 | appoggio |
 | `pendant_lamp` | Lampada a sospensione | Illuminazione | ¥350 | 3 | 2 | soffitto |
 | `chochin_orange` | Lanterna arancione ラーメン | Illuminazione | ¥200 | 2 | 2 | soffitto |
+| `chochin_gold` | Lanterna d'oro 福 (set d'oro) | Illuminazione | ¥6.000 (o VIP, 2 in regalo) | 6 | 10 | soffitto |
 | `menu_posters` | Poster del menù (5 piatti con prezzo) | Arte & pareti | ¥450 | 4 | 3 | parete |
 | `counter_posters` | Mensola menù da bancone | Sul tavolo | ¥650 | 5 | 4 | appoggio (bancone) |
 | `noren_banner` | Striscione rosso ラーメン・餃子・炒飯 | Arte & pareti | ¥700 | 5 | 4 | soffitto |
@@ -261,6 +262,7 @@ Le parti alte della tettoia si nascondono in modalità costruzione, come il tett
 | `nobori` | Stendardo nobori | Festival | ¥450 | 4 | 4 | pavimento/esterno |
 | `soy_barrel` | Botte di salsa di soia | Statue | ¥450 | 4 | 4 | pavimento |
 | `noren_indigo` | Noren indaco con onde | Arte & pareti | ¥400 | 4 | 5 | parete/porta |
+| `noren_gold` | Noren d'oro 特選 (set d'oro) | Arte & pareti | ¥9.000 (o VIP) | 8 | 12 | parete/porta |
 | `paper_pendant` | Lampada a sospensione in carta | Illuminazione | ¥900 | 6 | 5 | soffitto |
 | `stone_path` | Pietra da sentiero | Giardino & acqua | ¥120 | 1 | 5 | pavimento/esterno |
 | `toro_stone` | Lanterna di pietra tōrō | Illuminazione | ¥1.200 | 8 | 6 | pavimento/esterno |
@@ -335,7 +337,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `up_sign` | Insegna luminosa | 0→5 | ¥1.200 × 4^n | +0,08 popolarità per livello |
 | `up_ticket` | Barra ordini | 0→2 | ¥6.000 · ¥60.000 | 12 → 16 → 20 biglietti (i clienti ordinano da soli: almeno un biglietto per posto) |
 | `up_jukebox` | Jukebox | 0→3 | ¥5.000 · ¥50.000 · ¥300.000 | +15 / +40 / +90 ambiente |
-| `up_safe` | Cassaforte (guadagni offline) | 0→5 | ¥10.000 × 4^n | 2/4/8/12/24 h al 10/15/20/25/30% |
+| `up_safe` | Cassaforte (guadagni offline) | 0→5 | ¥10.000 × 4^n | senza: 1 h al 5% (per tutti) · poi 2/4/8/12/24 h al 10/15/20/25/30% |
 | `up_autorestock` | Riordino automatico | 0→1 | ¥120.000 (L20, serve un Magazziniere) | ordina da solo sotto soglia |
 
 ### Pubblicità (consumabili, durano 1 giornata)
@@ -360,7 +362,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `staff_manager` | Manager | 18 | ¥120.000 | ¥3.000 | — (+10% velocità a tutti) |
 
 - **Addestramento** (livelli 1→5): costo `assunzione × 0,8 × 2,2^(livello−1)`; +15% velocità per livello.
-- **Posti personale**: 2 con il locale base, +1 per Sala Est, Sala Ovest, Terrazza; +3 con la Cucina professionale; +3 con il Secondo piano. Massimo 12.
+- **Posti personale**: 2 con il locale base, +1 per Sala Est, Sala Ovest, Terrazza e Sala tatami; +3 con la Cucina professionale; +3 con il Secondo piano. Massimo 12 (14 con il pass **Personale extra**, che aggiunge 2 posti in qualsiasi momento).
 
 ---
 
@@ -371,7 +373,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `zone_base` | Locale base | 1 | — | sala 72×32 + cucina 72×14, magazzino 24×32 | bancone 12 posti |
 | `zone_east` | Sala Est | 3 | ¥3.000 | +32×32 | sblocca i tavoli |
 | `zone_storage2` | Magazzino ampliato | 5 | ¥6.000 | +24×32 | |
-| `zone_west` | Sala Ovest | 8 | ¥18.000 | +32×56 | |
+| `zone_west` | Sala Ovest | 8 | ¥12.000 | +32×56 | |
 | `zone_terrace` | Terrazza esterna | 12 | ¥60.000 | 72×10 sulla strada | esterno |
 | `zone_garden` | Giardino zen | 15 | ¥100.000 | 48×36 sul retro | esterno |
 | `zone_tatami` | Sala tatami privata | 18 | ¥180.000 | 32×32 | clienti VIP |
@@ -441,11 +443,13 @@ Totale ¥226.800 e +122 atmosfera (circa un livello di ambiente in più a metà 
 |---|---|
 | Ricompensa di livello | `¥(50 × L²)` + 🌸5 ogni 5 livelli |
 | Missioni giornaliere | 3 al giorno; ricompensa `¥(200 × livello)` + 🌸2 ciascuna; 🌸5 bonus se completi tutte e 3 |
-| Accesso giornaliero | giorni 1–7: ¥500, ¥1.000, 🌸3, ¥2.500, 🌸5, ¥5.000, 🌸15 + decorazione esclusiva; scala con il livello |
+| Accesso giornaliero | giorni 1–7: ¥500, ¥1.000, 🌸3, ¥2.500, 🌸5, ¥5.000, 🌸15 + decorazione esclusiva; gli yen × (1 + livello/10); saltare un giorno riporta al giorno 1. Il calendario si apre da solo all'ingresso (dopo i guadagni offline) o 20 s dopo la fine del tutorial (`Config/DailyRewards`: `PopupAfterTutorial` 20, `PopupWait` 120 s per aspettare che le altre finestre si chiudano) |
+| Lavoro di squadra | ogni altro giocatore che lavora nel ristorante: +10% su vendite e mance del proprietario, massimo +30%; il messaggio a chi lavora lì quando il bonus sale, al massimo ogni 60 s per lo stesso bonus (`GameConfig.Coop`) |
+| Classifiche | piatti serviti, yen guadagnati (solo vendite, mance e offline: non gli acquisti con Robux), Mi piace; primi 10 (`GameConfig.Leaderboard.Rows`), letti al massimo ogni 120 s e scritti ogni 300 s e all'uscita; mostrate sulle bacheche della strada e in Obiettivi |
 | Critico 5 ★ | 🌸3 |
 | Obiettivi | traguardi a livelli (piatti, clienti, yen, decorazioni, personale, maestrie, licenze, zone, ristrutturazioni…) con 🌸3–100 |
 | Set di decorazioni | Matsuri, Giardino zen, Samurai, Neon di Tokyo, Ciliegi: +5% mance o +0,1 popolarità ciascuno; Ramen-ya (tettoia, striscione, poster del menù, sgabello rosso, brocca): +4% mance e +0,06 popolarità |
-| Franchise | requisiti per città (`Config/Franchise.Steps`): 1ª livello 12, ★4,0, Sala Est + Magazzino ampliato + Sala Ovest · 2ª livello 16, ★4,1, + terrazza e giardino · 3ª livello 20, ★4,2, + sala tatami e cucina professionale · 4ª livello 25, ★4,3, + secondo piano · 5ª livello 30, ★4,4; ogni stella: +25% yen, +10% XP; ¥2.000 iniziali nella nuova città |
+| Franchise | requisiti per città (`Config/Franchise.Steps`): 1ª livello 11, ★4,0, Sala Est + Magazzino ampliato + Sala Ovest · 2ª livello 16, ★4,1, + terrazza e giardino · 3ª livello 20, ★4,2, + sala tatami e cucina professionale · 4ª livello 25, ★4,3, + secondo piano · 5ª livello 30, ★4,4; ogni stella: +25% yen, +10% XP; ¥2.000 iniziali nella nuova città |
 | Regali a tempo (`Config/Rewards.luau`) | minuti di gioco nella sessione: 2 → ¥250 · 5 → 🌸2 · 9 → salmone + noodles · 14 → ¥900 · 20 → 🌸5 · 28 → ¥2.200 · 38 → 2 brodo shoyu + riso · 50 → 🌸10 · 65 → ¥6.000; gli yen × (1 + livello × 0,12); agli aiutanti ¥400 al posto delle scatole |
 | Codici | RAMEN ¥500 · SAKURA 🌸5 · ITADAKIMASU ¥1.500 · OISHII 🌸10 · NEWSHOP ¥3.000 (yen × (1 + livello × 0,12)); una volta per giocatore |
 | Combo di servizio | piatti serviti entro 30 s l'uno dall'altro: +5% di mancia per passo, massimo +50% |
@@ -462,10 +466,11 @@ Totale ¥226.800 e +122 atmosfera (circa un livello di ambiente in più a metà 
 
 | ID | Tipo | Effetto |
 |---|---|---|
-| `gp_vip` | Gamepass | ×1,25 yen, etichetta chat, `maneki_gold` gratuito |
+| `gp_vip` | Gamepass | ×1,25 yen, etichetta chat, il set d'oro gratuito nell'inventario: `maneki_gold`, 2 `chochin_gold`, `noren_gold` (tutti comprabili con gli yen ai livelli alti) |
 | `gp_double_yen` | Gamepass | ×2 yen (si somma al VIP: ×2,5) |
 | `gp_big_tray` | Gamepass | +2 vassoio |
-| `gp_express` | Gamepass | consegna 1 s |
+| `gp_express` | Gamepass | Carrello grande: una scatola in più alla volta |
+| `gp_extra_staff` | Gamepass | +2 posti per il personale (`Config/Staff.PassSlots`), anche oltre il massimo di 12 |
 | `gp_starter` | Gamepass | ¥10.000, `stool_cushion` ×6, `neon_ramen`, `maneki_neko`, `sakura_tree` |
 | `dp_yen_s/m/l/xl` | Prodotto | `¥(1.000 / 5.000 / 15.000 / 50.000) × (1 + livello/5)` |
 | `dp_sakura_s/m/l` | Prodotto | 🌸20 / 🌸120 / 🌸300 |

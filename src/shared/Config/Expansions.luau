@@ -53,7 +53,7 @@ local list = {
 	},
 	{ id = "zone_east", lv = 3, cost = 3000, requires = { "zone_base" }, zones = { { id = "east_dining", rect = { -68, 0, -36, 32 }, floor = 0, area = "dining", room = "main" } } },
 	{ id = "zone_storage2", lv = 5, cost = 6000, requires = { "zone_base" }, zones = { { id = "storage2", rect = { 60, 24, 84, 56 }, floor = 0, area = "storage", room = "storage" } } },
-	{ id = "zone_west", lv = 8, cost = 18000, requires = { "zone_east" }, zones = { { id = "west_dining", rect = { -100, 0, -68, 56 }, floor = 0, area = "dining", room = "main" } } },
+	{ id = "zone_west", lv = 8, cost = 12000, requires = { "zone_east" }, zones = { { id = "west_dining", rect = { -100, 0, -68, 56 }, floor = 0, area = "dining", room = "main" } } },
 	{ id = "zone_terrace", lv = 12, cost = 60000, requires = { "zone_base" }, zones = { { id = "terrace", rect = { -36, -10, 36, 0 }, floor = 0, area = "outdoor", outdoor = true, gaps = { { axis = "z", at = -10, from = -4, to = 4 } } } } },
 	{
 		id = "zone_garden", lv = 15, cost = 100000, requires = { "zone_base" },

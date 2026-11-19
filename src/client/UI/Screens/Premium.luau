@@ -8,7 +8,7 @@ local Kit = require(script.Parent.Parent.Kit)
 local Base = require(script.Parent.Parent.Base)
 
 local t = Locale.t
-local ICON = { gp_vip = "👑", gp_double_yen = "💴", gp_big_tray = "🍱", gp_express = "🚀", gp_starter = "🎁", dp_rush_hour = "🔔", dp_golden_sign = "🌟" }
+local ICON = { gp_vip = "👑", gp_double_yen = "💴", gp_big_tray = "🍱", gp_express = "🚀", gp_starter = "🎁", gp_extra_staff = "👥", dp_rush_hour = "🔔", dp_golden_sign = "🌟" }
 
 return Base.make("Premium", "ui.premium", UDim2.fromScale(0.6, 0.72), function(content)
 	local scroll = Kit.scroll({ Parent = content })

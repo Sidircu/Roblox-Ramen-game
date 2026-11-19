@@ -53,8 +53,9 @@ python3 tools/build_place.py
 eventi, DataStore in memoria, giocatori finti) e gioca gli scenari di `tools/sim/scenarios/`:
 il server parte, entra un giocatore, l'autotest del gioco fa tutto il ciclo, arrivano clienti, si salva
 all'uscita; il ciclo base con i tempi; la strada con quattro giocatori e gli aiutanti; i casi difficili dei
-salvataggi; e un giocatore su telefono che gioca con il client vero (postazione, cliente e negozio toccati
-come sullo schermo). Ogni errore del gioco fa fallire la prova.
+salvataggi; un giocatore su telefono che gioca con il client vero (postazione, cliente e negozio toccati
+come sullo schermo); il tutorial completo; e chi torna a giocare (guadagni offline, calendario del premio
+giornaliero, bacheche delle classifiche, pass Personale extra). Ogni errore del gioco fa fallire la prova.
 ```
 python3 tools/sim.py                 # tutti gli scenari
 python3 tools/sim.py --verbose core  # uno scenario, con notifiche e stampe del gioco
@@ -66,7 +67,7 @@ python3 tools/sim.py --verbose core  # uno scenario, con notifiche e stampe del 
 tablet e computer, con joystick e salto sovrapposti per vedere se qualcosa ci finisce sotto
 (`pip install lupa pillow fonttools numpy`):
 ```
-python3 tools/ui_preview.py hud shop screens visit                 # in build/ui/
+python3 tools/ui_preview.py hud shop screens visit daily           # in build/ui/
 python3 tools/ui_preview.py shop --devices=phone,laptop --out=/tmp/ui
 ```
 

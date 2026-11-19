@@ -396,6 +396,33 @@ function S.supplierTablet(parent, x, y, z, yaw)
 	return m
 end
 
+-- Ranking board (番付) on the far sidewalk, facing the restaurants (+Z): a wooden frame under a
+-- small roof with three paper panels (Panel_dishes, Panel_earned, Panel_likes); the client writes
+-- the top ten of every leaderboard on them in its own language (Controllers/WorldUI)
+S.RankingStats = { "dishes", "earned", "likes" }
+function S.rankingBoard(parent, x, z)
+	local m = Kit.model("RankingBoard")
+	for _, dx in ipairs({ -12.6, 12.6 }) do
+		Kit.box(m, 0.8, 15, 0.8, x + dx, 7.1, z, P.wood_dark, M.wood)
+	end
+	Kit.box(m, 25, 11.4, 0.4, x, 7.2, z - 0.3, P.wood_dark, M.wood)
+	for i, stat in ipairs(S.RankingStats) do
+		Kit.box(m, 7.6, 10.4, 0.2, x + (i - 2) * 8.1, 7.2, z, P.paper, M.fabric, { collide = false, name = "Panel_" .. stat })
+	end
+	local header = Kit.box(m, 26.4, 2, 0.5, x, 13.9, z, P.lacquer, M.wood, { collide = false })
+	Kit.text(header, Enum.NormalId.Back, "番付", { color = "#F4EBDD", font = JP_FONT, pps = 30 })
+	Kit.box(m, 28.4, 0.4, 2.8, x, 15.1, z - 0.1, P.wood_dark, M.wood, { collide = false })
+	Kit.box(m, 28.6, 0.15, 0.3, x, 14.85, z + 1.3, P.gold, M.metal, NC())
+	for _, dx in ipairs({ -13.4, 13.4 }) do
+		Kit.cyl(m, 0.08, 0.8, x + dx, 14.5, z + 1, P.black, M.smooth, NC())
+		Kit.ball(m, 1.1, x + dx, 13.6, z + 1, P.lacquer, M.fabric, NC())
+	end
+	Kit.light(header, "Point", P.lamp_warm, 16, 1)
+	game:GetService("CollectionService"):AddTag(m, "RankingBoard")
+	m.Parent = parent
+	return m
+end
+
 function S.rng(seed)
 	return rng(seed)
 end

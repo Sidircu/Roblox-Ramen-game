@@ -82,3 +82,13 @@ REVAMP += [
 ("msg.shelf_full_other","This shelf is full: another shelf has room for it.","Questa mensola è piena: su un'altra c'è posto."),
 ("msg.shelf_full_buy","Every shelf is full: buy a new one (🔨 Build → Kitchen).","Tutte le mensole sono piene: comprane un'altra (🔨 Costruisci → Cucina)."),
 ]
+
+# Phase 8: daily gift calendar, ranking boards in the street, extra staff pass, co-op bonus
+REVAMP += [
+("ui.daily_gift","Daily gift","Regalo del giorno"),
+("ui.daily_hint","Come back every day: the gifts grow for 7 days in a row!","Torna ogni giorno: i regali crescono per 7 giorni di fila!"),
+("ui.lb_you","⭐ You","⭐ Tu"),
+("gp.gp_extra_staff","Extra staff","Personale extra"),
+("gpdesc.gp_extra_staff","+2 staff slots in your restaurant","+2 posti per il personale nel tuo ristorante"),
+("msg.coop_bonus","🤝 Teamwork: +{pct}% earnings while you work together!","🤝 Lavoro di squadra: +{pct}% di guadagni finché lavorate insieme!"),
+]

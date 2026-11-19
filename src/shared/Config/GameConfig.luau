@@ -36,6 +36,16 @@ return {
 		EarlyDays = 2,
 	},
 
+	-- Working together: every other player working in a restaurant (a helper or co-owner who is
+	-- there) adds this much to what it earns (sales and tips), up to MaxBonus. The team hears when
+	-- the bonus grows, at most once every NotifyEvery seconds for the same bonus
+	Coop = { BonusPerHelper = 0.10, MaxBonus = 0.30, NotifyEvery = 60 },
+
+	-- Global leaderboards (Services/Leaderboard, the ranking boards in the street and Goals):
+	-- the server reads them at most every CacheSeconds and writes the players' numbers every
+	-- SubmitEvery seconds and when they leave
+	Leaderboard = { CacheSeconds = 120, SubmitEvery = 300, Rows = 10 },
+
 	-- Customers
 	Customers = {
 		-- easy mode: every customer type waits this many times its base patience, and the timer

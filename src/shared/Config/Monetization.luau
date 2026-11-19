@@ -2,10 +2,11 @@
 -- Robux products. Put the real IDs from the Creator Dashboard here; 0 = disabled (hidden).
 return {
 	GamePasses = {
-		{ id = "gp_vip", assetId = 0, effect = { yenMult = 1.25, item = "maneki_gold" } },
+		{ id = "gp_vip", assetId = 0, effect = { yenMult = 1.25, items = { maneki_gold = 1, chochin_gold = 2, noren_gold = 1 } } }, -- the gold set (Config/Items)
 		{ id = "gp_double_yen", assetId = 0, effect = { yenMult = 2 } },
 		{ id = "gp_big_tray", assetId = 0, effect = { tray = 2 } },
 		{ id = "gp_express", assetId = 0, effect = { cart = 1 } }, -- big cart: one more box at a time
+		{ id = "gp_extra_staff", assetId = 0, effect = { staffSlots = 2 } }, -- two more places in the team
 		{ id = "gp_starter", assetId = 0, effect = { yen = 10000, items = { stool_cushion = 6, neon_ramen = 1, maneki_neko = 1, sakura_tree = 1 } } },
 	},
 	Products = {

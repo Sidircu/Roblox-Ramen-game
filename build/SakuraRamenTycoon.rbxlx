@@ -295,6 +295,11 @@ return { list = list, byId = byId }
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000008"><Properties><string name="Name">DailyRewards</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- 7-day login streak. yen scales with level: yen * (1 + level / 10)
 return {
+	-- the calendar opens by itself when you join with today's gift still there, or this many
+	-- seconds after the tutorial ends (only while no other window is open)
+	PopupAfterTutorial = 20,
+	-- how long it waits for the other windows to close before giving up for this session
+	PopupWait = 120,
 	days = {
 		{ yen = 500 },
 		{ yen = 1000 },
@@ -396,7 +401,7 @@ local list = {
 	},
 	{ id = "zone_east", lv = 3, cost = 3000, requires = { "zone_base" }, zones = { { id = "east_dining", rect = { -68, 0, -36, 32 }, floor = 0, area = "dining", room = "main" } } },
 	{ id = "zone_storage2", lv = 5, cost = 6000, requires = { "zone_base" }, zones = { { id = "storage2", rect = { 60, 24, 84, 56 }, floor = 0, area = "storage", room = "storage" } } },
-	{ id = "zone_west", lv = 8, cost = 18000, requires = { "zone_east" }, zones = { { id = "west_dining", rect = { -100, 0, -68, 56 }, floor = 0, area = "dining", room = "main" } } },
+	{ id = "zone_west", lv = 8, cost = 12000, requires = { "zone_east" }, zones = { { id = "west_dining", rect = { -100, 0, -68, 56 }, floor = 0, area = "dining", room = "main" } } },
 	{ id = "zone_terrace", lv = 12, cost = 60000, requires = { "zone_base" }, zones = { { id = "terrace", rect = { -36, -10, 36, 0 }, floor = 0, area = "outdoor", outdoor = true, gaps = { { axis = "z", at = -10, from = -4, to = 4 } } } } },
 	{
 		id = "zone_garden", lv = 15, cost = 100000, requires = { "zone_base" },
@@ -515,9 +520,9 @@ for i, c in ipairs(list) do
 	byId[c.id] = c
 end
 -- What the next city asks for (index = the star it gives): the first franchise comes after a
--- few hours of play (level 12, the first three rooms), every next one asks for more.
+-- few hours of play (level 11, the first three rooms), every next one asks for more.
 local Steps = {
-	{ level = 12, rating = 4.0, zones = { "zone_east", "zone_storage2", "zone_west" } },
+	{ level = 11, rating = 4.0, zones = { "zone_east", "zone_storage2", "zone_west" } },
 	{ level = 16, rating = 4.1, zones = { "zone_east", "zone_storage2", "zone_west", "zone_terrace", "zone_garden" } },
 	{ level = 20, rating = 4.2, zones = { "zone_east", "zone_storage2", "zone_west", "zone_terrace", "zone_garden", "zone_tatami", "zone_kitchen_pro" } },
 	{ level = 25, rating = 4.3, zones = { "zone_east", "zone_storage2", "zone_west", "zone_terrace", "zone_garden", "zone_tatami", "zone_kitchen_pro", "zone_floor2" } },
@@ -574,6 +579,16 @@ return {
 		EarlyPeakFactor = 0.85, -- peaks are lighter for the first EarlyDays days
 		EarlyDays = 2,
 	},
+
+	-- Working together: every other player working in a restaurant (a helper or co-owner who is
+	-- there) adds this much to what it earns (sales and tips), up to MaxBonus. The team hears when
+	-- the bonus grows, at most once every NotifyEvery seconds for the same bonus
+	Coop = { BonusPerHelper = 0.10, MaxBonus = 0.30, NotifyEvery = 60 },
+
+	-- Global leaderboards (Services/Leaderboard, the ranking boards in the street and Goals):
+	-- the server reads them at most every CacheSeconds and writes the players' numbers every
+	-- SubmitEvery seconds and when they leave
+	Leaderboard = { CacheSeconds = 120, SubmitEvery = 300, Rows = 10 },
 
 	-- Customers
 	Customers = {
@@ -799,6 +814,9 @@ local list = {
 	{ id = "toro_stone", cat = "lighting", price = 1200, lv = 6, place = "floor", areas = DECOR, size = { 1.8, 4.5, 1.8 }, amb = 8 },
 	{ id = "pendant_lamp", cat = "lighting", price = 350, lv = 2, place = "ceiling", areas = INDOOR, size = { 1.2, 3.2, 1.2 }, amb = 3 },
 	{ id = "chochin_orange", cat = "lighting", price = 200, lv = 2, place = "ceiling", areas = INDOOR, size = { 1.4, 2.4, 1.4 }, amb = 2 },
+	-- the gold set: two lanterns, a noren and the golden maneki-neko come free with the VIP pass,
+	-- everybody else can buy them with yen at higher levels
+	{ id = "chochin_gold", cat = "lighting", price = 6000, lv = 10, place = "ceiling", areas = INDOOR, size = { 1.4, 2.4, 1.4 }, amb = 6, gamepass = "gp_vip" },
 	{ id = "ramenya_canopy", cat = "lighting", price = 4500, lv = 9, place = "ceiling", areas = INDOOR, size = { 8, 4.2, 2.6 }, amb = 18, set = "ramenya" },
 	{ id = "neon_ramen", cat = "lighting", price = 3500, lv = 8, place = "wall", areas = INDOOR, size = { 6, 2, 0.4 }, amb = 15, set = "neon" },
 	{ id = "neon_sushi", cat = "lighting", price = 3500, lv = 10, place = "wall", areas = INDOOR, size = { 4, 2.2, 0.4 }, amb = 15, set = "neon" },
@@ -824,6 +842,7 @@ local list = {
 	{ id = "fan_wall", cat = "art", price = 350, lv = 2, place = "wall", areas = INDOOR, size = { 3, 1.8, 0.3 }, amb = 3 },
 	{ id = "kakejiku", cat = "art", price = 700, lv = 3, place = "wall", areas = INDOOR, size = { 1.8, 4.5, 0.3 }, amb = 5, set = "samurai" },
 	{ id = "noren_indigo", cat = "art", price = 400, lv = 5, place = "wall", areas = INDOOR, size = { 4, 3, 0.3 }, amb = 4 },
+	{ id = "noren_gold", cat = "art", price = 9000, lv = 12, place = "wall", areas = INDOOR, size = { 4, 3, 0.3 }, amb = 8, gamepass = "gp_vip" },
 	{ id = "wagasa", cat = "art", price = 650, lv = 6, place = "floor", areas = DECOR, size = { 3.5, 4.5, 3.5 }, amb = 5, set = "sakura" },
 	{ id = "wave_painting", cat = "art", price = 1500, lv = 9, place = "wall", areas = INDOOR, size = { 5, 3, 0.3 }, amb = 9, set = "samurai" },
 	{ id = "byobu", cat = "art", price = 1800, lv = 10, place = "floor", areas = DECOR, size = { 6, 4.5, 0.6 }, amb = 10, set = "samurai" },
@@ -932,10 +951,11 @@ return {
 -- Robux products. Put the real IDs from the Creator Dashboard here; 0 = disabled (hidden).
 return {
 	GamePasses = {
-		{ id = "gp_vip", assetId = 0, effect = { yenMult = 1.25, item = "maneki_gold" } },
+		{ id = "gp_vip", assetId = 0, effect = { yenMult = 1.25, items = { maneki_gold = 1, chochin_gold = 2, noren_gold = 1 } } }, -- the gold set (Config/Items)
 		{ id = "gp_double_yen", assetId = 0, effect = { yenMult = 2 } },
 		{ id = "gp_big_tray", assetId = 0, effect = { tray = 2 } },
 		{ id = "gp_express", assetId = 0, effect = { cart = 1 } }, -- big cart: one more box at a time
+		{ id = "gp_extra_staff", assetId = 0, effect = { staffSlots = 2 } }, -- two more places in the team
 		{ id = "gp_starter", assetId = 0, effect = { yen = 10000, items = { stool_cushion = 6, neon_ramen = 1, maneki_neko = 1, sakura_tree = 1 } } },
 	},
 	Products = {
@@ -1187,7 +1207,8 @@ return {
 	MaxTrainLevel = 5,
 	-- base slots and extra slots granted by expansions
 	BaseSlots = 2,
-	SlotsByZone = { zone_east = 1, zone_west = 1, zone_terrace = 1, zone_kitchen_pro = 3, zone_floor2 = 3 },
+	PassSlots = 2, -- more places with the Extra staff game pass (Config/Monetization)
+	SlotsByZone = { zone_east = 1, zone_west = 1, zone_terrace = 1, zone_tatami = 1, zone_kitchen_pro = 3, zone_floor2 = 3 },
 }
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000024"><Properties><string name="Name">StarterLayout</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Objects placed in a brand-new restaurant (all can be moved later). The start is plain on
@@ -1335,7 +1356,7 @@ local list = {
 	-- customers order by themselves: the order bar holds one ticket per seat at least
 	{ id = "up_ticket", icon = "🧾", max = 2, costs = { 6000, 60000 }, levels = { 5, 15 }, values = { 12, 16, 20 }, effect = "tickets" },
 	{ id = "up_jukebox", icon = "🎶", max = 3, costs = { 5000, 50000, 300000 }, levels = { 4, 14, 26 }, values = { 0, 15, 40, 90 }, effect = "ambience" },
-	{ id = "up_safe", icon = "💰", max = 5, costs = geometric(10000, 4, 5), levels = { 6, 12, 18, 26, 34 }, values = { 0, 2, 4, 8, 12, 24 }, pct = { 0, 0.10, 0.15, 0.20, 0.25, 0.30 }, effect = "offline" },
+	{ id = "up_safe", icon = "💰", max = 5, costs = geometric(10000, 4, 5), levels = { 6, 12, 18, 26, 34 }, values = { 1, 2, 4, 8, 12, 24 }, pct = { 0.05, 0.10, 0.15, 0.20, 0.25, 0.30 }, effect = "offline" },
 	{ id = "up_autorestock", icon = "🔁", max = 1, costs = { 120000 }, levels = { 20 }, values = { 0, 1 }, effect = "autorestock", needsStaff = "staff_stocker" },
 }
 
@@ -1535,13 +1556,15 @@ return {
 	["gp.gp_big_tray"] = "Big tray",
 	["gp.gp_double_yen"] = "2× Yen",
 	["gp.gp_express"] = "Big cart",
+	["gp.gp_extra_staff"] = "Extra staff",
 	["gp.gp_starter"] = "Starter pack",
 	["gp.gp_vip"] = "VIP",
 	["gpdesc.gp_big_tray"] = "+2 tray capacity",
 	["gpdesc.gp_double_yen"] = "Doubles all yen earned",
 	["gpdesc.gp_express"] = "Carry one more box at a time",
+	["gpdesc.gp_extra_staff"] = "+2 staff slots in your restaurant",
 	["gpdesc.gp_starter"] = "¥10,000 and exclusive decorations",
-	["gpdesc.gp_vip"] = "+25% yen, VIP chat tag, golden maneki-neko",
+	["gpdesc.gp_vip"] = "+25% yen, VIP chat tag, the gold set: maneki-neko, 2 lanterns and a noren",
 	["guide.broth"] = "{name} in the broth pot",
 	["guide.broth_how"] = "Bring a box of that broth to the pot and click it",
 	["guide.click_steps"] = "Click it {n} more times",
@@ -1661,6 +1684,7 @@ return {
 	["item.chabudai"] = "Chabudai low table",
 	["item.chair_lacquer"] = "Red lacquer chair",
 	["item.chair_wood"] = "Wooden chair",
+	["item.chochin_gold"] = "Golden lantern",
 	["item.chochin_orange"] = "Orange lantern",
 	["item.chochin_red"] = "Red chochin lantern",
 	["item.chochin_white"] = "White chochin lantern",
@@ -1704,6 +1728,7 @@ return {
 	["item.neta_case"] = "Fish display case",
 	["item.nobori"] = "Nobori banner",
 	["item.noren_banner"] = "Red banner",
+	["item.noren_gold"] = "Golden noren",
 	["item.noren_indigo"] = "Indigo noren",
 	["item.noren_red"] = "Red noren",
 	["item.osaka_octopus_sign"] = "Osaka takoyaki sign",
@@ -1797,6 +1822,7 @@ return {
 	["msg.code_used"] = "You already used this code.",
 	["msg.construction"] = "Building works…",
 	["msg.cooking_wait"] = "Still cooking, wait until it's ready.",
+	["msg.coop_bonus"] = "🤝 Teamwork: +{pct}% earnings while you work together!",
 	["msg.critic_happy"] = "🧐 The food critic loved it! +3 🌸",
 	["msg.customer_happy"] = "This customer is happy.",
 	["msg.customer_left"] = "😠 A customer left without eating.",
@@ -2067,6 +2093,8 @@ return {
 	["ui.coop_everyone"] = "Everyone",
 	["ui.coop_friends"] = "Friends",
 	["ui.coop_who"] = "Who may help in my restaurant",
+	["ui.daily_gift"] = "Daily gift",
+	["ui.daily_hint"] = "Come back every day: the gifts grow for 7 days in a row!",
 	["ui.daily_tomorrow"] = "Come back tomorrow!",
 	["ui.day_n"] = "Day {n}",
 	["ui.dev"] = "Dev",
@@ -2101,6 +2129,7 @@ return {
 	["ui.invite_prompt"] = "Come and open your ramen shop next to mine!",
 	["ui.invite_text"] = "Four restaurants share this street. Friends you invite get their own restaurant here and can help in yours: cooking, serving and restocking. Co-managers can also build and buy.",
 	["ui.language"] = "Language",
+	["ui.lb_you"] = "⭐ You",
 	["ui.level_n"] = "Level {n}",
 	["ui.level_of"] = "Level {level}/{max}",
 	["ui.licenses"] = "Licenses",
@@ -2391,13 +2420,15 @@ return {
 	["gp.gp_big_tray"] = "Vassoio extra",
 	["gp.gp_double_yen"] = "2× Yen",
 	["gp.gp_express"] = "Carrello grande",
+	["gp.gp_extra_staff"] = "Personale extra",
 	["gp.gp_starter"] = "Pacchetto iniziale",
 	["gp.gp_vip"] = "VIP",
 	["gpdesc.gp_big_tray"] = "+2 capienza del vassoio",
 	["gpdesc.gp_double_yen"] = "Raddoppia gli yen guadagnati",
 	["gpdesc.gp_express"] = "Porti una scatola in più alla volta",
+	["gpdesc.gp_extra_staff"] = "+2 posti per il personale nel tuo ristorante",
 	["gpdesc.gp_starter"] = "¥10.000 e decorazioni esclusive",
-	["gpdesc.gp_vip"] = "+25% yen, etichetta VIP, maneki-neko d'oro",
+	["gpdesc.gp_vip"] = "+25% yen, etichetta VIP, il set d'oro: maneki-neko, 2 lanterne e un noren",
 	["guide.broth"] = "{name} nel pentolone",
 	["guide.broth_how"] = "Porta una scatola di quel brodo al pentolone e cliccalo",
 	["guide.click_steps"] = "Cliccala ancora {n} volte",
@@ -2517,6 +2548,7 @@ return {
 	["item.chabudai"] = "Tavolino basso chabudai",
 	["item.chair_lacquer"] = "Sedia laccata rossa",
 	["item.chair_wood"] = "Sedia in legno",
+	["item.chochin_gold"] = "Lanterna d'oro",
 	["item.chochin_orange"] = "Lanterna arancione",
 	["item.chochin_red"] = "Lanterna chochin rossa",
 	["item.chochin_white"] = "Lanterna chochin bianca",
@@ -2560,6 +2592,7 @@ return {
 	["item.neta_case"] = "Vetrina refrigerata del pesce",
 	["item.nobori"] = "Stendardo nobori",
 	["item.noren_banner"] = "Striscione rosso",
+	["item.noren_gold"] = "Noren d'oro",
 	["item.noren_indigo"] = "Noren indaco",
 	["item.noren_red"] = "Noren rosso",
 	["item.osaka_octopus_sign"] = "Insegna takoyaki di Osaka",
@@ -2653,6 +2686,7 @@ return {
 	["msg.code_used"] = "Hai già usato questo codice.",
 	["msg.construction"] = "Lavori in corso…",
 	["msg.cooking_wait"] = "Sta ancora cuocendo, aspetta che sia pronto.",
+	["msg.coop_bonus"] = "🤝 Lavoro di squadra: +{pct}% di guadagni finché lavorate insieme!",
 	["msg.critic_happy"] = "🧐 Il critico ha adorato il piatto! +3 🌸",
 	["msg.customer_happy"] = "Questo cliente è contento.",
 	["msg.customer_left"] = "😠 Un cliente se n'è andato senza mangiare.",
@@ -2923,6 +2957,8 @@ return {
 	["ui.coop_everyone"] = "Tutti",
 	["ui.coop_friends"] = "Amici",
 	["ui.coop_who"] = "Chi può aiutare nel mio ristorante",
+	["ui.daily_gift"] = "Regalo del giorno",
+	["ui.daily_hint"] = "Torna ogni giorno: i regali crescono per 7 giorni di fila!",
 	["ui.daily_tomorrow"] = "Torna domani!",
 	["ui.day_n"] = "Giorno {n}",
 	["ui.dev"] = "Dev",
@@ -2957,6 +2993,7 @@ return {
 	["ui.invite_prompt"] = "Vieni ad aprire il tuo ramen-ya accanto al mio!",
 	["ui.invite_text"] = "Su questa strada ci sono quattro ristoranti. Gli amici che inviti avranno il loro ristorante qui e potranno aiutarti nel tuo: cucinare, servire e rifornire. I co-gestori possono anche costruire e comprare.",
 	["ui.language"] = "Lingua",
+	["ui.lb_you"] = "⭐ Tu",
 	["ui.level_n"] = "Livello {n}",
 	["ui.level_of"] = "Livello {level}/{max}",
 	["ui.licenses"] = "Licenze",
@@ -4300,7 +4337,7 @@ local function level(w)
 	return w.level or 1
 end
 
--- staff slots of a restaurant (base slots + slots that come with rooms)
+-- staff slots of a restaurant (base slots + slots that come with rooms, + the game pass)
 function Shop.staffSlots(w, staffCfg, maxStaff)
 	local n = staffCfg.BaseSlots
 	for zone, extra in pairs(staffCfg.SlotsByZone) do
@@ -4308,7 +4345,11 @@ function Shop.staffSlots(w, staffCfg, maxStaff)
 			n = n + extra
 		end
 	end
-	return math.min(n, maxStaff or n)
+	n = math.min(n, maxStaff or n)
+	if w.passes and w.passes.gp_extra_staff then
+		n = n + (staffCfg.PassSlots or 0)
+	end
+	return n
 end
 
 function Shop.upgrade(w, u)
@@ -5453,6 +5494,9 @@ return function(Registry)
 	Registry.register("chochin_white", function(m, item)
 		chochin(m, item, P.paper, "寿司", "#B3262E")
 	end)
+	Registry.register("chochin_gold", function(m, item)
+		chochin(m, item, P.gold, "福", "#7A1A1F")
+	end)
 	Registry.register("fireworks_lantern", function(m, item)
 		chochin(m, item, P.neon_blue, "花火", "#FFFFFF")
 	end)
@@ -5594,6 +5638,9 @@ return function(Registry)
 	end)
 	Registry.register("noren_indigo", function(m, item)
 		noren(m, item, P.indigo, "寿司", "#FFFFFF")
+	end)
+	Registry.register("noren_gold", function(m, item)
+		noren(m, item, P.gold, "特選", "#7A1A1F")
 	end)
 	Registry.register("menu_plaques", function(m, item)
 		Kit.finish(m, size(item))
@@ -10323,6 +10370,33 @@ function S.supplierTablet(parent, x, y, z, yaw)
 	return m
 end
 
+-- Ranking board (番付) on the far sidewalk, facing the restaurants (+Z): a wooden frame under a
+-- small roof with three paper panels (Panel_dishes, Panel_earned, Panel_likes); the client writes
+-- the top ten of every leaderboard on them in its own language (Controllers/WorldUI)
+S.RankingStats = { "dishes", "earned", "likes" }
+function S.rankingBoard(parent, x, z)
+	local m = Kit.model("RankingBoard")
+	for _, dx in ipairs({ -12.6, 12.6 }) do
+		Kit.box(m, 0.8, 15, 0.8, x + dx, 7.1, z, P.wood_dark, M.wood)
+	end
+	Kit.box(m, 25, 11.4, 0.4, x, 7.2, z - 0.3, P.wood_dark, M.wood)
+	for i, stat in ipairs(S.RankingStats) do
+		Kit.box(m, 7.6, 10.4, 0.2, x + (i - 2) * 8.1, 7.2, z, P.paper, M.fabric, { collide = false, name = "Panel_" .. stat })
+	end
+	local header = Kit.box(m, 26.4, 2, 0.5, x, 13.9, z, P.lacquer, M.wood, { collide = false })
+	Kit.text(header, Enum.NormalId.Back, "番付", { color = "#F4EBDD", font = JP_FONT, pps = 30 })
+	Kit.box(m, 28.4, 0.4, 2.8, x, 15.1, z - 0.1, P.wood_dark, M.wood, { collide = false })
+	Kit.box(m, 28.6, 0.15, 0.3, x, 14.85, z + 1.3, P.gold, M.metal, NC())
+	for _, dx in ipairs({ -13.4, 13.4 }) do
+		Kit.cyl(m, 0.08, 0.8, x + dx, 14.5, z + 1, P.black, M.smooth, NC())
+		Kit.ball(m, 1.1, x + dx, 13.6, z + 1, P.lacquer, M.fabric, NC())
+	end
+	Kit.light(header, "Point", P.lamp_warm, 16, 1)
+	game:GetService("CollectionService"):AddTag(m, "RankingBoard")
+	m.Parent = parent
+	return m
+end
+
 function S.rng(seed)
 	return rng(seed)
 end
@@ -11207,6 +11281,17 @@ function Scene.street(street, cityId, lots, reachOverride)
 	local farW = roadFar - farFront
 	local farZ = (roadFar + farFront) / 2
 	local len = reach * 2 + 200
+	-- a ranking board on the far sidewalk across the road from every restaurant's door; the lamps,
+	-- trees and bicycles of the far sidewalk keep clear of it
+	local boardZ = roadFar - 7
+	local function nearBoard(x, d)
+		for _, ox in ipairs(lots) do
+			if math.abs(x - ox) < d then
+				return true
+			end
+		end
+		return false
+	end
 	-- ground
 	Kit.box(street, len + 400, 1, 900, 0, -1.9, 80, city.snow and P.white or Color.hex("#4A5A3A"), city.snow and M.snow or M.grass)
 	-- four-lane road: double centre line, dashed lane lines, solid edge lines
@@ -11262,7 +11347,10 @@ function Scene.street(street, cityId, lots, reachOverride)
 	Kit.box(street, 5, 0.3, 1.2, 69, 1.4, curb + 2.8, P.wood_light, M.wood)
 	-- bicycles parked on the far sidewalk
 	for _, bx in ipairs({ -44, -42.8, -41.6, 34, 35.2, 118, 119.2, -150 }) do
-		S.bicycle(street, bx, farFront + 2.2, 90, ({ P.white, P.navy, P.lacquer, P.matcha, P.sakura_dark })[r:NextInteger(1, 5)])
+		local color = ({ P.white, P.navy, P.lacquer, P.matcha, P.sakura_dark })[r:NextInteger(1, 5)]
+		if not nearBoard(bx, 15) then
+			S.bicycle(street, bx, farFront + 2.2, 90, color)
+		end
 	end
 	-- every plot: its lot and loading bay, a bamboo fence and trees along the back
 	local pb = Expansions.PlotBounds
@@ -11315,7 +11403,9 @@ function Scene.street(street, cityId, lots, reachOverride)
 	for lx = -reach + 10, reach - 10, 36 do
 		if math.abs(lx + 26) > 8 then
 			S.lamp(street, lx, curb + 1, -1, 1.5)
-			S.lamp(street, lx + 18, roadFar - 1, 1, 1.5)
+			if not nearBoard(lx + 18, 15) then
+				S.lamp(street, lx + 18, roadFar - 1, 1, 1.5)
+			end
 		end
 	end
 	local prev = nil
@@ -11331,7 +11421,12 @@ function Scene.street(street, cityId, lots, reachOverride)
 	end
 	for tx = -reach + 40, reach - 40, 70 do
 		S.planterTree(street, tx, curb + 3, (math.floor(tx / 70) % 2 == 0) and P.sakura or P.leaf_light, 1.5)
-		S.planterTree(street, tx + 35, roadFar - 5, P.sakura, 1.5)
+		if not nearBoard(tx + 35, 17) then
+			S.planterTree(street, tx + 35, roadFar - 5, P.sakura, 1.5)
+		end
+	end
+	for _, ox in ipairs(lots) do
+		S.rankingBoard(street, ox, boardZ)
 	end
 	-- a street vending machine next to every restaurant
 	for _, ox in ipairs(lots) do
@@ -14989,6 +15084,14 @@ local function run(player, cmd, arg)
 		for _ = 1, 20 do
 			S.Progression.addReview(plot, 5, 1)
 		end
+	elseif cmd == "nextday" then
+		-- today's daily gift again, as if it were tomorrow (the streak goes on)
+		local pd = S.Data.get(player)
+		local today = math.floor(os.time() / 86400)
+		if pd and pd.meta.daily and pd.meta.daily.last == today then
+			pd.meta.daily.last = today - 1
+			S.Data.changed(player, "meta")
+		end
 	elseif cmd == "selftest" then
 		task.spawn(S.SelfTest.run, player)
 		return
@@ -15071,7 +15174,10 @@ function Economy.multiplier(player)
 	if Monetization then
 		passMult = Monetization.yenMultiplier(player)
 	end
-	return Formulas.incomeMultiplier({ franchiseStars = data.franchise.stars or 0, yenPerStar = Franchise.YenPerStar, passMult = passMult })
+	local base = Formulas.incomeMultiplier({ franchiseStars = data.franchise.stars or 0, yenPerStar = Franchise.YenPerStar, passMult = passMult })
+	-- friends working in the restaurant (Plots keeps coopBonus up to date)
+	local own = Core.S.Plots.ofPlayer(player)
+	return base * (1 + (own and own.coopBonus or 0))
 end
 
 -- Adds yen to `player`'s profile. opts.raw skips multipliers.
@@ -15890,7 +15996,11 @@ return Interaction
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local GameConfig = require(Shared.Config.GameConfig)
 local Core = require(script.Parent.Parent.Core)
+
+local CFG = GameConfig.Leaderboard
 
 local Leaderboard = {}
 local stores = {}
@@ -15924,14 +16034,14 @@ local function submit(player)
 end
 
 local function fetch()
-	if cache.data and os.clock() - cache.t < 120 then
+	if cache.data and os.clock() - cache.t < CFG.CacheSeconds then
 		return cache.data
 	end
 	local out = {}
 	for stat, store in pairs(stores) do
 		out[stat] = {}
 		local ok, pages = pcall(function()
-			return store:GetSortedAsync(false, 10)
+			return store:GetSortedAsync(false, CFG.Rows)
 		end)
 		if ok and pages then
 			for rank, entry in ipairs(pages:GetCurrentPage()) do
@@ -15961,7 +16071,7 @@ function Leaderboard.Start()
 	Players.PlayerRemoving:Connect(submit)
 	task.spawn(function()
 		while true do
-			task.wait(300)
+			task.wait(CFG.SubmitEvery)
 			for _, p in ipairs(Players:GetPlayers()) do
 				submit(p)
 			end
@@ -15979,6 +16089,7 @@ local Achievements = require(Shared.Config.Achievements)
 local DailyRewards = require(Shared.Config.DailyRewards)
 local Upgrades = require(Shared.Config.Upgrades)
 local Expansions = require(Shared.Config.Expansions)
+local GameConfig = require(Shared.Config.GameConfig)
 local Formulas = require(Shared.Logic.Formulas)
 local TableUtil = require(Shared.Util.TableUtil)
 local Core = require(script.Parent.Parent.Core)
@@ -16150,9 +16261,17 @@ local function claimDaily(player)
 	Core.S.Net.notify(player, "msg.daily_claimed", { day = daily.streak }, "success")
 end
 
+-- real seconds in one service day (Config/GameConfig.Day: night hours pass faster)
+local function daySeconds()
+	local D = GameConfig.Day
+	local night = (24 - D.NightFrom) + D.NightTo
+	return (24 - night) * D.SecondsPerHour + night * D.NightSecondsPerHour
+end
+
+-- earnings while away: everybody gets the first hour at 5%; the safe (up_safe) makes it longer
 local function computeOffline(player, d)
 	local lvl = d.upgrades.up_safe or 0
-	if lvl <= 0 or (d.meta.lastSeen or 0) <= 0 then
+	if (d.meta.lastSeen or 0) <= 0 then
 		return
 	end
 	local up = Upgrades.byId.up_safe
@@ -16171,7 +16290,7 @@ local function computeOffline(player, d)
 		sum += v
 	end
 	local perDay = sum / #history
-	local hourly = perDay * 5 -- a service day lasts 12 real minutes
+	local hourly = perDay * 3600 / daySeconds()
 	local amount = Formulas.offlineEarnings(hourly, pct, hours)
 	if amount > 0 then
 		d.meta.offlinePending = (d.meta.offlinePending or 0) + amount
@@ -17456,6 +17575,7 @@ local RunService = game:GetService("RunService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local PlotsCfg = require(Shared.Config.Plots)
+local GameConfig = require(Shared.Config.GameConfig)
 local Signal = require(Shared.Util.Signal)
 local Uid = require(Shared.Util.Uid)
 local Core = require(script.Parent.Parent.Core)
@@ -17840,7 +17960,7 @@ function Plots.Start()
 	end
 	Players.PlayerRemoving:Connect(release)
 	-- the restaurant a player works in: the one they stand in when they may work there,
-	-- otherwise their own
+	-- otherwise their own; and the team bonus of every restaurant (other players working in it)
 	while true do
 		task.wait(0.5)
 		for _, player in ipairs(Players:GetPlayers()) do
@@ -17852,6 +17972,34 @@ function Plots.Start()
 			end
 			if want then
 				setWork(player, want)
+			end
+		end
+		local cfg = GameConfig.Coop
+		for _, plot in ipairs(Plots.list) do
+			local helpers = 0
+			if plot.owner then
+				for p, wp in pairs(work) do
+					if wp == plot and p ~= plot.owner and p.Parent then
+						helpers += 1
+					end
+				end
+			end
+			local bonus = math.min(cfg.MaxBonus, helpers * cfg.BonusPerHelper)
+			if plot.coopBonus ~= bonus then
+				-- everybody working there hears when the bonus grows (not again and again when a
+				-- helper walks in and out of the door)
+				local fresh = bonus > (plot.coopTold or 0) or os.clock() - (plot.coopToldAt or -math.huge) > cfg.NotifyEvery
+				if bonus > (plot.coopBonus or 0) and fresh then
+					plot.coopTold = bonus
+					plot.coopToldAt = os.clock()
+					for p, wp in pairs(work) do
+						if wp == plot and p.Parent then
+							Core.S.Net.notify(p, "msg.coop_bonus", { pct = math.floor(bonus * 100 + 0.5) }, "success")
+						end
+					end
+				end
+				plot.coopBonus = bonus
+				plot.folder:SetAttribute("CoopBonus", bonus)
 			end
 		end
 	end
@@ -21197,7 +21345,7 @@ function World.Start()
 end
 
 return World
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000144"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000143"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000142"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000117"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000145"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000144"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000143"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000117"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client-only animations: swaying lanterns and noren, maneki-neko paws, koi, shishi-odoshi,
 -- streamers, and the evening train on the viaduct.
 local RunService = game:GetService("RunService")
@@ -24816,6 +24964,7 @@ local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
 local Format = require(Shared.Util.Format)
 local TutorialCfg = require(Shared.Config.Tutorial)
+local DailyRewards = require(Shared.Config.DailyRewards)
 local Kit = require(script.Parent.Parent.UI.Kit)
 local Pointer = require(script.Parent.Parent.UI.Pointer)
 local Core = require(script.Parent.Parent.Core)
@@ -25049,6 +25198,33 @@ local function show()
 	end
 end
 
+-- the daily gift calendar (Screens/Daily) opens by itself once per session, when today's gift is
+-- still there, the tutorial is not on screen and no other window is open
+local dailyOffered = false
+local function offerDaily(delay)
+	if dailyOffered then
+		return
+	end
+	dailyOffered = true
+	task.spawn(function()
+		task.wait(delay or 0)
+		local UI = Core.C.UI
+		local waited = 0
+		while waited < DailyRewards.PopupWait do
+			local screen = UI.screens.Daily
+			if not screen or not screen.ready() then
+				return
+			end
+			if UI.current == nil and index == -1 then
+				UI.open("Daily")
+				return
+			end
+			task.wait(0.5)
+			waited = waited + 0.5
+		end
+	end)
+end
+
 local function finish(skipped)
 	index = -1
 	save()
@@ -25056,6 +25232,7 @@ local function finish(skipped)
 	if skipped then
 		Core.C.UI.toast(t("tut.skipped"), "info")
 	end
+	offerDaily(DailyRewards.PopupAfterTutorial)
 end
 
 local function advance()
@@ -25140,9 +25317,12 @@ function Tutorial.Start()
 	else
 		index = -1
 	end
-	-- offline earnings popup
+	-- offline earnings popup, then today's gift (after the offline one is closed)
 	if meta and (meta.offlinePending or 0) > 0 then
 		Core.C.UI.open("Offline")
+	end
+	if index == -1 then
+		offerDaily(1)
 	end
 	while true do
 		task.wait(0.25)
@@ -25441,6 +25621,8 @@ local Locale = require(Shared.Locale)
 local Recipes = require(Shared.Config.Recipes)
 local Ingredients = require(Shared.Config.Ingredients)
 local Color = require(Shared.Util.Color)
+local NetDef = require(Shared.Net)
+local GameConfig = require(Shared.Config.GameConfig)
 local Core = require(script.Parent.Parent.Core)
 
 local WorldUI = {}
@@ -25736,13 +25918,144 @@ local function paintSigns()
 	end
 end
 
+-- Ranking boards in the street (Models/Builders/Street rankingBoard): the top ten of every
+-- leaderboard (Services/Leaderboard) in your language, your row in gold when you are in it and
+-- your own number at the bottom
+local RANK_ICON = { dishes = "🍜 ", earned = "💴 ", likes = "" }
+local MEDAL = { "🥇", "🥈", "🥉" }
+local rankData = nil
+local BOLD = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
+local MEDIUM = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Medium)
+
+local function rankLabel(parent, name, size, font, align)
+	local l = Instance.new("TextLabel")
+	l.Name = name
+	l.BackgroundTransparency = 1
+	l.Size = size
+	l.FontFace = font
+	l.TextSize = 22
+	l.TextColor3 = Color.hex("#2B2320")
+	l.TextXAlignment = align or Enum.TextXAlignment.Left
+	l.TextTruncate = Enum.TextTruncate.AtEnd
+	l.AutoLocalize = false
+	l.Text = ""
+	l.Parent = parent
+	return l
+end
+
+local function rankRow(parent, name, order, height)
+	local row = Instance.new("Frame")
+	row.Name = name
+	row.LayoutOrder = order
+	row.Size = UDim2.new(1, -12, 0, height)
+	row.BackgroundColor3 = Color.hex("#F2D27A")
+	row.BackgroundTransparency = 1
+	row.BorderSizePixel = 0
+	row.Parent = parent
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 6)
+	c.Parent = row
+	rankLabel(row, "Who", UDim2.new(0.64, -6, 1, 0), MEDIUM).Position = UDim2.fromOffset(6, 0)
+	rankLabel(row, "Value", UDim2.new(0.36, -6, 1, 0), BOLD, Enum.TextXAlignment.Right).Position = UDim2.fromScale(0.64, 0)
+	return row
+end
+
+local function rankingGui(panel)
+	local gui = panel:FindFirstChild("Ranking")
+	if gui then
+		return gui
+	end
+	gui = Instance.new("SurfaceGui")
+	gui.Name = "Ranking"
+	gui.Face = Enum.NormalId.Back
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 40
+	gui.LightInfluence = 0
+	gui.MaxDistance = 160
+	local list = Instance.new("UIListLayout")
+	list.SortOrder = Enum.SortOrder.LayoutOrder
+	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	list.Padding = UDim.new(0, 2)
+	list.Parent = gui
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop = UDim.new(0, 8)
+	pad.Parent = gui
+	local title = rankLabel(gui, "Title", UDim2.new(1, -16, 0, 50), BOLD, Enum.TextXAlignment.Center)
+	title.TextScaled = true
+	title.TextWrapped = true
+	title.TextColor3 = Color.hex("#7A1A1F")
+	title.LayoutOrder = 0
+	for i = 1, GameConfig.Leaderboard.Rows do
+		rankRow(gui, "Row" .. i, i, 28)
+	end
+	rankRow(gui, "You", 99, 38).BackgroundTransparency = 0.4
+	gui.Parent = panel
+	return gui
+end
+
+local function paintRankings()
+	local Format = require(Shared.Util.Format)
+	local L = Locale.get()
+	local stats = Core.C.Data.m("stats") or {}
+	for _, board in ipairs(CollectionService:GetTagged("RankingBoard")) do
+		for _, panel in ipairs(board:GetChildren()) do
+			local stat = panel:IsA("BasePart") and panel.Name:match("^Panel_(%w+)$")
+			if stat then
+				local gui = rankingGui(panel)
+				local function value(n)
+					return stat == "earned" and Format.yen(n, L) or Format.number(n, L)
+				end
+				gui.Title.Text = (RANK_ICON[stat] or "") .. t("lb." .. stat)
+				local entries = rankData and rankData[stat] or {}
+				for i = 1, GameConfig.Leaderboard.Rows do
+					local row = gui:FindFirstChild("Row" .. i)
+					local e = entries[i]
+					if row then
+						local me = e and e.name == player.Name
+						row.Who.Text = e and ((MEDAL[i] or (i .. ".")) .. " " .. e.name) or ((MEDAL[i] or (i .. ".")) .. " —")
+						row.Value.Text = e and value(e.value) or ""
+						row.BackgroundTransparency = me and 0 or 1
+						row.Who.FontFace = me and BOLD or MEDIUM
+					end
+				end
+				gui.You.Who.Text = t("ui.lb_you")
+				gui.You.Value.Text = value(math.floor(stats[stat] or 0))
+			end
+		end
+	end
+end
+
+local function refreshRankings()
+	local ok, result = pcall(function()
+		return NetDef.func("GetLeaderboard"):InvokeServer()
+	end)
+	if ok and type(result) == "table" then
+		rankData = result
+	end
+	pcall(paintRankings)
+end
+
 function WorldUI.Start()
 	local lastSigns = 0
+	local lastRanks = -math.huge
+	local lastPaint = 0
+	Locale.Changed:Connect(function()
+		pcall(paintRankings)
+	end)
 	while true do
 		task.wait(0.2)
 		if os.clock() - lastSigns > 1 then
 			lastSigns = os.clock()
 			pcall(paintSigns)
+		end
+		-- new numbers every CacheSeconds; painted again every few seconds for boards that stream in
+		if os.clock() - lastRanks > GameConfig.Leaderboard.CacheSeconds then
+			lastRanks = os.clock()
+			lastPaint = os.clock()
+			task.spawn(refreshRankings)
+		elseif os.clock() - lastPaint > 5 then
+			lastPaint = os.clock()
+			pcall(paintRankings)
 		end
 		local cam = workspace.CurrentCamera
 		local char = player.Character
@@ -25849,7 +26162,7 @@ for _, name in ipairs(ORDER) do
 		end)
 	end
 end
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000141"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000142"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Helper to build standard modal screens: Base.make(name, titleKey, size, render)
 -- render(content, screen) rebuilds the content each refresh.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -26536,7 +26849,7 @@ function Pointer:step()
 end
 
 return Pointer
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000140"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000141"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build panel: catalog by category, inventory, floor/wall styles, grid & rotation tools,
 -- selection actions (move / rotate / store / sell).
 local Players = game:GetService("Players")
@@ -26862,7 +27175,97 @@ return Base.make("Codes", "ui.codes", UDim2.fromScale(0.4, 0.42), function(conte
 	end)
 	Kit.button(t("ui.redeem"), { parent = content, size = UDim2.new(1, 0, 0, 46), position = UDim2.new(0, 0, 1, -48), style = "green", onClick = redeem })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000126"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000126"><Properties><string name="Name">Daily</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Daily login gift: a calendar of seven days that opens when you join and today's gift is still
+-- there (not during the tutorial). Past days are ticked, today's card is gold with one big button,
+-- the coming days show what waits for you tomorrow and after. Claimed by the server
+-- (Services/Meta claimDaily: the streak goes back to day 1 if you skip a day). Also in Goals → Daily.
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local NetDef = require(Shared.Net)
+local Locale = require(Shared.Locale)
+local Format = require(Shared.Util.Format)
+local Color = require(Shared.Util.Color)
+local DailyRewards = require(Shared.Config.DailyRewards)
+local Kit = require(script.Parent.Parent.Kit)
+local Base = require(script.Parent.Parent.Base)
+local Core = require(script.Parent.Parent.Parent.Core)
+
+local t = Locale.t
+local T = Kit.Theme
+
+local function today()
+	return math.floor(workspace:GetServerTimeNow() / 86400)
+end
+
+-- the day of the streak that today's gift belongs to, and whether it was already claimed
+local function state()
+	local me = Core.C.Data.me or {}
+	local daily = me.meta and me.meta.daily or { streak = 0, last = 0 }
+	local day = today()
+	if daily.last == day then
+		return daily.streak, true
+	end
+	if daily.last == day - 1 then
+		return daily.streak % #DailyRewards.days + 1, false
+	end
+	return 1, false
+end
+
+local screen
+screen = Base.make("Daily", "ui.daily_gift", UDim2.fromScale(0.68, 0.5), function(content)
+	local me = Core.C.Data.me or {}
+	local L = Locale.get()
+	local current, claimed = state()
+	Kit.label(claimed and ("✅ " .. t("ui.daily_tomorrow")) or t("ui.daily_hint"), { Parent = content, Size = UDim2.new(1, 0, 0, 30), TextSize = 18, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center })
+	local row = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 36), Size = UDim2.new(1, 0, 1, -100) }, {
+		Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Center),
+	})
+	row.Parent = content
+	-- seven cards share the width (6 px between them), so the calendar fits phones and tablets
+	local n = #DailyRewards.days
+	for i, r in ipairs(DailyRewards.days) do
+		local past = i < current or (i == current and claimed)
+		local now = i == current and not claimed
+		local c = Kit.card({ Size = UDim2.new(1 / n, -6, 0, now and 168 or 150), LayoutOrder = i, Parent = row, BackgroundColor3 = now and Color.hex("#FFF2CC") or (past and Color.hex("#EFE9DD") or Color.hex("#FFFBF3")) })
+		local stroke = c:FindFirstChildOfClass("UIStroke")
+		if stroke then
+			stroke.Color = now and T.gold or (past and T.paperDark or T.woodLight)
+			stroke.Thickness = now and 4 or 2
+		end
+		Kit.label(t("ui.day_n", { n = i }), { Parent = c, Position = UDim2.fromOffset(0, 6), Size = UDim2.new(1, 0, 0, 22), TextXAlignment = Enum.TextXAlignment.Center, FontFace = T.bold, TextSize = 16, TextWrapped = false })
+		local icon = r.item and "🎁" or (r.yen and "💴" or "🌸")
+		Kit.label(past and "✅" or icon, { Parent = c, Position = UDim2.new(0, 14, 0, 30), Size = UDim2.new(1, -28, 0, now and 64 or 52), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
+		local reward = r.yen and Format.yen(math.floor(r.yen * (1 + (me.level or 1) / 10)), L) or ("🌸 " .. r.sakura)
+		Kit.label(reward .. (r.item and "\n+ 🎎" or ""), { Parent = c, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 4, 1, -8), Size = UDim2.new(1, -8, 0, 40), TextSize = 15, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = past and T.muted or T.ink })
+		if now then
+			Kit.popIn(c, 0.9)
+		end
+	end
+	local b = Kit.button(claimed and t("ui.daily_tomorrow") or ("🎁 " .. t("ui.claim")), {
+		parent = content, size = UDim2.new(0, 280, 0, 52), position = UDim2.new(0.5, -140, 1, -56), style = claimed and "plain" or "green", textSize = 20, disabled = claimed,
+		onClick = function()
+			NetDef.event("ClaimDaily"):FireServer()
+			if Core.C.Audio then
+				Core.C.Audio.play("gift")
+			end
+			task.delay(1.2, function()
+				if screen.visible() then
+					Core.C.UI.close("Daily")
+				end
+			end)
+		end,
+	})
+	b.Name = "Claim"
+end)
+
+-- true when today's gift is still there
+function screen.ready()
+	local _, claimed = state()
+	return not claimed
+end
+
+return screen
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000127"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Locale = require(Shared.Locale)
 local Format = require(Shared.Util.Format)
@@ -26908,16 +27311,18 @@ screen = Base.make("DayReport", "ui.report", UDim2.fromScale(0.42, 0.74), functi
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000127"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000128"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Kit = require(script.Parent.Parent.Kit)
 local Base = require(script.Parent.Parent.Base)
+local Core = require(script.Parent.Parent.Parent.Core)
 
 local CMDS = {
 	{ "💴 +10.000", "yen", 10000 }, { "💴 +1M", "yen", 1000000 }, { "🌸 +50", "sakura", 50 }, { "⬆️ +1 level", "level", nil },
 	{ "Level 25", "level", 25 }, { "Level 45", "level", 45 }, { "🎫 All licenses", "licenses" }, { "🏗️ All zones", "zones" }, { "🪚 All renovations", "renos" }, { "🧱 Plain look", "plain" },
 	{ "📦 Stock boxes", "stock" }, { "🧍 Spawn customer", "spawn" }, { "🕚 Close day", "time" }, { "⭐ 5-star reviews", "rating" },
+	{ "🎁 Next day's gift", "nextday", nil, "Daily" },
 	{ "🧪 Self-test", "selftest" },
 	{ "♻️ Reset (Studio)", "reset" },
 }
@@ -26927,10 +27332,16 @@ return Base.make("Dev", "ui.dev", UDim2.fromScale(0.5, 0.6), function(content)
 	for i, c in ipairs(CMDS) do
 		Kit.button(c[1], { parent = grid, size = UDim2.fromOffset(200, 44), style = c[2] == "reset" and "primary" or "dark", order = i, textSize = 15, onClick = function()
 			NetDef.event("Dev"):FireServer(c[2], c[3])
+			-- some commands show the window they are about
+			if c[4] then
+				task.delay(0.6, function()
+					Core.C.UI.open(c[4])
+				end)
+			end
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000128"><Properties><string name="Name">Gifts</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000129"><Properties><string name="Name">Gifts</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Free gifts for the minutes played in this session (Config/Rewards.Gifts). Timers tick every
 -- second without rebuilding the list.
 local Players = game:GetService("Players")
@@ -27054,7 +27465,7 @@ player:GetAttributeChangedSignal("GiftsClaimed"):Connect(function()
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000129"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000130"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login calendar, leaderboards and franchise.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -27234,7 +27645,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000130"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000131"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Order guide: tapping an order ticket (right) shows what to do, in a few short lines with live
 -- ticks, highlights the shelf slots and the station to use and draws a glowing arrow from you to
 -- the next thing to click. The card stands on the left, under the wallet; on phones the second
@@ -27615,7 +28026,7 @@ function Guide.close()
 end
 
 return Guide
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000131"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000132"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Always-visible HUD, as little as possible:
 --   top-left    wallet: yen, sakura, level badge and XP bar; under it the free gift timer
 --   top-centre  clock and day (tap: last day's summary), today's objective under it
@@ -27996,8 +28407,13 @@ function HUD.refreshInfo()
 	if visiting then
 		text = "🏮 " .. (here.ownerName or "") .. "  ·  ★ " .. Format.decimal(rating, 1, lang())
 	end
+	-- friends working together: the restaurant earns more (Plots, GameConfig.Coop)
+	local coop = folder and folder:GetAttribute("CoopBonus") or 0
+	if coop > 0 then
+		text ..= "   🤝 +" .. math.floor(coop * 100 + 0.5) .. "%"
+	end
 	refs.placeLabel.Text = text
-	refs.place.Size = UDim2.fromOffset(visiting and 260 or 176, 36)
+	refs.place.Size = UDim2.fromOffset((visiting and 260 or 176) + (coop > 0 and 84 or 0), 36)
 	refs.visit.Visible = visiting
 	refs.like.Text = "❤️ " .. t("ui.like") .. "  " .. likes
 	-- dishes: only when there is washing to do (or few clean ones are left)
@@ -28155,7 +28571,7 @@ function HUD.open() end
 function HUD.close() end
 
 return HUD
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000132"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000133"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Friends and helpers: invite friends to this street (they get a restaurant of their own and can
 -- help in yours), choose who may help in your restaurant (friends or everyone), give players a
 -- role in your restaurant (helper / co-manager / none) and go back to your own door.
@@ -28229,7 +28645,7 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.7), function(cont
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000133"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000134"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Menu board: enable dishes, set prices (-30%..+30%), recipe book with mastery.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -28322,7 +28738,7 @@ screen = Base.make("Menu", "ui.menu", UDim2.fromScale(0.66, 0.76), function(cont
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000134"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000135"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -28343,7 +28759,7 @@ return Base.make("Offline", "ui.offline", UDim2.fromScale(0.36, 0.4), function(c
 		Core.C.UI.close("Offline")
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000135"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000136"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Phone ("More"): the screens that are not needed every minute, as apps. Opens from the 📱 button
 -- of the HUD and closes when an app is opened. Everything bought with yen is in the shop.
 local Players = game:GetService("Players")
@@ -28463,7 +28879,7 @@ function Phone.close()
 end
 
 return Phone
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000136"><Properties><string name="Name">Premium</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000137"><Properties><string name="Name">Premium</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Robux shop: game passes and products (only the ones with an id in Config/Monetization).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -28473,7 +28889,7 @@ local Kit = require(script.Parent.Parent.Kit)
 local Base = require(script.Parent.Parent.Base)
 
 local t = Locale.t
-local ICON = { gp_vip = "👑", gp_double_yen = "💴", gp_big_tray = "🍱", gp_express = "🚀", gp_starter = "🎁", dp_rush_hour = "🔔", dp_golden_sign = "🌟" }
+local ICON = { gp_vip = "👑", gp_double_yen = "💴", gp_big_tray = "🍱", gp_express = "🚀", gp_starter = "🎁", gp_extra_staff = "👥", dp_rush_hour = "🔔", dp_golden_sign = "🌟" }
 
 return Base.make("Premium", "ui.premium", UDim2.fromScale(0.6, 0.72), function(content)
 	local scroll = Kit.scroll({ Parent = content })
@@ -28505,7 +28921,7 @@ return Base.make("Premium", "ui.premium", UDim2.fromScale(0.6, 0.72), function(c
 		Kit.label("🛒 " .. t("ui.shop_soon"), { Parent = scroll, Size = UDim2.new(1, 0, 0, 80), TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000137"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000138"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -28558,7 +28974,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 		end
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000138"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000139"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- The shop: everything the restaurant buys with yen, in five tabs of big cards (upgrades and
 -- adverts, recipes, staff, rooms, renovations). Every card says what it is and what it does, and
 -- has one clear button:
@@ -28990,7 +29406,7 @@ screen = Base.make("Shop", "ui.shop", UDim2.fromScale(0.8, 0.84), function(conte
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000139"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000140"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier tablet: order boxes of ingredients and dish sets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -29145,4 +29561,4 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 end)
 
 return screen
-]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000145"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000146"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000147"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000146"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000147"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000148"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

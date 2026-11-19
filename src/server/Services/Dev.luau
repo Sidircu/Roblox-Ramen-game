@@ -78,6 +78,14 @@ local function run(player, cmd, arg)
 		for _ = 1, 20 do
 			S.Progression.addReview(plot, 5, 1)
 		end
+	elseif cmd == "nextday" then
+		-- today's daily gift again, as if it were tomorrow (the streak goes on)
+		local pd = S.Data.get(player)
+		local today = math.floor(os.time() / 86400)
+		if pd and pd.meta.daily and pd.meta.daily.last == today then
+			pd.meta.daily.last = today - 1
+			S.Data.changed(player, "meta")
+		end
 	elseif cmd == "selftest" then
 		task.spawn(S.SelfTest.run, player)
 		return

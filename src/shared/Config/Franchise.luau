@@ -14,9 +14,9 @@ for i, c in ipairs(list) do
 	byId[c.id] = c
 end
 -- What the next city asks for (index = the star it gives): the first franchise comes after a
--- few hours of play (level 12, the first three rooms), every next one asks for more.
+-- few hours of play (level 11, the first three rooms), every next one asks for more.
 local Steps = {
-	{ level = 12, rating = 4.0, zones = { "zone_east", "zone_storage2", "zone_west" } },
+	{ level = 11, rating = 4.0, zones = { "zone_east", "zone_storage2", "zone_west" } },
 	{ level = 16, rating = 4.1, zones = { "zone_east", "zone_storage2", "zone_west", "zone_terrace", "zone_garden" } },
 	{ level = 20, rating = 4.2, zones = { "zone_east", "zone_storage2", "zone_west", "zone_terrace", "zone_garden", "zone_tatami", "zone_kitchen_pro" } },
 	{ level = 25, rating = 4.3, zones = { "zone_east", "zone_storage2", "zone_west", "zone_terrace", "zone_garden", "zone_tatami", "zone_kitchen_pro", "zone_floor2" } },

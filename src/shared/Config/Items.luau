@@ -69,6 +69,9 @@ local list = {
 	{ id = "toro_stone", cat = "lighting", price = 1200, lv = 6, place = "floor", areas = DECOR, size = { 1.8, 4.5, 1.8 }, amb = 8 },
 	{ id = "pendant_lamp", cat = "lighting", price = 350, lv = 2, place = "ceiling", areas = INDOOR, size = { 1.2, 3.2, 1.2 }, amb = 3 },
 	{ id = "chochin_orange", cat = "lighting", price = 200, lv = 2, place = "ceiling", areas = INDOOR, size = { 1.4, 2.4, 1.4 }, amb = 2 },
+	-- the gold set: two lanterns, a noren and the golden maneki-neko come free with the VIP pass,
+	-- everybody else can buy them with yen at higher levels
+	{ id = "chochin_gold", cat = "lighting", price = 6000, lv = 10, place = "ceiling", areas = INDOOR, size = { 1.4, 2.4, 1.4 }, amb = 6, gamepass = "gp_vip" },
 	{ id = "ramenya_canopy", cat = "lighting", price = 4500, lv = 9, place = "ceiling", areas = INDOOR, size = { 8, 4.2, 2.6 }, amb = 18, set = "ramenya" },
 	{ id = "neon_ramen", cat = "lighting", price = 3500, lv = 8, place = "wall", areas = INDOOR, size = { 6, 2, 0.4 }, amb = 15, set = "neon" },
 	{ id = "neon_sushi", cat = "lighting", price = 3500, lv = 10, place = "wall", areas = INDOOR, size = { 4, 2.2, 0.4 }, amb = 15, set = "neon" },
@@ -94,6 +97,7 @@ local list = {
 	{ id = "fan_wall", cat = "art", price = 350, lv = 2, place = "wall", areas = INDOOR, size = { 3, 1.8, 0.3 }, amb = 3 },
 	{ id = "kakejiku", cat = "art", price = 700, lv = 3, place = "wall", areas = INDOOR, size = { 1.8, 4.5, 0.3 }, amb = 5, set = "samurai" },
 	{ id = "noren_indigo", cat = "art", price = 400, lv = 5, place = "wall", areas = INDOOR, size = { 4, 3, 0.3 }, amb = 4 },
+	{ id = "noren_gold", cat = "art", price = 9000, lv = 12, place = "wall", areas = INDOOR, size = { 4, 3, 0.3 }, amb = 8, gamepass = "gp_vip" },
 	{ id = "wagasa", cat = "art", price = 650, lv = 6, place = "floor", areas = DECOR, size = { 3.5, 4.5, 3.5 }, amb = 5, set = "sakura" },
 	{ id = "wave_painting", cat = "art", price = 1500, lv = 9, place = "wall", areas = INDOOR, size = { 5, 3, 0.3 }, amb = 9, set = "samurai" },
 	{ id = "byobu", cat = "art", price = 1800, lv = 10, place = "floor", areas = DECOR, size = { 6, 4.5, 0.6 }, amb = 10, set = "samurai" },

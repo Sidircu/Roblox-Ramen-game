@@ -17,7 +17,7 @@ ITEMS = [
 ("bamboo_pot","Potted bamboo","Bambù in vaso"),("kokedama","Hanging kokedama","Kokedama sospeso"),("bonsai_pine","Pine bonsai","Bonsai di pino"),
 ("ikebana","Ikebana","Ikebana"),("maple_tree","Japanese maple","Acero giapponese"),("sakura_tree","Cherry tree in bloom","Ciliegio in fiore"),
 ("bonsai_ancient","Ancient bonsai","Bonsai secolare"),("noren_red","Red noren","Noren rosso"),("menu_plaques","Wooden menu plaques","Tavolette menu in legno"),
-("fan_wall","Sensu fan","Ventaglio sensu"),("kakejiku","Kakejiku scroll","Rotolo kakejiku"),("noren_indigo","Indigo noren","Noren indaco"),
+("fan_wall","Sensu fan","Ventaglio sensu"),("kakejiku","Kakejiku scroll","Rotolo kakejiku"),("noren_indigo","Indigo noren","Noren indaco"),("noren_gold","Golden noren","Noren d'oro"),
 ("wagasa","Wagasa umbrella","Ombrello wagasa"),("wave_painting","Wave painting","Quadro dell'onda"),("byobu","Byobu folding screen","Paravento byōbu"),
 ("kimono_display","Kimono display","Kimono in esposizione"),("maneki_neko","Maneki-neko","Maneki-neko"),("daruma","Daruma","Daruma"),
 ("soy_barrel","Soy sauce barrel","Botte di salsa di soia"),("tanuki","Tanuki statue","Statua tanuki"),("aquarium","Aquarium","Acquario"),
@@ -64,7 +64,7 @@ DYN = [
 ("zonedesc.zone_floor2","A whole new floor with stairs","Un piano intero con la scala"),("zonedesc.sign_rooftop","Visible from far away: more customers","Visibile da lontano: più clienti"),
 ("zonedesc.facade_deluxe","A luxurious exterior","Un esterno di lusso"),("zonedesc.zone_rooftop","City view at night","Vista sulla città di notte"),
 ("gp.gp_vip","VIP","VIP"),("gp.gp_double_yen","2× Yen","2× Yen"),("gp.gp_big_tray","Big tray","Vassoio extra"),("gp.gp_express","Big cart","Carrello grande"),("gp.gp_starter","Starter pack","Pacchetto iniziale"),
-("gpdesc.gp_vip","+25% yen, VIP chat tag, golden maneki-neko","+25% yen, etichetta VIP, maneki-neko d'oro"),("gpdesc.gp_double_yen","Doubles all yen earned","Raddoppia gli yen guadagnati"),
+("gpdesc.gp_vip","+25% yen, VIP chat tag, the gold set: maneki-neko, 2 lanterns and a noren","+25% yen, etichetta VIP, il set d'oro: maneki-neko, 2 lanterne e un noren"),("gpdesc.gp_double_yen","Doubles all yen earned","Raddoppia gli yen guadagnati"),
 ("gpdesc.gp_big_tray","+2 tray capacity","+2 capienza del vassoio"),("gpdesc.gp_express","Carry one more box at a time","Porti una scatola in più alla volta"),
 ("gpdesc.gp_starter","¥10,000 and exclusive decorations","¥10.000 e decorazioni esclusive"),
 ("dp.dp_yen_s","Yen pack S","Pacchetto yen S"),("dp.dp_yen_m","Yen pack M","Pacchetto yen M"),("dp.dp_yen_l","Yen pack L","Pacchetto yen L"),("dp.dp_yen_xl","Yen pack XL","Pacchetto yen XL"),
@@ -94,7 +94,7 @@ DYN += [
 # Ramen-ya decoration pack (inspired by real ramen counters)
 ITEMS += [
 ("stool_red","Red ramen-ya stool","Sgabello rosso da ramen-ya"),("bench_table","Table with benches","Tavolo con panche"),
-("pendant_lamp","Pendant lamp","Lampada a sospensione"),("chochin_orange","Orange lantern","Lanterna arancione"),
+("pendant_lamp","Pendant lamp","Lampada a sospensione"),("chochin_orange","Orange lantern","Lanterna arancione"),("chochin_gold","Golden lantern","Lanterna d'oro"),
 ("ramenya_canopy","Ramen-ya canopy","Tettoia del ramen-ya"),("menu_posters","Menu posters","Poster del menù"),
 ("noren_banner","Red banner","Striscione rosso"),("ramen_poster","Retro ramen poster","Poster retrò del ramen"),
 ("ramen_sign_vertical","Vertical ramen sign","Insegna verticale ラーメン"),("soup_sign","Secret soup signboard","Tavola del brodo segreto"),

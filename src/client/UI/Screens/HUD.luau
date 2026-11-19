@@ -379,8 +379,13 @@ function HUD.refreshInfo()
 	if visiting then
 		text = "🏮 " .. (here.ownerName or "") .. "  ·  ★ " .. Format.decimal(rating, 1, lang())
 	end
+	-- friends working together: the restaurant earns more (Plots, GameConfig.Coop)
+	local coop = folder and folder:GetAttribute("CoopBonus") or 0
+	if coop > 0 then
+		text ..= "   🤝 +" .. math.floor(coop * 100 + 0.5) .. "%"
+	end
 	refs.placeLabel.Text = text
-	refs.place.Size = UDim2.fromOffset(visiting and 260 or 176, 36)
+	refs.place.Size = UDim2.fromOffset((visiting and 260 or 176) + (coop > 0 and 84 or 0), 36)
 	refs.visit.Visible = visiting
 	refs.like.Text = "❤️ " .. t("ui.like") .. "  " .. likes
 	-- dishes: only when there is washing to do (or few clean ones are left)

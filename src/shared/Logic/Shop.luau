@@ -29,7 +29,7 @@ local function level(w)
 	return w.level or 1
 end
 
--- staff slots of a restaurant (base slots + slots that come with rooms)
+-- staff slots of a restaurant (base slots + slots that come with rooms, + the game pass)
 function Shop.staffSlots(w, staffCfg, maxStaff)
 	local n = staffCfg.BaseSlots
 	for zone, extra in pairs(staffCfg.SlotsByZone) do
@@ -37,7 +37,11 @@ function Shop.staffSlots(w, staffCfg, maxStaff)
 			n = n + extra
 		end
 	end
-	return math.min(n, maxStaff or n)
+	n = math.min(n, maxStaff or n)
+	if w.passes and w.passes.gp_extra_staff then
+		n = n + (staffCfg.PassSlots or 0)
+	end
+	return n
 end
 
 function Shop.upgrade(w, u)

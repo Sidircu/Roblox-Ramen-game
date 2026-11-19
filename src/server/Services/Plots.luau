@@ -11,6 +11,7 @@ local RunService = game:GetService("RunService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local PlotsCfg = require(Shared.Config.Plots)
+local GameConfig = require(Shared.Config.GameConfig)
 local Signal = require(Shared.Util.Signal)
 local Uid = require(Shared.Util.Uid)
 local Core = require(script.Parent.Parent.Core)
@@ -395,7 +396,7 @@ function Plots.Start()
 	end
 	Players.PlayerRemoving:Connect(release)
 	-- the restaurant a player works in: the one they stand in when they may work there,
-	-- otherwise their own
+	-- otherwise their own; and the team bonus of every restaurant (other players working in it)
 	while true do
 		task.wait(0.5)
 		for _, player in ipairs(Players:GetPlayers()) do
@@ -407,6 +408,34 @@ function Plots.Start()
 			end
 			if want then
 				setWork(player, want)
+			end
+		end
+		local cfg = GameConfig.Coop
+		for _, plot in ipairs(Plots.list) do
+			local helpers = 0
+			if plot.owner then
+				for p, wp in pairs(work) do
+					if wp == plot and p ~= plot.owner and p.Parent then
+						helpers += 1
+					end
+				end
+			end
+			local bonus = math.min(cfg.MaxBonus, helpers * cfg.BonusPerHelper)
+			if plot.coopBonus ~= bonus then
+				-- everybody working there hears when the bonus grows (not again and again when a
+				-- helper walks in and out of the door)
+				local fresh = bonus > (plot.coopTold or 0) or os.clock() - (plot.coopToldAt or -math.huge) > cfg.NotifyEvery
+				if bonus > (plot.coopBonus or 0) and fresh then
+					plot.coopTold = bonus
+					plot.coopToldAt = os.clock()
+					for p, wp in pairs(work) do
+						if wp == plot and p.Parent then
+							Core.S.Net.notify(p, "msg.coop_bonus", { pct = math.floor(bonus * 100 + 0.5) }, "success")
+						end
+					end
+				end
+				plot.coopBonus = bonus
+				plot.folder:SetAttribute("CoopBonus", bonus)
 			end
 		end
 	end

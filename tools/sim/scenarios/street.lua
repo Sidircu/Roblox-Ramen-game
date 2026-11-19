@@ -86,6 +86,22 @@ end
 goTo(b, station.model)
 Sim.check("Ben now works in Aiko's restaurant", S.Plots.of(b) == pa)
 Sim.check("and is a helper there", S.Plots.role(b, pa) == "helper")
+-- working together: Aiko's restaurant earns the team bonus while Ben helps
+local Coop = Sim.shared("Config.GameConfig").Coop
+Sim.waitFor(function()
+	return (pa.coopBonus or 0) > 0
+end, 3)
+Sim.check("the team bonus is on while a friend helps", math.abs((pa.coopBonus or 0) - Coop.BonusPerHelper) < 1e-6 and pa.folder:GetAttribute("CoopBonus") == pa.coopBonus, tostring(pa.coopBonus))
+Sim.check("Aiko's earnings get the bonus", math.abs(S.Economy.multiplier(a) - (1 + Coop.BonusPerHelper)) < 1e-6, tostring(S.Economy.multiplier(a)))
+local function heard(pl)
+	for _, k in ipairs(Sim.noticesFor(pl)) do
+		if k == "msg.coop_bonus" then
+			return true
+		end
+	end
+	return false
+end
+Sim.check("and both hear about it", heard(a) and heard(b))
 local presses = 0
 while (station.model:GetAttribute("Ready") or "") == "" and presses < 8 do
 	Sim.fire(b, "Interact", station.uid, {})

@@ -45,7 +45,10 @@ function Economy.multiplier(player)
 	if Monetization then
 		passMult = Monetization.yenMultiplier(player)
 	end
-	return Formulas.incomeMultiplier({ franchiseStars = data.franchise.stars or 0, yenPerStar = Franchise.YenPerStar, passMult = passMult })
+	local base = Formulas.incomeMultiplier({ franchiseStars = data.franchise.stars or 0, yenPerStar = Franchise.YenPerStar, passMult = passMult })
+	-- friends working in the restaurant (Plots keeps coopBonus up to date)
+	local own = Core.S.Plots.ofPlayer(player)
+	return base * (1 + (own and own.coopBonus or 0))
 end
 
 -- Adds yen to `player`'s profile. opts.raw skips multipliers.

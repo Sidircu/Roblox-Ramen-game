@@ -122,6 +122,7 @@ Più **parti** ha la versione procedurale, più si guadagna sostituendola con un
 | C | `snow_lantern` | Lanterna della neve | lighting | 2.4×4×2.4 | 1 | ¥50.000 | 12 |  |
 | C | `susuki_vase` | Vaso di erba susuki | festival | 1×2.2×1 | 1 | 🌸20 | 12 |  |
 | C | `yatai_lanterns` | Lanterne yatai di Fukuoka | lighting | 8×2.4×0.8 | 1 | ¥60.000 | 12 |  |
+| C | `chochin_gold` | Lanterna d'oro | lighting | 1.4×2.4×1.4 | 10 | ¥6.000 | 11 |  |
 | C | `fireworks_lantern` | Lanterna dei fuochi d'artificio | festival | 1.4×2.4×1.4 | 1 | 🌸25 | 11 |  |
 | C | `maneki_gold` | Maneki-neko d'oro | statues | 1.2×1.7×1 | 30 | ¥250.000 | 11 |  |
 | C | `maple_tree` | Acero giapponese | plants | 6×11×6 | 15 | ¥6.000 | 11 |  |
@@ -138,6 +139,7 @@ Più **parti** ha la versione procedurale, più si guadagna sostituendola con un
 | C | `dishwasher` | Lavastoviglie | kitchen | 3×3.5×2.5 | 13 | ¥12.000 | 7 |  |
 | C | `fridge` | Frigorifero professionale | kitchen | 3×7×2.5 | 16 | ¥15.000 | 7 |  |
 | C | `moss_garden` | Aiuola di muschio | garden | 4×0.8×4 | 11 | ¥2.500 | 7 |  |
+| C | `noren_gold` | Noren d'oro | art | 4×3×0.3 | 12 | ¥9.000 | 6 |  |
 | C | `kagami_mochi` | Kagami mochi | festival | 1×1.4×1 | 1 | 🌸20 | 5 |  |
 | C | `neon_sushi` | Insegna neon 寿司 | lighting | 4×2.2×0.4 | 10 | ¥3.500 | 5 |  |
 

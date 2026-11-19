@@ -9,6 +9,8 @@ local Locale = require(Shared.Locale)
 local Recipes = require(Shared.Config.Recipes)
 local Ingredients = require(Shared.Config.Ingredients)
 local Color = require(Shared.Util.Color)
+local NetDef = require(Shared.Net)
+local GameConfig = require(Shared.Config.GameConfig)
 local Core = require(script.Parent.Parent.Core)
 
 local WorldUI = {}
@@ -304,13 +306,144 @@ local function paintSigns()
 	end
 end
 
+-- Ranking boards in the street (Models/Builders/Street rankingBoard): the top ten of every
+-- leaderboard (Services/Leaderboard) in your language, your row in gold when you are in it and
+-- your own number at the bottom
+local RANK_ICON = { dishes = "🍜 ", earned = "💴 ", likes = "" }
+local MEDAL = { "🥇", "🥈", "🥉" }
+local rankData = nil
+local BOLD = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
+local MEDIUM = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Medium)
+
+local function rankLabel(parent, name, size, font, align)
+	local l = Instance.new("TextLabel")
+	l.Name = name
+	l.BackgroundTransparency = 1
+	l.Size = size
+	l.FontFace = font
+	l.TextSize = 22
+	l.TextColor3 = Color.hex("#2B2320")
+	l.TextXAlignment = align or Enum.TextXAlignment.Left
+	l.TextTruncate = Enum.TextTruncate.AtEnd
+	l.AutoLocalize = false
+	l.Text = ""
+	l.Parent = parent
+	return l
+end
+
+local function rankRow(parent, name, order, height)
+	local row = Instance.new("Frame")
+	row.Name = name
+	row.LayoutOrder = order
+	row.Size = UDim2.new(1, -12, 0, height)
+	row.BackgroundColor3 = Color.hex("#F2D27A")
+	row.BackgroundTransparency = 1
+	row.BorderSizePixel = 0
+	row.Parent = parent
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 6)
+	c.Parent = row
+	rankLabel(row, "Who", UDim2.new(0.64, -6, 1, 0), MEDIUM).Position = UDim2.fromOffset(6, 0)
+	rankLabel(row, "Value", UDim2.new(0.36, -6, 1, 0), BOLD, Enum.TextXAlignment.Right).Position = UDim2.fromScale(0.64, 0)
+	return row
+end
+
+local function rankingGui(panel)
+	local gui = panel:FindFirstChild("Ranking")
+	if gui then
+		return gui
+	end
+	gui = Instance.new("SurfaceGui")
+	gui.Name = "Ranking"
+	gui.Face = Enum.NormalId.Back
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 40
+	gui.LightInfluence = 0
+	gui.MaxDistance = 160
+	local list = Instance.new("UIListLayout")
+	list.SortOrder = Enum.SortOrder.LayoutOrder
+	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	list.Padding = UDim.new(0, 2)
+	list.Parent = gui
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop = UDim.new(0, 8)
+	pad.Parent = gui
+	local title = rankLabel(gui, "Title", UDim2.new(1, -16, 0, 50), BOLD, Enum.TextXAlignment.Center)
+	title.TextScaled = true
+	title.TextWrapped = true
+	title.TextColor3 = Color.hex("#7A1A1F")
+	title.LayoutOrder = 0
+	for i = 1, GameConfig.Leaderboard.Rows do
+		rankRow(gui, "Row" .. i, i, 28)
+	end
+	rankRow(gui, "You", 99, 38).BackgroundTransparency = 0.4
+	gui.Parent = panel
+	return gui
+end
+
+local function paintRankings()
+	local Format = require(Shared.Util.Format)
+	local L = Locale.get()
+	local stats = Core.C.Data.m("stats") or {}
+	for _, board in ipairs(CollectionService:GetTagged("RankingBoard")) do
+		for _, panel in ipairs(board:GetChildren()) do
+			local stat = panel:IsA("BasePart") and panel.Name:match("^Panel_(%w+)$")
+			if stat then
+				local gui = rankingGui(panel)
+				local function value(n)
+					return stat == "earned" and Format.yen(n, L) or Format.number(n, L)
+				end
+				gui.Title.Text = (RANK_ICON[stat] or "") .. t("lb." .. stat)
+				local entries = rankData and rankData[stat] or {}
+				for i = 1, GameConfig.Leaderboard.Rows do
+					local row = gui:FindFirstChild("Row" .. i)
+					local e = entries[i]
+					if row then
+						local me = e and e.name == player.Name
+						row.Who.Text = e and ((MEDAL[i] or (i .. ".")) .. " " .. e.name) or ((MEDAL[i] or (i .. ".")) .. " —")
+						row.Value.Text = e and value(e.value) or ""
+						row.BackgroundTransparency = me and 0 or 1
+						row.Who.FontFace = me and BOLD or MEDIUM
+					end
+				end
+				gui.You.Who.Text = t("ui.lb_you")
+				gui.You.Value.Text = value(math.floor(stats[stat] or 0))
+			end
+		end
+	end
+end
+
+local function refreshRankings()
+	local ok, result = pcall(function()
+		return NetDef.func("GetLeaderboard"):InvokeServer()
+	end)
+	if ok and type(result) == "table" then
+		rankData = result
+	end
+	pcall(paintRankings)
+end
+
 function WorldUI.Start()
 	local lastSigns = 0
+	local lastRanks = -math.huge
+	local lastPaint = 0
+	Locale.Changed:Connect(function()
+		pcall(paintRankings)
+	end)
 	while true do
 		task.wait(0.2)
 		if os.clock() - lastSigns > 1 then
 			lastSigns = os.clock()
 			pcall(paintSigns)
+		end
+		-- new numbers every CacheSeconds; painted again every few seconds for boards that stream in
+		if os.clock() - lastRanks > GameConfig.Leaderboard.CacheSeconds then
+			lastRanks = os.clock()
+			lastPaint = os.clock()
+			task.spawn(refreshRankings)
+		elseif os.clock() - lastPaint > 5 then
+			lastPaint = os.clock()
+			pcall(paintRankings)
 		end
 		local cam = workspace.CurrentCamera
 		local char = player.Character

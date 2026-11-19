@@ -3,7 +3,11 @@
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local GameConfig = require(Shared.Config.GameConfig)
 local Core = require(script.Parent.Parent.Core)
+
+local CFG = GameConfig.Leaderboard
 
 local Leaderboard = {}
 local stores = {}
@@ -37,14 +41,14 @@ local function submit(player)
 end
 
 local function fetch()
-	if cache.data and os.clock() - cache.t < 120 then
+	if cache.data and os.clock() - cache.t < CFG.CacheSeconds then
 		return cache.data
 	end
 	local out = {}
 	for stat, store in pairs(stores) do
 		out[stat] = {}
 		local ok, pages = pcall(function()
-			return store:GetSortedAsync(false, 10)
+			return store:GetSortedAsync(false, CFG.Rows)
 		end)
 		if ok and pages then
 			for rank, entry in ipairs(pages:GetCurrentPage()) do
@@ -74,7 +78,7 @@ function Leaderboard.Start()
 	Players.PlayerRemoving:Connect(submit)
 	task.spawn(function()
 		while true do
-			task.wait(300)
+			task.wait(CFG.SubmitEvery)
 			for _, p in ipairs(Players:GetPlayers()) do
 				submit(p)
 			end

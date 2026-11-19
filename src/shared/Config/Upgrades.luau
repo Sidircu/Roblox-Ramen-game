@@ -23,7 +23,7 @@ local list = {
 	-- customers order by themselves: the order bar holds one ticket per seat at least
 	{ id = "up_ticket", icon = "🧾", max = 2, costs = { 6000, 60000 }, levels = { 5, 15 }, values = { 12, 16, 20 }, effect = "tickets" },
 	{ id = "up_jukebox", icon = "🎶", max = 3, costs = { 5000, 50000, 300000 }, levels = { 4, 14, 26 }, values = { 0, 15, 40, 90 }, effect = "ambience" },
-	{ id = "up_safe", icon = "💰", max = 5, costs = geometric(10000, 4, 5), levels = { 6, 12, 18, 26, 34 }, values = { 0, 2, 4, 8, 12, 24 }, pct = { 0, 0.10, 0.15, 0.20, 0.25, 0.30 }, effect = "offline" },
+	{ id = "up_safe", icon = "💰", max = 5, costs = geometric(10000, 4, 5), levels = { 6, 12, 18, 26, 34 }, values = { 1, 2, 4, 8, 12, 24 }, pct = { 0.05, 0.10, 0.15, 0.20, 0.25, 0.30 }, effect = "offline" },
 	{ id = "up_autorestock", icon = "🔁", max = 1, costs = { 120000 }, levels = { 20 }, values = { 0, 1 }, effect = "autorestock", needsStaff = "staff_stocker" },
 }
 

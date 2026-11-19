@@ -7,6 +7,7 @@ local Achievements = require(Shared.Config.Achievements)
 local DailyRewards = require(Shared.Config.DailyRewards)
 local Upgrades = require(Shared.Config.Upgrades)
 local Expansions = require(Shared.Config.Expansions)
+local GameConfig = require(Shared.Config.GameConfig)
 local Formulas = require(Shared.Logic.Formulas)
 local TableUtil = require(Shared.Util.TableUtil)
 local Core = require(script.Parent.Parent.Core)
@@ -178,9 +179,17 @@ local function claimDaily(player)
 	Core.S.Net.notify(player, "msg.daily_claimed", { day = daily.streak }, "success")
 end
 
+-- real seconds in one service day (Config/GameConfig.Day: night hours pass faster)
+local function daySeconds()
+	local D = GameConfig.Day
+	local night = (24 - D.NightFrom) + D.NightTo
+	return (24 - night) * D.SecondsPerHour + night * D.NightSecondsPerHour
+end
+
+-- earnings while away: everybody gets the first hour at 5%; the safe (up_safe) makes it longer
 local function computeOffline(player, d)
 	local lvl = d.upgrades.up_safe or 0
-	if lvl <= 0 or (d.meta.lastSeen or 0) <= 0 then
+	if (d.meta.lastSeen or 0) <= 0 then
 		return
 	end
 	local up = Upgrades.byId.up_safe
@@ -199,7 +208,7 @@ local function computeOffline(player, d)
 		sum += v
 	end
 	local perDay = sum / #history
-	local hourly = perDay * 5 -- a service day lasts 12 real minutes
+	local hourly = perDay * 3600 / daySeconds()
 	local amount = Formulas.offlineEarnings(hourly, pct, hours)
 	if amount > 0 then
 		d.meta.offlinePending = (d.meta.offlinePending or 0) + amount

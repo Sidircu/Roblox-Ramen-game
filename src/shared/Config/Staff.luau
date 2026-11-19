@@ -28,5 +28,6 @@ return {
 	MaxTrainLevel = 5,
 	-- base slots and extra slots granted by expansions
 	BaseSlots = 2,
-	SlotsByZone = { zone_east = 1, zone_west = 1, zone_terrace = 1, zone_kitchen_pro = 3, zone_floor2 = 3 },
+	PassSlots = 2, -- more places with the Extra staff game pass (Config/Monetization)
+	SlotsByZone = { zone_east = 1, zone_west = 1, zone_terrace = 1, zone_tatami = 1, zone_kitchen_pro = 3, zone_floor2 = 3 },
 }

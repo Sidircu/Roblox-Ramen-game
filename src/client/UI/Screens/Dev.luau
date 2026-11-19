@@ -3,11 +3,13 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Kit = require(script.Parent.Parent.Kit)
 local Base = require(script.Parent.Parent.Base)
+local Core = require(script.Parent.Parent.Parent.Core)
 
 local CMDS = {
 	{ "💴 +10.000", "yen", 10000 }, { "💴 +1M", "yen", 1000000 }, { "🌸 +50", "sakura", 50 }, { "⬆️ +1 level", "level", nil },
 	{ "Level 25", "level", 25 }, { "Level 45", "level", 45 }, { "🎫 All licenses", "licenses" }, { "🏗️ All zones", "zones" }, { "🪚 All renovations", "renos" }, { "🧱 Plain look", "plain" },
 	{ "📦 Stock boxes", "stock" }, { "🧍 Spawn customer", "spawn" }, { "🕚 Close day", "time" }, { "⭐ 5-star reviews", "rating" },
+	{ "🎁 Next day's gift", "nextday", nil, "Daily" },
 	{ "🧪 Self-test", "selftest" },
 	{ "♻️ Reset (Studio)", "reset" },
 }
@@ -17,6 +19,12 @@ return Base.make("Dev", "ui.dev", UDim2.fromScale(0.5, 0.6), function(content)
 	for i, c in ipairs(CMDS) do
 		Kit.button(c[1], { parent = grid, size = UDim2.fromOffset(200, 44), style = c[2] == "reset" and "primary" or "dark", order = i, textSize = 15, onClick = function()
 			NetDef.event("Dev"):FireServer(c[2], c[3])
+			-- some commands show the window they are about
+			if c[4] then
+				task.delay(0.6, function()
+					Core.C.UI.open(c[4])
+				end)
+			end
 		end })
 	end
 end)

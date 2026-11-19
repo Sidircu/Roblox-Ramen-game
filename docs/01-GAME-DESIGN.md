@@ -42,10 +42,10 @@ Apri un piccolo ramen-ya in un vicolo giapponese illuminato da lanterne. All'ini
 | Fase | Livelli | Tempo indicativo | Cosa succede |
 |---|---|---|---|
 | Inizio | 1–5 | 0–20 min | Tutorial, primo piatto, primi miglioramenti; il **primo aiutante** (lavapiatti) arriva tra 10 e 20 minuti |
-| Crescita | 5–12 | 20 min – 3 h | Cameriere, magazziniere, sushi, Sala Est e Sala Ovest, primi cuochi; al livello 12 si può aprire il **primo franchise** |
-| Maturità | 12–30 | 3–15 h | Terrazza, giardino, sala tatami, cucina professionale, secondo piano, menu completo, maestrie |
+| Crescita | 5–11 | 20 min – 3,5 h | Cameriere, magazziniere, sushi, Sala Est e Sala Ovest, primi cuochi; al livello 11 si può aprire il **primo franchise** |
+| Maturità | 11–30 | 3,5–15 h | Terrazza, giardino, sala tatami, cucina professionale, secondo piano, menu completo, maestrie |
 | Fine gioco | 30–50 | 15–30 h | Piatti da maestro, tetto, collezioni complete |
-| Franchise | ×5 città | + molte ore | Ricominci in una nuova città con bonus permanenti e piatti regionali; ogni città chiede un po' di più (livello 12 → 16 → 20 → 25 → 30) |
+| Franchise | ×5 città | + molte ore | Ricominci in una nuova città con bonus permanenti e piatti regionali; ogni città chiede un po' di più (livello 11 → 16 → 20 → 25 → 30) |
 
 **Ritmo** (misurato con un giocatore automatico che gioca con il server vero, `python3 tools/sim.py progression --hours=4`): un acquisto almeno ogni 5–6 minuti nella prima ora (oltre alle decorazioni), il livello 5 verso i 20 minuti, il livello 10 verso le 2,5 ore senza arredare; un giocatore che mette tavoli, nuove postazioni e cuochi va più veloce.
 
@@ -64,6 +64,7 @@ Apri un piccolo ramen-ya in un vicolo giapponese illuminato da lanterne. All'ini
   - **Co-gestore**: come l'aiutante, in più può comprare, vendere e spostare oggetti.
   - **Visitatore**: chiunque altro. Può guardare, ma le postazioni rispondono "Questo non è il tuo ristorante".
   - Gli aiutanti guadagnano XP e una **quota** in yen per il **proprio** salvataggio (pagata dal gioco, non tolta al proprietario).
+- **Lavoro di squadra**: ogni giocatore che lavora nel ristorante di un altro (aiutante o co-gestore che cucina, serve, pulisce) aumenta del **10%** gli incassi di quel ristorante (vendite e mance), fino a **+30%** con tre aiutanti. In alto compare 🤝 +10% e tutti quelli che lavorano lì ricevono un messaggio quando il bonus sale. Gli aiutanti ricevono comunque la loro quota.
 - **Invita amici**: pulsante nell'app Amici → invito Roblox. L'amico che accetta entra nello stesso server, riceve un lotto suo e può aiutarti. Il pulsante **Torna al tuo ristorante** riporta alla tua porta.
 
 ### 2.2 La strada (yokochō)
@@ -359,7 +360,7 @@ Il personale diventa più veloce con l'addestramento. Il primo aiutante arriva p
 Come nei tycoon, dove si può costruire la prossima stanza al piano terra c'è un **cartello di legno** con lanterna: nome della stanza e prezzo (✅ se hai i soldi), oppure 🔒 e il livello che serve. Si usa come una postazione (E o tocco): un'azione e la stanza si costruisce (il server controlla livello, stanze precedenti e prezzo). Comprata la stanza, il cartello sparisce e compaiono quelli delle stanze che ora si possono costruire.
 
 ### 8.7 Guadagni offline
-Con la **Cassaforte** il ristorante produce una parte del guadagno anche quando non giochi (dal 10% al 30% della media oraria, fino a 2–24 ore in base al livello). Al rientro una schermata mostra quanto hai guadagnato.
+**Tutti** guadagnano qualcosa anche quando non giocano: la prima ora al **5%** della media oraria (calcolata sugli ultimi giorni di servizio). La **Cassaforte** allunga il tempo e alza la percentuale: 2 ore al 10%, 4 al 15%, 8 al 20%, 12 al 25%, 24 ore al 30%. Al rientro una schermata mostra quanto hai guadagnato, con un solo pulsante per ritirarlo.
 
 ### 8.8 Obiettivi, missioni e collezioni
 - **Missioni giornaliere** (3 al giorno): "Servi 20 ramen", "Servi 10 piatti a clienti ancora sereni", "Guadagna ¥5.000 di mance".
@@ -367,17 +368,18 @@ Con la **Cassaforte** il ristorante produce una parte del guadagno anche quando 
 - **Ricettario**: collezione di tutti i piatti con il livello di maestria.
 - **Set di decorazioni**: piazzare tutti i pezzi di un set (es. "Matsuri", "Giardino zen", "Samurai", "Ramen-ya") dà un bonus permanente.
 - **Pacchetto Ramen-ya** (dalle foto di riferimento di un vero bancone da ramen): sgabelli rossi su palo nero, lampade a sospensione industriali, tettoia in legno sopra il bancone con striscione rosso e lampade, poster del menù colorati, mensola menù da bancone, brocche d'acqua e portacondimenti, poster retrò, insegna verticale, tavola del brodo, tavolo con panche. La categoria **Sul tavolo** raccoglie gli oggetti da appoggiare su banconi e tavoli.
-- **Premio di accesso giornaliero** con serie (7 giorni, poi ricomincia con premi migliori).
+- **Premio di accesso giornaliero**: un calendario di 7 giorni (yen, 🌸, al 7° giorno 🌸15 e una decorazione esclusiva) che **si apre da solo quando entri** se il premio di oggi non è ancora ritirato, dopo la schermata dei guadagni offline e mai durante il tutorial (a un giocatore nuovo compare 20 secondi dopo la fine del tutorial). I giorni passati hanno la spunta, quello di oggi è dorato con un grande pulsante **Riscuoti**. Se salti un giorno si riparte dal giorno 1; dopo il 7° si ricomincia, e gli yen crescono con il livello. Lo stesso calendario è in Obiettivi → Giornaliero.
 - **Regali a tempo** (come nei giochi Roblox più famosi): mentre giochi si sblocca un regalo gratis ogni pochi minuti (yen, 🌸, scatole di ingredienti). Il pulsante 🎁 sotto i soldi mostra il conto alla rovescia e diventa dorato quando un regalo è pronto (tasto R). Ripartono a ogni nuova sessione.
 - **Codici**: nell'app 🎟️ Codici del telefono si scrive un codice (annunciato sui social o nel gruppo) per ricevere un premio; ogni codice vale una volta per giocatore.
 - **Combo di servizio**: servire piatti a meno di 30 secondi l'uno dall'altro fa salire la combo (scritta grande "🔥 COMBO x3!" e suono che sale): ogni passo dà +5% di mancia a quel cliente, fino a +50%.
 - **Classifica nella lista giocatori** (leaderstats): ¥ e livello ⭐ di ognuno.
+- **Bacheche delle classifiche** (番付) sul marciapiede di fronte a ogni ristorante, rivolte verso la porta: tre pannelli con i primi 10 di tutti i server per **piatti serviti**, **yen guadagnati** e **Mi piace**; la tua riga è dorata se ci sei e in fondo c'è sempre il tuo numero. I testi sono nella lingua di chi guarda; i numeri si aggiornano ogni 2 minuti. Le stesse classifiche sono in Obiettivi → Classifiche. Gli yen comprati con i Robux **non contano** nella classifica.
 - **Obiettivo del giorno** sempre visibile sotto la barra del giorno (la prima missione non ancora ritirata, es. «🎯 Servi 8 ramen · 3/8»); quando è completo diventa dorato e un clic lo ritira.
 - **Barattolo delle mance** sul bancone: le mance si accumulano dentro (le monete salgono); un clic le ritira con una pioggia di monete, a fine giornata si ritirano da sole.
 - **❤️ Mi piace**: chi visita il ristorante di un amico può mettergli Mi piace (una volta al giorno); il numero si vede in alto a destra e c'è la classifica dei ristoranti più amati.
 
 ### 8.9 Franchise (rinascita / prestigio)
-La prima volta è disponibile dopo poche ore di gioco: **livello 12, valutazione ≥ 4,0, Sala Est, Magazzino ampliato e Sala Ovest**. Ogni città successiva chiede di più (livello 16 con ★4,1 e anche terrazza e giardino; 20 con ★4,2 e sala tatami e cucina professionale; 25 e 30 con il secondo piano). Gli obiettivi (scheda Franchise) mostrano cosa manca, voce per voce.
+La prima volta è disponibile dopo poche ore di gioco: **livello 11, valutazione ≥ 4,0, Sala Est, Magazzino ampliato e Sala Ovest**. Ogni città successiva chiede di più (livello 16 con ★4,1 e anche terrazza e giardino; 20 con ★4,2 e sala tatami e cucina professionale; 25 e 30 con il secondo piano). Gli obiettivi (scheda Franchise) mostrano cosa manca, voce per voce.
 - Apri un nuovo locale in un'altra città: **Kyoto → Osaka → Sapporo → Fukuoka → Okinawa**. Ogni città ha una strada diversa (templi a Kyoto, insegne giganti a Osaka, neve a Sapporo…) e **2–3 piatti regionali** esclusivi.
 - Si azzerano: livello, yen, licenze, espansioni, personale.
 - Si conservano: **tutte le decorazioni** (vanno nell'inventario), gettoni, ricettario, obiettivi.
@@ -512,12 +514,21 @@ I modelli sono costruiti dal codice con parti Roblox, curati nelle proporzioni e
 
 Tutto è opzionale e nessun contenuto essenziale si ottiene solo con i Robux.
 
+**Regole oneste**:
+- Tutto ciò che serve per giocare si ottiene giocando: ricette, stanze, personale, franchise. I pass fanno andare **più veloce** o sono **estetici**, non aprono contenuti chiusi.
+- Nessuna ricompensa a sorpresa a pagamento (niente casse o ruote con i Robux).
+- Gli acquisti si trovano solo nell'app 💎 Premium del telefono: nessuna finestra che si apre da sola per vendere qualcosa, nessun conto alla rovescia finto.
+- Ogni pass dice esattamente cosa dà prima dell'acquisto (finestra di Roblox con il prezzo).
+- Gli yen comprati non contano nelle classifiche; i piatti serviti e i Mi piace non si possono comprare.
+- I pass valgono per il **tuo** ristorante: non tolgono niente a chi lavora con te.
+
 | Gamepass | Effetto |
 |---|---|
-| VIP | +25% yen, etichetta VIP in chat, maneki-neko d'oro esclusivo |
+| VIP | +25% yen, etichetta VIP in chat, **set d'oro** nell'inventario: maneki-neko d'oro, 2 lanterne d'oro e un noren d'oro (chi non ha il pass li può comprare con gli yen ai livelli alti) |
 | 2× Yen | raddoppia gli yen guadagnati |
 | Vassoio extra | +2 capienza del vassoio |
-| Consegna express | consegne istantanee |
+| Carrello grande | porti una scatola in più alla volta |
+| Personale extra | +2 posti per il personale (anche oltre il massimo di 12) |
 | Pacchetto iniziale | ¥10.000 + 3 decorazioni esclusive + sgabelli imbottiti |
 
 | Prodotto (consumabile) | Effetto |

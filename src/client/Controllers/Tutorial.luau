@@ -17,6 +17,7 @@ local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
 local Format = require(Shared.Util.Format)
 local TutorialCfg = require(Shared.Config.Tutorial)
+local DailyRewards = require(Shared.Config.DailyRewards)
 local Kit = require(script.Parent.Parent.UI.Kit)
 local Pointer = require(script.Parent.Parent.UI.Pointer)
 local Core = require(script.Parent.Parent.Core)
@@ -250,6 +251,33 @@ local function show()
 	end
 end
 
+-- the daily gift calendar (Screens/Daily) opens by itself once per session, when today's gift is
+-- still there, the tutorial is not on screen and no other window is open
+local dailyOffered = false
+local function offerDaily(delay)
+	if dailyOffered then
+		return
+	end
+	dailyOffered = true
+	task.spawn(function()
+		task.wait(delay or 0)
+		local UI = Core.C.UI
+		local waited = 0
+		while waited < DailyRewards.PopupWait do
+			local screen = UI.screens.Daily
+			if not screen or not screen.ready() then
+				return
+			end
+			if UI.current == nil and index == -1 then
+				UI.open("Daily")
+				return
+			end
+			task.wait(0.5)
+			waited = waited + 0.5
+		end
+	end)
+end
+
 local function finish(skipped)
 	index = -1
 	save()
@@ -257,6 +285,7 @@ local function finish(skipped)
 	if skipped then
 		Core.C.UI.toast(t("tut.skipped"), "info")
 	end
+	offerDaily(DailyRewards.PopupAfterTutorial)
 end
 
 local function advance()
@@ -341,9 +370,12 @@ function Tutorial.Start()
 	else
 		index = -1
 	end
-	-- offline earnings popup
+	-- offline earnings popup, then today's gift (after the offline one is closed)
 	if meta and (meta.offlinePending or 0) > 0 then
 		Core.C.UI.open("Offline")
+	end
+	if index == -1 then
+		offerDaily(1)
 	end
 	while true do
 		task.wait(0.25)

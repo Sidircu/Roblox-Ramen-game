@@ -406,6 +406,17 @@ function Scene.street(street, cityId, lots, reachOverride)
 	local farW = roadFar - farFront
 	local farZ = (roadFar + farFront) / 2
 	local len = reach * 2 + 200
+	-- a ranking board on the far sidewalk across the road from every restaurant's door; the lamps,
+	-- trees and bicycles of the far sidewalk keep clear of it
+	local boardZ = roadFar - 7
+	local function nearBoard(x, d)
+		for _, ox in ipairs(lots) do
+			if math.abs(x - ox) < d then
+				return true
+			end
+		end
+		return false
+	end
 	-- ground
 	Kit.box(street, len + 400, 1, 900, 0, -1.9, 80, city.snow and P.white or Color.hex("#4A5A3A"), city.snow and M.snow or M.grass)
 	-- four-lane road: double centre line, dashed lane lines, solid edge lines
@@ -461,7 +472,10 @@ function Scene.street(street, cityId, lots, reachOverride)
 	Kit.box(street, 5, 0.3, 1.2, 69, 1.4, curb + 2.8, P.wood_light, M.wood)
 	-- bicycles parked on the far sidewalk
 	for _, bx in ipairs({ -44, -42.8, -41.6, 34, 35.2, 118, 119.2, -150 }) do
-		S.bicycle(street, bx, farFront + 2.2, 90, ({ P.white, P.navy, P.lacquer, P.matcha, P.sakura_dark })[r:NextInteger(1, 5)])
+		local color = ({ P.white, P.navy, P.lacquer, P.matcha, P.sakura_dark })[r:NextInteger(1, 5)]
+		if not nearBoard(bx, 15) then
+			S.bicycle(street, bx, farFront + 2.2, 90, color)
+		end
 	end
 	-- every plot: its lot and loading bay, a bamboo fence and trees along the back
 	local pb = Expansions.PlotBounds
@@ -514,7 +528,9 @@ function Scene.street(street, cityId, lots, reachOverride)
 	for lx = -reach + 10, reach - 10, 36 do
 		if math.abs(lx + 26) > 8 then
 			S.lamp(street, lx, curb + 1, -1, 1.5)
-			S.lamp(street, lx + 18, roadFar - 1, 1, 1.5)
+			if not nearBoard(lx + 18, 15) then
+				S.lamp(street, lx + 18, roadFar - 1, 1, 1.5)
+			end
 		end
 	end
 	local prev = nil
@@ -530,7 +546,12 @@ function Scene.street(street, cityId, lots, reachOverride)
 	end
 	for tx = -reach + 40, reach - 40, 70 do
 		S.planterTree(street, tx, curb + 3, (math.floor(tx / 70) % 2 == 0) and P.sakura or P.leaf_light, 1.5)
-		S.planterTree(street, tx + 35, roadFar - 5, P.sakura, 1.5)
+		if not nearBoard(tx + 35, 17) then
+			S.planterTree(street, tx + 35, roadFar - 5, P.sakura, 1.5)
+		end
+	end
+	for _, ox in ipairs(lots) do
+		S.rankingBoard(street, ox, boardZ)
 	end
 	-- a street vending machine next to every restaurant
 	for _, ox in ipairs(lots) do

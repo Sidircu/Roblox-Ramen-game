@@ -399,3 +399,39 @@ test("each franchise asks for more than the one before", function()
   end
   expect(first <= 5, "first staff at level " .. first)
 end)
+
+test("retention and fair passes", function()
+  local Monetization = require(Shared.Config.Monetization)
+  local DailyRewards = require(Shared.Config.DailyRewards)
+  -- the extra staff pass adds its slots on top of the rooms' slots, also at the cap
+  local w = { level = 1, zones = { zone_base = true }, staff = {}, passes = {} }
+  local base = Shop.staffSlots(w, StaffCfg, GameConfig.MaxStaff)
+  w.passes.gp_extra_staff = true
+  expect(Shop.staffSlots(w, StaffCfg, GameConfig.MaxStaff) == base + StaffCfg.PassSlots, "the pass adds " .. StaffCfg.PassSlots .. " slots")
+  local all = { staff = {}, passes = {}, zones = {} }
+  for _, e in ipairs(Expansions.list) do
+    all.zones[e.id] = true
+  end
+  local full = Shop.staffSlots(all, StaffCfg, GameConfig.MaxStaff)
+  expect(full == GameConfig.MaxStaff, "every room: the full team (" .. full .. ")")
+  all.passes.gp_extra_staff = true
+  expect(Shop.staffSlots(all, StaffCfg, GameConfig.MaxStaff) == GameConfig.MaxStaff + StaffCfg.PassSlots, "the pass still helps with every room")
+  local gp = nil
+  for _, p in ipairs(Monetization.GamePasses) do
+    if p.id == "gp_extra_staff" then
+      gp = p
+    end
+  end
+  expect(gp ~= nil and gp.effect.staffSlots == StaffCfg.PassSlots, "the pass says what it gives")
+  -- everybody earns while away (the safe makes it longer), and the team bonus has a cap
+  local safe = Upgrades.byId.up_safe
+  expect(safe.values[1] >= 1 and safe.pct[1] > 0, "offline earnings without the safe")
+  for i = 2, #safe.values do
+    expect(safe.values[i] > safe.values[i - 1] and safe.pct[i] > safe.pct[i - 1], "every safe level gives more")
+  end
+  expect(#safe.values == safe.max + 1 and #safe.pct == safe.max + 1, "a value for every safe level")
+  expect(GameConfig.Coop.BonusPerHelper > 0 and GameConfig.Coop.MaxBonus >= GameConfig.Coop.BonusPerHelper, "a team bonus with a cap")
+  -- the daily calendar: seven days, the last one the best
+  expect(#DailyRewards.days == 7 and DailyRewards.days[7].item ~= nil, "a week of gifts with a present on day 7")
+  expect(DailyRewards.PopupAfterTutorial > 0 and DailyRewards.PopupWait > 0, "the calendar opens by itself")
+end)
