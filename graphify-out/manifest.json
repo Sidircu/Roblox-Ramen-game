@@ -666,9 +666,9 @@
     "semantic_hash": ""
   },
   "docs/01-GAME-DESIGN.md": {
-    "mtime": 1795115097.903667,
-    "seen": 1795115168.5537567,
-    "ast_hash": "ec3a7fdebc3852f54caaeafc269419c8",
+    "mtime": 1795115702.383419,
+    "seen": 1795115703.7259586,
+    "ast_hash": "aef91df9b16be0d62b155f76db69f94c",
     "semantic_hash": ""
   },
   "docs/02-PIANO-TECNICO.md": {
@@ -678,9 +678,9 @@
     "semantic_hash": ""
   },
   "docs/03-BILANCIAMENTO.md": {
-    "mtime": 1795115223.3278725,
-    "seen": 1795115314.9366517,
-    "ast_hash": "77acba898562f6a72a10cc6b2ae5dd3a",
+    "mtime": 1795115697.2995963,
+    "seen": 1795115703.725964,
+    "ast_hash": "d800d69c60a09fbbddbf3dc41b7b1012",
     "semantic_hash": ""
   },
   "src/server/Services/SelfTest.luau": {

@@ -29,14 +29,14 @@
 | Livello | XP per il livello | XP totali per arrivarci | Tempo indicativo |
 |---|---|---|---|
 | 5 | 657 | 951 | ~20 min |
-| 10 | 1.991 | 6.687 | ~2–2,5 h |
-| 11 | 2.318 | 8.678 | ~3,2–3,4 h (primo franchise) |
-| 20 | 6.034 | 43.440 | ~8 h |
-| 30 | 11.544 | 127.481 | ~15 h |
-| 40 | 18.292 | 272.332 | ~22 h |
-| 50 | 26.141 | 489.709 | ~30 h |
+| 10 | 1.991 | 6.687 | ~2 h |
+| 11 | 2.318 | 8.678 | ~2,8–3 h (primo franchise) |
+| 20 | 6.034 | 43.440 | ~12–13 h (stima) |
+| 30 | 11.544 | 127.481 | ~25 h (stima) |
+| 40 | 18.292 | 272.332 | ~40 h (stima) |
+| 50 | 26.141 | 489.709 | ~55 h (stima) |
 
-Misurato con `python3 tools/sim.py progression --hours=4 --seed=N`: un giocatore automatico che cucina, serve, lava, rifornisce, riscuote missioni e regali, mette tavoli e sedie nelle sale nuove, assume un aiutante per ruolo e compra la cosa più economica arriva al livello 2 in 1 minuto, al 4 in 9, al 5 in 18–23, al 7 in 45–60 minuti, al 10 verso le 2,3 ore; assume il lavapiatti a 9–10 minuti e il cameriere verso i 26; in un'ora serve 240–320 piatti con 1–30 clienti andati via e valutazione 3,6–4,4; il negozio resta senza nulla di comprabile al massimo 5–8 minuti (le decorazioni coprono quei momenti).
+Misurato con `python3 tools/sim.py progression --hours=4 --seed=N` (semi 3 e 4, con il franchise al livello 11 e la Sala Ovest a ¥12.000): un giocatore automatico che cucina, serve, lava, rifornisce, riscuote missioni e regali, mette tavoli e sedie nelle sale nuove, assume un aiutante per ruolo e compra la cosa più economica arriva al livello 2 in 1 minuto, al 4 in 9, al 5 in 17–23, al 7 in 44–48 minuti, al 10 in 116–121 minuti, all'11 in 167–177 minuti, al 12 verso i 223; assume il lavapiatti a 9 minuti e il cameriere verso i 28; compra la Sala Ovest verso gli 87 minuti; ha livello e stanze del primo franchise a 167–177 minuti, con anche la valutazione ★4,0 a 209 minuti in una partita (nell'altra resta a ★3,8: il bot lascia andare via più clienti di un giocatore attento); in 4 ore serve 910–1.100 piatti; nella prima ora il negozio resta senza nulla di comprabile al massimo 1,5 minuti. Oltre il livello 12 i tempi della tabella sono stime: il ritmo misurato al livello 11–12 (circa 2.300–2.500 XP all'ora, che cresce di circa il 10% ogni ora di gioco) prolungato nella stessa città; le stelle del franchise (+10% XP ciascuna), i cuochi e le sale arredate li accorciano.
 
 ---
 

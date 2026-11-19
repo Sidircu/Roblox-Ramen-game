@@ -41,13 +41,13 @@ Apri un piccolo ramen-ya in un vicolo giapponese illuminato da lanterne. All'ini
 
 | Fase | Livelli | Tempo indicativo | Cosa succede |
 |---|---|---|---|
-| Inizio | 1–5 | 0–20 min | Tutorial, primo piatto, primi miglioramenti; il **primo aiutante** (lavapiatti) arriva tra 10 e 20 minuti |
-| Crescita | 5–11 | 20 min – 3,5 h | Cameriere, magazziniere, sushi, Sala Est e Sala Ovest, primi cuochi; al livello 11 si può aprire il **primo franchise** |
-| Maturità | 11–30 | 3,5–15 h | Terrazza, giardino, sala tatami, cucina professionale, secondo piano, menu completo, maestrie |
-| Fine gioco | 30–50 | 15–30 h | Piatti da maestro, tetto, collezioni complete |
+| Inizio | 1–5 | 0–20 min | Tutorial, primo piatto, primi miglioramenti; il **primo aiutante** (lavapiatti) arriva verso i 10 minuti |
+| Crescita | 5–11 | 20 min – 3 h | Cameriere, magazziniere, sushi, Sala Est e Sala Ovest, primi cuochi; al livello 11 si può aprire il **primo franchise** |
+| Maturità | 11–30 | 3–25 h (stima) | Terrazza, giardino, sala tatami, cucina professionale, secondo piano, menu completo, maestrie |
+| Fine gioco | 30–50 | 25–55 h (stima) | Piatti da maestro, tetto, collezioni complete |
 | Franchise | ×5 città | + molte ore | Ricominci in una nuova città con bonus permanenti e piatti regionali; ogni città chiede un po' di più (livello 11 → 16 → 20 → 25 → 30) |
 
-**Ritmo** (misurato con un giocatore automatico che gioca con il server vero, `python3 tools/sim.py progression --hours=4`): un acquisto almeno ogni 5–6 minuti nella prima ora (oltre alle decorazioni), il livello 5 verso i 20 minuti, il livello 10 verso le 2,5 ore senza arredare; un giocatore che mette tavoli, nuove postazioni e cuochi va più veloce.
+**Ritmo** (misurato con un giocatore automatico che gioca con il server vero, `python3 tools/sim.py progression --hours=4`): nella prima ora il negozio non resta mai più di un minuto e mezzo senza niente di comprabile; il primo aiutante a 9 minuti, il livello 5 verso i 20 minuti, la Sala Ovest verso l'ora e mezza, il livello 10 verso le 2 ore, il livello 11 con le tre stanze del primo franchise in 2 ore e 50 minuti – 3 ore (con la valutazione ★4 verso le 3 ore e mezza). Un giocatore che arreda, assume cuochi e gioca con gli amici (bonus squadra) va più veloce.
 
 ---
 
