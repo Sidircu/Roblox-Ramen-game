@@ -44,8 +44,10 @@ function Service.availableMenu(plot)
 	for _, r in ipairs(Core.S.Progression.menuRecipes(d)) do
 		local ok = stations[r.station] == true
 		if ok then
+			-- on a shelf, or in a box that has a place on a shelf: a box that fits nowhere (the
+			-- shelves are full of other products) cannot be cooked, so nobody orders that dish
 			for _, g in ipairs(r.ing) do
-				if Supply.shelfStock(plot, g) <= 0 and Supply.boxCount(plot, g) <= 0 then
+				if Supply.shelfStock(plot, g) <= 0 and not (Supply.boxCount(plot, g) > 0 and Supply.canShelve(plot, g)) then
 					ok = false
 					break
 				end

@@ -30,13 +30,13 @@
 |---|---|---|---|
 | 5 | 657 | 951 | ~20 min |
 | 10 | 1.991 | 6.687 | ~2 h |
-| 11 | 2.318 | 8.678 | ~2,8–3 h (primo franchise) |
+| 11 | 2.318 | 8.678 | ~2,5–2,8 h (primo franchise) |
 | 20 | 6.034 | 43.440 | ~12–13 h (stima) |
 | 30 | 11.544 | 127.481 | ~25 h (stima) |
 | 40 | 18.292 | 272.332 | ~40 h (stima) |
 | 50 | 26.141 | 489.709 | ~55 h (stima) |
 
-Misurato con `python3 tools/sim.py progression --hours=4 --seed=N` (semi 3 e 4, con il franchise al livello 11 e la Sala Ovest a ¥12.000): un giocatore automatico che cucina, serve, lava, rifornisce, riscuote missioni e regali, mette tavoli e sedie nelle sale nuove, assume un aiutante per ruolo e compra la cosa più economica arriva al livello 2 in 1 minuto, al 4 in 9, al 5 in 17–23, al 7 in 44–48 minuti, al 10 in 116–121 minuti, all'11 in 167–177 minuti, al 12 verso i 223; assume il lavapiatti a 9 minuti e il cameriere verso i 28; compra la Sala Ovest verso gli 87 minuti; ha livello e stanze del primo franchise a 167–177 minuti, con anche la valutazione ★4,0 a 209 minuti in una partita (nell'altra resta a ★3,8: il bot lascia andare via più clienti di un giocatore attento); in 4 ore serve 910–1.100 piatti; nella prima ora il negozio resta senza nulla di comprabile al massimo 1,5 minuti. Oltre il livello 12 i tempi della tabella sono stime: il ritmo misurato al livello 11–12 (circa 2.300–2.500 XP all'ora, che cresce di circa il 10% ogni ora di gioco) prolungato nella stessa città; le stelle del franchise (+10% XP ciascuna), i cuochi e le sale arredate li accorciano.
+Misurato con `python3 tools/sim.py progression --hours=4 --seed=N` (semi 3 e 5, prezzi di questa tabella): un giocatore automatico che cucina, serve, lava, rifornisce, riscuote missioni e regali, mette tavoli e sedie nelle sale nuove, assume un aiutante per ruolo e compra la cosa più economica arriva al livello 2 in 1 minuto, al 4 in 8–9, al 5 in 17–18, al 7 in 43 minuti, al 10 in 108–119 minuti, all'11 in 147–167 minuti, al 12 in 204–229; assume il lavapiatti a 9 minuti e il cameriere a 28; compra la Sala Ovest a 88–103 minuti; ha livello e stanze del primo franchise a 147–167 minuti, con anche la valutazione ★4,0 a 148 minuti in una partita (nell'altra finisce a ★3,3: il bot non compra mai mensole, quindi con le due iniziali i prodotti senza posto restano fuori dal menu e lascia andare via più clienti di un giocatore attento); in 4 ore serve 1.050–1.120 piatti e incassa ¥6,4 di vendite e mance per ogni punto XP (più missioni e regali); nella prima ora il negozio resta senza nulla di comprabile al massimo 2 minuti. Oltre il livello 12 i tempi della tabella sono stime: il ritmo misurato al livello 11–12 (circa 2.300–2.500 XP all'ora, che cresce di circa il 10% ogni ora di gioco) prolungato nella stessa città; le stelle del franchise (+10% XP ciascuna), i cuochi e le sale arredate li accorciano. Per i prezzi si conta che salire di un livello porti circa 8 yen per punto XP (vendite e mance meno scorte e stipendi, più le missioni): è la regola del capitolo 6, controllata da `tests/logic_spec.lua`.
 
 ---
 
@@ -160,13 +160,13 @@ Riso cotto: il rice cooker trasforma 1 porzione di riso crudo in 1 porzione di r
 | `lic_sushi3` | Sushi III | 14 | ¥45.000 | Sushi II, ★3,5 | Temaki, Dragon Roll |
 | `lic_ramen3` | Ramen III | 16 | ¥60.000 | Ramen II, ★3,5 | Tonkotsu, Tantanmen |
 | `lic_fryer` | Friggitrice | 18 | ¥80.000 | Piastra | Ebi Tempura, Karaage, friggitrice |
-| `lic_sushi4` | Sushi IV | 22 | ¥150.000 | Sushi III, ★4,0 | Sashimi, Ikura Gunkan |
-| `lic_street` | Street food | 24 | ¥180.000 | Friggitrice | Takoyaki, fornello takoyaki |
-| `lic_ramen4` | Ramen IV | 25 | ¥220.000 | Ramen III, ★4,0 | Tsukemen |
-| `lic_dessert` | Dolci & Matcha | 28 | ¥300.000 | Contorni | Mochi, Matcha latte, Ramune, postazione dolci |
-| `lic_sushi_master` | Maestro del Sushi | 35 | ¥900.000 | Sushi IV, ★4,5 | Otoro, Omakase |
-| `lic_ramen_master` | Maestro del Ramen | 38 | ¥1.200.000 | Ramen IV, ★4,5 | Mayu Tonkotsu |
-| `lic_grandmaster` | Gran Maestro | 45 | ¥3.000.000 | entrambi i Maestri, ★4,7 | Menu degustazione |
+| `lic_sushi4` | Sushi IV | 22 | ¥110.000 | Sushi III, ★4,0 | Sashimi, Ikura Gunkan |
+| `lic_street` | Street food | 24 | ¥120.000 | Friggitrice | Takoyaki, fornello takoyaki |
+| `lic_ramen4` | Ramen IV | 25 | ¥140.000 | Ramen III, ★4,0 | Tsukemen |
+| `lic_dessert` | Dolci & Matcha | 28 | ¥160.000 | Contorni | Mochi, Matcha latte, Ramune, postazione dolci |
+| `lic_sushi_master` | Maestro del Sushi | 35 | ¥240.000 | Sushi IV, ★4,5 | Otoro, Omakase |
+| `lic_ramen_master` | Maestro del Ramen | 38 | ¥280.000 | Ramen IV, ★4,5 | Mayu Tonkotsu |
+| `lic_grandmaster` | Gran Maestro | 45 | ¥400.000 | entrambi i Maestri, ★4,7 | Menu degustazione |
 
 ---
 
@@ -324,21 +324,23 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 
 ## 6. Miglioramenti
 
-| ID | Miglioramento | Livelli | Costi | Effetto |
+I prezzi seguono gli incassi: fino al livello 11 la cosa nuova più cara costa circa 1,5 livelli di guadagni (gli yen che si incassano mentre si sale di un livello); dal 12 in poi ogni miglioramento costa da 1 a 2 livelli di guadagni e le stanze grandi 2–3, così si può comprare quasi tutto poco dopo lo sblocco, scegliendo cosa prima. Dal livello 31 al 44 ogni livello porta il passo successivo di un miglioramento (oltre alle licenze da maestro e al tetto), così fino alla fine c'è sempre un obiettivo vicino.
+
+| ID | Miglioramento | Livelli | Costi (livello del ristorante) | Effetto |
 |---|---|---|---|---|
-| `up_tray` | Vassoio | 1→5 | ¥900 (L2) · ¥6.000 (L8) · ¥30.000 (L18) · ¥120.000 (L30) | capienza 1→2→3→4→5 |
-| `up_shoes` | Scarpe da cucina | 0→5 | ¥600 × 3^n | +8% velocità per livello |
-| `up_knife` | Coltello (Santoku → Yanagiba → Damasco → Hon-yaki) | 0→4 | ¥1.200 · ¥12.000 · ¥80.000 · ¥350.000 | −10% durata dei passaggi T e U |
-| `up_mat` | Stuoia makisu | 0→3 | ¥1.800 · ¥18.000 · ¥120.000 | −12% durata del passaggio A |
-| `up_strainer` | Scolapasta tebo | 0→3 | ¥1.800 · ¥18.000 · ¥120.000 | −12% durata dei passaggi N, B, C, F |
-| `up_shelf` | Mensole rinforzate | 0→3 | ¥5.000 · ¥30.000 · ¥200.000 | file di prodotti × 1,25 / 1,5 / 1,75 (arrotondate) |
+| `up_tray` | Vassoio | 1→6 | ¥900 (L2) · ¥6.000 (L8) · ¥30.000 (L18) · ¥100.000 (L30) · ¥220.000 (L40) | capienza 1→2→3→4→5→6 |
+| `up_shoes` | Scarpe da cucina | 0→5 | ¥600 × 3^n (L1 · L4 · L8 · L14 · L23) | +8% velocità per livello |
+| `up_knife` | Coltello (Santoku → Yanagiba → Damasco → Hon-yaki → Kasumi) | 0→5 | ¥1.200 (L2) · ¥12.000 (L8) · ¥60.000 (L16) · ¥150.000 (L29) · ¥300.000 (L44) | passaggi T e U: ×0,9 · 0,81 · 0,73 · 0,66 · 0,6 |
+| `up_mat` | Stuoia makisu | 0→4 | ¥1.800 (L3) · ¥18.000 (L10) · ¥90.000 (L20) · ¥260.000 (L41) | passaggio A: ×0,88 · 0,77 · 0,68 · 0,6 |
+| `up_strainer` | Scolapasta tebo | 0→4 | ¥1.800 (L3) · ¥18.000 (L10) · ¥90.000 (L21) · ¥280.000 (L43) | passaggi N, B, C, F: ×0,88 · 0,77 · 0,68 · 0,6 |
+| `up_shelf` | Mensole rinforzate | 0→4 | ¥5.000 (L4) · ¥30.000 (L12) · ¥120.000 (L24) · ¥200.000 (L33) | file di prodotti × 1,25 / 1,5 / 1,75 / 2 (arrotondate) |
 | `up_cart` | Carrello per scatole | 0→2 | ¥1.500 (L3) · ¥12.000 (L10) | scatole portate insieme 1 → 2 → 3 (il pass Carrello grande +1). Le consegne sono immediate: il furgone arriva in circa 6 s, si ferma a `Expansions.TruckStop` (x 50, z 6) e lascia le scatole nella `DropZone` fuori dalla porta del magazzino (x 39–47,5, z 17–23: 12 posti per 2 piani = 24 scatole) |
-| `up_supplier` | Fornitore premium | 0→2 | ¥20.000 (L10) · ¥200.000 (L25) | scatole grandi −10% / −20% |
-| `up_sign` | Insegna luminosa | 0→5 | ¥1.200 × 4^n | +0,08 popolarità per livello |
-| `up_ticket` | Barra ordini | 0→2 | ¥6.000 · ¥60.000 | 12 → 16 → 20 biglietti (i clienti ordinano da soli: almeno un biglietto per posto) |
-| `up_jukebox` | Jukebox | 0→3 | ¥5.000 · ¥50.000 · ¥300.000 | +15 / +40 / +90 ambiente |
-| `up_safe` | Cassaforte (guadagni offline) | 0→5 | ¥10.000 × 4^n | senza: 1 h al 5% (per tutti) · poi 2/4/8/12/24 h al 10/15/20/25/30% |
-| `up_autorestock` | Riordino automatico | 0→1 | ¥120.000 (L20, serve un Magazziniere) | ordina da solo sotto soglia |
+| `up_supplier` | Fornitore premium | 0→3 | ¥20.000 (L10) · ¥120.000 (L26) · ¥240.000 (L39) | scatole grandi (come tre piccole) −10% / −20% / −30% |
+| `up_sign` | Insegna luminosa | 0→6 | ¥1.200 (L2) · ¥4.800 (L6) · ¥19.200 (L12) · ¥60.000 (L20) · ¥140.000 (L30) · ¥260.000 (L42) | +0,08 popolarità per livello |
+| `up_ticket` | Barra ordini | 0→3 | ¥20.000 (L13) · ¥60.000 (L22) · ¥140.000 (L31) | 12 → 16 → 20 → 24 biglietti. Serve quando ci sono i cuochi: la cucina rallenta i nuovi clienti con 3 + 3 per cuoco ordini in attesa, quindi 12 biglietti bastano fino a tre cuochi |
+| `up_jukebox` | Jukebox | 0→4 | ¥5.000 (L4) · ¥40.000 (L14) · ¥130.000 (L27) · ¥240.000 (L37) | +15 / +40 / +90 / +150 ambiente |
+| `up_safe` | Cassaforte (guadagni offline) | 0→5 | ¥10.000 (L6) · ¥40.000 (L12) · ¥80.000 (L19) · ¥150.000 (L26) · ¥250.000 (L34) | senza: 1 h al 5% (per tutti) · poi 2/4/8/12/24 h al 10/15/20/25/30% |
+| `up_autorestock` | Riordino automatico | 0→1 | ¥90.000 (L21, serve un Magazziniere) | ordina da solo sotto soglia |
 
 ### Pubblicità (consumabili, durano 1 giornata)
 | ID | Nome | Costo | Effetto |
@@ -359,7 +361,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `staff_sushi_chef` | Cuoco sushi | 9 | ¥15.000 | ¥900 | 0,8 (piatti/min ≈ 3) |
 | `staff_ramen_chef` | Cuoco ramen | 10 | ¥18.000 | ¥1.000 | 0,8 |
 | `staff_line_cook` | Cuoco di linea | 13 | ¥24.000 | ¥1.100 | 0,8 |
-| `staff_manager` | Manager | 18 | ¥120.000 | ¥3.000 | — (+10% velocità a tutti) |
+| `staff_manager` | Manager | 18 | ¥90.000 | ¥3.000 | — (+10% velocità a tutti) |
 
 - **Addestramento** (livelli 1→5): costo `assunzione × 0,8 × 2,2^(livello−1)`; +15% velocità per livello.
 - **Posti personale**: 2 con il locale base, +1 per Sala Est, Sala Ovest, Terrazza e Sala tatami; +3 con la Cucina professionale; +3 con il Secondo piano. Massimo 12 (14 con il pass **Personale extra**, che aggiunge 2 posti in qualsiasi momento).
@@ -374,14 +376,14 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `zone_east` | Sala Est | 3 | ¥3.000 | +32×32 | sblocca i tavoli |
 | `zone_storage2` | Magazzino ampliato | 5 | ¥6.000 | +24×32 | |
 | `zone_west` | Sala Ovest | 8 | ¥12.000 | +32×56 | |
-| `zone_terrace` | Terrazza esterna | 12 | ¥60.000 | 72×10 sulla strada | esterno |
-| `zone_garden` | Giardino zen | 15 | ¥100.000 | 48×36 sul retro | esterno |
-| `zone_tatami` | Sala tatami privata | 18 | ¥180.000 | 32×32 | clienti VIP |
-| `zone_kitchen_pro` | Cucina professionale | 20 | ¥250.000 | +32×14 di cucina | +3 posti personale |
-| `zone_floor2` | Secondo piano | 25 | ¥600.000 | 72×46 + scala ad angolo larga 8 (rampe da 13 gradini, pianerottolo su una cassettiera, ringhiere su tutti i lati aperti) | +3 posti personale |
-| `sign_rooftop` | Insegna gigante | 28 | ¥500.000 | — | +0,3 popolarità |
-| `facade_deluxe` | Facciata deluxe | 30 | ¥1.000.000 | — | +60 ambiente |
-| `zone_rooftop` | Terrazza sul tetto | 35 | ¥2.000.000 | 72×46 esterno + scala ad angolo | vista, fuochi d'artificio |
+| `zone_terrace` | Terrazza esterna | 12 | ¥50.000 | 72×10 sulla strada | esterno |
+| `zone_garden` | Giardino zen | 15 | ¥75.000 | 48×36 sul retro | esterno |
+| `zone_tatami` | Sala tatami privata | 18 | ¥110.000 | 32×32 | clienti VIP |
+| `zone_kitchen_pro` | Cucina professionale | 20 | ¥140.000 | +32×14 di cucina | +3 posti personale |
+| `zone_floor2` | Secondo piano | 25 | ¥220.000 | 72×46 + scala ad angolo larga 8 (rampe da 13 gradini, pianerottolo su una cassettiera, ringhiere su tutti i lati aperti) | +3 posti personale |
+| `sign_rooftop` | Insegna gigante | 28 | ¥180.000 | — | +0,3 popolarità |
+| `facade_deluxe` | Facciata deluxe | 30 | ¥250.000 | — | +60 ambiente |
+| `zone_rooftop` | Terrazza sul tetto | 35 | ¥360.000 | 72×46 esterno + scala ad angolo | vista, fuochi d'artificio |
 
 ### 8.1 Ristrutturazioni (estetiche, `reno` in `Config/Expansions.luau`)
 Il locale iniziale è spoglio. Ogni ristrutturazione si compra una volta; l'atmosfera si somma come quella delle decorazioni. Le voci con *stile* aggiungono il gruppo `Detail_<stile>` ai modelli piazzati.

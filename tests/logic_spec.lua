@@ -461,3 +461,52 @@ test("wall decorations hang where the pointer is", function()
   expect(ok, "noren on the 5-stud grid: " .. tostring(reason))
   expect(Placement.wallSpot(ctx, walls, { x = 0, y = 1, z = 20 }, { x = 0, y = 1, z = 0 }, inside, item.size, 1, 0) == nil, "no wall near the middle of the room")
 end)
+
+test("upgrade tables are complete and prices stay within reach", function()
+  for _, u in ipairs(Upgrades.list) do
+    expect(#u.costs == u.max and #u.levels == u.max and #u.values == u.max + 1, u.id .. ": costs, levels and values match max")
+    for i = 2, u.max do
+      expect(u.levels[i] >= u.levels[i - 1] and u.costs[i] > u.costs[i - 1], u.id .. ": level " .. i .. " comes later and costs more")
+    end
+    if u.pct then
+      expect(#u.pct == u.max + 1, u.id .. ": one percentage per level")
+    end
+  end
+  -- what is new at every level: shop things (upgrade steps, licences, rooms, renovations, staff)
+  -- and catalog items
+  local dearest, any = {}, {}
+  local function add(level, cost)
+    dearest[level] = math.max(dearest[level] or 0, cost)
+    any[level] = true
+  end
+  for _, u in ipairs(Upgrades.list) do
+    for i = 1, u.max do
+      add(u.levels[i], u.costs[i])
+    end
+  end
+  for _, l in ipairs(Licenses.list) do
+    add(l.level, l.cost)
+  end
+  for _, e in ipairs(Expansions.list) do
+    if e.cost > 0 then
+      add(e.lv, e.cost)
+    end
+  end
+  for _, s in ipairs(StaffCfg.list) do
+    add(s.lv, s.hire)
+  end
+  for _, it in ipairs(Items.list) do
+    any[it.lv or 1] = true
+  end
+  for level = 2, 45 do
+    expect(any[level], "something new at level " .. level)
+  end
+  -- the yen earned while climbing one level are about 8 per XP point (docs/03, section 6): from
+  -- level 12 on, the dearest new thing of a level costs at most 3.5 levels of earnings
+  for level = 12, 50 do
+    local earn = 8 * Formulas.xpForLevel(level)
+    if dearest[level] then
+      expect(dearest[level] <= 3.5 * earn, "level " .. level .. ": ¥" .. dearest[level] .. " is more than 3.5 levels of earnings (¥" .. earn .. " each)")
+    end
+  end
+end)

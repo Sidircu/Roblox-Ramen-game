@@ -242,4 +242,30 @@ C.UI.close("Supplier")
 Sim.press(Enum.KeyCode.U)
 Sim.check("U opens the shop", C.UI.current == "Shop", tostring(C.UI.current))
 C.UI.close("Shop")
+
+-- three dishes on the tray in first person: the stack goes down so the crosshair stays clear
+Sim.fire(p, "SetSetting", "cam", "first")
+task.wait(1.5)
+Sim.check("first person can be chosen on a phone", C.Camera.isFirstPerson())
+if C.Camera.isFirstPerson() then
+	S.Hands.set(p, "dish", { { recipe = "shoyu_ramen" }, { recipe = "shoyu_ramen" }, { recipe = "shoyu_ramen" } }, plot)
+	task.wait(0.5)
+	local cam = workspace.CurrentCamera
+	local top, n = -math.huge, 0
+	for _, m in ipairs(cam:GetChildren()) do
+		if m:IsA("Model") and m.Name == "Dish" then
+			n += 1
+			-- the highest corner of every part, measured along the camera's up direction
+			for _, part in ipairs(m:GetDescendants()) do
+				if part:IsA("BasePart") then
+					local c = cam.CFrame:ToObjectSpace(part.CFrame)
+					local half = math.abs(c.XVector.Y) * part.Size.X / 2 + math.abs(c.YVector.Y) * part.Size.Y / 2 + math.abs(c.ZVector.Y) * part.Size.Z / 2
+					top = math.max(top, c.Position.Y + half)
+				end
+			end
+		end
+	end
+	Sim.check("three dishes in view under the crosshair", n == 3 and top < -0.3, n .. " copies, top " .. string.format("%.2f", top))
+	S.Hands.clear(p)
+end
 Sim.check("server closes cleanly", Sim.close())

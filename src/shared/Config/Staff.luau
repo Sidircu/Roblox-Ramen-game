@@ -7,7 +7,7 @@ local list = {
 	{ id = "staff_sushi_chef", icon = "🍣", lv = 9, hire = 15000, salary = 900, tasks = { "cook" }, stations = { "sushi" }, shirt = "#F4F1EA" },
 	{ id = "staff_ramen_chef", icon = "🍜", lv = 10, hire = 18000, salary = 1000, tasks = { "cook", "appliance" }, stations = { "ramen" }, shirt = "#F4F1EA" },
 	{ id = "staff_line_cook", icon = "🍤", lv = 13, hire = 24000, salary = 1100, tasks = { "cook" }, stations = { "drink", "griddle", "fryer", "takoyaki", "dessert" }, shirt = "#B3262E" },
-	{ id = "staff_manager", icon = "🎩", lv = 18, hire = 120000, salary = 3000, tasks = {}, manager = true, shirt = "#1E1E22" },
+	{ id = "staff_manager", icon = "🎩", lv = 18, hire = 90000, salary = 3000, tasks = {}, manager = true, shirt = "#1E1E22" },
 }
 
 local byId = {}

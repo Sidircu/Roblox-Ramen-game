@@ -90,3 +90,26 @@ end
 local days = d.stats.days
 task.wait(15 * 60)
 Sim.check("a day passed without pressing anything", d.stats.days == days + 1, "days " .. tostring(days) .. " -> " .. tostring(d.stats.days))
+
+-- a product with nowhere to go: when every shelf slot holds other products, a box of tuna in the
+-- storage room does not put tuna dishes on the menu (nobody could cook them); a free slot does
+d.licenses.lic_sushi0 = true
+d.licenses.lic_sushi1 = true
+d.menu.maguro_nigiri = { on = true, price = 1 }
+local shelves = S.Entities.ofKind("shelf", plot)
+for _, e in ipairs(shelves) do
+	d.shelves[e.uid] = { ["1"] = { g = "noodles", n = 5 }, ["2"] = { g = "scallion", n = 5 }, ["3"] = { g = "naruto", n = 5 }, ["4"] = { g = "salmon", n = 3 } }
+end
+table.insert(d.storage, { u = "b_tuna_test", g = "tuna", n = 12 })
+local function offers(id)
+	plot.menuCache = nil
+	for _, r in ipairs(S.Customers.availableMenu(plot)) do
+		if r.id == id then
+			return true
+		end
+	end
+	return false
+end
+Sim.check("shelves full of other products: no tuna dishes on offer", #shelves >= 1 and S.Supply.boxCount(plot, "tuna") == 1 and not offers("maguro_nigiri") and offers("shoyu_ramen"))
+d.shelves[shelves[1].uid]["4"] = nil
+Sim.check("a free slot puts them back on the menu", offers("maguro_nigiri"))

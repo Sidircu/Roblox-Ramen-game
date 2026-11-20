@@ -62,6 +62,10 @@ local function clearViews()
 	end
 end
 
+-- highest point of the held items above the base point in front of the camera (2.05 below the
+-- eyes): anything higher would cover the crosshair, so a taller stack is shown lower
+local HELD_TOP = 1.7
+
 -- copies of the held items (the character itself is hidden in first person)
 local function syncViews(char, hrp)
 	for m, v in pairs(views) do
@@ -93,7 +97,15 @@ local function syncViews(char, hrp)
 				clone.Parent = workspace.CurrentCamera
 				-- boxes sit low (they are big); dishes and ingredients a little higher to stay in view
 				local lift = m.Name == "Box" and 0 or 0.5
-				views[m] = { clone = clone, rel = CFrame.new(0, lift, 0) * hrp.CFrame:ToObjectSpace(m:GetPivot()) }
+				-- how far the top of the copy is above its pivot
+				local okSize, box, size = pcall(function()
+					return clone:GetBoundingBox()
+				end)
+				local above = 0.5
+				if okSize and box and size then
+					above = clone:GetPivot():PointToObjectSpace(box.Position).Y + size.Y / 2
+				end
+				views[m] = { clone = clone, rel = CFrame.new(0, lift, 0) * hrp.CFrame:ToObjectSpace(m:GetPivot()), above = above }
 			end
 		end
 	end
@@ -131,6 +143,14 @@ local function updateViews(dt)
 	bob += dt * (moving and 9 or 1.6)
 	local amp = moving and 0.05 or 0.015
 	local base = cam.CFrame * CFrame.new(0.45 + math.cos(bob * 0.5) * amp, -2.05 + math.abs(math.sin(bob)) * amp, -0.9)
+	-- a tall stack (several dishes or boxes) goes down so its top stays under the crosshair
+	local top = -math.huge
+	for _, v in pairs(views) do
+		top = math.max(top, v.rel.Position.Y + v.above)
+	end
+	if top > HELD_TOP then
+		base = base * CFrame.new(0, HELD_TOP - top, 0)
+	end
 	for _, v in pairs(views) do
 		v.clone:PivotTo(base * v.rel)
 	end

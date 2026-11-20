@@ -650,6 +650,21 @@ function chooseSlot(e, g, requested)
 	return nil
 end
 
+-- true when some shelf of the restaurant has room for ingredient g (an empty slot, or a slot of g
+-- that is not full): a box of g in storage can then go on a shelf
+function Supply.canShelve(plot, g)
+	local ing = Ingredients.byId[g]
+	if not ing then
+		return false
+	end
+	for _, e in ipairs(Core.S.Entities.ofKind("shelf", plot)) do
+		if not (e.item.fn.fishOnly and ing.storage ~= "fish") and chooseSlot(e, g) then
+			return true
+		end
+	end
+	return false
+end
+
 -- Shelf interaction for players and staff
 function Supply.useShelf(actor, e, slot)
 	local Hands = Core.S.Hands

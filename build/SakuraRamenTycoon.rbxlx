@@ -409,27 +409,27 @@ local list = {
 	{ id = "zone_east", lv = 3, cost = 3000, requires = { "zone_base" }, zones = { { id = "east_dining", rect = { -68, 0, -36, 32 }, floor = 0, area = "dining", room = "main" } } },
 	{ id = "zone_storage2", lv = 5, cost = 6000, requires = { "zone_base" }, zones = { { id = "storage2", rect = { 60, 24, 84, 56 }, floor = 0, area = "storage", room = "storage" } } },
 	{ id = "zone_west", lv = 8, cost = 12000, requires = { "zone_east" }, zones = { { id = "west_dining", rect = { -100, 0, -68, 56 }, floor = 0, area = "dining", room = "main" } } },
-	{ id = "zone_terrace", lv = 12, cost = 60000, requires = { "zone_base" }, zones = { { id = "terrace", rect = { -36, -10, 36, 0 }, floor = 0, area = "outdoor", outdoor = true, gaps = { { axis = "z", at = -10, from = -4, to = 4 } } } } },
+	{ id = "zone_terrace", lv = 12, cost = 50000, requires = { "zone_base" }, zones = { { id = "terrace", rect = { -36, -10, 36, 0 }, floor = 0, area = "outdoor", outdoor = true, gaps = { { axis = "z", at = -10, from = -4, to = 4 } } } } },
 	{
-		id = "zone_garden", lv = 15, cost = 100000, requires = { "zone_base" },
+		id = "zone_garden", lv = 15, cost = 75000, requires = { "zone_base" },
 		zones = { { id = "garden", rect = { -36, 46, 12, 82 }, floor = 0, area = "garden", outdoor = true } },
 		openings = { { floor = 0, axis = "z", at = 46, from = -17, to = -10, kind = "door" } },
 	},
 	{
-		id = "zone_tatami", lv = 18, cost = 180000, requires = { "zone_west" },
+		id = "zone_tatami", lv = 18, cost = 110000, requires = { "zone_west" },
 		zones = { { id = "tatami", rect = { -100, 56, -68, 88 }, floor = 0, area = "tatami", room = "tatami", floorStyle = "floor_tatami", wallStyle = "wall_shoji" } },
 		openings = { { floor = 0, axis = "z", at = 56, from = -88, to = -81, kind = "door" } },
 	},
-	{ id = "zone_kitchen_pro", lv = 20, cost = 250000, requires = { "zone_east" }, zones = { { id = "kitchen_pro", rect = { -68, 32, -36, 46 }, floor = 0, area = "kitchen", room = "main" } } },
+	{ id = "zone_kitchen_pro", lv = 20, cost = 140000, requires = { "zone_east" }, zones = { { id = "kitchen_pro", rect = { -68, 32, -36, 46 }, floor = 0, area = "kitchen", room = "main" } } },
 	{
-		id = "zone_floor2", lv = 25, cost = 600000, requires = { "zone_base" },
+		id = "zone_floor2", lv = 25, cost = 220000, requires = { "zone_base" },
 		zones = { { id = "floor2", rect = { -36, 0, 36, 46 }, floor = 1, area = "dining", room = "f2" } },
 		stairs = { cornerStairs(0, -1) },
 	},
-	{ id = "sign_rooftop", lv = 28, cost = 500000, requires = { "zone_base" }, popularity = 0.3, cosmetic = true, reno = "exterior" },
-	{ id = "facade_deluxe", lv = 30, cost = 1000000, requires = { "zone_base" }, ambience = 60, cosmetic = true, reno = "exterior" },
+	{ id = "sign_rooftop", lv = 28, cost = 180000, requires = { "zone_base" }, popularity = 0.3, cosmetic = true, reno = "exterior" },
+	{ id = "facade_deluxe", lv = 30, cost = 250000, requires = { "zone_base" }, ambience = 60, cosmetic = true, reno = "exterior" },
 	{
-		id = "zone_rooftop", lv = 35, cost = 2000000, requires = { "zone_floor2" },
+		id = "zone_rooftop", lv = 35, cost = 360000, requires = { "zone_floor2" },
 		zones = { { id = "rooftop", rect = { -36, 0, 36, 46 }, floor = 2, area = "outdoor", outdoor = true } },
 		stairs = { cornerStairs(1, 1) },
 	},
@@ -950,13 +950,13 @@ local list = {
 	{ id = "lic_sushi3", branch = "sushi", level = 14, cost = 45000, rating = 3.5, requires = { "lic_sushi2" }, recipes = { "temaki_salmon", "dragon_roll" } },
 	{ id = "lic_ramen3", branch = "ramen", level = 16, cost = 60000, rating = 3.5, requires = { "lic_ramen2" }, recipes = { "tonkotsu_ramen", "tantanmen" } },
 	{ id = "lic_fryer", branch = "extra", level = 18, cost = 80000, rating = 0, requires = { "lic_griddle" }, recipes = { "ebi_tempura", "karaage" } },
-	{ id = "lic_sushi4", branch = "sushi", level = 22, cost = 150000, rating = 4.0, requires = { "lic_sushi3" }, recipes = { "sashimi_moriawase", "ikura_gunkan" } },
-	{ id = "lic_street", branch = "extra", level = 24, cost = 180000, rating = 0, requires = { "lic_fryer" }, recipes = { "takoyaki" } },
-	{ id = "lic_ramen4", branch = "ramen", level = 25, cost = 220000, rating = 4.0, requires = { "lic_ramen3" }, recipes = { "tsukemen" } },
-	{ id = "lic_dessert", branch = "extra", level = 28, cost = 300000, rating = 0, requires = { "lic_sides" }, recipes = { "mochi", "matcha_latte", "ramune" } },
-	{ id = "lic_sushi_master", branch = "sushi", level = 35, cost = 900000, rating = 4.5, requires = { "lic_sushi4" }, recipes = { "otoro_nigiri", "omakase" } },
-	{ id = "lic_ramen_master", branch = "ramen", level = 38, cost = 1200000, rating = 4.5, requires = { "lic_ramen4" }, recipes = { "mayu_ramen" } },
-	{ id = "lic_grandmaster", branch = "master", level = 45, cost = 3000000, rating = 4.7, requires = { "lic_sushi_master", "lic_ramen_master" }, recipes = { "kaiseki" } },
+	{ id = "lic_sushi4", branch = "sushi", level = 22, cost = 110000, rating = 4.0, requires = { "lic_sushi3" }, recipes = { "sashimi_moriawase", "ikura_gunkan" } },
+	{ id = "lic_street", branch = "extra", level = 24, cost = 120000, rating = 0, requires = { "lic_fryer" }, recipes = { "takoyaki" } },
+	{ id = "lic_ramen4", branch = "ramen", level = 25, cost = 140000, rating = 4.0, requires = { "lic_ramen3" }, recipes = { "tsukemen" } },
+	{ id = "lic_dessert", branch = "extra", level = 28, cost = 160000, rating = 0, requires = { "lic_sides" }, recipes = { "mochi", "matcha_latte", "ramune" } },
+	{ id = "lic_sushi_master", branch = "sushi", level = 35, cost = 240000, rating = 4.5, requires = { "lic_sushi4" }, recipes = { "otoro_nigiri", "omakase" } },
+	{ id = "lic_ramen_master", branch = "ramen", level = 38, cost = 280000, rating = 4.5, requires = { "lic_ramen4" }, recipes = { "mayu_ramen" } },
+	{ id = "lic_grandmaster", branch = "master", level = 45, cost = 400000, rating = 4.7, requires = { "lic_sushi_master", "lic_ramen_master" }, recipes = { "kaiseki" } },
 }
 
 local byId = {}
@@ -1209,7 +1209,7 @@ local list = {
 	{ id = "staff_sushi_chef", icon = "🍣", lv = 9, hire = 15000, salary = 900, tasks = { "cook" }, stations = { "sushi" }, shirt = "#F4F1EA" },
 	{ id = "staff_ramen_chef", icon = "🍜", lv = 10, hire = 18000, salary = 1000, tasks = { "cook", "appliance" }, stations = { "ramen" }, shirt = "#F4F1EA" },
 	{ id = "staff_line_cook", icon = "🍤", lv = 13, hire = 24000, salary = 1100, tasks = { "cook" }, stations = { "drink", "griddle", "fryer", "takoyaki", "dessert" }, shirt = "#B3262E" },
-	{ id = "staff_manager", icon = "🎩", lv = 18, hire = 120000, salary = 3000, tasks = {}, manager = true, shirt = "#1E1E22" },
+	{ id = "staff_manager", icon = "🎩", lv = 18, hire = 90000, salary = 3000, tasks = {}, manager = true, shirt = "#1E1E22" },
 }
 
 local byId = {}
@@ -1373,22 +1373,27 @@ local function geometric(base, factor, count)
 	return out
 end
 
+-- Prices follow the income: until level 11 the dearest new thing costs about 1.5 levels of
+-- earnings; later levels cost 1-2 levels each, and from level 31 to 44 every level brings the next
+-- step of an upgrade (docs/03, section 6).
 local list = {
-	{ id = "up_tray", icon = "🍱", max = 4, costs = { 900, 6000, 30000, 120000 }, levels = { 2, 8, 18, 30 }, values = { 1, 2, 3, 4, 5 }, effect = "tray" },
-	{ id = "up_shoes", icon = "👟", max = 5, costs = geometric(600, 3, 5), levels = { 1, 4, 8, 14, 22 }, values = { 1, 1.08, 1.16, 1.24, 1.32, 1.40 }, effect = "walk" },
-	{ id = "up_knife", icon = "🔪", max = 4, costs = { 1200, 12000, 80000, 350000 }, levels = { 2, 8, 16, 28 }, values = { 1, 0.9, 0.81, 0.73, 0.66 }, effect = "step" },
-	{ id = "up_mat", icon = "🎋", max = 3, costs = { 1800, 18000, 120000 }, levels = { 3, 10, 20 }, values = { 1, 0.88, 0.77, 0.68 }, effect = "step" },
-	{ id = "up_strainer", icon = "🥢", max = 3, costs = { 1800, 18000, 120000 }, levels = { 3, 10, 20 }, values = { 1, 0.88, 0.77, 0.68 }, effect = "step" },
-	{ id = "up_shelf", icon = "🗄️", max = 3, costs = { 5000, 30000, 200000 }, levels = { 4, 12, 24 }, values = { 1, 1.25, 1.5, 1.75 }, effect = "shelf" },
+	{ id = "up_tray", icon = "🍱", max = 5, costs = { 900, 6000, 30000, 100000, 220000 }, levels = { 2, 8, 18, 30, 40 }, values = { 1, 2, 3, 4, 5, 6 }, effect = "tray" },
+	{ id = "up_shoes", icon = "👟", max = 5, costs = geometric(600, 3, 5), levels = { 1, 4, 8, 14, 23 }, values = { 1, 1.08, 1.16, 1.24, 1.32, 1.40 }, effect = "walk" },
+	{ id = "up_knife", icon = "🔪", max = 5, costs = { 1200, 12000, 60000, 150000, 300000 }, levels = { 2, 8, 16, 29, 44 }, values = { 1, 0.9, 0.81, 0.73, 0.66, 0.6 }, effect = "step" },
+	{ id = "up_mat", icon = "🎋", max = 4, costs = { 1800, 18000, 90000, 260000 }, levels = { 3, 10, 20, 41 }, values = { 1, 0.88, 0.77, 0.68, 0.6 }, effect = "step" },
+	{ id = "up_strainer", icon = "🥢", max = 4, costs = { 1800, 18000, 90000, 280000 }, levels = { 3, 10, 21, 43 }, values = { 1, 0.88, 0.77, 0.68, 0.6 }, effect = "step" },
+	{ id = "up_shelf", icon = "🗄️", max = 4, costs = { 5000, 30000, 120000, 200000 }, levels = { 4, 12, 24, 33 }, values = { 1, 1.25, 1.5, 1.75, 2 }, effect = "shelf" },
 	-- deliveries are immediate (the truck takes a few seconds): this upgrade is a box cart instead
 	{ id = "up_cart", icon = "🛒", max = 2, costs = { 1500, 12000 }, levels = { 3, 10 }, values = { 1, 2, 3 }, effect = "cart" },
-	{ id = "up_supplier", icon = "📦", max = 2, costs = { 20000, 200000 }, levels = { 10, 25 }, values = { 0, 0.10, 0.20 }, effect = "discount" },
-	{ id = "up_sign", icon = "🏮", max = 5, costs = geometric(1200, 4, 5), levels = { 2, 6, 12, 20, 30 }, values = { 0, 0.08, 0.16, 0.24, 0.32, 0.40 }, effect = "popularity" },
-	-- customers order by themselves: the order bar holds one ticket per seat at least
-	{ id = "up_ticket", icon = "🧾", max = 2, costs = { 6000, 60000 }, levels = { 5, 15 }, values = { 12, 16, 20 }, effect = "tickets" },
-	{ id = "up_jukebox", icon = "🎶", max = 3, costs = { 5000, 50000, 300000 }, levels = { 4, 14, 26 }, values = { 0, 15, 40, 90 }, effect = "ambience" },
-	{ id = "up_safe", icon = "💰", max = 5, costs = geometric(10000, 4, 5), levels = { 6, 12, 18, 26, 34 }, values = { 1, 2, 4, 8, 12, 24 }, pct = { 0.05, 0.10, 0.15, 0.20, 0.25, 0.30 }, effect = "offline" },
-	{ id = "up_autorestock", icon = "🔁", max = 1, costs = { 120000 }, levels = { 20 }, values = { 0, 1 }, effect = "autorestock", needsStaff = "staff_stocker" },
+	-- big boxes (three small ones in one) at a discount
+	{ id = "up_supplier", icon = "📦", max = 3, costs = { 20000, 120000, 240000 }, levels = { 10, 26, 39 }, values = { 0, 0.10, 0.20, 0.30 }, effect = "discount" },
+	{ id = "up_sign", icon = "🏮", max = 6, costs = { 1200, 4800, 19200, 60000, 140000, 260000 }, levels = { 2, 6, 12, 20, 30, 42 }, values = { 0, 0.08, 0.16, 0.24, 0.32, 0.40, 0.48 }, effect = "popularity" },
+	-- more orders on the rail: it matters once cooks join (the kitchen slows new customers when
+	-- 3 + 3 per cook orders wait), so it comes with the line cook
+	{ id = "up_ticket", icon = "🧾", max = 3, costs = { 20000, 60000, 140000 }, levels = { 13, 22, 31 }, values = { 12, 16, 20, 24 }, effect = "tickets" },
+	{ id = "up_jukebox", icon = "🎶", max = 4, costs = { 5000, 40000, 130000, 240000 }, levels = { 4, 14, 27, 37 }, values = { 0, 15, 40, 90, 150 }, effect = "ambience" },
+	{ id = "up_safe", icon = "💰", max = 5, costs = { 10000, 40000, 80000, 150000, 250000 }, levels = { 6, 12, 19, 26, 34 }, values = { 1, 2, 4, 8, 12, 24 }, pct = { 0.05, 0.10, 0.15, 0.20, 0.25, 0.30 }, effect = "offline" },
+	{ id = "up_autorestock", icon = "🔁", max = 1, costs = { 90000 }, levels = { 21 }, values = { 0, 1 }, effect = "autorestock", needsStaff = "staff_stocker" },
 }
 
 local byId = {}
@@ -13733,8 +13738,10 @@ function Service.availableMenu(plot)
 	for _, r in ipairs(Core.S.Progression.menuRecipes(d)) do
 		local ok = stations[r.station] == true
 		if ok then
+			-- on a shelf, or in a box that has a place on a shelf: a box that fits nowhere (the
+			-- shelves are full of other products) cannot be cooked, so nobody orders that dish
 			for _, g in ipairs(r.ing) do
-				if Supply.shelfStock(plot, g) <= 0 and Supply.boxCount(plot, g) <= 0 then
+				if Supply.shelfStock(plot, g) <= 0 and not (Supply.boxCount(plot, g) > 0 and Supply.canShelve(plot, g)) then
 					ok = false
 					break
 				end
@@ -20676,6 +20683,21 @@ function chooseSlot(e, g, requested)
 	return nil
 end
 
+-- true when some shelf of the restaurant has room for ingredient g (an empty slot, or a slot of g
+-- that is not full): a box of g in storage can then go on a shelf
+function Supply.canShelve(plot, g)
+	local ing = Ingredients.byId[g]
+	if not ing then
+		return false
+	end
+	for _, e in ipairs(Core.S.Entities.ofKind("shelf", plot)) do
+		if not (e.item.fn.fishOnly and ing.storage ~= "fish") and chooseSlot(e, g) then
+			return true
+		end
+	end
+	return false
+end
+
 -- Shelf interaction for players and staff
 function Supply.useShelf(actor, e, slot)
 	local Hands = Core.S.Hands
@@ -23772,6 +23794,10 @@ local function clearViews()
 	end
 end
 
+-- highest point of the held items above the base point in front of the camera (2.05 below the
+-- eyes): anything higher would cover the crosshair, so a taller stack is shown lower
+local HELD_TOP = 1.7
+
 -- copies of the held items (the character itself is hidden in first person)
 local function syncViews(char, hrp)
 	for m, v in pairs(views) do
@@ -23803,7 +23829,15 @@ local function syncViews(char, hrp)
 				clone.Parent = workspace.CurrentCamera
 				-- boxes sit low (they are big); dishes and ingredients a little higher to stay in view
 				local lift = m.Name == "Box" and 0 or 0.5
-				views[m] = { clone = clone, rel = CFrame.new(0, lift, 0) * hrp.CFrame:ToObjectSpace(m:GetPivot()) }
+				-- how far the top of the copy is above its pivot
+				local okSize, box, size = pcall(function()
+					return clone:GetBoundingBox()
+				end)
+				local above = 0.5
+				if okSize and box and size then
+					above = clone:GetPivot():PointToObjectSpace(box.Position).Y + size.Y / 2
+				end
+				views[m] = { clone = clone, rel = CFrame.new(0, lift, 0) * hrp.CFrame:ToObjectSpace(m:GetPivot()), above = above }
 			end
 		end
 	end
@@ -23841,6 +23875,14 @@ local function updateViews(dt)
 	bob += dt * (moving and 9 or 1.6)
 	local amp = moving and 0.05 or 0.015
 	local base = cam.CFrame * CFrame.new(0.45 + math.cos(bob * 0.5) * amp, -2.05 + math.abs(math.sin(bob)) * amp, -0.9)
+	-- a tall stack (several dishes or boxes) goes down so its top stays under the crosshair
+	local top = -math.huge
+	for _, v in pairs(views) do
+		top = math.max(top, v.rel.Position.Y + v.above)
+	end
+	if top > HELD_TOP then
+		base = base * CFrame.new(0, HELD_TOP - top, 0)
+	end
 	for _, v in pairs(views) do
 		v.clone:PivotTo(base * v.rel)
 	end

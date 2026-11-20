@@ -16,6 +16,7 @@ the client scripts run too, remotes go both ways and the GUI is laid out like on
   python3 tools/sim.py core saves       # only these
   python3 tools/sim.py --verbose core   # also print notifications and game prints
   python3 tools/sim.py progression --hours=4   # a slow one (first line "-- (slow)"): a bot plays for hours
+  python3 tools/sim.py progression --status    # ... with a status line every 20 minutes of play
   python3 tools/sim.py --seed=7 core           # another random sequence (runs are the same for a seed)
 Requires: pip install lupa
 """
@@ -96,8 +97,9 @@ def main():
     failed = 0
     hours = next((float(a.split("=", 1)[1]) for a in sys.argv[1:] if a.startswith("--hours=")), None)
     seed = next((int(a.split("=", 1)[1]) for a in sys.argv[1:] if a.startswith("--seed=")), None)
+    status = "--status" in sys.argv[1:]
     for name in chosen:
-        ok = run(name, verbose, hours, seed)
+        ok = run(name, verbose, hours, seed, status)
         failed += 0 if ok else 1
     print(f"\n{len(chosen) - failed} scenario(s) passed, {failed} failed")
     return 1 if failed else 0
@@ -138,11 +140,12 @@ def run_scenario(lua, path, label, max_time=6 * 3600):
     return lua.globals().Sim.runScenario(scenario, "@scenarios/" + label + ".lua", max_time)
 
 
-def run(name, verbose, hours=None, seed=None):
+def run(name, verbose, hours=None, seed=None, status=False):
     t0 = time.time()
     lua = make_runtime(verbose, seed=seed)
     if hours:
         lua.globals().Sim.progressionHours = hours
+    lua.globals().Sim.progressionStatus = status
     print(f"=== scenario {name}")
     result = run_scenario(lua, os.path.join(SIM, "scenarios", name + ".lua"), name, 30 * 3600)
     errors = list(lua.globals().Sim.errors.values())

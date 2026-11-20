@@ -439,6 +439,7 @@ local function levelAndRooms()
 	return true
 end
 local lastBuyCheck = 0
+local lastStatus = 0
 local lastClaim = 0
 -- how long the shop had nothing the bot could buy (what a player sees as the shop badge at 0)
 local dryFor, dryMax60, lastDry = 0, 0, Sim.now
@@ -504,6 +505,20 @@ while Sim.now < endAt do
 	if not firstStaff and #d.staff > 0 then
 		firstStaff = mins()
 	end
+	-- a status line every 20 minutes (Sim.progressionStatus = true)
+	if Sim.progressionStatus and Sim.now - lastStatus >= 1200 then
+		lastStatus = Sim.now
+		local empty = {}
+		for g in pairs(needs()) do
+			if S.Supply.shelfStock(plot, g) == 0 then
+				table.insert(empty, g .. (S.Supply.boxCount(plot, g) > 0 and "(box)" or ""))
+			end
+		end
+		table.sort(empty)
+		Sim.say(string.format("  [%3.0fm] L%d ¥%d ★%.2f staff %d · boxes %d/%d · dishes %d/%d dirty %d · tickets %d · empty: %s",
+			mins(), d.level, math.floor(d.yen), S.Progression.rating(plot), #d.staff, #d.storage, S.Supply.capacity(plot), d.dishes.clean, d.dishes.total,
+			#S.Entities.ofKind("dirty", plot), #S.Cooking.ticketsOf(plot), table.concat(empty, " ")))
+	end
 	if not franchiseAt and S.Franchise.check(d, plot) then
 		franchiseAt = mins()
 	end
@@ -553,6 +568,24 @@ for st = 1, 5, 0.5 do
 	end
 end
 Sim.say(string.format("customers served %d, left %d; last reviews %s", math.floor(d.stats.customers or 0), left, table.concat(hl, " ")))
+-- what the restaurant looks like at the end (a falling income usually shows up here)
+local tally = {}
+for _, k in ipairs(Sim.noticesFor(p)) do
+	tally[k] = (tally[k] or 0) + 1
+end
+local tl = {}
+for k, n in pairs(tally) do
+	table.insert(tl, k .. " ×" .. n)
+end
+table.sort(tl)
+Sim.say("notices: " .. table.concat(tl, ", "))
+local shelfNeeds = needs()
+local stock = {}
+for g in pairs(shelfNeeds) do
+	table.insert(stock, g .. " " .. S.Supply.shelfStock(plot, g) .. "+" .. S.Supply.boxCount(plot, g) .. "📦")
+end
+table.sort(stock)
+Sim.say(string.format("end: boxes %d/%d, clean dishes %d/%d, dirty %d; shelves %s", #d.storage, S.Supply.capacity(plot), d.dishes.clean, d.dishes.total, #S.Entities.ofKind("dirty", plot), table.concat(stock, ", ")))
 local gaps, last, maxGap60 = {}, 0, 0
 for _, b in ipairs(bought) do
 	local gap = b.t - last

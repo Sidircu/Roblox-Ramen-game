@@ -47,7 +47,7 @@ Apri un piccolo ramen-ya in un vicolo giapponese illuminato da lanterne. All'ini
 | Fine gioco | 30–50 | 25–55 h (stima) | Piatti da maestro, tetto, collezioni complete |
 | Franchise | ×5 città | + molte ore | Ricominci in una nuova città con bonus permanenti e piatti regionali; ogni città chiede un po' di più (livello 11 → 16 → 20 → 25 → 30) |
 
-**Ritmo** (misurato con un giocatore automatico che gioca con il server vero, `python3 tools/sim.py progression --hours=4`): nella prima ora il negozio non resta mai più di un minuto e mezzo senza niente di comprabile; il primo aiutante a 9 minuti, il livello 5 verso i 20 minuti, la Sala Ovest verso l'ora e mezza, il livello 10 verso le 2 ore, il livello 11 con le tre stanze del primo franchise in 2 ore e 50 minuti – 3 ore (con la valutazione ★4 verso le 3 ore e mezza). Un giocatore che arreda, assume cuochi e gioca con gli amici (bonus squadra) va più veloce.
+**Ritmo** (misurato con un giocatore automatico che gioca con il server vero, `python3 tools/sim.py progression --hours=4`): nella prima ora il negozio non resta mai più di due minuti senza niente di comprabile; il primo aiutante a 9 minuti, il livello 5 verso i 18 minuti, la Sala Ovest verso l'ora e mezza, il livello 10 verso le 2 ore, il livello 11 con le tre stanze del primo franchise in 2 ore e mezza – 2 ore e 50 minuti. Un giocatore che arreda, assume cuochi, compra mensole per i prodotti nuovi e gioca con gli amici (bonus squadra) va più veloce. Dopo il livello 11 ogni acquisto costa da 1 a 3 livelli di guadagni, e fino al livello 45 ogni livello sblocca qualcosa.
 
 ---
 
@@ -139,7 +139,7 @@ Il ristorante è **aperto appena arrivi** e nessuna schermata ferma il gioco. Fu
 - Il personaggio si muove **liberamente** con WASD (PC) o joystick (telefono/tablet).
 - L'oggetto che puoi usare (quello al centro dello schermo in prima persona; in terza persona quello sotto il mouse o, senza mouse, il più vicino davanti a te) si illumina e mostra un **ProximityPrompt** di Roblox con cosa succede: «🍜 Cuoci i noodles · Shoyu Ramen (1/3)», «Servi», «Lava i piatti».
 - **E** (tastiera), **X** (gamepad) o un **tocco sul pulsante** (telefono) eseguono l'azione; vanno bene anche il clic o il tocco sull'oggetto. Se sei troppo lontano compare "Avvicinati".
-- Il personaggio porta gli oggetti **visibilmente in mano** (scatole, piatti, stoviglie sporche); i piatti e le stoviglie dipendono dal **Vassoio** (1 all'inizio, fino a 5). Gli ingredienti non si portano più a mano: le postazioni li prendono da sole dagli scaffali.
+- Il personaggio porta gli oggetti **visibilmente in mano** (scatole, piatti, stoviglie sporche); i piatti e le stoviglie dipendono dal **Vassoio** (1 all'inizio, fino a 6). Gli ingredienti non si portano più a mano: le postazioni li prendono da sole dagli scaffali.
 
 ---
 
@@ -180,7 +180,7 @@ Il ristorante è **aperto appena arrivi** e nessuna schermata ferma il gioco. Fu
 ## 5. Cucina
 
 ### 5.1 Ordini
-- Il cliente si siede, guarda il menu un attimo e **ordina da solo**: la nuvoletta sopra la testa mostra l'icona del piatto e la barra della pazienza, e l'ordine diventa un **biglietto** a sinistra (fino a 12 biglietti, uno per posto; 16 e 20 con il miglioramento).
+- Il cliente si siede, guarda il menu un attimo e **ordina da solo**: la nuvoletta sopra la testa mostra l'icona del piatto e la barra della pazienza, e l'ordine diventa un **biglietto** a sinistra (fino a 12 biglietti; 16, 20 e 24 con il miglioramento Barra ordini, che serve quando in cucina lavorano i cuochi).
 - Toccando un biglietto si apre la **guida dell'ordine** e si illumina la postazione da usare.
 
 ### 5.1 bis La postazione fa da sola
@@ -302,7 +302,7 @@ Finale: Gran Maestro (richiede entrambi i Maestri)
 ```
 
 ### 8.4 Miglioramenti (upgrade)
-Vassoio (capienza), scarpe da cucina (velocità), coltelli, stuoie e scolapasta (passaggi più veloci), pentoloni e rice cooker (lotti più grandi), mensole più capienti, consegna più rapida, fornitore premium, insegna luminosa (più clienti), frigorifero professionale (qualità), jukebox (ambiente), cassaforte (guadagni offline), barra ordini più lunga. Dettagli in [`03-BILANCIAMENTO.md`](03-BILANCIAMENTO.md#6-miglioramenti).
+Vassoio (capienza), scarpe da cucina (velocità), coltello, stuoia e scolapasta (passaggi più veloci), mensole rinforzate (più prodotti per scaffale), carrello per scatole, fornitore premium (scatole grandi scontate), insegna luminosa (più clienti), barra ordini (più biglietti, utile con i cuochi), jukebox (ambiente), cassaforte (guadagni offline), riordino automatico (con il magazziniere). Pentoloni, cuociriso e frigoriferi sono oggetti da piazzare. Ogni miglioramento costa da 1 a 2 livelli di guadagni, così arriva poco dopo lo sblocco; dal livello 31 al 44 ogni livello porta un passo nuovo, fino alla fine. Dettagli in [`03-BILANCIAMENTO.md`](03-BILANCIAMENTO.md#6-miglioramenti).
 
 ### 8.5 Espansioni
 Il locale cresce per **zone**. Ogni espansione aggiunge una zona: muri, pavimento e tetto vengono ricostruiti in automatico attorno alla nuova forma, con un'animazione di cantiere (impalcature e polvere per 3 secondi).

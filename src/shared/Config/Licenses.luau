@@ -15,13 +15,13 @@ local list = {
 	{ id = "lic_sushi3", branch = "sushi", level = 14, cost = 45000, rating = 3.5, requires = { "lic_sushi2" }, recipes = { "temaki_salmon", "dragon_roll" } },
 	{ id = "lic_ramen3", branch = "ramen", level = 16, cost = 60000, rating = 3.5, requires = { "lic_ramen2" }, recipes = { "tonkotsu_ramen", "tantanmen" } },
 	{ id = "lic_fryer", branch = "extra", level = 18, cost = 80000, rating = 0, requires = { "lic_griddle" }, recipes = { "ebi_tempura", "karaage" } },
-	{ id = "lic_sushi4", branch = "sushi", level = 22, cost = 150000, rating = 4.0, requires = { "lic_sushi3" }, recipes = { "sashimi_moriawase", "ikura_gunkan" } },
-	{ id = "lic_street", branch = "extra", level = 24, cost = 180000, rating = 0, requires = { "lic_fryer" }, recipes = { "takoyaki" } },
-	{ id = "lic_ramen4", branch = "ramen", level = 25, cost = 220000, rating = 4.0, requires = { "lic_ramen3" }, recipes = { "tsukemen" } },
-	{ id = "lic_dessert", branch = "extra", level = 28, cost = 300000, rating = 0, requires = { "lic_sides" }, recipes = { "mochi", "matcha_latte", "ramune" } },
-	{ id = "lic_sushi_master", branch = "sushi", level = 35, cost = 900000, rating = 4.5, requires = { "lic_sushi4" }, recipes = { "otoro_nigiri", "omakase" } },
-	{ id = "lic_ramen_master", branch = "ramen", level = 38, cost = 1200000, rating = 4.5, requires = { "lic_ramen4" }, recipes = { "mayu_ramen" } },
-	{ id = "lic_grandmaster", branch = "master", level = 45, cost = 3000000, rating = 4.7, requires = { "lic_sushi_master", "lic_ramen_master" }, recipes = { "kaiseki" } },
+	{ id = "lic_sushi4", branch = "sushi", level = 22, cost = 110000, rating = 4.0, requires = { "lic_sushi3" }, recipes = { "sashimi_moriawase", "ikura_gunkan" } },
+	{ id = "lic_street", branch = "extra", level = 24, cost = 120000, rating = 0, requires = { "lic_fryer" }, recipes = { "takoyaki" } },
+	{ id = "lic_ramen4", branch = "ramen", level = 25, cost = 140000, rating = 4.0, requires = { "lic_ramen3" }, recipes = { "tsukemen" } },
+	{ id = "lic_dessert", branch = "extra", level = 28, cost = 160000, rating = 0, requires = { "lic_sides" }, recipes = { "mochi", "matcha_latte", "ramune" } },
+	{ id = "lic_sushi_master", branch = "sushi", level = 35, cost = 240000, rating = 4.5, requires = { "lic_sushi4" }, recipes = { "otoro_nigiri", "omakase" } },
+	{ id = "lic_ramen_master", branch = "ramen", level = 38, cost = 280000, rating = 4.5, requires = { "lic_ramen4" }, recipes = { "mayu_ramen" } },
+	{ id = "lic_grandmaster", branch = "master", level = 45, cost = 400000, rating = 4.7, requires = { "lic_sushi_master", "lic_ramen_master" }, recipes = { "kaiseki" } },
 }
 
 local byId = {}
