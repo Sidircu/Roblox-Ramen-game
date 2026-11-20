@@ -147,11 +147,18 @@ return {
 		reach = 380,
 	},
 	LoadingBay = { x = 50, z = 12 },
-	-- the delivery driver leaves the boxes on the floor here: inside the storage room, between the
-	-- loading door and the kitchen door (a grid of spots, two boxes high), short way to the shelves
-	DropZone = { x0 = 37, x1 = 44.5, z0 = 25, z1 = 33.5, layers = 2 },
+	-- the van stops here (its middle) with the cargo door towards the storage room, a little before
+	-- the loading door so the boxes have room
+	TruckStop = { x = 50, z = 6 },
+	-- the delivery driver leaves the boxes on the ground here: just outside the storage room's
+	-- loading door (the door is x 45-55 at z = 24), on its left so the doorway stays free; a grid of
+	-- spots, two boxes high
+	DropZone = { x0 = 39, x1 = 47.5, z0 = 17, z1 = 23, layers = 2 },
 	Supplier = { x = 35.7, y = 5, z = 35 },
 	MenuBoard = { x = -12, z = -2.6 },
+	-- the LED OPEN / CLOSED sign on a post on the sidewalk, just right of the door (y = the middle
+	-- of the board, at eye level): using it opens or closes the restaurant
+	OpenSign = { x = 7, y = 4.9, z = -2.6 },
 	PlotBounds = { -110, -14, 96, 100 },
 	-- strip in front of the street wall kept free for the facade details
 	FacadeBand = { -110, -1.6, 96, 0 },

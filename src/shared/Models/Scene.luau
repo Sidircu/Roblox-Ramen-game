@@ -207,7 +207,7 @@ function Scene.shell(shell, geo, data)
 					above = true
 				end
 			end
-			B.wall(shell, seg, fy, above and GameConfig.FloorHeight or GameConfig.WallHeight, 0.8, wallStyle, outsideSign, exterior)
+			B.wall(shell, seg, fy, above and GameConfig.FloorHeight or GameConfig.WallHeight, GameConfig.WallThickness, wallStyle, outsideSign, exterior)
 			-- interior finishes on each indoor side
 			if sideA then
 				B.wallTrim(shell, seg, fy, -1, sideA.area, GameConfig.WallHeight, trim)
@@ -274,7 +274,7 @@ function Scene.shell(shell, geo, data)
 		l:SetAttribute("Animate", "sway")
 		l.CanQuery = false
 	end
-	local label = B.openSign(shell, 6.4, 5.2, -0.55)
+	local label = nil -- (the LED OPEN sign by the door says it now)
 	if data.zones.sign_rooftop then
 		local topY = floorY(topFloor) + GameConfig.WallHeight + 2
 		local board = Kit.box(shell, 20, 5, 0.6, 0, topY + 3.5, 2, P.black, P.M.smooth, { collide = false })
@@ -305,13 +305,19 @@ function Scene.shell(shell, geo, data)
 	board:SetAttribute("Uid", "fixed_menu")
 	board:SetAttribute("Kind", "menuboard")
 	CollectionService:AddTag(board, "Interactable")
+	-- LED OPEN / CLOSED sign next to the door: using it opens or closes the restaurant
+	local signAt = Expansions.OpenSign
+	local openSign = B.ledSign(shell, signAt.x, signAt.y, signAt.z)
+	openSign:SetAttribute("Uid", "fixed_opensign")
+	openSign:SetAttribute("Kind", "opensign")
+	CollectionService:AddTag(openSign, "Interactable")
 
 	for _, d in ipairs(shell:GetDescendants()) do
 		if d:IsA("BasePart") then
 			d.CollisionGroup = "Shell"
 		end
 	end
-	return { openLabel = label }
+	return { openLabel = label, openSign = openSign }
 end
 
 -- A plot nobody owns yet: a low construction fence along the street and a lantern sign

@@ -30,6 +30,9 @@ profile.meta.lastSeen = os.time() - 3 * 3600
 profile.stats.dayHistory = { 3000, 3000 }
 profile.stats.dishes = 1234
 profile.settings.lang = "it"
+-- saved before version 12, with the old "medium" camera speed
+profile.v = 11
+profile.settings.camSpeed = 1
 Sim.store("ds", "Profiles_v1").__data["u_2001"] = { data = profile }
 
 local p = Sim.addPlayer({ userId = 2001, name = "Kenji" })
@@ -139,6 +142,21 @@ if gui then
 end
 local earned = mineBoard and mineBoard:FindFirstChild("Panel_earned")
 Sim.check("the yen board writes yen", earned and earned:FindFirstChild("Ranking") and earned.Ranking.Row1.Value.Text == Format.yen(2500000, Locale.get()), earned and earned:FindFirstChild("Ranking") and earned.Ranking.Row1.Value.Text)
+
+-- Settings → Sensitivity: the old medium became the new, faster medium; only the three choices
+local Sens = GameConfig.Sensitivity
+Sim.check("old saves get the new medium sensitivity", d.settings.camSpeed == Sens.Medium, tostring(d.settings.camSpeed))
+Sim.fire(p, "SetSetting", "camSpeed", Sens.High)
+task.wait(0.3)
+Sim.check("high sensitivity is saved", d.settings.camSpeed == Sens.High, tostring(d.settings.camSpeed))
+Sim.fire(p, "SetSetting", "camSpeed", 9)
+task.wait(0.3)
+Sim.check("a made-up sensitivity is refused", d.settings.camSpeed == Sens.High, tostring(d.settings.camSpeed))
+C.UI.open("Settings")
+task.wait(0.5)
+Sim.check("the settings offer high, medium and low", Sim.findText(t("ui.sens_high")) ~= nil and Sim.findText(t("ui.sens_medium")) ~= nil and Sim.findText(t("ui.sens_low")) ~= nil)
+Sim.snapshot("settings_sensitivity")
+C.UI.close("Settings")
 
 -- the Extra staff pass: two more places in the team
 local base = S.Progression.staffSlots(d)

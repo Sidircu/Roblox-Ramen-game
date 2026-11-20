@@ -135,7 +135,7 @@ end
 -- when the server reports this action; timer: seconds on screen; reward: gift asked to the server
 -- when the step starts; progress: text added to the banner; skippable: shows the ▶ button
 local STEPS = {
-	{ id = "welcome", icon = "🏮", key = "tut.welcome", timer = 4 },
+	{ id = "welcome", icon = "🏮", key = "tut.welcome", timer = TutorialCfg.WelcomeSeconds },
 	{ id = "order", icon = "🧑", key = "tut.order", world = function()
 		return nearestOf("customer")
 	end, check = anyTicket },
@@ -197,14 +197,23 @@ function Tutorial.currentKey()
 	return st and st.key or nil
 end
 
--- true while a step is on screen (the HUD hides today's objective, the tips wait)
+-- true while a step is on screen or the first one is about to show (the HUD hides today's
+-- objective, the tips wait)
+local starting = false
 function Tutorial.active()
-	return panel ~= nil and panel.Visible
+	return starting or (panel ~= nil and panel.Visible)
+end
+
+-- the text for the device you play with: tut.cook_pc / tut.cook_touch / tut.cook_pad when it
+-- exists, otherwise tut.cook
+local function deviceKey(key)
+	local k = key .. "_" .. Core.C.UI.inputMode()
+	return Locale.has(k) and k or key
 end
 
 local function stepText(st)
 	local params = { yen = Format.yen(TutorialCfg.ServeYen, Locale.get()), n = TutorialCfg.DoneSakura }
-	local s = t(st.key, params)
+	local s = t(deviceKey(st.key), params)
 	if st.progress then
 		s ..= "  (" .. st.progress() .. ")"
 	end
@@ -300,7 +309,8 @@ end
 
 function Tutorial.onAction(kind)
 	local st = STEPS[index]
-	if st and st.action and st.action == kind then
+	-- (too early: the step's check moves on once it has been on screen long enough)
+	if st and st.action and st.action == kind and os.clock() - stepStarted >= TutorialCfg.MinStepSeconds then
 		advance()
 	end
 end
@@ -322,7 +332,16 @@ function Tutorial.Init()
 	end
 	local tile = Kit.new("Frame", { Position = UDim2.fromOffset(10, 10), Size = UDim2.fromOffset(56, 56), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = panel }, { Kit.corner(28) })
 	iconLabel = Kit.label("", { Parent = tile, Position = UDim2.fromOffset(8, 8), Size = UDim2.new(1, -16, 1, -16), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
-	text = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 6), Size = UDim2.new(1, -164, 0, 44), TextSize = 17, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center })
+	text = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 6), Size = UDim2.new(1, -164, 0, 44), TextSize = 17, TextScaled = true, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center })
+	-- 17 points, a little smaller when a longer text needs three lines
+	Kit.new("UITextSizeConstraint", { MaxTextSize = 17, MinTextSize = 12, Parent = text })
+	-- a different device (touch after the mouse, a gamepad...) changes the words at once
+	UserInputService.LastInputTypeChanged:Connect(function()
+		local st = STEPS[index]
+		if st and panel.Visible then
+			text.Text = stepText(st)
+		end
+	end)
 	dots = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 50), Size = UDim2.new(1, -164, 0, 18), TextSize = 12, TextColor3 = T.gold, FontFace = T.bold, TextWrapped = false })
 	local buttons = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(76, 66), Parent = panel }, { Kit.list(Enum.FillDirection.Vertical, 4, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
 	nextButton = Kit.button("▶", { parent = buttons, size = UDim2.fromOffset(76, 30), style = "gold", textSize = 15, order = 1, onClick = function()
@@ -366,6 +385,15 @@ function Tutorial.Start()
 	end
 	skipButton.Text = t("ui.skip")
 	if index > 0 and index <= #STEPS and Data.role() == "owner" then
+		-- the first card waits until the loading screen is gone and your restaurant is built
+		starting = true
+		local pg = player:WaitForChild("PlayerGui")
+		local waited = 0
+		while waited < TutorialCfg.StartWait and (pg:FindFirstChild("Loading") or not Data.plotAttr("Ready")) do
+			task.wait(0.25)
+			waited += 0.25
+		end
+		starting = false
 		show()
 	else
 		index = -1
@@ -396,7 +424,7 @@ function Tutorial.Start()
 			if st.progress then
 				text.Text = stepText(st)
 			end
-			if st.check and st.check(stepState) then
+			if st.check and os.clock() - stepStarted >= TutorialCfg.MinStepSeconds and st.check(stepState) then
 				advance()
 			elseif st.timer and os.clock() - stepStarted > st.timer then
 				advance()

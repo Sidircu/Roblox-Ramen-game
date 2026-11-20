@@ -219,7 +219,7 @@ function Placement.validate(ctx, req, skipPath)
 			resolved.x = best.line + ((req.x < best.line) and -half or half)
 		end
 		resolved.r = rot
-		local y = req.y or (floorY + 6)
+		local y = req.y or (floorY + (ctx.wallItemY or 6))
 		if y - h / 2 < floorY + 0.3 or y + h / 2 > floorY + ctx.wallHeight - 0.3 then
 			return false, "msg.place_height"
 		end
@@ -288,6 +288,49 @@ function Placement.validate(ctx, req, skipPath)
 		return true, nil, resolved
 	end
 	return false, "msg.invalid"
+end
+
+-- Where a wall decoration goes when the pointer meets a wall (build mode). hit = { x, y, z } in
+-- restaurant coordinates, normal = { x, y, z } of the face that was hit, stand = { x, z } where the
+-- player stands, size = { w, h, d } of the item, g = grid step, fy = floor height. The wall comes
+-- from the wall plan (the one validate checks against), so the spot is flat on the wall: half the
+-- wall's thickness + half the item's depth from its middle line. Aiming at the top of a wall (the
+-- build view looks down on them) hangs it on the side you stand on, at the usual height.
+-- Returns x, z, y (nil when no wall is near the pointer).
+function Placement.wallSpot(ctx, floorWalls, hit, normal, stand, size, g, fy)
+	local seg, best = nil, math.huge
+	for _, s in ipairs(floorWalls.walls) do
+		local dist = Walls.distance(s, hit.x, hit.z)
+		if dist < best then
+			seg, best = s, dist
+		end
+	end
+	if not seg or best > 2 then
+		return nil
+	end
+	local w, h, d = size[1], size[2], size[3]
+	local onFace = math.abs(normal.y) < 0.5
+	local side = 0
+	if onFace then
+		side = seg.axis == "z" and normal.z or normal.x
+	end
+	if math.abs(side) < 0.5 then
+		side = seg.axis == "z" and (stand.z - seg.line) or (stand.x - seg.line)
+	end
+	side = side >= 0 and 1 or -1
+	local step = (g and g > 0) and g or 1
+	local along = Walls.along(seg, hit.x, hit.z)
+	local a = math.floor((along - w / 2) / step + 0.5) * step + w / 2
+	a = math.max(seg.a + w / 2, math.min(a, seg.b - w / 2))
+	local aimY = onFace and hit.y or (fy + (ctx.wallItemY or 6))
+	local ystep = math.min(step, 5)
+	local y = math.floor((aimY - h / 2 - fy) / ystep + 0.5) * ystep + h / 2 + fy
+	y = math.max(fy + h / 2 + 0.3, math.min(y, fy + ctx.wallHeight - h / 2 - 0.3))
+	local half = ctx.wallThickness / 2 + d / 2
+	if seg.axis == "z" then
+		return a, seg.line + side * half, y
+	end
+	return seg.line + side * half, a, y
 end
 
 return Placement

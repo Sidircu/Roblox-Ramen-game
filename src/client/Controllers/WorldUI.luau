@@ -21,6 +21,17 @@ local boards = {} -- [Instance] = { gui, title, sub, bar, fill }
 local RANGE = 45
 local TYPE_ICON = { cust_critic = "🧐", cust_influencer = "📱", cust_vip = "💎", cust_celebrity = "⭐" }
 
+-- a dark outline around the letters: the words read on any background without a box
+local function outline(label, thickness)
+	local s = Instance.new("UIStroke")
+	s.Color = Color.hex("#1E1612")
+	s.Thickness = thickness
+	s.LineJoinMode = Enum.LineJoinMode.Round
+	s.Parent = label
+end
+
+-- Words over stations, pots, dirty dishes, the tip jar and staff: only the text (no box around
+-- it), white with a dark outline, the same size as before
 local function make(adornee, height, width)
 	local gui = Instance.new("BillboardGui")
 	gui.Size = UDim2.fromOffset(width or 210, 66)
@@ -31,32 +42,25 @@ local function make(adornee, height, width)
 	gui.Adornee = adornee
 	local bg = Instance.new("Frame")
 	bg.Size = UDim2.fromScale(1, 1)
-	bg.BackgroundColor3 = Color.hex("#F4EBDD")
-	bg.BackgroundTransparency = 0.05
+	bg.BackgroundTransparency = 1
 	bg.Parent = gui
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, 12)
-	c.Parent = bg
-	local s = Instance.new("UIStroke")
-	s.Color = Color.hex("#5B3A24")
-	s.Thickness = 2
-	s.Parent = bg
 	local title = Instance.new("TextLabel")
 	title.BackgroundTransparency = 1
 	title.Size = UDim2.new(1, -8, 0.55, 0)
 	title.Position = UDim2.fromOffset(4, 2)
 	title.TextScaled = true
-	title.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
-	title.TextColor3 = Color.hex("#2B2320")
+	title.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Heavy)
+	title.TextColor3 = Color.hex("#FFFFFF")
 	title.AutoLocalize = false
 	title.Parent = bg
+	outline(title, 3)
 	local sub = Instance.new("TextLabel")
 	sub.BackgroundTransparency = 1
 	sub.Size = UDim2.new(1, -8, 0.32, 0)
 	sub.Position = UDim2.new(0, 4, 0.56, 0)
 	sub.TextScaled = true
-	sub.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Medium)
-	sub.TextColor3 = Color.hex("#7A6A5A")
+	sub.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
+	sub.TextColor3 = Color.hex("#FFE7B8")
 	sub.AutoLocalize = false
 	sub.Parent = bg
 	local bar = Instance.new("Frame")
@@ -75,8 +79,9 @@ local function make(adornee, height, width)
 	local fillCorner = Instance.new("UICorner")
 	fillCorner.CornerRadius = UDim.new(0, 4)
 	fillCorner.Parent = fill
+	outline(sub, 2.5)
 	gui.Parent = player.PlayerGui
-	return { gui = gui, bg = bg, title = title, sub = sub, bar = bar, fill = fill }
+	return { gui = gui, bg = bg, title = title, sub = sub, bar = bar, fill = fill, textOnly = true }
 end
 
 -- Customer bubble: sized in studs (2.7 wide, narrower than the 3 studs between two stools, so
@@ -158,6 +163,10 @@ local function icons(list)
 end
 
 local function setBar(b, value, show)
+	-- (labels made of words only have no bar: the words say how full or how long)
+	if b.textOnly then
+		show = false
+	end
 	b.bar.Visible = show
 	if show then
 		b.fill.Size = UDim2.fromScale(math.clamp(value, 0, 1), 1)

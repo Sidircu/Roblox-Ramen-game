@@ -128,7 +128,7 @@ Il rifornimento (fornitore, furgone, scatole, scaffali a scacchiera) e il lavagg
 
 ### 3.2 La giornata
 
-Il ristorante è **sempre aperto**: nessun interruttore Apri/Chiuso, nessuna schermata che ferma il gioco.
+Il ristorante è **aperto appena arrivi** e nessuna schermata ferma il gioco. Fuori, subito a destra della porta, c'è un **cartello LED su un palo** con scritto **OPEN** (verde) o **CLOSED** (rosso): si usa come una postazione (E, clic o tocco) e apre o chiude il ristorante. Da chiuso non entrano nuovi clienti (chi è già dentro viene servito); accanto all'orologio compare «🔴 Chiuso». Possono usarlo il proprietario e i co-gestori; ogni volta che rientri il ristorante è di nuovo aperto.
 - L'orologio gira da solo: un'ora di gioco dura 45 secondi (15 di notte, dalle 23 alle 6, così la notte passa in fretta); un giorno intero dura circa 14 minuti.
 - Picco del pranzo (12:00–14:00) e della cena (19:00–21:00) con più clienti; di notte ne arrivano meno.
 - La luce cambia: giorno → tramonto arancione → sera con lanterne e neon accesi → notte breve.
@@ -152,7 +152,8 @@ Il ristorante è **sempre aperto**: nessun interruttore Apri/Chiuso, nessuna sch
 - Carrello → "Ordina". Con l'upgrade **Fornitore premium** compaiono le scatole grandi scontate.
 
 ### 4.2 Consegna
-- La consegna è **immediata**: il furgoncino arriva in circa 6 secondi, entra in retromarcia e il corriere **lascia le scatole a terra**, una alla volta, dentro il magazzino fra la porta di carico e la porta della cucina (fino a due scatole impilate per posto). Le porti tu sugli scaffali, che stanno subito oltre la porta della cucina.
+- La consegna è **immediata**: il furgoncino arriva in circa 6 secondi, entra in retromarcia e **si ferma poco prima del piazzale**; il corriere **lascia le scatole a terra**, una alla volta, **appena fuori dalla porta del magazzino**, a sinistra della porta (fino a due scatole impilate per posto), così il passaggio resta libero. Le porti tu sugli scaffali.
+- Due **pop-up con suono** avvisano chi lavora nel ristorante: «🚚 È arrivato il furgone! Sta scaricando 3 scatole…» (motore del furgone) e poi «📦 Consegna: 3 scatole · A terra fuori dalla porta del magazzino» (campanello).
 - Il miglioramento **Carrello per scatole** permette di portare 2 e poi 3 scatole insieme (+1 con il pass Carrello grande); usi quella giusta per lo scaffale o il pentolone che clicchi.
 - Ogni scatola ha un'etichetta con icona e nome dell'ingrediente e il numero di porzioni rimaste.
 - **Kit di soccorso**: se resti senza soldi e senza ingredienti per qualsiasi piatto, il fornitore ti regala quelli del piatto più economico (al massimo ogni 10 minuti), così non resti mai bloccato.
@@ -409,7 +410,7 @@ Struttura pronta per eventi a tempo, con decorazioni limitate e clienti speciali
 | Tipo | Esempi | Regola |
 |---|---|---|
 | Pavimento | sgabelli, tavoli, piante, statue | sulla griglia a terra |
-| Parete | quadri, noren, neon, rotoli | si aggancia al muro più vicino, con griglia lungo il muro |
+| Parete | quadri, noren, neon, rotoli | si aggancia al muro sotto il puntatore, appoggiato alla parete, con griglia lungo il muro; dalla vista dall'alto (si punta la cima del muro) va sul lato in cui ti trovi, all'altezza solita (6 stud dal pavimento); fuori dall'edificio non si appende |
 | Soffitto | lanterne appese, kokedama | si aggancia al soffitto |
 | Piano d'appoggio | maneki-neko, bonsai, ikebana | sopra bancone o tavoli |
 | Esterno | torii, koinobori, laghetto | solo nelle zone all'aperto (terrazza, giardino) |
@@ -443,7 +444,7 @@ Stile: carta washi color crema, bordi in legno scuro, accenti rosso lacca e oro,
 | A destra | **Gli ordini**, dal più vecchio (bordo dorato: è quello da cucinare ora): icona e nome del piatto, icone di cosa serve e barra della pazienza. Al massimo 3 sul telefono, 4 sul tablet, 5 sul computer (+N per gli altri). Toccandone uno si apre la **guida dell'ordine** a sinistra |
 | In basso | **Quattro pulsanti grandi**: 🛒 **Negozio** (con il numero di cose che puoi comprare adesso), 🔨 Costruisci, 📦 Fornitore, 📱 **Altro**. Sopra, cosa tieni in mano con **⬇ Posa** |
 | Altro (telefono) | Le funzioni che non servono ogni minuto, come app: Menu, Obiettivi, Regali, Invita, Premium, Codici, Come si gioca, Impostazioni |
-| Sopra gli oggetti | Barre di cottura, porzioni rimaste. Sopra i clienti una nuvoletta grande quanto un posto (non si sovrappone a quella del vicino), sempre visibile: icona grande (❗, il piatto, 😋), nome del piatto e barra della pazienza spessa (verde → gialla → rossa); lampeggia quando aspetta di ordinare |
+| Sopra gli oggetti | **Solo scritte**, senza riquadro: bianche e crema con un contorno scuro spesso, così si leggono su qualsiasi sfondo (nome e livello degli aiutanti, «Raccogli le stoviglie», brodo e riso con le porzioni rimaste, passo della postazione, barattolo delle mance). Sopra i clienti una nuvoletta grande quanto un posto (non si sovrappone a quella del vicino), sempre visibile: icona grande (❗, il piatto, 😋), nome del piatto e barra della pazienza spessa (verde → gialla → rossa); lampeggia quando aspetta di ordinare |
 | Fine giornata | Resoconto con grafico degli incassi della giornata |
 
 **Negozio** (un'unica finestra, cinque schede con il numero di acquisti possibili): ⬆️ Miglioramenti (con la sezione 📣 Pubblicità), 🍜 Ricette, 👥 Personale (la tua squadra da addestrare e chi assumere), 🏗️ Spazi, 🪚 Ristrutturazioni. Ogni scheda è una carta con l'icona grande, il nome, cosa fa (adesso → al prossimo livello) e un solo pulsante:
@@ -460,8 +461,8 @@ Prima le cose che puoi comprare (dalla più economica), poi quelle troppo care, 
 Altre schermate: inventario decorazioni, ricettario, obiettivi, premio giornaliero, guadagni offline, impostazioni (lingua, griglia, rotazione, volume musica/effetti, qualità grafica ridotta per dispositivi deboli).
 
 ### Tutorial
-Si parte con **solo il ramen shoyu**, gli **scaffali già pieni** (noodles, cipollotto, naruto), il pentolone pieno di brodo, il cuociriso pieno e una scatola di riserva in magazzino. Al livello 2 la licenza **Sashimi** (¥300) aggiunge un secondo piatto facilissimo (due fette di salmone, un taglio); il sushi con il riso arriva al livello 3. Postazione sushi e cuociriso mostrano un 🔒 con la licenza e il livello che servono. Il **tutorial dura circa due minuti** (in prova automatica meno di uno) e insegna tutto il ciclo, un passo alla volta. In alto al centro c'è una scheda con un'icona grande, una frase corta, i pallini dei passi e **Salta**. Una freccia luminosa gialla va da te all'oggetto da usare, con un ⬇ che rimbalza sopra di esso; sui pulsanti dell'interfaccia compaiono una mano 👇 e un anello che pulsa. I passi:
-1. benvenuto (4 s);
+Si parte con **solo il ramen shoyu**, gli **scaffali già pieni** (noodles, cipollotto, naruto), il pentolone pieno di brodo, il cuociriso pieno e una scatola di riserva in magazzino. Al livello 2 la licenza **Sashimi** (¥300) aggiunge un secondo piatto facilissimo (due fette di salmone, un taglio); il sushi con il riso arriva al livello 3. Postazione sushi e cuociriso mostrano un 🔒 con la licenza e il livello che servono. Il **tutorial dura circa due minuti** (in prova automatica meno di uno) e insegna tutto il ciclo, un passo alla volta. In alto al centro c'è una scheda con un'icona grande, una frase corta, i pallini dei passi e **Salta**. Una freccia luminosa gialla va da te all'oggetto da usare, con un ⬇ che rimbalza sopra di esso; sui pulsanti dell'interfaccia compaiono una mano 👇 e un anello che pulsa. Le frasi cambiano con il dispositivo che usi (e cambiano subito se passi da uno all'altro): con tastiera e mouse dicono **WASD**, **E** o clic e **Q per liberare il mouse sui pulsanti**; su telefono e tablet la levetta e i pulsanti da toccare; con il controller le levette e **X**. La prima scheda aspetta che la schermata di caricamento sia sparita e il ristorante costruito, e **ogni scheda resta almeno 3 secondi**, anche quando la cosa è già successa (il primo cliente può aver già ordinato). I passi:
+1. benvenuto, con i comandi del tuo dispositivo (7 s, o ▶);
 2. arriva un cliente e ordina da solo;
 3. premi la postazione del ramen: 🍜 → 🥣 → 🌱 (con il contatore 1/3, 2/3, 3/3);
 4. prendi la ciotola;
@@ -478,7 +479,8 @@ I passi che chiedono un'azione vanno avanti da soli quando la fai. I regali li d
 - gli scaffali di un ingrediente del menu si svuotano → 📦 Fornitore;
 - i piatti sporchi si accumulano → lavello;
 - nel negozio c'è qualcosa da comprare → 🛒;
-- si può assumere il primo aiutante → 🛒 → 👥.
+- si può assumere il primo aiutante → 🛒 → 👥;
+- dopo i primi 3 piatti serviti → il cartello OPEN accanto alla porta (apre e chiude il ristorante).
 
 Un consiglio alla volta, mai durante il tutorial o con una finestra aperta.
 
@@ -489,9 +491,9 @@ Toccando un ordine (a destra) si apre a sinistra una scheda con pochi passaggi b
 Un clic con una scatola su uno scaffale riempie **tutti** gli spazi liberi adatti, e un messaggio dice quante porzioni restano nella scatola. **Posa** (tasto G o ⬇) appoggia la scatola a terra davanti a te, visibile e da riprendere, oppure sulla scaffalatura se sei in magazzino. Gli ingredienti in mano tornano sullo scaffale più vicino, i piatti vanno al lavello. Un messaggio dice sempre dove è finito l'oggetto.
 
 ### Telecamera e comandi
-**Telecamera automatica** (predefinita): **terza persona** su telefono e tablet, **prima persona** con la tastiera; si cambia in Impostazioni → Telecamera. **Prima persona** (come in Supermarket Together): ci si guarda intorno con il mouse o trascinando un dito; un **pallino al centro** dello schermo indica cosa si sta puntando e sotto compare cosa succede cliccando (dorato quando sei abbastanza vicino). Clic o **E** per usare, **tasto destro** per posare la scatola (solo le scatole, così un piatto non si perde per sbaglio), **G** per posare qualsiasi cosa, **Shift** per correre, **Q** per liberare il mouse e usare i pulsanti (di nuovo Q per tornare a guardarti intorno; funziona anche Alt tenuto premuto (il mouse si libera da solo quando si apre un menu o in costruzione, dove la vista passa dall'alto). Scorciatoie: **U** negozio, **B** costruisci, **O** fornitore, **P** altro (telefono), **R** regali, **Invio** per il consiglio successivo del tutorial. Quello che hai in mano si vede davanti alla telecamera. Su telefono e tablet si tocca il pulsante che compare sopra l'oggetto, e accanto al salto c'è **🏃 Corri**.
+**Telecamera automatica** (predefinita): **terza persona** su telefono e tablet, **prima persona** con la tastiera; si cambia in Impostazioni → Telecamera. **Prima persona** (come in Supermarket Together): ci si guarda intorno con il mouse o trascinando un dito; un **pallino al centro** dello schermo indica cosa si sta puntando e sotto compare cosa succede cliccando (dorato quando sei abbastanza vicino). Clic o **E** per usare, **tasto destro** per posare la scatola (solo le scatole, così un piatto non si perde per sbaglio), **G** per posare qualsiasi cosa, **Shift** per correre, **Q** per liberare il mouse e usare i pulsanti (di nuovo Q per tornare a guardarti intorno; funziona anche Alt tenuto premuto (il mouse si libera da solo quando si apre un menu o in costruzione, dove la vista passa dall'alto). Scorciatoie: **U** negozio, **B** costruisci, **O** fornitore (funziona anche se Roblox usa O per lo zoom), **P** altro (telefono), **R** regali, **Invio** per il consiglio successivo del tutorial. Quello che hai in mano si vede davanti alla telecamera. Su telefono e tablet si tocca il pulsante che compare sopra l'oggetto, e accanto al salto c'è **🏃 Corri**.
 
-Nelle impostazioni si può scegliere anche la **terza persona** (telecamera morbida e lenta: tasto destro o un dito per girare, ← →, rotellina o due dita per lo zoom; non finisce dietro i muri e, se sei dentro e sale sopra il soffitto, il tetto sparisce) o la telecamera classica di Roblox. **Impostazioni → Sensibilità mouse / telecamera** (lenta, media, veloce) vale in tutte le modalità: in prima persona si somma alla sensibilità del menu di Roblox (Esc → Impostazioni).
+Nelle impostazioni si può scegliere anche la **terza persona** (telecamera morbida e lenta: tasto destro o un dito per girare, ← →, rotellina o due dita per lo zoom; non finisce dietro i muri e, se sei dentro e sale sopra il soffitto, il tetto sparisce) o la telecamera classica di Roblox. **Impostazioni → 🖱️ Sensibilità: Alta · Media · Bassa** (seconda riga, subito sotto la lingua) vale in tutte le modalità: in prima persona moltiplica la sensibilità del menu di Roblox (Esc → Impostazioni) per 2,4 / 1,6 / 1; la terza persona su telefono resta calma con «Media».
 
 ---
 

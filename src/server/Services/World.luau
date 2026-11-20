@@ -164,9 +164,7 @@ function World.rebuild(plot, data)
 	local f = World.folders(plot)
 	local result = Scene.shell(f.shell, World.geo(plot), data)
 	plot.openLabel = result.openLabel
-	if plot.openLabel then
-		plot.openLabel.Text = "営業中"
-	end
+	plot.openSign = result.openSign
 	-- a "for sale" sign on every ground-floor room that can be built next (its rooms before it
 	-- are owned); the sign goes when the room is bought (the shell is built again)
 	for _, e in ipairs(Expansions.list) do
@@ -186,22 +184,50 @@ function World.rebuild(plot, data)
 	-- the supplier tablet and menu board are per restaurant
 	for _, d in ipairs(f.shell:GetDescendants()) do
 		local uid = d:GetAttribute("Uid")
-		if uid == "fixed_supplier" or uid == "fixed_menu" then
+		if uid == "fixed_supplier" or uid == "fixed_menu" or uid == "fixed_opensign" then
 			d:SetAttribute("Uid", uid .. "_" .. plot.id)
 			d:SetAttribute("PlotId", plot.id)
 		end
 	end
 	quiet(f.shell)
 	Core.S.Plots.shift(f.shell, plot)
+	World.paintOpenSign(plot)
 	plot.folder:SetAttribute("City", data.franchise and data.franchise.city or "tokyo")
 	plot.folder:SetAttribute("Ready", true)
 	World.Rebuilt:Fire(plot)
+end
+
+-- the LED sign by the door and the small wooden plate say whether the restaurant is open
+-- (plot.closed, Plots.setOpen); clients read the plot's "Open" attribute
+function World.paintOpenSign(plot)
+	local open = not plot.closed
+	plot.folder:SetAttribute("Open", open)
+	if plot.openLabel then
+		plot.openLabel.Text = open and "営業中" or "準備中"
+	end
+	local board = plot.openSign and plot.openSign.PrimaryPart
+	if board then
+		for _, side in ipairs({ "Front", "Back" }) do
+			local gui = board:FindFirstChild(side)
+			local label = gui and gui:FindFirstChild("Label")
+			if label then
+				label.Text = open and "OPEN" or "CLOSED"
+				label.TextColor3 = open and Color3.fromRGB(92, 255, 122) or Color3.fromRGB(255, 59, 74)
+			end
+		end
+		local glow = board:FindFirstChild("Glow")
+		if glow then
+			glow.Color = open and Color3.fromRGB(92, 255, 122) or Color3.fromRGB(255, 59, 74)
+		end
+	end
 end
 
 -- the owner left: back to an empty lot
 function World.clear(plot)
 	plot.geo = nil
 	plot.openLabel = nil
+	plot.openSign = nil
+	plot.closed = false
 	local f = World.folders(plot)
 	f.items:ClearAllChildren()
 	f.dynamic:ClearAllChildren()

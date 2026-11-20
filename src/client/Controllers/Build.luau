@@ -85,7 +85,7 @@ local function worldY(entry, item)
 	elseif entry.s == "c" then
 		return floorY(entry.f) + GameConfig.WallHeight - item.size[2]
 	elseif entry.s == "w" then
-		return (entry.y or floorY(entry.f) + 6) - item.size[2] / 2
+		return (entry.y or floorY(entry.f) + GameConfig.WallItemY) - item.size[2] / 2
 	end
 	return entry.y or floorY(entry.f)
 end
@@ -271,14 +271,19 @@ local function buildRequest()
 			return nil
 		end
 		local f = hit.Instance:GetAttribute("FloorIndex") or 0
-		local n = hit.Normal
-		local alongX = math.abs(n.Z) > math.abs(n.X)
+		local floorWalls = geometry().walls[f]
+		if not floorWalls then
+			return nil
+		end
+		-- flat on the wall plan the server checks (Logic/Placement.wallSpot)
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 		local hx = hit.Position.X - ox()
-		local along = alongX and hx or hit.Position.Z
-		local a, y = Grid.snapWall(along, hit.Position.Y, w, h, g, floorY(f))
-		local off = 0.4 + d / 2 + 0.05
-		local x = alongX and a or hx + n.X * off
-		local z = alongX and hit.Position.Z + n.Z * off or a
+		local stand = root and { x = root.Position.X - ox(), z = root.Position.Z } or { x = hx, z = hit.Position.Z }
+		local x, z, y = PlacementLogic.wallSpot(ctx(), floorWalls, { x = hx, y = hit.Position.Y, z = hit.Position.Z },
+			{ x = hit.Normal.X, y = hit.Normal.Y, z = hit.Normal.Z }, stand, item.size, g, floorY(f))
+		if not x then
+			return nil
+		end
 		return { i = item.id, x = x, z = z, y = y, r = 0, f = f, s = code }
 	elseif code == "t" then
 		local folder = itemsFolder()

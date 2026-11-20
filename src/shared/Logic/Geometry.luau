@@ -90,7 +90,8 @@ function Geometry.ctx(geo, items, placed, cfg)
 		entrance = { x = 0, z = 0.75 },
 		floorHeight = cfg.FloorHeight,
 		wallHeight = cfg.WallHeight,
-		wallThickness = 0.8,
+		wallThickness = cfg.WallThickness or 0.8,
+		wallItemY = cfg.WallItemY or 6,
 	}
 end
 

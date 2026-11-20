@@ -332,7 +332,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `up_mat` | Stuoia makisu | 0→3 | ¥1.800 · ¥18.000 · ¥120.000 | −12% durata del passaggio A |
 | `up_strainer` | Scolapasta tebo | 0→3 | ¥1.800 · ¥18.000 · ¥120.000 | −12% durata dei passaggi N, B, C, F |
 | `up_shelf` | Mensole rinforzate | 0→3 | ¥5.000 · ¥30.000 · ¥200.000 | file di prodotti × 1,25 / 1,5 / 1,75 (arrotondate) |
-| `up_cart` | Carrello per scatole | 0→2 | ¥1.500 (L3) · ¥12.000 (L10) | scatole portate insieme 1 → 2 → 3 (il pass Carrello grande +1). Le consegne sono immediate: il furgone arriva in circa 6 s |
+| `up_cart` | Carrello per scatole | 0→2 | ¥1.500 (L3) · ¥12.000 (L10) | scatole portate insieme 1 → 2 → 3 (il pass Carrello grande +1). Le consegne sono immediate: il furgone arriva in circa 6 s, si ferma a `Expansions.TruckStop` (x 50, z 6) e lascia le scatole nella `DropZone` fuori dalla porta del magazzino (x 39–47,5, z 17–23: 12 posti per 2 piani = 24 scatole) |
 | `up_supplier` | Fornitore premium | 0→2 | ¥20.000 (L10) · ¥200.000 (L25) | scatole grandi −10% / −20% |
 | `up_sign` | Insegna luminosa | 0→5 | ¥1.200 × 4^n | +0,08 popolarità per livello |
 | `up_ticket` | Barra ordini | 0→2 | ¥6.000 · ¥60.000 | 12 → 16 → 20 biglietti (i clienti ordinano da soli: almeno un biglietto per posto) |
@@ -457,8 +457,10 @@ Totale ¥226.800 e +122 atmosfera (circa un livello di ambiente in più a metà 
 | Kit di soccorso | se nessun piatto del menu si può fare e i soldi non bastano per gli ingredienti mancanti, il fornitore regala quelli del piatto più economico (al massimo ogni 10 minuti) |
 | Mi piace | chi visita può mettere ❤️ una volta al giorno per ristorante; i Mi piace hanno una classifica globale |
 | Corsa | Shift o 🏃: velocità × 1,45 |
-| Tutorial (`Config/Tutorial.luau`) | dopo il primo piatto servito: ¥1.000 da spendere subito nel negozio; alla fine (primo piatto lavato): 🌸10; una volta per giocatore |
-| Consigli della prima volta | scaffali: un ingrediente del menu a 3 porzioni o meno · piatti: 3 sporchi nel lavello · negozio: qualcosa da comprare · personale: livello 6 senza aiutanti; ognuno resta 12 s, almeno 20 s tra due consigli |
+| Tutorial (`Config/Tutorial.luau`) | dopo il primo piatto servito: ¥1.000 da spendere subito nel negozio; alla fine (primo piatto lavato): 🌸10; una volta per giocatore. Benvenuto 7 s (`WelcomeSeconds`), ogni scheda almeno 3 s (`MinStepSeconds`), la prima aspetta la fine del caricamento al massimo 30 s (`StartWait`) |
+| Consigli della prima volta | scaffali: un ingrediente del menu a 3 porzioni o meno · piatti: 3 sporchi nel lavello · negozio: qualcosa da comprare · personale: livello 6 senza aiutanti · cartello OPEN: dopo 3 piatti serviti; ognuno resta 12 s, almeno 20 s tra due consigli |
+| Apertura | il ristorante è aperto a ogni ingresso; il cartello OPEN/CLOSED accanto alla porta lo chiude (nessun nuovo cliente) e lo riapre; solo proprietario e co-gestori, a meno di 17 stud dal cartello |
+| Sensibilità (`GameConfig.Sensitivity`) | Alta ×2,4 · Media ×1,6 (predefinita) · Bassa ×1 sulla sensibilità del mouse di Roblox in prima persona; la terza persona usa la scelta divisa per Media (Media = velocità di prima) |
 
 ---
 

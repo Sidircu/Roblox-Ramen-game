@@ -31,18 +31,19 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 	for _, g in ipairs(GameConfig.GridSizes) do
 		table.insert(grids, { label = g .. " stud", value = g })
 	end
-	choice(2, "📐 " .. t("ui.grid_size"), grids, s.grid or 1, "grid")
+	choice(4, "📐 " .. t("ui.grid_size"), grids, s.grid or 1, "grid")
 	local rots = {}
 	for _, r in ipairs(GameConfig.RotationSteps) do
 		table.insert(rots, { label = r .. "°", value = r })
 	end
-	choice(3, "🔄 " .. t("ui.rotation_step"), rots, s.rot or 90, "rot")
+	choice(5, "🔄 " .. t("ui.rotation_step"), rots, s.rot or 90, "rot")
 	local vols = { { label = "0%", value = 0 }, { label = "25%", value = 0.25 }, { label = "50%", value = 0.5 }, { label = "100%", value = 1 } }
-	choice(4, "🎵 " .. t("ui.music"), vols, s.music or 0.5, "music")
-	choice(5, "🔊 " .. t("ui.sfx"), vols, s.sfx or 0.8, "sfx")
-	choice(7, "🎥 " .. t("ui.camera"), { { label = t("ui.auto"), value = "auto", width = 70 }, { label = t("ui.cam_first"), value = "first", width = 110 }, { label = t("ui.cam_game"), value = "game", width = 110 }, { label = "Roblox", value = "roblox", width = 76 } }, s.cam or "auto", "cam")
-	choice(8, "🐢 " .. t("ui.cam_speed"), { { label = t("ui.slow"), value = 0.6 }, { label = t("ui.medium"), value = 1 }, { label = t("ui.fast"), value = 1.6 } }, s.camSpeed or 1, "camSpeed")
-	choice(6, "🖥️ " .. t("ui.low_graphics"), { { label = t("ui.on"), value = true }, { label = t("ui.off"), value = false } }, s.lowGfx == true, "lowGfx")
+	choice(6, "🎵 " .. t("ui.music"), vols, s.music or 0.5, "music")
+	choice(7, "🔊 " .. t("ui.sfx"), vols, s.sfx or 0.8, "sfx")
+	choice(3, "🎥 " .. t("ui.camera"), { { label = t("ui.auto"), value = "auto", width = 70 }, { label = t("ui.cam_first"), value = "first", width = 110 }, { label = t("ui.cam_game"), value = "game", width = 110 }, { label = "Roblox", value = "roblox", width = 76 } }, s.cam or "auto", "cam")
+	local S = GameConfig.Sensitivity
+	choice(2, "🖱️ " .. t("ui.cam_speed"), { { label = t("ui.sens_high"), value = S.High }, { label = t("ui.sens_medium"), value = S.Medium }, { label = t("ui.sens_low"), value = S.Low } }, s.camSpeed or S.Medium, "camSpeed")
+	choice(8, "🖥️ " .. t("ui.low_graphics"), { { label = t("ui.on"), value = true }, { label = t("ui.off"), value = false } }, s.lowGfx == true, "lowGfx")
 	Kit.button("🎓 " .. t("ui.restart_tutorial"), { parent = scroll, size = UDim2.new(1, -8, 0, 44), style = "plain", order = 10, onClick = function()
 		NetDef.event("TutorialStep"):FireServer(0)
 		Core.C.UI.close("Settings")

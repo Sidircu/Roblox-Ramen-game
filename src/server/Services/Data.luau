@@ -22,7 +22,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 11
+local VERSION = 12
 local profiles = {} -- [player] = { data, loaded, saving, released }
 local releasing = {} -- [userId] = true while the final save of a player who left is running
 local activeSaves = 0
@@ -68,7 +68,7 @@ function Data.newProfile()
 		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, tutorialGifts = {}, hints = {}, offlinePending = 0, codes = {}, onboarding = true, funnel = {} },
 		franchise = { stars = 0, city = "tokyo" },
 		perms = {},
-		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = 1, coop = "friends" },
+		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = GameConfig.Sensitivity.Medium, coop = "friends" },
 		passes = {},
 		receipts = {},
 		created = os.time(),
@@ -245,6 +245,17 @@ local function migrate(d)
 			d.meta.tutorial = 1
 		end
 		d.v = 11
+	end
+	if d.v < 12 then
+		-- v12: the look sensitivity is faster (Settings → Sensitivity: high, medium, low); the old
+		-- slow / medium / fast choices move to low / medium / high
+		d.settings = d.settings or {}
+		local old = d.settings.camSpeed
+		local S = GameConfig.Sensitivity
+		if old ~= nil then
+			d.settings.camSpeed = (old < 0.8 and S.Low) or (old < 1.3 and S.Medium) or S.High
+		end
+		d.v = 12
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION

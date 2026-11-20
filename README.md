@@ -10,9 +10,9 @@ Gioco Roblox tycoon: gestisci un ristorante giapponese di ramen e sushi, cucini 
 5. **Game Settings → Places → Max Players: 4** (un ristorante per giocatore lungo la strada).
 6. Premi **Play**. Per provare la strada con più giocatori: **Test → Clients and Servers** con 2–4 giocatori. In Studio tutti contano come amici, quindi ognuno può aiutare negli altri locali; nel gioco pubblicato possono aiutare gli amici del proprietario (o tutti, se lo sceglie nell'app Amici).
 
-**Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, tasto destro posa la scatola, G posa, Shift corri, Q per liberare il mouse e cliccare i pulsanti (di nuovo Q per tornare a guardare), U negozio, B costruisci, O fornitore, P altro, R regali. Su telefono e tablet si tocca il pulsante che compare sopra l'oggetto. Mentre i noodles bollono, clicca nel verde della barra per una ciotola perfetta.
+**Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, tasto destro posa la scatola, G posa, Shift corri, Q per liberare il mouse e cliccare i pulsanti (di nuovo Q per tornare a guardare), U negozio, B costruisci, O fornitore, P altro, R regali. Su telefono e tablet si tocca il pulsante che compare sopra l'oggetto. Mentre i noodles bollono, clicca nel verde della barra per una ciotola perfetta. Il cartello **OPEN** accanto alla porta (fuori) apre e chiude il ristorante; la sensibilità del mouse si sceglie in Impostazioni (Alta, Media, Bassa).
 
-Pannello sviluppatore (pulsante 🛠️, solo in Studio o per il creatore del gioco): yen, livelli, licenze, zone, scorte, clienti, chiusura della giornata.
+Pannello sviluppatore (P → app 🛠️ Dev, solo in Studio o per il creatore del gioco): yen, livelli, licenze, zone, scorte, clienti, chiusura della giornata, premio giornaliero del giorno dopo.
 
 **🧪 Autotest**: nel pannello sviluppatore, esegue da solo tutto il ciclo di gioco (mensola, riso, kappa maki a clic, cliente servito e pagante, stoviglie lavate, regole di piazzamento) e scrive il risultato di ogni passaggio nella finestra Output (`[SelfTest] PASS/FAIL ...`). È il primo pulsante da premere dopo aver aperto il gioco.
 

@@ -92,3 +92,56 @@ REVAMP += [
 ("gpdesc.gp_extra_staff","+2 staff slots in your restaurant","+2 posti per il personale nel tuo ristorante"),
 ("msg.coop_bonus","🤝 Teamwork: +{pct}% earnings while you work together!","🤝 Lavoro di squadra: +{pct}% di guadagni finché lavorate insieme!"),
 ]
+
+# Tutorial cards for the device you play with (Controllers/Tutorial deviceKey: _pc, _touch, _pad)
+REVAMP += [
+("tut.welcome_pc","Welcome to your ramen shop! 🏮 WASD to walk, the mouse to look. Q frees the mouse for the buttons.","Benvenuto nel tuo ramen-ya! 🏮 WASD per camminare, il mouse per guardare. Q libera il mouse per i pulsanti."),
+("tut.welcome_touch","Welcome to your ramen shop! 🏮 Walk with the stick on the left, tap the buttons to use things.","Benvenuto nel tuo ramen-ya! 🏮 Cammina con la levetta a sinistra, tocca i pulsanti per usare le cose."),
+("tut.welcome_pad","Welcome to your ramen shop! 🏮 Left stick to walk, right stick to look, X to use things.","Benvenuto nel tuo ramen-ya! 🏮 Levetta sinistra per camminare, destra per guardare, X per usare."),
+("tut.cook_pc","Look at the ramen station and press E (or click): 🍜 → 🥣 → 🌱","Guarda la postazione del ramen e premi E (o clicca): 🍜 → 🥣 → 🌱"),
+("tut.cook_touch","Tap the button over the ramen station: 🍜 → 🥣 → 🌱","Tocca il pulsante sopra la postazione del ramen: 🍜 → 🥣 → 🌱"),
+("tut.cook_pad","Look at the ramen station and press X: 🍜 → 🥣 → 🌱","Guarda la postazione del ramen e premi X: 🍜 → 🥣 → 🌱"),
+("tut.take_dish_pc","Ready! Press E on the station to pick up the bowl.","Pronto! Premi E sulla postazione per prendere la ciotola."),
+("tut.take_dish_touch","Ready! Tap the station's button to pick up the bowl.","Pronto! Tocca il pulsante della postazione per prendere la ciotola."),
+("tut.take_dish_pad","Ready! Press X on the station to pick up the bowl.","Pronto! Premi X sulla postazione per prendere la ciotola."),
+("tut.serve_pc","Bring it to the customer and press E 💴","Portala al cliente e premi E 💴"),
+("tut.serve_touch","Bring it to the customer and tap their button 💴","Portala al cliente e tocca il suo pulsante 💴"),
+("tut.serve_pad","Bring it to the customer and press X 💴","Portala al cliente e premi X 💴"),
+("tut.reward_pc","A gift of {yen}! Press U to open the shop 🛒 (or Q and click 🛒)","Un regalo di {yen}! Premi U per aprire il negozio 🛒 (o Q e clicca 🛒)"),
+("tut.reward_touch","A gift of {yen}! Tap 🛒 Shop at the bottom","Un regalo di {yen}! Tocca 🛒 Negozio in basso"),
+("tut.buy_pc","Buy an upgrade: click a green price.","Compra un miglioramento: clicca un prezzo verde."),
+("tut.buy_pad","Buy an upgrade: move to a green price and press A.","Compra un miglioramento: vai su un prezzo verde e premi A."),
+("tut.collect_pc","Pick up the dirty bowl: look at it and press E.","Raccogli la ciotola sporca: guardala e premi E."),
+("tut.collect_touch","Pick up the dirty bowl: tap its button.","Raccogli la ciotola sporca: tocca il suo pulsante."),
+("tut.collect_pad","Pick up the dirty bowl: look at it and press X.","Raccogli la ciotola sporca: guardala e premi X."),
+("tut.wash_pc","At the sink: hold E to wash it 🧽","Al lavello: tieni premuto E per lavarla 🧽"),
+("tut.wash_touch","At the sink: tap the button, the water runs until the bowls are clean 🧽","Al lavello: tocca il pulsante, l'acqua scorre finché le ciotole sono pulite 🧽"),
+("tut.wash_pad","At the sink: hold X to wash it 🧽","Al lavello: tieni premuto X per lavarla 🧽"),
+]
+
+# Settings → Sensitivity
+REVAMP += [
+("ui.sens_high","High","Alta"),
+("ui.sens_medium","Medium","Media"),
+("ui.sens_low","Low","Bassa"),
+]
+
+# Delivery pop-ups (Controllers/Effects "delivery")
+REVAMP += [
+("ui.delivery_here","The delivery van is here!","È arrivato il furgone!"),
+("ui.delivery_unloading","Unloading {n} boxes…","Sta scaricando {n} scatole…"),
+("ui.delivery_unloading_one","Unloading 1 box…","Sta scaricando 1 scatola…"),
+("ui.delivery_done","Delivery: {n} boxes","Consegna: {n} scatole"),
+("ui.delivery_done_one","Delivery: 1 box","Consegna: 1 scatola"),
+("ui.delivery_where","On the ground outside the storage door","A terra fuori dalla porta del magazzino"),
+]
+
+# The OPEN / CLOSED sign by the door (Plots.setOpen)
+REVAMP += [
+("hint.open_shop","Open the restaurant","Apri il ristorante"),
+("hint.close_shop","Close the restaurant","Chiudi il ristorante"),
+("msg.shop_opened","🟢 The restaurant is open: customers are coming!","🟢 Il ristorante è aperto: arrivano i clienti!"),
+("msg.shop_closed","🔴 Closed: no new customers until you open again (the ones inside are served).","🔴 Chiuso: nessun nuovo cliente finché non riapri (chi è dentro viene servito)."),
+("ui.closed","Closed","Chiuso"),
+("hint.first_opensign","🏮 The OPEN sign by the door opens and closes your restaurant (use it like a station).","🏮 Il cartello OPEN accanto alla porta apre e chiude il ristorante (si usa come una postazione)."),
+]

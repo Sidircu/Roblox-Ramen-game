@@ -46,6 +46,22 @@ function Plots.Init()
 	Core.S.Net.on("GoHome", function(player)
 		Plots.sendHome(player)
 	end, 1)
+	-- the OPEN / CLOSED sign by the door: the owner (or a co-owner) standing near it
+	Core.S.Net.on("ToggleOpen", function(player)
+		local plot = Plots.of(player)
+		if not plot or not plot.owner then
+			return
+		end
+		if not Plots.canBuild(player, plot) then
+			return Core.S.Net.notify(player, "ui.only_owner", nil, "error")
+		end
+		local board = plot.openSign and plot.openSign.PrimaryPart
+		local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if not board or not hrp or (hrp.Position - board.Position).Magnitude > GameConfig.InteractRange + 6 then
+			return Core.S.Net.notify(player, "msg.too_far", nil, "info")
+		end
+		Plots.setOpen(plot, plot.closed == true)
+	end, 2)
 	Core.S.Net.on("SetPermission", function(player, userId, level)
 		local plot = Plots.ofPlayer(player)
 		if not plot or type(userId) ~= "number" or (level ~= "helper" and level ~= "comanager" and level ~= "none") then
@@ -179,6 +195,14 @@ function Plots.canBuild(player, plot)
 end
 
 -- the people working in a plot (owner and helpers standing in it)
+-- opens or closes a restaurant (the sign by the door): closed, no new customers come in; everybody
+-- working there hears it
+function Plots.setOpen(plot, open)
+	plot.closed = not open
+	Core.S.World.paintOpenSign(plot)
+	Plots.notify(plot, open and "msg.shop_opened" or "msg.shop_closed", nil, open and "success" or "info")
+end
+
 function Plots.workers(plot)
 	local out = {}
 	for _, p in ipairs(Players:GetPlayers()) do
@@ -319,6 +343,7 @@ local function claim(player, data)
 	end
 	dedupe(data)
 	plot.owner = player
+	plot.closed = false -- open as soon as you arrive (the sign by the door closes it)
 	plot.ownerId = player.UserId
 	plot.folder:SetAttribute("OwnerId", player.UserId)
 	plot.folder:SetAttribute("OwnerName", player.DisplayName)

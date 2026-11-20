@@ -101,8 +101,16 @@ function Camera.isFirstPerson()
 	return Camera.mode() == "first" and not Camera.build and not Camera.top
 end
 
+local SENS = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.GameConfig).Sensitivity
+
+-- the Sensitivity setting (Config: High / Medium / Low); the third-person camera turns relative to
+-- Medium, which keeps its calm speed on phones
+local function lookSetting()
+	return settings().camSpeed or SENS.Medium
+end
+
 local function sensitivity()
-	return BASE_SENS * (settings().camSpeed or 1)
+	return BASE_SENS * lookSetting() / SENS.Medium
 end
 
 -- Ray from the focus point to the wanted camera position, stopping before walls
@@ -211,7 +219,7 @@ local function orbitLoop(dt)
 			turn += 1
 		end
 	end
-	orbit.yaw += turn * 70 * dt * (settings().camSpeed or 1)
+	orbit.yaw += turn * 70 * dt * lookSetting() / SENS.Medium
 	orbit.dist += (orbit.targetDist - orbit.dist) * math.min(1, dt * 8)
 	local focus = root.Position + Vector3.new(0, 2.2, 0)
 	local rot = CFrame.Angles(0, math.rad(orbit.yaw), 0) * CFrame.Angles(-math.rad(orbit.pitch), 0, 0)
@@ -365,9 +373,9 @@ function Camera.Start()
 	while true do
 		task.wait(1)
 		Camera.apply()
-		-- Settings → Camera speed also scales the mouse in first person and with the Roblox
-		-- camera (on top of Roblox's own sensitivity); the orbit camera applies it itself
-		local want = Camera.mode() == "game" and 1 or (settings().camSpeed or 1)
+		-- Settings → Sensitivity scales the mouse in first person and with the Roblox camera (on
+		-- top of Roblox's own sensitivity); the orbit camera applies it itself
+		local want = Camera.mode() == "game" and 1 or lookSetting()
 		if UserInputService.MouseDeltaSensitivity ~= want then
 			UserInputService.MouseDeltaSensitivity = want
 		end

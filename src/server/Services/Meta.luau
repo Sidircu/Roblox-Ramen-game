@@ -265,7 +265,8 @@ function Meta.Init()
 			return v == "auto" or v == "first" or v == "game" or v == "roblox"
 		end,
 		camSpeed = function(v)
-			return type(v) == "number" and v >= 0.3 and v <= 2
+			local S = GameConfig.Sensitivity
+			return v == S.High or v == S.Medium or v == S.Low
 		end,
 		-- who may help in your restaurant: "friends" or "everyone"
 		coop = function(v)

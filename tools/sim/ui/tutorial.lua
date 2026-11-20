@@ -1,4 +1,5 @@
--- The tutorial banner at a few steps: cooking, the gift with the hand on the shop button, and a
+-- The tutorial banner at a few steps: welcome (how to move on this device), cooking, the gift with
+-- the hand on the shop button, and a
 -- one-time tip after the tutorial.
 Sim.startServer()
 task.wait(1)
@@ -25,6 +26,11 @@ local function use(model)
 		task.wait(0.3)
 	end
 end
+Sim.waitFor(function()
+	return C.Tutorial.currentId() == "welcome"
+end, 30)
+task.wait(1)
+Sim.snapshot("tutorial_welcome")
 Sim.waitFor(function()
 	return C.Tutorial.currentId() == "cook"
 end, 60)

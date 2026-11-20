@@ -857,13 +857,20 @@ function Supply.order(player, cart, forPlot)
 	return true
 end
 
-local function animateTruck(plot, onArrive)
+-- the people working in a restaurant see a pop-up with a sound (Controllers/Effects "delivery")
+local function tellDelivery(plot, stage, n)
+	for _, p in ipairs(Core.S.Plots.workers(plot)) do
+		Core.S.Net.fxTo(p, "delivery", { stage = stage, n = n })
+	end
+end
+
+local function animateTruck(plot, onArrive, n)
 	local folders = Core.S.World.folders(plot)
 	local truck = Registry.Street.truck()
 	truck.Parent = folders.dynamic
 	local o = plot.origin
 	local reach = PlotsCfg.StreetReach
-	local bay = { x = Expansions.LoadingBay.x + o.X, z = Expansions.LoadingBay.z + o.Z }
+	local bay = { x = Expansions.TruckStop.x + o.X, z = Expansions.TruckStop.z + o.Z }
 	local lane = Expansions.Street.truckLane
 	local startCf = CFrame.new(reach, 2.1, lane) * CFrame.Angles(0, 0, 0)
 	local roadCf = CFrame.new(bay.x + 2, 2.1, lane)
@@ -884,9 +891,7 @@ local function animateTruck(plot, onArrive)
 	t2:Play()
 	t2.Completed:Wait()
 	Core.S.Net.fx("sfx", { name = "truck", pos = bayCf.Position })
-	task.delay(0.8, function()
-		Core.S.Net.fx("sfx", { name = "bell", pos = bayCf.Position })
-	end)
+	tellDelivery(plot, "arriving", n or 0)
 	task.wait(0.4)
 	onArrive()
 	task.wait(1)
@@ -1005,9 +1010,9 @@ local function deliver(plot)
 							task.wait(0.2)
 						end
 						Core.S.Data.changed(plot.owner, "storage")
-						Core.S.Plots.notify(plot, "msg.delivery_arrived", { n = #batch }, "success")
+						tellDelivery(plot, "arrived", #batch)
 					end
-				end)
+				end, #batch)
 				if not ok then
 					warn("[Supply] truck: " .. tostring(err))
 					local d = pdata(plot)

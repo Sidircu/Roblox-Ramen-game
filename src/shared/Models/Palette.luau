@@ -15,7 +15,7 @@ local hex = {
 	sakura = "#F7B7C9", sakura_dark = "#E88AA8", water = "#4F98B8", water_dark = "#2E6A88",
 	sand = "#E3D6B8", tile = "#3A3D44", road = "#2A2A2E", road_line = "#E8E4D8", concrete = "#9A9A96",
 	sidewalk = "#B5B0A6", brick = "#7A4A3A", glass = "#A8D0E0", cardboard = "#B98B57",
-	neon_red = "#FF3B4A", neon_blue = "#3BC8FF", neon_pink = "#FF5AC8", neon_yellow = "#FFD23B",
+	neon_red = "#FF3B4A", neon_blue = "#3BC8FF", neon_pink = "#FF5AC8", neon_yellow = "#FFD23B", neon_green = "#5CFF7A",
 	lamp = "#FFD9A0", lamp_warm = "#FFB866", koi_orange = "#F27A2E", black = "#141414",
 	cream = "#EFE3CC", red = "#C0261E",
 }

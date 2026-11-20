@@ -7,9 +7,18 @@ return {
 	InteractRange = 11, -- studs between character and object
 	IngredientHandCapacity = 6,
 
+	-- Look sensitivity (Settings → Sensitivity): how much faster than Roblox's own mouse
+	-- sensitivity the view turns in first person; the third-person camera uses the same choice
+	-- relative to Medium (Medium keeps its calm speed on phones)
+	Sensitivity = { High = 2.4, Medium = 1.6, Low = 1.0 },
+
 	-- Building
 	FloorHeight = 15, -- floor-to-floor distance
 	WallHeight = 14,
+	WallThickness = 0.8,
+	-- height of the middle of a wall decoration above the floor when you aim at the top of a wall
+	-- (the build view looks down on the walls); the server uses it too when no height is sent
+	WallItemY = 6,
 	CellSize = 2, -- wall generation grid
 	PathCell = 1, -- walkability grid for placement validation
 	PathClearance = 0.9, -- obstacles are inflated by this (corridors >= 2 studs)

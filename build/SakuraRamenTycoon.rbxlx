@@ -495,11 +495,18 @@ return {
 		reach = 380,
 	},
 	LoadingBay = { x = 50, z = 12 },
-	-- the delivery driver leaves the boxes on the floor here: inside the storage room, between the
-	-- loading door and the kitchen door (a grid of spots, two boxes high), short way to the shelves
-	DropZone = { x0 = 37, x1 = 44.5, z0 = 25, z1 = 33.5, layers = 2 },
+	-- the van stops here (its middle) with the cargo door towards the storage room, a little before
+	-- the loading door so the boxes have room
+	TruckStop = { x = 50, z = 6 },
+	-- the delivery driver leaves the boxes on the ground here: just outside the storage room's
+	-- loading door (the door is x 45-55 at z = 24), on its left so the doorway stays free; a grid of
+	-- spots, two boxes high
+	DropZone = { x0 = 39, x1 = 47.5, z0 = 17, z1 = 23, layers = 2 },
 	Supplier = { x = 35.7, y = 5, z = 35 },
 	MenuBoard = { x = -12, z = -2.6 },
+	-- the LED OPEN / CLOSED sign on a post on the sidewalk, just right of the door (y = the middle
+	-- of the board, at eye level): using it opens or closes the restaurant
+	OpenSign = { x = 7, y = 4.9, z = -2.6 },
 	PlotBounds = { -110, -14, 96, 100 },
 	-- strip in front of the street wall kept free for the facade details
 	FacadeBand = { -110, -1.6, 96, 0 },
@@ -551,9 +558,18 @@ return {
 	InteractRange = 11, -- studs between character and object
 	IngredientHandCapacity = 6,
 
+	-- Look sensitivity (Settings → Sensitivity): how much faster than Roblox's own mouse
+	-- sensitivity the view turns in first person; the third-person camera uses the same choice
+	-- relative to Medium (Medium keeps its calm speed on phones)
+	Sensitivity = { High = 2.4, Medium = 1.6, Low = 1.0 },
+
 	-- Building
 	FloorHeight = 15, -- floor-to-floor distance
 	WallHeight = 14,
+	WallThickness = 0.8,
+	-- height of the middle of a wall decoration above the floor when you aim at the top of a wall
+	-- (the build view looks down on the walls); the server uses it too when no height is sent
+	WallItemY = 6,
 	CellSize = 2, -- wall generation grid
 	PathCell = 1, -- walkability grid for placement validation
 	PathClearance = 0.9, -- obstacles are inflated by this (corridors >= 2 studs)
@@ -1321,12 +1337,20 @@ return {
 	ServeYen = 1000,
 	-- at the end of the tutorial
 	DoneSakura = 10,
+	-- every step stays on screen at least this long, even when it is already done (a customer
+	-- may have ordered before the step shows)
+	MinStepSeconds = 3,
+	-- the welcome card (how to move and use things on your device)
+	WelcomeSeconds = 7,
+	-- the first card waits for the loading screen and your restaurant, at most this long
+	StartWait = 30,
 	-- one-time tips: id -> when it shows (see Controllers/Hints)
 	Hints = {
 		restock = { shelfLeft = 3 }, -- an ingredient of the menu has this many portions or fewer on the shelves
 		dishes = { pile = 3 }, -- this many dirty dishes in the sink
 		shop = {}, -- something in the shop can be bought
 		staff = { level = 6 }, -- the first member of staff can be hired
+		opensign = { dishes = 3 }, -- after this many dishes: the OPEN / CLOSED sign by the door
 	},
 	HintSeconds = 12, -- a tip stays this long (or until it is done)
 	HintGap = 20, -- seconds between two tips
@@ -1583,6 +1607,7 @@ return {
 	["hint.board_need"] = "Bring here: {list}",
 	["hint.broth_status"] = "🥣 {n} portions ready",
 	["hint.buy_room"] = "🏗️ Build {name} · {yen}",
+	["hint.close_shop"] = "Close the restaurant",
 	["hint.collect"] = "Collect dirty dishes",
 	["hint.cooking"] = "Cooking…",
 	["hint.cooking_now"] = "Cooking {dish}…",
@@ -1590,6 +1615,7 @@ return {
 	["hint.dishwasher"] = "Dishwasher ({n})",
 	["hint.do_step"] = "Click: {step} · {dish} ({i}/{n})",
 	["hint.first_dishes"] = "Dirty dishes are piling up: wash them at the sink 🧽, or customers will have no bowls.",
+	["hint.first_opensign"] = "🏮 The OPEN sign by the door opens and closes your restaurant (use it like a station).",
 	["hint.first_restock"] = "The shelves are running out: order boxes from the 📦 supplier and put them on the shelves.",
 	["hint.first_shop"] = "You can buy something new in the 🛒 shop!",
 	["hint.first_staff"] = "You can hire your first helper: 🛒 shop → 👥 Staff.",
@@ -1601,6 +1627,7 @@ return {
 	["hint.missing"] = "Missing",
 	["hint.missing_for"] = "{dish}: missing {list} · restock the shelves",
 	["hint.no_orders"] = "No orders for this station",
+	["hint.open_shop"] = "Open the restaurant",
 	["hint.pour"] = "Pour the box in",
 	["hint.put_back"] = "Put the box back",
 	["hint.put_ingredients"] = "Put ingredients on the board",
@@ -1921,6 +1948,8 @@ return {
 	["msg.shelf_empty"] = "The shelf is empty.",
 	["msg.shelf_full_buy"] = "Every shelf is full: buy a new one (🔨 Build → Kitchen).",
 	["msg.shelf_full_other"] = "This shelf is full: another shelf has room for it.",
+	["msg.shop_closed"] = "🔴 Closed: no new customers until you open again (the ones inside are served).",
+	["msg.shop_opened"] = "🟢 The restaurant is open: customers are coming!",
 	["msg.sink_hint"] = "Bring dirty dishes here.",
 	["msg.slot_full"] = "This slot is full: click another one.",
 	["msg.slot_other"] = "{name} is on this slot: put your box on an empty slot.",
@@ -2050,16 +2079,38 @@ return {
 	["surf.wall_wood"] = "Wood panels",
 	["surf.wall_yakisugi"] = "Charred wood (yakisugi)",
 	["tut.buy"] = "Buy an upgrade: tap a green price.",
+	["tut.buy_pad"] = "Buy an upgrade: move to a green price and press A.",
+	["tut.buy_pc"] = "Buy an upgrade: click a green price.",
 	["tut.collect"] = "Pick up the dirty bowl.",
+	["tut.collect_pad"] = "Pick up the dirty bowl: look at it and press X.",
+	["tut.collect_pc"] = "Pick up the dirty bowl: look at it and press E.",
+	["tut.collect_touch"] = "Pick up the dirty bowl: tap its button.",
 	["tut.cook"] = "Press the ramen station: 🍜 → 🥣 → 🌱",
+	["tut.cook_pad"] = "Look at the ramen station and press X: 🍜 → 🥣 → 🌱",
+	["tut.cook_pc"] = "Look at the ramen station and press E (or click): 🍜 → 🥣 → 🌱",
+	["tut.cook_touch"] = "Tap the button over the ramen station: 🍜 → 🥣 → 🌱",
 	["tut.done"] = "Well done! Here are 🌸 {n}. Now grow your restaurant!",
 	["tut.order"] = "A customer is coming in: wait for the order.",
 	["tut.reward"] = "A gift of {yen}! Open the shop 🛒",
+	["tut.reward_pc"] = "A gift of {yen}! Press U to open the shop 🛒 (or Q and click 🛒)",
+	["tut.reward_touch"] = "A gift of {yen}! Tap 🛒 Shop at the bottom",
 	["tut.serve"] = "Bring it to the customer 💴",
+	["tut.serve_pad"] = "Bring it to the customer and press X 💴",
+	["tut.serve_pc"] = "Bring it to the customer and press E 💴",
+	["tut.serve_touch"] = "Bring it to the customer and tap their button 💴",
 	["tut.skipped"] = "Tutorial skipped: you find it again in More → How to play.",
 	["tut.take_dish"] = "Ready! Pick up the bowl.",
+	["tut.take_dish_pad"] = "Ready! Press X on the station to pick up the bowl.",
+	["tut.take_dish_pc"] = "Ready! Press E on the station to pick up the bowl.",
+	["tut.take_dish_touch"] = "Ready! Tap the station's button to pick up the bowl.",
 	["tut.wash"] = "At the sink: hold to wash it 🧽",
+	["tut.wash_pad"] = "At the sink: hold X to wash it 🧽",
+	["tut.wash_pc"] = "At the sink: hold E to wash it 🧽",
+	["tut.wash_touch"] = "At the sink: tap the button, the water runs until the bowls are clean 🧽",
 	["tut.welcome"] = "Welcome to your ramen shop! 🏮",
+	["tut.welcome_pad"] = "Welcome to your ramen shop! 🏮 Left stick to walk, right stick to look, X to use things.",
+	["tut.welcome_pc"] = "Welcome to your ramen shop! 🏮 WASD to walk, the mouse to look. Q frees the mouse for the buttons.",
+	["tut.welcome_touch"] = "Welcome to your ramen shop! 🏮 Walk with the stick on the left, tap the buttons to use things.",
 	["ui.active"] = "Active",
 	["ui.ad_desc"] = "+{pop} popularity today",
 	["ui.ads"] = "Advertising (1 day)",
@@ -2075,7 +2126,7 @@ return {
 	["ui.buy_dishes"] = "Buy {n} dishes · ¥{price}",
 	["ui.cam_first"] = "First person",
 	["ui.cam_game"] = "Third person",
-	["ui.cam_speed"] = "Mouse / camera sensitivity",
+	["ui.cam_speed"] = "Sensitivity",
 	["ui.camera"] = "Camera",
 	["ui.can_place"] = "Can be placed here",
 	["ui.cancel"] = "Cancel",
@@ -2084,6 +2135,7 @@ return {
 	["ui.claim"] = "Claim",
 	["ui.claimed"] = "Claimed",
 	["ui.close_early"] = "Close early",
+	["ui.closed"] = "Closed",
 	["ui.closed_tap"] = "CLOSED",
 	["ui.closing"] = "Closing…",
 	["ui.codes"] = "Codes",
@@ -2097,6 +2149,12 @@ return {
 	["ui.daily_hint"] = "Come back every day: the gifts grow for 7 days in a row!",
 	["ui.daily_tomorrow"] = "Come back tomorrow!",
 	["ui.day_n"] = "Day {n}",
+	["ui.delivery_done"] = "Delivery: {n} boxes",
+	["ui.delivery_done_one"] = "Delivery: 1 box",
+	["ui.delivery_here"] = "The delivery van is here!",
+	["ui.delivery_unloading"] = "Unloading {n} boxes…",
+	["ui.delivery_unloading_one"] = "Unloading 1 box…",
+	["ui.delivery_where"] = "On the ground outside the storage door",
 	["ui.dev"] = "Dev",
 	["ui.dishes_clean"] = "{clean}/{total} clean",
 	["ui.drop"] = "Drop",
@@ -2200,6 +2258,9 @@ return {
 	["ui.see_report"] = "See report",
 	["ui.selected_howto"] = "Move it, rotate it, put it in the inventory or sell it",
 	["ui.sell"] = "Sell",
+	["ui.sens_high"] = "High",
+	["ui.sens_low"] = "Low",
+	["ui.sens_medium"] = "Medium",
 	["ui.settings"] = "Settings",
 	["ui.sfx"] = "Sound effects",
 	["ui.shop"] = "Shop",
@@ -2447,6 +2508,7 @@ return {
 	["hint.board_need"] = "Porta qui: {list}",
 	["hint.broth_status"] = "🥣 {n} porzioni pronte",
 	["hint.buy_room"] = "🏗️ Costruisci {name} · {yen}",
+	["hint.close_shop"] = "Chiudi il ristorante",
 	["hint.collect"] = "Raccogli le stoviglie",
 	["hint.cooking"] = "In cottura…",
 	["hint.cooking_now"] = "Sto cucinando {dish}…",
@@ -2454,6 +2516,7 @@ return {
 	["hint.dishwasher"] = "Lavastoviglie ({n})",
 	["hint.do_step"] = "Clicca: {step} · {dish} ({i}/{n})",
 	["hint.first_dishes"] = "I piatti sporchi si accumulano: lavali al lavello 🧽, o i clienti resteranno senza ciotole.",
+	["hint.first_opensign"] = "🏮 Il cartello OPEN accanto alla porta apre e chiude il ristorante (si usa come una postazione).",
 	["hint.first_restock"] = "Gli scaffali si svuotano: ordina scatole dal 📦 fornitore e mettile sugli scaffali.",
 	["hint.first_shop"] = "Puoi comprare qualcosa di nuovo nel 🛒 negozio!",
 	["hint.first_staff"] = "Puoi assumere il tuo primo aiutante: 🛒 negozio → 👥 Personale.",
@@ -2465,6 +2528,7 @@ return {
 	["hint.missing"] = "Mancano",
 	["hint.missing_for"] = "{dish}: mancano {list} · rifornisci gli scaffali",
 	["hint.no_orders"] = "Nessun ordine per questa postazione",
+	["hint.open_shop"] = "Apri il ristorante",
 	["hint.pour"] = "Versa la scatola",
 	["hint.put_back"] = "Rimetti la scatola",
 	["hint.put_ingredients"] = "Posa gli ingredienti",
@@ -2785,6 +2849,8 @@ return {
 	["msg.shelf_empty"] = "La mensola è vuota.",
 	["msg.shelf_full_buy"] = "Tutte le mensole sono piene: comprane un'altra (🔨 Costruisci → Cucina).",
 	["msg.shelf_full_other"] = "Questa mensola è piena: su un'altra c'è posto.",
+	["msg.shop_closed"] = "🔴 Chiuso: nessun nuovo cliente finché non riapri (chi è dentro viene servito).",
+	["msg.shop_opened"] = "🟢 Il ristorante è aperto: arrivano i clienti!",
 	["msg.sink_hint"] = "Porta qui le stoviglie sporche.",
 	["msg.slot_full"] = "Questo ripiano è pieno: clicca un altro ripiano.",
 	["msg.slot_other"] = "Su questo ripiano c'è {name}: metti la scatola su un ripiano vuoto.",
@@ -2914,16 +2980,38 @@ return {
 	["surf.wall_wood"] = "Pannelli in legno",
 	["surf.wall_yakisugi"] = "Legno bruciato yakisugi",
 	["tut.buy"] = "Compra un miglioramento: tocca un prezzo verde.",
+	["tut.buy_pad"] = "Compra un miglioramento: vai su un prezzo verde e premi A.",
+	["tut.buy_pc"] = "Compra un miglioramento: clicca un prezzo verde.",
 	["tut.collect"] = "Raccogli la ciotola sporca.",
+	["tut.collect_pad"] = "Raccogli la ciotola sporca: guardala e premi X.",
+	["tut.collect_pc"] = "Raccogli la ciotola sporca: guardala e premi E.",
+	["tut.collect_touch"] = "Raccogli la ciotola sporca: tocca il suo pulsante.",
 	["tut.cook"] = "Premi la postazione del ramen: 🍜 → 🥣 → 🌱",
+	["tut.cook_pad"] = "Guarda la postazione del ramen e premi X: 🍜 → 🥣 → 🌱",
+	["tut.cook_pc"] = "Guarda la postazione del ramen e premi E (o clicca): 🍜 → 🥣 → 🌱",
+	["tut.cook_touch"] = "Tocca il pulsante sopra la postazione del ramen: 🍜 → 🥣 → 🌱",
 	["tut.done"] = "Bravo! Ecco 🌸 {n}. Ora fai crescere il tuo ristorante!",
 	["tut.order"] = "Arriva un cliente: aspetta il suo ordine.",
 	["tut.reward"] = "Un regalo di {yen}! Apri il negozio 🛒",
+	["tut.reward_pc"] = "Un regalo di {yen}! Premi U per aprire il negozio 🛒 (o Q e clicca 🛒)",
+	["tut.reward_touch"] = "Un regalo di {yen}! Tocca 🛒 Negozio in basso",
 	["tut.serve"] = "Portala al cliente 💴",
+	["tut.serve_pad"] = "Portala al cliente e premi X 💴",
+	["tut.serve_pc"] = "Portala al cliente e premi E 💴",
+	["tut.serve_touch"] = "Portala al cliente e tocca il suo pulsante 💴",
 	["tut.skipped"] = "Tutorial saltato: lo ritrovi in Altro → Come si gioca.",
 	["tut.take_dish"] = "Pronto! Prendi la ciotola.",
+	["tut.take_dish_pad"] = "Pronto! Premi X sulla postazione per prendere la ciotola.",
+	["tut.take_dish_pc"] = "Pronto! Premi E sulla postazione per prendere la ciotola.",
+	["tut.take_dish_touch"] = "Pronto! Tocca il pulsante della postazione per prendere la ciotola.",
 	["tut.wash"] = "Al lavello: tieni premuto per lavarla 🧽",
+	["tut.wash_pad"] = "Al lavello: tieni premuto X per lavarla 🧽",
+	["tut.wash_pc"] = "Al lavello: tieni premuto E per lavarla 🧽",
+	["tut.wash_touch"] = "Al lavello: tocca il pulsante, l'acqua scorre finché le ciotole sono pulite 🧽",
 	["tut.welcome"] = "Benvenuto nel tuo ramen-ya! 🏮",
+	["tut.welcome_pad"] = "Benvenuto nel tuo ramen-ya! 🏮 Levetta sinistra per camminare, destra per guardare, X per usare.",
+	["tut.welcome_pc"] = "Benvenuto nel tuo ramen-ya! 🏮 WASD per camminare, il mouse per guardare. Q libera il mouse per i pulsanti.",
+	["tut.welcome_touch"] = "Benvenuto nel tuo ramen-ya! 🏮 Cammina con la levetta a sinistra, tocca i pulsanti per usare le cose.",
 	["ui.active"] = "Attivo",
 	["ui.ad_desc"] = "+{pop} popolarità oggi",
 	["ui.ads"] = "Pubblicità (1 giorno)",
@@ -2939,7 +3027,7 @@ return {
 	["ui.buy_dishes"] = "Compra {n} stoviglie · ¥{price}",
 	["ui.cam_first"] = "Prima persona",
 	["ui.cam_game"] = "Terza persona",
-	["ui.cam_speed"] = "Sensibilità mouse / telecamera",
+	["ui.cam_speed"] = "Sensibilità",
 	["ui.camera"] = "Telecamera",
 	["ui.can_place"] = "Si può piazzare qui",
 	["ui.cancel"] = "Annulla",
@@ -2948,6 +3036,7 @@ return {
 	["ui.claim"] = "Riscuoti",
 	["ui.claimed"] = "Ritirato",
 	["ui.close_early"] = "Chiudi prima",
+	["ui.closed"] = "Chiuso",
 	["ui.closed_tap"] = "CHIUSO",
 	["ui.closing"] = "Chiusura…",
 	["ui.codes"] = "Codici",
@@ -2961,6 +3050,12 @@ return {
 	["ui.daily_hint"] = "Torna ogni giorno: i regali crescono per 7 giorni di fila!",
 	["ui.daily_tomorrow"] = "Torna domani!",
 	["ui.day_n"] = "Giorno {n}",
+	["ui.delivery_done"] = "Consegna: {n} scatole",
+	["ui.delivery_done_one"] = "Consegna: 1 scatola",
+	["ui.delivery_here"] = "È arrivato il furgone!",
+	["ui.delivery_unloading"] = "Sta scaricando {n} scatole…",
+	["ui.delivery_unloading_one"] = "Sta scaricando 1 scatola…",
+	["ui.delivery_where"] = "A terra fuori dalla porta del magazzino",
 	["ui.dev"] = "Dev",
 	["ui.dishes_clean"] = "{clean}/{total} pulite",
 	["ui.drop"] = "Butta",
@@ -3064,6 +3159,9 @@ return {
 	["ui.see_report"] = "Vedi resoconto",
 	["ui.selected_howto"] = "Puoi spostarlo, ruotarlo, riporlo nell'inventario o venderlo",
 	["ui.sell"] = "Vendi",
+	["ui.sens_high"] = "Alta",
+	["ui.sens_low"] = "Bassa",
+	["ui.sens_medium"] = "Media",
 	["ui.settings"] = "Impostazioni",
 	["ui.sfx"] = "Effetti sonori",
 	["ui.shop"] = "Negozio",
@@ -3664,7 +3762,8 @@ function Geometry.ctx(geo, items, placed, cfg)
 		entrance = { x = 0, z = 0.75 },
 		floorHeight = cfg.FloorHeight,
 		wallHeight = cfg.WallHeight,
-		wallThickness = 0.8,
+		wallThickness = cfg.WallThickness or 0.8,
+		wallItemY = cfg.WallItemY or 6,
 	}
 end
 
@@ -4185,7 +4284,7 @@ function Placement.validate(ctx, req, skipPath)
 			resolved.x = best.line + ((req.x < best.line) and -half or half)
 		end
 		resolved.r = rot
-		local y = req.y or (floorY + 6)
+		local y = req.y or (floorY + (ctx.wallItemY or 6))
 		if y - h / 2 < floorY + 0.3 or y + h / 2 > floorY + ctx.wallHeight - 0.3 then
 			return false, "msg.place_height"
 		end
@@ -4254,6 +4353,49 @@ function Placement.validate(ctx, req, skipPath)
 		return true, nil, resolved
 	end
 	return false, "msg.invalid"
+end
+
+-- Where a wall decoration goes when the pointer meets a wall (build mode). hit = { x, y, z } in
+-- restaurant coordinates, normal = { x, y, z } of the face that was hit, stand = { x, z } where the
+-- player stands, size = { w, h, d } of the item, g = grid step, fy = floor height. The wall comes
+-- from the wall plan (the one validate checks against), so the spot is flat on the wall: half the
+-- wall's thickness + half the item's depth from its middle line. Aiming at the top of a wall (the
+-- build view looks down on them) hangs it on the side you stand on, at the usual height.
+-- Returns x, z, y (nil when no wall is near the pointer).
+function Placement.wallSpot(ctx, floorWalls, hit, normal, stand, size, g, fy)
+	local seg, best = nil, math.huge
+	for _, s in ipairs(floorWalls.walls) do
+		local dist = Walls.distance(s, hit.x, hit.z)
+		if dist < best then
+			seg, best = s, dist
+		end
+	end
+	if not seg or best > 2 then
+		return nil
+	end
+	local w, h, d = size[1], size[2], size[3]
+	local onFace = math.abs(normal.y) < 0.5
+	local side = 0
+	if onFace then
+		side = seg.axis == "z" and normal.z or normal.x
+	end
+	if math.abs(side) < 0.5 then
+		side = seg.axis == "z" and (stand.z - seg.line) or (stand.x - seg.line)
+	end
+	side = side >= 0 and 1 or -1
+	local step = (g and g > 0) and g or 1
+	local along = Walls.along(seg, hit.x, hit.z)
+	local a = math.floor((along - w / 2) / step + 0.5) * step + w / 2
+	a = math.max(seg.a + w / 2, math.min(a, seg.b - w / 2))
+	local aimY = onFace and hit.y or (fy + (ctx.wallItemY or 6))
+	local ystep = math.min(step, 5)
+	local y = math.floor((aimY - h / 2 - fy) / ystep + 0.5) * ystep + h / 2 + fy
+	y = math.max(fy + h / 2 + 0.3, math.min(y, fy + ctx.wallHeight - h / 2 - 0.3))
+	local half = ctx.wallThickness / 2 + d / 2
+	if seg.axis == "z" then
+		return a, seg.line + side * half, y
+	end
+	return seg.line + side * half, a, y
 end
 
 return Placement
@@ -5321,6 +5463,34 @@ function B.openSign(parent, x, y, z)
 	Kit.cyl(parent, 0.04, 0.8, x, y + 0.6, z, P.black, M.fabric, { collide = false })
 	local _, label = Kit.text(plate, Enum.NormalId.Front, "準備中", { color = "#2B2320", font = JP_FONT })
 	return label, plate
+end
+
+-- LED sign on a post on the sidewalk, next to the door: a dark board with OPEN / CLOSED in light
+-- letters on both sides (World.paintOpenSign writes them), a thin metal frame, a post and a foot;
+-- the board is the model's PrimaryPart (y = height of the board's middle)
+function B.ledSign(parent, x, y, z)
+	local m = Kit.model("OpenSign")
+	local NC = { collide = false, shadow = false }
+	Kit.box(m, 1, 0.16, 0.7, x, 0.08, z, P.steel_dark, M.metal)
+	Kit.box(m, 0.22, y - 0.6, 0.22, x, (y - 0.6) / 2, z, P.steel_dark, M.metal)
+	local board = Kit.box(m, 2.8, 1.25, 0.22, x, y, z, P.charcoal, M.smooth, { collide = false, name = "Board" })
+	for _, dy in ipairs({ -0.66, 0.66 }) do
+		Kit.box(m, 2.96, 0.1, 0.28, x, y + dy, z, P.steel_dark, M.metal, NC)
+	end
+	for _, dx in ipairs({ -1.46, 1.46 }) do
+		Kit.box(m, 0.1, 1.42, 0.28, x + dx, y, z, P.steel_dark, M.metal, NC)
+	end
+	for _, face in ipairs({ Enum.NormalId.Front, Enum.NormalId.Back }) do
+		local gui, label = Kit.text(board, face, "OPEN", { color = P.neon_green, glow = true, pps = 60 })
+		gui.Name = face == Enum.NormalId.Front and "Front" or "Back"
+		label.Name = "Label"
+		label.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Bold)
+	end
+	local glow = Kit.light(board, "Point", P.neon_green, 8, 1, { night = false })
+	glow.Name = "Glow"
+	m.PrimaryPart = board
+	m.Parent = parent
+	return m
 end
 
 function B.tag(part, name, attrs)
@@ -10684,7 +10854,7 @@ local hex = {
 	sakura = "#F7B7C9", sakura_dark = "#E88AA8", water = "#4F98B8", water_dark = "#2E6A88",
 	sand = "#E3D6B8", tile = "#3A3D44", road = "#2A2A2E", road_line = "#E8E4D8", concrete = "#9A9A96",
 	sidewalk = "#B5B0A6", brick = "#7A4A3A", glass = "#A8D0E0", cardboard = "#B98B57",
-	neon_red = "#FF3B4A", neon_blue = "#3BC8FF", neon_pink = "#FF5AC8", neon_yellow = "#FFD23B",
+	neon_red = "#FF3B4A", neon_blue = "#3BC8FF", neon_pink = "#FF5AC8", neon_yellow = "#FFD23B", neon_green = "#5CFF7A",
 	lamp = "#FFD9A0", lamp_warm = "#FFB866", koi_orange = "#F27A2E", black = "#141414",
 	cream = "#EFE3CC", red = "#C0261E",
 }
@@ -11082,7 +11252,7 @@ function Scene.shell(shell, geo, data)
 					above = true
 				end
 			end
-			B.wall(shell, seg, fy, above and GameConfig.FloorHeight or GameConfig.WallHeight, 0.8, wallStyle, outsideSign, exterior)
+			B.wall(shell, seg, fy, above and GameConfig.FloorHeight or GameConfig.WallHeight, GameConfig.WallThickness, wallStyle, outsideSign, exterior)
 			-- interior finishes on each indoor side
 			if sideA then
 				B.wallTrim(shell, seg, fy, -1, sideA.area, GameConfig.WallHeight, trim)
@@ -11149,7 +11319,7 @@ function Scene.shell(shell, geo, data)
 		l:SetAttribute("Animate", "sway")
 		l.CanQuery = false
 	end
-	local label = B.openSign(shell, 6.4, 5.2, -0.55)
+	local label = nil -- (the LED OPEN sign by the door says it now)
 	if data.zones.sign_rooftop then
 		local topY = floorY(topFloor) + GameConfig.WallHeight + 2
 		local board = Kit.box(shell, 20, 5, 0.6, 0, topY + 3.5, 2, P.black, P.M.smooth, { collide = false })
@@ -11180,13 +11350,19 @@ function Scene.shell(shell, geo, data)
 	board:SetAttribute("Uid", "fixed_menu")
 	board:SetAttribute("Kind", "menuboard")
 	CollectionService:AddTag(board, "Interactable")
+	-- LED OPEN / CLOSED sign next to the door: using it opens or closes the restaurant
+	local signAt = Expansions.OpenSign
+	local openSign = B.ledSign(shell, signAt.x, signAt.y, signAt.z)
+	openSign:SetAttribute("Uid", "fixed_opensign")
+	openSign:SetAttribute("Kind", "opensign")
+	CollectionService:AddTag(openSign, "Interactable")
 
 	for _, d in ipairs(shell:GetDescendants()) do
 		if d:IsA("BasePart") then
 			d.CollisionGroup = "Shell"
 		end
 	end
-	return { openLabel = label }
+	return { openLabel = label, openSign = openSign }
 end
 
 -- A plot nobody owns yet: a low construction fence along the street and a lantern sign
@@ -11491,6 +11667,7 @@ Net.Events = {
 	"SetSetting", -- (key, value)
 	"SetPermission", -- (userId, level "helper"|"comanager"|"none") in your restaurant
 	"GoHome", -- back to the door of your restaurant
+	"ToggleOpen", -- the OPEN / CLOSED sign by the door of the restaurant you work in
 	"Franchise", -- (cityId)
 	"BuyWithRobux", -- (kind "gamepass"|"product", id)
 	"TutorialStep", -- (step)
@@ -14222,7 +14399,8 @@ local function tick(plot, dt)
 	if Day.isNight() then
 		interval = interval * GameConfig.Day.NightFactor
 	end
-	if plot.spawnTimer >= interval then
+	-- closed with the sign by the door: nobody new comes in (the ones inside are served)
+	if plot.spawnTimer >= interval and not plot.closed then
 		plot.spawnTimer = 0
 		local ok, err = pcall(Service.trySpawn, plot)
 		if not ok then
@@ -14278,7 +14456,7 @@ local Data = {}
 Data.Loaded = Signal.new() -- (player, data)
 Data.Changed = Signal.new() -- (player, key)
 
-local VERSION = 11
+local VERSION = 12
 local profiles = {} -- [player] = { data, loaded, saving, released }
 local releasing = {} -- [userId] = true while the final save of a player who left is running
 local activeSaves = 0
@@ -14324,7 +14502,7 @@ function Data.newProfile()
 		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, tutorialGifts = {}, hints = {}, offlinePending = 0, codes = {}, onboarding = true, funnel = {} },
 		franchise = { stars = 0, city = "tokyo" },
 		perms = {},
-		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = 1, coop = "friends" },
+		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = GameConfig.Sensitivity.Medium, coop = "friends" },
 		passes = {},
 		receipts = {},
 		created = os.time(),
@@ -14501,6 +14679,17 @@ local function migrate(d)
 			d.meta.tutorial = 1
 		end
 		d.v = 11
+	end
+	if d.v < 12 then
+		-- v12: the look sensitivity is faster (Settings → Sensitivity: high, medium, low); the old
+		-- slow / medium / fast choices move to low / medium / high
+		d.settings = d.settings or {}
+		local old = d.settings.camSpeed
+		local S = GameConfig.Sensitivity
+		if old ~= nil then
+			d.settings.camSpeed = (old < 0.8 and S.Low) or (old < 1.3 and S.Medium) or S.High
+		end
+		d.v = 12
 	end
 	TableUtil.reconcile(d, Data.newProfile())
 	d.v = VERSION
@@ -16347,7 +16536,8 @@ function Meta.Init()
 			return v == "auto" or v == "first" or v == "game" or v == "roblox"
 		end,
 		camSpeed = function(v)
-			return type(v) == "number" and v >= 0.3 and v <= 2
+			local S = GameConfig.Sensitivity
+			return v == S.High or v == S.Medium or v == S.Low
 		end,
 		-- who may help in your restaurant: "friends" or "everyone"
 		coop = function(v)
@@ -17610,6 +17800,22 @@ function Plots.Init()
 	Core.S.Net.on("GoHome", function(player)
 		Plots.sendHome(player)
 	end, 1)
+	-- the OPEN / CLOSED sign by the door: the owner (or a co-owner) standing near it
+	Core.S.Net.on("ToggleOpen", function(player)
+		local plot = Plots.of(player)
+		if not plot or not plot.owner then
+			return
+		end
+		if not Plots.canBuild(player, plot) then
+			return Core.S.Net.notify(player, "ui.only_owner", nil, "error")
+		end
+		local board = plot.openSign and plot.openSign.PrimaryPart
+		local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if not board or not hrp or (hrp.Position - board.Position).Magnitude > GameConfig.InteractRange + 6 then
+			return Core.S.Net.notify(player, "msg.too_far", nil, "info")
+		end
+		Plots.setOpen(plot, plot.closed == true)
+	end, 2)
 	Core.S.Net.on("SetPermission", function(player, userId, level)
 		local plot = Plots.ofPlayer(player)
 		if not plot or type(userId) ~= "number" or (level ~= "helper" and level ~= "comanager" and level ~= "none") then
@@ -17743,6 +17949,14 @@ function Plots.canBuild(player, plot)
 end
 
 -- the people working in a plot (owner and helpers standing in it)
+-- opens or closes a restaurant (the sign by the door): closed, no new customers come in; everybody
+-- working there hears it
+function Plots.setOpen(plot, open)
+	plot.closed = not open
+	Core.S.World.paintOpenSign(plot)
+	Plots.notify(plot, open and "msg.shop_opened" or "msg.shop_closed", nil, open and "success" or "info")
+end
+
 function Plots.workers(plot)
 	local out = {}
 	for _, p in ipairs(Players:GetPlayers()) do
@@ -17883,6 +18097,7 @@ local function claim(player, data)
 	end
 	dedupe(data)
 	plot.owner = player
+	plot.closed = false -- open as soon as you arrive (the sign by the door closes it)
 	plot.ownerId = player.UserId
 	plot.folder:SetAttribute("OwnerId", player.UserId)
 	plot.folder:SetAttribute("OwnerName", player.DisplayName)
@@ -20562,13 +20777,20 @@ function Supply.order(player, cart, forPlot)
 	return true
 end
 
-local function animateTruck(plot, onArrive)
+-- the people working in a restaurant see a pop-up with a sound (Controllers/Effects "delivery")
+local function tellDelivery(plot, stage, n)
+	for _, p in ipairs(Core.S.Plots.workers(plot)) do
+		Core.S.Net.fxTo(p, "delivery", { stage = stage, n = n })
+	end
+end
+
+local function animateTruck(plot, onArrive, n)
 	local folders = Core.S.World.folders(plot)
 	local truck = Registry.Street.truck()
 	truck.Parent = folders.dynamic
 	local o = plot.origin
 	local reach = PlotsCfg.StreetReach
-	local bay = { x = Expansions.LoadingBay.x + o.X, z = Expansions.LoadingBay.z + o.Z }
+	local bay = { x = Expansions.TruckStop.x + o.X, z = Expansions.TruckStop.z + o.Z }
 	local lane = Expansions.Street.truckLane
 	local startCf = CFrame.new(reach, 2.1, lane) * CFrame.Angles(0, 0, 0)
 	local roadCf = CFrame.new(bay.x + 2, 2.1, lane)
@@ -20589,9 +20811,7 @@ local function animateTruck(plot, onArrive)
 	t2:Play()
 	t2.Completed:Wait()
 	Core.S.Net.fx("sfx", { name = "truck", pos = bayCf.Position })
-	task.delay(0.8, function()
-		Core.S.Net.fx("sfx", { name = "bell", pos = bayCf.Position })
-	end)
+	tellDelivery(plot, "arriving", n or 0)
 	task.wait(0.4)
 	onArrive()
 	task.wait(1)
@@ -20710,9 +20930,9 @@ local function deliver(plot)
 							task.wait(0.2)
 						end
 						Core.S.Data.changed(plot.owner, "storage")
-						Core.S.Plots.notify(plot, "msg.delivery_arrived", { n = #batch }, "success")
+						tellDelivery(plot, "arrived", #batch)
 					end
-				end)
+				end, #batch)
 				if not ok then
 					warn("[Supply] truck: " .. tostring(err))
 					local d = pdata(plot)
@@ -21240,9 +21460,7 @@ function World.rebuild(plot, data)
 	local f = World.folders(plot)
 	local result = Scene.shell(f.shell, World.geo(plot), data)
 	plot.openLabel = result.openLabel
-	if plot.openLabel then
-		plot.openLabel.Text = "営業中"
-	end
+	plot.openSign = result.openSign
 	-- a "for sale" sign on every ground-floor room that can be built next (its rooms before it
 	-- are owned); the sign goes when the room is bought (the shell is built again)
 	for _, e in ipairs(Expansions.list) do
@@ -21262,22 +21480,50 @@ function World.rebuild(plot, data)
 	-- the supplier tablet and menu board are per restaurant
 	for _, d in ipairs(f.shell:GetDescendants()) do
 		local uid = d:GetAttribute("Uid")
-		if uid == "fixed_supplier" or uid == "fixed_menu" then
+		if uid == "fixed_supplier" or uid == "fixed_menu" or uid == "fixed_opensign" then
 			d:SetAttribute("Uid", uid .. "_" .. plot.id)
 			d:SetAttribute("PlotId", plot.id)
 		end
 	end
 	quiet(f.shell)
 	Core.S.Plots.shift(f.shell, plot)
+	World.paintOpenSign(plot)
 	plot.folder:SetAttribute("City", data.franchise and data.franchise.city or "tokyo")
 	plot.folder:SetAttribute("Ready", true)
 	World.Rebuilt:Fire(plot)
+end
+
+-- the LED sign by the door and the small wooden plate say whether the restaurant is open
+-- (plot.closed, Plots.setOpen); clients read the plot's "Open" attribute
+function World.paintOpenSign(plot)
+	local open = not plot.closed
+	plot.folder:SetAttribute("Open", open)
+	if plot.openLabel then
+		plot.openLabel.Text = open and "営業中" or "準備中"
+	end
+	local board = plot.openSign and plot.openSign.PrimaryPart
+	if board then
+		for _, side in ipairs({ "Front", "Back" }) do
+			local gui = board:FindFirstChild(side)
+			local label = gui and gui:FindFirstChild("Label")
+			if label then
+				label.Text = open and "OPEN" or "CLOSED"
+				label.TextColor3 = open and Color3.fromRGB(92, 255, 122) or Color3.fromRGB(255, 59, 74)
+			end
+		end
+		local glow = board:FindFirstChild("Glow")
+		if glow then
+			glow.Color = open and Color3.fromRGB(92, 255, 122) or Color3.fromRGB(255, 59, 74)
+		end
+	end
 end
 
 -- the owner left: back to an empty lot
 function World.clear(plot)
 	plot.geo = nil
 	plot.openLabel = nil
+	plot.openSign = nil
+	plot.closed = false
 	local f = World.folders(plot)
 	f.items:ClearAllChildren()
 	f.dynamic:ClearAllChildren()
@@ -21862,7 +22108,7 @@ local function worldY(entry, item)
 	elseif entry.s == "c" then
 		return floorY(entry.f) + GameConfig.WallHeight - item.size[2]
 	elseif entry.s == "w" then
-		return (entry.y or floorY(entry.f) + 6) - item.size[2] / 2
+		return (entry.y or floorY(entry.f) + GameConfig.WallItemY) - item.size[2] / 2
 	end
 	return entry.y or floorY(entry.f)
 end
@@ -22048,14 +22294,19 @@ local function buildRequest()
 			return nil
 		end
 		local f = hit.Instance:GetAttribute("FloorIndex") or 0
-		local n = hit.Normal
-		local alongX = math.abs(n.Z) > math.abs(n.X)
+		local floorWalls = geometry().walls[f]
+		if not floorWalls then
+			return nil
+		end
+		-- flat on the wall plan the server checks (Logic/Placement.wallSpot)
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 		local hx = hit.Position.X - ox()
-		local along = alongX and hx or hit.Position.Z
-		local a, y = Grid.snapWall(along, hit.Position.Y, w, h, g, floorY(f))
-		local off = 0.4 + d / 2 + 0.05
-		local x = alongX and a or hx + n.X * off
-		local z = alongX and hit.Position.Z + n.Z * off or a
+		local stand = root and { x = root.Position.X - ox(), z = root.Position.Z } or { x = hx, z = hit.Position.Z }
+		local x, z, y = PlacementLogic.wallSpot(ctx(), floorWalls, { x = hx, y = hit.Position.Y, z = hit.Position.Z },
+			{ x = hit.Normal.X, y = hit.Normal.Y, z = hit.Normal.Z }, stand, item.size, g, floorY(f))
+		if not x then
+			return nil
+		end
 		return { i = item.id, x = x, z = z, y = y, r = 0, f = f, s = code }
 	elseif code == "t" then
 		local folder = itemsFolder()
@@ -22492,8 +22743,16 @@ function Camera.isFirstPerson()
 	return Camera.mode() == "first" and not Camera.build and not Camera.top
 end
 
+local SENS = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.GameConfig).Sensitivity
+
+-- the Sensitivity setting (Config: High / Medium / Low); the third-person camera turns relative to
+-- Medium, which keeps its calm speed on phones
+local function lookSetting()
+	return settings().camSpeed or SENS.Medium
+end
+
 local function sensitivity()
-	return BASE_SENS * (settings().camSpeed or 1)
+	return BASE_SENS * lookSetting() / SENS.Medium
 end
 
 -- Ray from the focus point to the wanted camera position, stopping before walls
@@ -22602,7 +22861,7 @@ local function orbitLoop(dt)
 			turn += 1
 		end
 	end
-	orbit.yaw += turn * 70 * dt * (settings().camSpeed or 1)
+	orbit.yaw += turn * 70 * dt * lookSetting() / SENS.Medium
 	orbit.dist += (orbit.targetDist - orbit.dist) * math.min(1, dt * 8)
 	local focus = root.Position + Vector3.new(0, 2.2, 0)
 	local rot = CFrame.Angles(0, math.rad(orbit.yaw), 0) * CFrame.Angles(-math.rad(orbit.pitch), 0, 0)
@@ -22756,9 +23015,9 @@ function Camera.Start()
 	while true do
 		task.wait(1)
 		Camera.apply()
-		-- Settings → Camera speed also scales the mouse in first person and with the Roblox
-		-- camera (on top of Roblox's own sensitivity); the orbit camera applies it itself
-		local want = Camera.mode() == "game" and 1 or (settings().camSpeed or 1)
+		-- Settings → Sensitivity scales the mouse in first person and with the Roblox camera (on
+		-- top of Roblox's own sensitivity); the orbit camera applies it itself
+		local want = Camera.mode() == "game" and 1 or lookSetting()
 		if UserInputService.MouseDeltaSensitivity ~= want then
 			UserInputService.MouseDeltaSensitivity = want
 		end
@@ -23278,6 +23537,14 @@ function Effects.Init()
 				burst(root.Position + Vector3.new(0, 6, 8), "smoke", 30, "#D8C8B0")
 			end
 			Core.C.UI.toast("🏗️ " .. Locale.t("msg.construction"), "info")
+		elseif kind == "delivery" then
+			-- the truck parks (it honks), then the boxes are down outside the storage door (a bell)
+			local n = data.n or 0
+			if data.stage == "arriving" then
+				Core.C.UI.popup("🚚", Locale.t("ui.delivery_here"), Locale.t(n == 1 and "ui.delivery_unloading_one" or "ui.delivery_unloading", { n = n }), { sound = "truck", seconds = 3.5 })
+			else
+				Core.C.UI.popup("📦", Locale.t(n == 1 and "ui.delivery_done_one" or "ui.delivery_done", { n = n }), Locale.t("ui.delivery_where"), { sound = "bell", color = Color3.fromRGB(94, 143, 58) })
+			end
 		elseif kind == "sfx" and Audio then
 			Audio.play(data.name, data.pos)
 		elseif kind == "action" then
@@ -23303,6 +23570,7 @@ return Effects
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local ContextActionService = game:GetService("ContextActionService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Locale = require(Shared.Locale)
@@ -23431,7 +23699,9 @@ local function updateCrosshair()
 	if fp and not toldAboutCursor and UserInputService.KeyboardEnabled then
 		toldAboutCursor = true
 		task.delay(2, function()
-			if Core.C.UI then
+			-- (the tutorial's welcome card says it already)
+			local tut = Core.C.Tutorial
+			if Core.C.UI and not (tut and tut.active and tut.active()) then
 				Core.C.UI.toast("🖱️ " .. t("msg.fp_cursor"), "info")
 			end
 		end)
@@ -23588,6 +23858,18 @@ function FirstPerson.Start()
 		updateViews(dt)
 		updateRun()
 	end)
+	-- O (supplier) is also Roblox's "zoom out" key: the Roblox camera takes it before
+	-- UserInputService hears it, so this shortcut is bound above the camera
+	ContextActionService:BindActionAtPriority("RamenSupplierKey", function(_, state)
+		if state ~= Enum.UserInputState.Begin or UserInputService:GetFocusedTextBox() then
+			return Enum.ContextActionResult.Pass
+		end
+		if Core.C.Build and Core.C.Build.active then
+			return Enum.ContextActionResult.Pass
+		end
+		shortcut(Enum.KeyCode.O)
+		return Enum.ContextActionResult.Sink
+	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.O)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if input.KeyCode == Enum.KeyCode.LeftAlt or input.KeyCode == Enum.KeyCode.RightAlt then
 			altHeld = true
@@ -23607,7 +23889,10 @@ function FirstPerson.Start()
 			end
 			return
 		end
-		shortcut(input.KeyCode)
+		-- (O comes through the action bound above the camera, see FirstPerson.Start)
+		if input.KeyCode ~= Enum.KeyCode.O then
+			shortcut(input.KeyCode)
+		end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
 		if input.KeyCode == Enum.KeyCode.LeftAlt or input.KeyCode == Enum.KeyCode.RightAlt then
@@ -23728,6 +24013,15 @@ local TIPS = {
 		return dockButton("Shop")
 	end, done = function()
 		return Core.C.UI.current == "Shop"
+	end },
+	-- the OPEN / CLOSED sign by the door, once a few dishes are served
+	{ id = "opensign", key = "hint.first_opensign", when = function()
+		local s = Core.C.Data.w("stats")
+		return (s and s.dishes or 0) >= CFG.opensign.dishes
+	end, world = function()
+		return mine("opensign")
+	end, done = function()
+		return Core.C.Data.plotAttr("Open") == false
 	end },
 }
 
@@ -24026,6 +24320,11 @@ local function actionText(model, kind, slot)
 		return t("hint.supplier")
 	elseif kind == "menuboard" then
 		return t("hint.menuboard")
+	elseif kind == "opensign" then
+		-- the LED sign by the door: what pressing does now (Plots.setOpen, plot attribute "Open")
+		local folder = Core.C.Data.plotFolder(model:GetAttribute("PlotId"))
+		local open = not folder or folder:GetAttribute("Open") ~= false
+		return open and ("🔴 " .. t("hint.close_shop")) or ("🟢 " .. t("hint.open_shop"))
 	elseif kind == "forsale" then
 		local id = model:GetAttribute("Expansion") or ""
 		local need = model:GetAttribute("Level") or 1
@@ -24235,6 +24534,14 @@ act = function(tap)
 		return
 	elseif current.kind == "menuboard" then
 		Core.C.UI.open("Menu")
+		return
+	elseif current.kind == "opensign" then
+		-- opens or closes the restaurant (the server checks who you are and that you are near)
+		if not Core.C.Data.canBuild() then
+			Core.C.UI.toast(t("ui.only_owner"), "warning")
+			return
+		end
+		NetDef.event("ToggleOpen"):FireServer()
 		return
 	end
 	NetDef.event("Interact"):FireServer(current.uid, { slot = current.slot })
@@ -25082,7 +25389,7 @@ end
 -- when the server reports this action; timer: seconds on screen; reward: gift asked to the server
 -- when the step starts; progress: text added to the banner; skippable: shows the ▶ button
 local STEPS = {
-	{ id = "welcome", icon = "🏮", key = "tut.welcome", timer = 4 },
+	{ id = "welcome", icon = "🏮", key = "tut.welcome", timer = TutorialCfg.WelcomeSeconds },
 	{ id = "order", icon = "🧑", key = "tut.order", world = function()
 		return nearestOf("customer")
 	end, check = anyTicket },
@@ -25144,14 +25451,23 @@ function Tutorial.currentKey()
 	return st and st.key or nil
 end
 
--- true while a step is on screen (the HUD hides today's objective, the tips wait)
+-- true while a step is on screen or the first one is about to show (the HUD hides today's
+-- objective, the tips wait)
+local starting = false
 function Tutorial.active()
-	return panel ~= nil and panel.Visible
+	return starting or (panel ~= nil and panel.Visible)
+end
+
+-- the text for the device you play with: tut.cook_pc / tut.cook_touch / tut.cook_pad when it
+-- exists, otherwise tut.cook
+local function deviceKey(key)
+	local k = key .. "_" .. Core.C.UI.inputMode()
+	return Locale.has(k) and k or key
 end
 
 local function stepText(st)
 	local params = { yen = Format.yen(TutorialCfg.ServeYen, Locale.get()), n = TutorialCfg.DoneSakura }
-	local s = t(st.key, params)
+	local s = t(deviceKey(st.key), params)
 	if st.progress then
 		s ..= "  (" .. st.progress() .. ")"
 	end
@@ -25247,7 +25563,8 @@ end
 
 function Tutorial.onAction(kind)
 	local st = STEPS[index]
-	if st and st.action and st.action == kind then
+	-- (too early: the step's check moves on once it has been on screen long enough)
+	if st and st.action and st.action == kind and os.clock() - stepStarted >= TutorialCfg.MinStepSeconds then
 		advance()
 	end
 end
@@ -25269,7 +25586,16 @@ function Tutorial.Init()
 	end
 	local tile = Kit.new("Frame", { Position = UDim2.fromOffset(10, 10), Size = UDim2.fromOffset(56, 56), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = panel }, { Kit.corner(28) })
 	iconLabel = Kit.label("", { Parent = tile, Position = UDim2.fromOffset(8, 8), Size = UDim2.new(1, -16, 1, -16), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
-	text = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 6), Size = UDim2.new(1, -164, 0, 44), TextSize = 17, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center })
+	text = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 6), Size = UDim2.new(1, -164, 0, 44), TextSize = 17, TextScaled = true, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center })
+	-- 17 points, a little smaller when a longer text needs three lines
+	Kit.new("UITextSizeConstraint", { MaxTextSize = 17, MinTextSize = 12, Parent = text })
+	-- a different device (touch after the mouse, a gamepad...) changes the words at once
+	UserInputService.LastInputTypeChanged:Connect(function()
+		local st = STEPS[index]
+		if st and panel.Visible then
+			text.Text = stepText(st)
+		end
+	end)
 	dots = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 50), Size = UDim2.new(1, -164, 0, 18), TextSize = 12, TextColor3 = T.gold, FontFace = T.bold, TextWrapped = false })
 	local buttons = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(76, 66), Parent = panel }, { Kit.list(Enum.FillDirection.Vertical, 4, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
 	nextButton = Kit.button("▶", { parent = buttons, size = UDim2.fromOffset(76, 30), style = "gold", textSize = 15, order = 1, onClick = function()
@@ -25313,6 +25639,15 @@ function Tutorial.Start()
 	end
 	skipButton.Text = t("ui.skip")
 	if index > 0 and index <= #STEPS and Data.role() == "owner" then
+		-- the first card waits until the loading screen is gone and your restaurant is built
+		starting = true
+		local pg = player:WaitForChild("PlayerGui")
+		local waited = 0
+		while waited < TutorialCfg.StartWait and (pg:FindFirstChild("Loading") or not Data.plotAttr("Ready")) do
+			task.wait(0.25)
+			waited += 0.25
+		end
+		starting = false
 		show()
 	else
 		index = -1
@@ -25343,7 +25678,7 @@ function Tutorial.Start()
 			if st.progress then
 				text.Text = stepText(st)
 			end
-			if st.check and st.check(stepState) then
+			if st.check and os.clock() - stepStarted >= TutorialCfg.MinStepSeconds and st.check(stepState) then
 				advance()
 			elseif st.timer and os.clock() - stepStarted > st.timer then
 				advance()
@@ -25390,6 +25725,22 @@ end
 
 function UI.isTouch()
 	return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+end
+
+-- what the player is playing with right now: "touch", "pad" (a gamepad) or "pc" (keyboard and
+-- mouse); the last input decides, so a laptop with a touch screen follows what you last used
+function UI.inputMode()
+	local last = UserInputService:GetLastInputType()
+	if last == Enum.UserInputType.Touch then
+		return "touch"
+	end
+	if last and string.sub(last.Name, 1, 7) == "Gamepad" then
+		return "pad"
+	end
+	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+		return "touch"
+	end
+	return "pc"
 end
 
 -- the area the HUD can use (under the Roblox top bar) and the kind of screen it is
@@ -25534,6 +25885,48 @@ function UI.toast(text, kind)
 	end
 end
 
+-- A bigger message with an icon and a sound (deliveries...): a card in the same place as the
+-- messages, with a title and a line under it; stays `seconds` (default 4.5)
+function UI.popup(icon, title, sub, opts)
+	if not toastHolder then
+		return
+	end
+	opts = opts or {}
+	local tut = Core.C.Tutorial
+	toastHolder.Position = UDim2.new(0.5, 0, 0, (tut and tut.active and tut.active()) and 134 or 92)
+	local f = Kit.panel({ Name = "Popup", Size = UDim2.new(1, 0, 0, 74), BackgroundColor3 = T.paper, Parent = toastHolder })
+	local stroke = f:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		stroke.Color = opts.color or T.gold
+		stroke.Thickness = 3
+	end
+	local tile = Kit.new("Frame", { Position = UDim2.fromOffset(9, 9), Size = UDim2.fromOffset(56, 56), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = f }, { Kit.corner(28) })
+	Kit.label(icon, { Parent = tile, Position = UDim2.fromOffset(8, 8), Size = UDim2.new(1, -16, 1, -16), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
+	Kit.label(title, { Name = "Title", Parent = f, Position = UDim2.fromOffset(76, 8), Size = UDim2.new(1, -86, 0, 30), TextSize = 21, FontFace = T.bold, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
+	Kit.label(sub or "", { Name = "Sub", Parent = f, Position = UDim2.fromOffset(76, 38), Size = UDim2.new(1, -86, 0, 28), TextSize = 16, TextColor3 = T.muted, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
+	Kit.popIn(f, 0.6)
+	if opts.sound and Core.C.Audio then
+		Core.C.Audio.play(opts.sound)
+	end
+	task.delay(opts.seconds or 4.5, function()
+		if f.Parent then
+			TweenService:Create(f, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
+			for _, d in ipairs(f:GetDescendants()) do
+				if d:IsA("TextLabel") then
+					TweenService:Create(d, TweenInfo.new(0.3), { TextTransparency = 1 }):Play()
+				elseif d:IsA("UIStroke") then
+					TweenService:Create(d, TweenInfo.new(0.3), { Transparency = 1 }):Play()
+				elseif d:IsA("Frame") then
+					TweenService:Create(d, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
+				end
+			end
+			task.wait(0.35)
+			f:Destroy()
+		end
+	end)
+	return f
+end
+
 function UI.Init()
 	local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
 	UI.gui = Kit.new("ScreenGui", { Name = "RamenUI", ResetOnSpawn = false, IgnoreGuiInset = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, Parent = pg })
@@ -25633,6 +26026,17 @@ local boards = {} -- [Instance] = { gui, title, sub, bar, fill }
 local RANGE = 45
 local TYPE_ICON = { cust_critic = "🧐", cust_influencer = "📱", cust_vip = "💎", cust_celebrity = "⭐" }
 
+-- a dark outline around the letters: the words read on any background without a box
+local function outline(label, thickness)
+	local s = Instance.new("UIStroke")
+	s.Color = Color.hex("#1E1612")
+	s.Thickness = thickness
+	s.LineJoinMode = Enum.LineJoinMode.Round
+	s.Parent = label
+end
+
+-- Words over stations, pots, dirty dishes, the tip jar and staff: only the text (no box around
+-- it), white with a dark outline, the same size as before
 local function make(adornee, height, width)
 	local gui = Instance.new("BillboardGui")
 	gui.Size = UDim2.fromOffset(width or 210, 66)
@@ -25643,32 +26047,25 @@ local function make(adornee, height, width)
 	gui.Adornee = adornee
 	local bg = Instance.new("Frame")
 	bg.Size = UDim2.fromScale(1, 1)
-	bg.BackgroundColor3 = Color.hex("#F4EBDD")
-	bg.BackgroundTransparency = 0.05
+	bg.BackgroundTransparency = 1
 	bg.Parent = gui
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, 12)
-	c.Parent = bg
-	local s = Instance.new("UIStroke")
-	s.Color = Color.hex("#5B3A24")
-	s.Thickness = 2
-	s.Parent = bg
 	local title = Instance.new("TextLabel")
 	title.BackgroundTransparency = 1
 	title.Size = UDim2.new(1, -8, 0.55, 0)
 	title.Position = UDim2.fromOffset(4, 2)
 	title.TextScaled = true
-	title.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
-	title.TextColor3 = Color.hex("#2B2320")
+	title.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Heavy)
+	title.TextColor3 = Color.hex("#FFFFFF")
 	title.AutoLocalize = false
 	title.Parent = bg
+	outline(title, 3)
 	local sub = Instance.new("TextLabel")
 	sub.BackgroundTransparency = 1
 	sub.Size = UDim2.new(1, -8, 0.32, 0)
 	sub.Position = UDim2.new(0, 4, 0.56, 0)
 	sub.TextScaled = true
-	sub.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Medium)
-	sub.TextColor3 = Color.hex("#7A6A5A")
+	sub.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
+	sub.TextColor3 = Color.hex("#FFE7B8")
 	sub.AutoLocalize = false
 	sub.Parent = bg
 	local bar = Instance.new("Frame")
@@ -25687,8 +26084,9 @@ local function make(adornee, height, width)
 	local fillCorner = Instance.new("UICorner")
 	fillCorner.CornerRadius = UDim.new(0, 4)
 	fillCorner.Parent = fill
+	outline(sub, 2.5)
 	gui.Parent = player.PlayerGui
-	return { gui = gui, bg = bg, title = title, sub = sub, bar = bar, fill = fill }
+	return { gui = gui, bg = bg, title = title, sub = sub, bar = bar, fill = fill, textOnly = true }
 end
 
 -- Customer bubble: sized in studs (2.7 wide, narrower than the 3 studs between two stools, so
@@ -25770,6 +26168,10 @@ local function icons(list)
 end
 
 local function setBar(b, value, show)
+	-- (labels made of words only have no bar: the words say how full or how long)
+	if b.textOnly then
+		show = false
+	end
 	b.bar.Visible = show
 	if show then
 		b.fill.Size = UDim2.fromScale(math.clamp(value, 0, 1), 1)
@@ -28235,6 +28637,7 @@ function HUD.create(root)
 			task.wait(1)
 			HUD.refreshTickets()
 			HUD.refreshInfo()
+			HUD.day()
 			HUD.refreshGift()
 			HUD.refreshGoal()
 		end
@@ -28386,8 +28789,14 @@ function HUD.refreshHands()
 	refs.hands.Visible = not (Core.C.Build and Core.C.Build.active)
 end
 
+local lastDay = nil
 function HUD.day(state)
-	refs.clock.Text = (state.night and "🌙 " or "🕒 ") .. Format.clock(state.clock or 10) .. "  ·  " .. t("ui.day_n", { n = state.day or 1 })
+	lastDay = state or lastDay or {}
+	state = lastDay
+	-- closed with the sign by the door: said next to the clock
+	local closed = Core.C.Data.plotAttr("Open") == false
+	refs.clock.Text = (state.night and "🌙 " or "🕒 ") .. Format.clock(state.clock or 10) .. "  ·  " .. t("ui.day_n", { n = state.day or 1 }) .. (closed and ("  ·  🔴 " .. t("ui.closed")) or "")
+	refs.day.Size = UDim2.fromOffset(closed and 320 or 214, 36)
 end
 
 -- the restaurant the player stands in: own (rating and likes) or someone else's (like, go home)
@@ -28954,18 +29363,19 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 	for _, g in ipairs(GameConfig.GridSizes) do
 		table.insert(grids, { label = g .. " stud", value = g })
 	end
-	choice(2, "📐 " .. t("ui.grid_size"), grids, s.grid or 1, "grid")
+	choice(4, "📐 " .. t("ui.grid_size"), grids, s.grid or 1, "grid")
 	local rots = {}
 	for _, r in ipairs(GameConfig.RotationSteps) do
 		table.insert(rots, { label = r .. "°", value = r })
 	end
-	choice(3, "🔄 " .. t("ui.rotation_step"), rots, s.rot or 90, "rot")
+	choice(5, "🔄 " .. t("ui.rotation_step"), rots, s.rot or 90, "rot")
 	local vols = { { label = "0%", value = 0 }, { label = "25%", value = 0.25 }, { label = "50%", value = 0.5 }, { label = "100%", value = 1 } }
-	choice(4, "🎵 " .. t("ui.music"), vols, s.music or 0.5, "music")
-	choice(5, "🔊 " .. t("ui.sfx"), vols, s.sfx or 0.8, "sfx")
-	choice(7, "🎥 " .. t("ui.camera"), { { label = t("ui.auto"), value = "auto", width = 70 }, { label = t("ui.cam_first"), value = "first", width = 110 }, { label = t("ui.cam_game"), value = "game", width = 110 }, { label = "Roblox", value = "roblox", width = 76 } }, s.cam or "auto", "cam")
-	choice(8, "🐢 " .. t("ui.cam_speed"), { { label = t("ui.slow"), value = 0.6 }, { label = t("ui.medium"), value = 1 }, { label = t("ui.fast"), value = 1.6 } }, s.camSpeed or 1, "camSpeed")
-	choice(6, "🖥️ " .. t("ui.low_graphics"), { { label = t("ui.on"), value = true }, { label = t("ui.off"), value = false } }, s.lowGfx == true, "lowGfx")
+	choice(6, "🎵 " .. t("ui.music"), vols, s.music or 0.5, "music")
+	choice(7, "🔊 " .. t("ui.sfx"), vols, s.sfx or 0.8, "sfx")
+	choice(3, "🎥 " .. t("ui.camera"), { { label = t("ui.auto"), value = "auto", width = 70 }, { label = t("ui.cam_first"), value = "first", width = 110 }, { label = t("ui.cam_game"), value = "game", width = 110 }, { label = "Roblox", value = "roblox", width = 76 } }, s.cam or "auto", "cam")
+	local S = GameConfig.Sensitivity
+	choice(2, "🖱️ " .. t("ui.cam_speed"), { { label = t("ui.sens_high"), value = S.High }, { label = t("ui.sens_medium"), value = S.Medium }, { label = t("ui.sens_low"), value = S.Low } }, s.camSpeed or S.Medium, "camSpeed")
+	choice(8, "🖥️ " .. t("ui.low_graphics"), { { label = t("ui.on"), value = true }, { label = t("ui.off"), value = false } }, s.lowGfx == true, "lowGfx")
 	Kit.button("🎓 " .. t("ui.restart_tutorial"), { parent = scroll, size = UDim2.new(1, -8, 0, 44), style = "plain", order = 10, onClick = function()
 		NetDef.event("TutorialStep"):FireServer(0)
 		Core.C.UI.close("Settings")

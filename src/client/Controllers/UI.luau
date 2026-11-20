@@ -37,6 +37,22 @@ function UI.isTouch()
 	return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 end
 
+-- what the player is playing with right now: "touch", "pad" (a gamepad) or "pc" (keyboard and
+-- mouse); the last input decides, so a laptop with a touch screen follows what you last used
+function UI.inputMode()
+	local last = UserInputService:GetLastInputType()
+	if last == Enum.UserInputType.Touch then
+		return "touch"
+	end
+	if last and string.sub(last.Name, 1, 7) == "Gamepad" then
+		return "pad"
+	end
+	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+		return "touch"
+	end
+	return "pc"
+end
+
 -- the area the HUD can use (under the Roblox top bar) and the kind of screen it is
 local function measure()
 	local size = UI.gui and UI.gui.AbsoluteSize or Vector2.zero
@@ -177,6 +193,48 @@ function UI.toast(text, kind)
 	if #items > 5 then
 		items[1]:Destroy()
 	end
+end
+
+-- A bigger message with an icon and a sound (deliveries...): a card in the same place as the
+-- messages, with a title and a line under it; stays `seconds` (default 4.5)
+function UI.popup(icon, title, sub, opts)
+	if not toastHolder then
+		return
+	end
+	opts = opts or {}
+	local tut = Core.C.Tutorial
+	toastHolder.Position = UDim2.new(0.5, 0, 0, (tut and tut.active and tut.active()) and 134 or 92)
+	local f = Kit.panel({ Name = "Popup", Size = UDim2.new(1, 0, 0, 74), BackgroundColor3 = T.paper, Parent = toastHolder })
+	local stroke = f:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		stroke.Color = opts.color or T.gold
+		stroke.Thickness = 3
+	end
+	local tile = Kit.new("Frame", { Position = UDim2.fromOffset(9, 9), Size = UDim2.fromOffset(56, 56), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = f }, { Kit.corner(28) })
+	Kit.label(icon, { Parent = tile, Position = UDim2.fromOffset(8, 8), Size = UDim2.new(1, -16, 1, -16), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
+	Kit.label(title, { Name = "Title", Parent = f, Position = UDim2.fromOffset(76, 8), Size = UDim2.new(1, -86, 0, 30), TextSize = 21, FontFace = T.bold, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
+	Kit.label(sub or "", { Name = "Sub", Parent = f, Position = UDim2.fromOffset(76, 38), Size = UDim2.new(1, -86, 0, 28), TextSize = 16, TextColor3 = T.muted, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
+	Kit.popIn(f, 0.6)
+	if opts.sound and Core.C.Audio then
+		Core.C.Audio.play(opts.sound)
+	end
+	task.delay(opts.seconds or 4.5, function()
+		if f.Parent then
+			TweenService:Create(f, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
+			for _, d in ipairs(f:GetDescendants()) do
+				if d:IsA("TextLabel") then
+					TweenService:Create(d, TweenInfo.new(0.3), { TextTransparency = 1 }):Play()
+				elseif d:IsA("UIStroke") then
+					TweenService:Create(d, TweenInfo.new(0.3), { Transparency = 1 }):Play()
+				elseif d:IsA("Frame") then
+					TweenService:Create(d, TweenInfo.new(0.3), { BackgroundTransparency = 1 }):Play()
+				end
+			end
+			task.wait(0.35)
+			f:Destroy()
+		end
+	end)
+	return f
 end
 
 function UI.Init()

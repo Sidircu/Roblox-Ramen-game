@@ -475,9 +475,26 @@ function cm.TeleportService.GetTeleportSetting()
 end
 function cm.TeleportService.SetTeleportSetting() end
 cm.ContextActionService = cm.ContextActionService or {}
-function cm.ContextActionService.BindAction() end
-function cm.ContextActionService.BindActionAtPriority() end
-function cm.ContextActionService.UnbindAction() end
+-- bound actions hear their keys before UserInputService, highest priority first; an action that
+-- sinks the key (returns nil or Sink) marks the input as processed (Sim.press)
+local casActions = {}
+Sim.casActions = casActions
+for name, value in pairs({ Low = 1000, Medium = 2000, Default = 2000, High = 3000 }) do
+	Enum.ContextActionPriority[name].Value = value
+end
+-- like Roblox's camera (PlayerModule), which zooms with I and O and so takes those keys
+casActions.RbxCameraKeypress = { priority = 2000, keys = { Enum.KeyCode.I, Enum.KeyCode.O }, fn = function()
+	return Enum.ContextActionResult.Sink
+end }
+function cm.ContextActionService.BindAction(_, name, fn, _, ...)
+	casActions[name] = { fn = fn, priority = 2000, keys = { ... } }
+end
+function cm.ContextActionService.BindActionAtPriority(_, name, fn, _, priority, ...)
+	casActions[name] = { fn = fn, priority = priority or 2000, keys = { ... } }
+end
+function cm.ContextActionService.UnbindAction(_, name)
+	casActions[name] = nil
+end
 function cm.ContextActionService.SetTitle() end
 function cm.ContextActionService.SetImage() end
 function cm.ContextActionService.SetPosition() end
@@ -642,13 +659,40 @@ local function inputObject(kind, key)
 end
 
 -- presses and releases a key
+-- the ContextActionService actions bound to a key, highest priority first; true when one sank it
+local function casDispatch(key, state, input)
+	local list = {}
+	for name, a in pairs(Sim.casActions or {}) do
+		for _, k in ipairs(a.keys) do
+			if k == key then
+				table.insert(list, { name = name, a = a })
+			end
+		end
+	end
+	table.sort(list, function(x, y)
+		return x.a.priority > y.a.priority
+	end)
+	for _, e in ipairs(list) do
+		local r = e.a.fn(e.name, state, input)
+		if r == nil or r == Enum.ContextActionResult.Sink then
+			return true
+		end
+	end
+	return false
+end
+
 function Sim.press(key, hold)
 	local uis = game:GetService("UserInputService")
 	keysDown[key] = true
-	uis.InputBegan:Fire(inputObject(Enum.UserInputType.Keyboard, key), false)
+	local down = inputObject(Enum.UserInputType.Keyboard, key)
+	local sunk = casDispatch(key, Enum.UserInputState.Begin, down)
+	uis.InputBegan:Fire(down, sunk)
 	task.wait(hold or 0.1)
 	keysDown[key] = nil
-	uis.InputEnded:Fire(inputObject(Enum.UserInputType.Keyboard, key), false)
+	local up = inputObject(Enum.UserInputType.Keyboard, key)
+	up.UserInputState = Enum.UserInputState.End
+	sunk = casDispatch(key, Enum.UserInputState.End, up)
+	uis.InputEnded:Fire(up, sunk)
 	task.wait(0.05)
 end
 

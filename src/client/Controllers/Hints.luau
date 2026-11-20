@@ -107,6 +107,15 @@ local TIPS = {
 	end, done = function()
 		return Core.C.UI.current == "Shop"
 	end },
+	-- the OPEN / CLOSED sign by the door, once a few dishes are served
+	{ id = "opensign", key = "hint.first_opensign", when = function()
+		local s = Core.C.Data.w("stats")
+		return (s and s.dishes or 0) >= CFG.opensign.dishes
+	end, world = function()
+		return mine("opensign")
+	end, done = function()
+		return Core.C.Data.plotAttr("Open") == false
+	end },
 }
 
 local function seen(id)

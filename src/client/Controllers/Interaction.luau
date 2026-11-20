@@ -207,6 +207,11 @@ local function actionText(model, kind, slot)
 		return t("hint.supplier")
 	elseif kind == "menuboard" then
 		return t("hint.menuboard")
+	elseif kind == "opensign" then
+		-- the LED sign by the door: what pressing does now (Plots.setOpen, plot attribute "Open")
+		local folder = Core.C.Data.plotFolder(model:GetAttribute("PlotId"))
+		local open = not folder or folder:GetAttribute("Open") ~= false
+		return open and ("🔴 " .. t("hint.close_shop")) or ("🟢 " .. t("hint.open_shop"))
 	elseif kind == "forsale" then
 		local id = model:GetAttribute("Expansion") or ""
 		local need = model:GetAttribute("Level") or 1
@@ -416,6 +421,14 @@ act = function(tap)
 		return
 	elseif current.kind == "menuboard" then
 		Core.C.UI.open("Menu")
+		return
+	elseif current.kind == "opensign" then
+		-- opens or closes the restaurant (the server checks who you are and that you are near)
+		if not Core.C.Data.canBuild() then
+			Core.C.UI.toast(t("ui.only_owner"), "warning")
+			return
+		end
+		NetDef.event("ToggleOpen"):FireServer()
 		return
 	end
 	NetDef.event("Interact"):FireServer(current.uid, { slot = current.slot })

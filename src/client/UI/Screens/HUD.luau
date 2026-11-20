@@ -207,6 +207,7 @@ function HUD.create(root)
 			task.wait(1)
 			HUD.refreshTickets()
 			HUD.refreshInfo()
+			HUD.day()
 			HUD.refreshGift()
 			HUD.refreshGoal()
 		end
@@ -358,8 +359,14 @@ function HUD.refreshHands()
 	refs.hands.Visible = not (Core.C.Build and Core.C.Build.active)
 end
 
+local lastDay = nil
 function HUD.day(state)
-	refs.clock.Text = (state.night and "🌙 " or "🕒 ") .. Format.clock(state.clock or 10) .. "  ·  " .. t("ui.day_n", { n = state.day or 1 })
+	lastDay = state or lastDay or {}
+	state = lastDay
+	-- closed with the sign by the door: said next to the clock
+	local closed = Core.C.Data.plotAttr("Open") == false
+	refs.clock.Text = (state.night and "🌙 " or "🕒 ") .. Format.clock(state.clock or 10) .. "  ·  " .. t("ui.day_n", { n = state.day or 1 }) .. (closed and ("  ·  🔴 " .. t("ui.closed")) or "")
+	refs.day.Size = UDim2.fromOffset(closed and 320 or 214, 36)
 end
 
 -- the restaurant the player stands in: own (rating and likes) or someone else's (like, go home)

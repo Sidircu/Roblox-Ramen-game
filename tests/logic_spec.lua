@@ -435,3 +435,29 @@ test("retention and fair passes", function()
   expect(#DailyRewards.days == 7 and DailyRewards.days[7].item ~= nil, "a week of gifts with a present on day 7")
   expect(DailyRewards.PopupAfterTutorial > 0 and DailyRewards.PopupWait > 0, "the calendar opens by itself")
 end)
+
+test("wall decorations hang where the pointer is", function()
+  local ctx = ctxFor({ zone_base = true }, starterPlaced())
+  local walls = ctx.walls[0]
+  local item = Items.byId.kakejiku
+  local inside = { x = -20, z = 10 }
+  -- the pointer on the inside face of the west wall
+  local x, z, y = Placement.wallSpot(ctx, walls, { x = -35.6, y = 7, z = 6 }, { x = 1, y = 0, z = 0 }, inside, item.size, 1, 0)
+  expect(x ~= nil, "a spot on the face")
+  local ok, reason = Placement.validate(ctx, { i = "kakejiku", x = x, z = z, y = y, r = 0, f = 0, s = "w" })
+  expect(ok, "hung on the face: " .. tostring(reason) .. " at " .. tostring(x) .. "," .. tostring(z) .. "," .. tostring(y))
+  -- the pointer on the top of the wall (the build view looks down): the side you stand on
+  x, z, y = Placement.wallSpot(ctx, walls, { x = -36.1, y = 14, z = 6.3 }, { x = 0, y = 1, z = 0 }, inside, item.size, 1, 0)
+  ok, reason = Placement.validate(ctx, { i = "kakejiku", x = x, z = z, y = y, r = 0, f = 0, s = "w" })
+  expect(ok, "hung from the top view: " .. tostring(reason))
+  expect(math.abs(y - GameConfig.WallItemY) <= 1, "at the usual height: " .. tostring(y))
+  -- standing outside, the outside of the building is not a wall for decorations
+  x, z, y = Placement.wallSpot(ctx, walls, { x = -36.1, y = 14, z = 6.3 }, { x = 0, y = 1, z = 0 }, { x = -50, z = 6 }, item.size, 1, 0)
+  ok = Placement.validate(ctx, { i = "kakejiku", x = x, z = z, y = y, r = 0, f = 0, s = "w" })
+  expect(not ok, "not on the outside")
+  -- the 5-stud grid keeps it on the wall too
+  x, z, y = Placement.wallSpot(ctx, walls, { x = -35.6, y = 9, z = 13 }, { x = 1, y = 0, z = 0 }, inside, Items.byId.noren_red.size, 5, 0)
+  ok, reason = Placement.validate(ctx, { i = "noren_red", x = x, z = z, y = y, r = 0, f = 0, s = "w" })
+  expect(ok, "noren on the 5-stud grid: " .. tostring(reason))
+  expect(Placement.wallSpot(ctx, walls, { x = 0, y = 1, z = 20 }, { x = 0, y = 1, z = 0 }, inside, item.size, 1, 0) == nil, "no wall near the middle of the room")
+end)

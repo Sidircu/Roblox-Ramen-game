@@ -36,11 +36,29 @@ local function use(model, hold)
 	return Sim.trigger(model, hold)
 end
 local banner = p.PlayerGui.RamenUI:FindFirstChild("Tutorial")
-Sim.check("the tutorial starts", step() == "welcome" and banner ~= nil and banner.Visible, tostring(step()))
+-- the first card waits for the loading screen, then stays long enough to be read
+Sim.check("no tip before the tutorial", not (p.PlayerGui.RamenUI:FindFirstChild("Hint") and p.PlayerGui.RamenUI.Hint.Visible))
+Sim.check("the tutorial starts after the loading screen", waitStep("welcome", 30) and banner ~= nil and banner.Visible and p.PlayerGui:FindFirstChild("Loading") == nil, tostring(step()))
+local Locale = Sim.clientRequire(game:GetService("ReplicatedStorage").Shared.Locale)
+local function bannerSays(key)
+	local want = Locale.t(key)
+	for _, d in ipairs(banner:GetDescendants()) do
+		if d:IsA("TextLabel") and string.find(d.Text, want, 1, true) then
+			return true
+		end
+	end
+	return false
+end
+Sim.check("the welcome card speaks of the phone (the stick on the left)", bannerSays("tut.welcome_touch"))
+local shownAt = Sim.now
 
--- 1-2: welcome, then the first order
-Sim.check("welcome moves on by itself", waitStep("order", 10))
+-- 1-2: welcome, then the first order; every card stays a few seconds, even when already done
+Sim.check("welcome moves on by itself", waitStep("order", 12))
+Sim.check("the welcome card stayed to be read", Sim.now - shownAt >= TutorialCfg.WelcomeSeconds - 0.5, string.format("%.1f s", Sim.now - shownAt))
+local orderAt = Sim.now
 Sim.check("the order step ends when the customer orders", waitStep("cook", 60), tostring(step()))
+Sim.check("the order card stayed on screen", Sim.now - orderAt >= TutorialCfg.MinStepSeconds - 0.3, string.format("%.1f s", Sim.now - orderAt))
+Sim.check("the cook card speaks of the phone (tap the button)", bannerSays("tut.cook_touch"))
 local ticket = S.Cooking.ticketsOf(plot)[1]
 local station
 for _, e in ipairs(S.Entities.ofKind("station", plot)) do

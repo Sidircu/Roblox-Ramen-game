@@ -137,4 +137,98 @@ if sign then
 	task.wait(3) -- the builders take a moment, then the restaurant is built again
 	Sim.check("the sign is gone and the next room has one", signFor("zone_east") == nil and signFor("zone_west") ~= nil)
 end
+-- the LED OPEN / CLOSED sign by the door: using it closes the restaurant (no new customers), the
+-- sign and the clock say so, using it again opens it
+local openSign = nil
+for _, m in ipairs(CS:GetTagged("Interactable")) do
+	if m:GetAttribute("Kind") == "opensign" and m:GetAttribute("PlotId") == plot.id then
+		openSign = m
+	end
+end
+Sim.check("an OPEN sign stands by the door", openSign ~= nil and openSign.PrimaryPart.Front.Label.Text == "OPEN")
+if openSign then
+	use(openSign)
+	Sim.waitFor(function()
+		return plot.closed == true
+	end, 5)
+	Sim.check("using the sign closes the restaurant", plot.closed == true and plot.folder:GetAttribute("Open") == false)
+	Sim.check("the sign says CLOSED", openSign.PrimaryPart.Front.Label.Text == "CLOSED")
+	task.wait(1.5)
+	Sim.check("the clock says closed", Sim.findText(Locale.t("ui.closed")) ~= nil)
+	local before = {}
+	for _, e in ipairs(S.Entities.ofKind("customer", plot)) do
+		before[e.model] = true
+	end
+	task.wait(30)
+	local newcomers = 0
+	for _, e in ipairs(S.Entities.ofKind("customer", plot)) do
+		if not before[e.model] then
+			newcomers += 1
+		end
+	end
+	Sim.check("nobody new comes in while closed", newcomers == 0, newcomers .. " new customers")
+	use(openSign)
+	Sim.waitFor(function()
+		return plot.closed == false
+	end, 5)
+	Sim.check("using it again opens the restaurant", plot.closed == false and openSign.PrimaryPart.Front.Label.Text == "OPEN")
+	local stranger = Sim.addPlayer({ name = "Stranger" })
+	Sim.waitFor(function()
+		return S.Data.get(stranger) and stranger.Character and S.Plots.ofPlayer(stranger)
+	end, 30)
+	task.wait(1)
+	stranger.Character:PivotTo(openSign.PrimaryPart.CFrame * CFrame.new(0, -3, -3))
+	task.wait(1) -- (now a helper in this restaurant: helpers cook and serve, they do not close it)
+	Sim.check("the other player now works here", S.Plots.of(stranger) == plot)
+	Sim.fire(stranger, "ToggleOpen")
+	task.wait(0.5)
+	Sim.check("only the owner may close it", plot.closed == false)
+end
+
+-- a delivery: the van parks a little before the loading bay, a pop-up with a sound says it is
+-- here, the boxes land on the ground just outside the storage door and a second pop-up says so
+local Expansions = Sim.shared("Config.Expansions")
+local boxesBefore = #d.storage
+local function popupSays(key, params)
+	local holder = p.PlayerGui.RamenUI:FindFirstChild("Toasts")
+	local want = Locale.t(key, params)
+	for _, f in ipairs(holder and holder:GetChildren() or {}) do
+		local title = f.Name == "Popup" and f:FindFirstChild("Title")
+		if title and title.Text == want then
+			return true
+		end
+	end
+	return false
+end
+d.yen += 2000
+Sim.fire(p, "OrderSupplies", { noodles = { small = 1 } })
+Sim.check("a pop-up says the van is here", Sim.waitFor(function()
+	return popupSays("ui.delivery_here")
+end, 20) ~= nil)
+Sim.check("a pop-up says the boxes are down", Sim.waitFor(function()
+	return popupSays("ui.delivery_done_one")
+end, 10) ~= nil)
+local dz = Expansions.DropZone
+local landed = nil
+for i = boxesBefore + 1, #d.storage do
+	local b = d.storage[i]
+	if b.g == "noodles" and b.px then
+		landed = b
+	end
+end
+Sim.check("the box is on the ground just outside the storage door", landed ~= nil and landed.px >= dz.x0 and landed.px <= dz.x1 and landed.pz >= dz.z0 and landed.pz <= dz.z1 and landed.pz < 24,
+	landed and string.format("%.1f, %.1f", landed.px, landed.pz) or "no box")
+Sim.snapshot("delivery_popup")
+
+-- keyboard shortcuts: O opens the supplier although Roblox's camera zooms with it
+if C.UI.current then
+	C.UI.close(C.UI.current)
+end
+Sim.press(Enum.KeyCode.O)
+Sim.check("O opens the supplier", C.UI.current == "Supplier", tostring(C.UI.current))
+Sim.press(Enum.KeyCode.O)
+Sim.check("O again closes it", C.UI.current == nil, tostring(C.UI.current))
+Sim.press(Enum.KeyCode.U)
+Sim.check("U opens the shop", C.UI.current == "Shop", tostring(C.UI.current))
+C.UI.close("Shop")
 Sim.check("server closes cleanly", Sim.close())

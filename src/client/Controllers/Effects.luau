@@ -323,6 +323,14 @@ function Effects.Init()
 				burst(root.Position + Vector3.new(0, 6, 8), "smoke", 30, "#D8C8B0")
 			end
 			Core.C.UI.toast("🏗️ " .. Locale.t("msg.construction"), "info")
+		elseif kind == "delivery" then
+			-- the truck parks (it honks), then the boxes are down outside the storage door (a bell)
+			local n = data.n or 0
+			if data.stage == "arriving" then
+				Core.C.UI.popup("🚚", Locale.t("ui.delivery_here"), Locale.t(n == 1 and "ui.delivery_unloading_one" or "ui.delivery_unloading", { n = n }), { sound = "truck", seconds = 3.5 })
+			else
+				Core.C.UI.popup("📦", Locale.t(n == 1 and "ui.delivery_done_one" or "ui.delivery_done", { n = n }), Locale.t("ui.delivery_where"), { sound = "bell", color = Color3.fromRGB(94, 143, 58) })
+			end
 		elseif kind == "sfx" and Audio then
 			Audio.play(data.name, data.pos)
 		elseif kind == "action" then

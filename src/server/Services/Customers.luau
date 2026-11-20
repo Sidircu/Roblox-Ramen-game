@@ -813,7 +813,8 @@ local function tick(plot, dt)
 	if Day.isNight() then
 		interval = interval * GameConfig.Day.NightFactor
 	end
-	if plot.spawnTimer >= interval then
+	-- closed with the sign by the door: nobody new comes in (the ones inside are served)
+	if plot.spawnTimer >= interval and not plot.closed then
 		plot.spawnTimer = 0
 		local ok, err = pcall(Service.trySpawn, plot)
 		if not ok then

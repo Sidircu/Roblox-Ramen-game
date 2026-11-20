@@ -12,6 +12,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local ContextActionService = game:GetService("ContextActionService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Locale = require(Shared.Locale)
@@ -140,7 +141,9 @@ local function updateCrosshair()
 	if fp and not toldAboutCursor and UserInputService.KeyboardEnabled then
 		toldAboutCursor = true
 		task.delay(2, function()
-			if Core.C.UI then
+			-- (the tutorial's welcome card says it already)
+			local tut = Core.C.Tutorial
+			if Core.C.UI and not (tut and tut.active and tut.active()) then
 				Core.C.UI.toast("🖱️ " .. t("msg.fp_cursor"), "info")
 			end
 		end)
@@ -297,6 +300,18 @@ function FirstPerson.Start()
 		updateViews(dt)
 		updateRun()
 	end)
+	-- O (supplier) is also Roblox's "zoom out" key: the Roblox camera takes it before
+	-- UserInputService hears it, so this shortcut is bound above the camera
+	ContextActionService:BindActionAtPriority("RamenSupplierKey", function(_, state)
+		if state ~= Enum.UserInputState.Begin or UserInputService:GetFocusedTextBox() then
+			return Enum.ContextActionResult.Pass
+		end
+		if Core.C.Build and Core.C.Build.active then
+			return Enum.ContextActionResult.Pass
+		end
+		shortcut(Enum.KeyCode.O)
+		return Enum.ContextActionResult.Sink
+	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.O)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if input.KeyCode == Enum.KeyCode.LeftAlt or input.KeyCode == Enum.KeyCode.RightAlt then
 			altHeld = true
@@ -316,7 +331,10 @@ function FirstPerson.Start()
 			end
 			return
 		end
-		shortcut(input.KeyCode)
+		-- (O comes through the action bound above the camera, see FirstPerson.Start)
+		if input.KeyCode ~= Enum.KeyCode.O then
+			shortcut(input.KeyCode)
+		end
 	end)
 	UserInputService.InputEnded:Connect(function(input)
 		if input.KeyCode == Enum.KeyCode.LeftAlt or input.KeyCode == Enum.KeyCode.RightAlt then

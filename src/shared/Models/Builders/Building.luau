@@ -633,6 +633,34 @@ function B.openSign(parent, x, y, z)
 	return label, plate
 end
 
+-- LED sign on a post on the sidewalk, next to the door: a dark board with OPEN / CLOSED in light
+-- letters on both sides (World.paintOpenSign writes them), a thin metal frame, a post and a foot;
+-- the board is the model's PrimaryPart (y = height of the board's middle)
+function B.ledSign(parent, x, y, z)
+	local m = Kit.model("OpenSign")
+	local NC = { collide = false, shadow = false }
+	Kit.box(m, 1, 0.16, 0.7, x, 0.08, z, P.steel_dark, M.metal)
+	Kit.box(m, 0.22, y - 0.6, 0.22, x, (y - 0.6) / 2, z, P.steel_dark, M.metal)
+	local board = Kit.box(m, 2.8, 1.25, 0.22, x, y, z, P.charcoal, M.smooth, { collide = false, name = "Board" })
+	for _, dy in ipairs({ -0.66, 0.66 }) do
+		Kit.box(m, 2.96, 0.1, 0.28, x, y + dy, z, P.steel_dark, M.metal, NC)
+	end
+	for _, dx in ipairs({ -1.46, 1.46 }) do
+		Kit.box(m, 0.1, 1.42, 0.28, x + dx, y, z, P.steel_dark, M.metal, NC)
+	end
+	for _, face in ipairs({ Enum.NormalId.Front, Enum.NormalId.Back }) do
+		local gui, label = Kit.text(board, face, "OPEN", { color = P.neon_green, glow = true, pps = 60 })
+		gui.Name = face == Enum.NormalId.Front and "Front" or "Back"
+		label.Name = "Label"
+		label.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Bold)
+	end
+	local glow = Kit.light(board, "Point", P.neon_green, 8, 1, { night = false })
+	glow.Name = "Glow"
+	m.PrimaryPart = board
+	m.Parent = parent
+	return m
+end
+
 function B.tag(part, name, attrs)
 	return tag(part, name, attrs)
 end
