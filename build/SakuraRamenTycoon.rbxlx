@@ -23429,7 +23429,8 @@ local function comboBanner(n, bonus)
 	local l = Instance.new("TextLabel")
 	l.AnchorPoint = Vector2.new(0.5, 0.5)
 	l.Position = UDim2.fromScale(0.5, 0.3)
-	l.Size = UDim2.fromOffset(420, 70)
+	-- (smaller on a phone)
+	l.Size = (Core.C.UI and Core.C.UI.profile == "phone") and UDim2.fromOffset(300, 50) or UDim2.fromOffset(420, 70)
 	l.BackgroundTransparency = 1
 	l.Text = Locale.t("ui.combo", { n = n, pct = math.floor((bonus or 0) * 100 + 0.5) })
 	l.TextScaled = true
@@ -24061,6 +24062,17 @@ local function open(tip)
 	current = { id = tip.id, tip = tip, since = os.clock() }
 	cardText.Text = "💡 " .. t(tip.key)
 	card.Position = UDim2.new(Kit.profile == "desktop" and 0.5 or 0.57, 0, 1, -140)
+	-- smaller on a phone, so the game stays in view
+	local phone = Kit.profile == "phone"
+	card.Size = UDim2.fromOffset(phone and 330 or 420, 0)
+	cardText.TextSize = phone and 15 or 17
+	local pad = card:FindFirstChildOfClass("UIPadding")
+	if pad then
+		pad.PaddingLeft = UDim.new(0, phone and 10 or 14)
+		pad.PaddingRight = UDim.new(0, phone and 10 or 14)
+		pad.PaddingTop = UDim.new(0, phone and 7 or 10)
+		pad.PaddingBottom = UDim.new(0, phone and 7 or 10)
+	end
 	aim(tip)
 	card.Visible = true
 	Kit.popIn(card, 0.85)
@@ -25430,10 +25442,14 @@ local STEPS = {
 }
 Tutorial.STEPS = STEPS
 
-local panel, iconLabel, text, dots, skipButton, nextButton
+local panel, iconLabel, text, dots, skipButton, nextButton, tile, buttons
 local pointer
 local index = 0
 local stepState = {}
+-- what the counters were when the step on screen was done (it may still stay a few seconds): the
+-- next step counts from there, so doing the next thing quickly (serving while "pick up the bowl" is
+-- still shown) is not lost
+local doneState = nil
 local stepStarted = 0
 
 local function save()
@@ -25498,13 +25514,14 @@ local function show()
 		return
 	end
 	panel.Visible = true
-	panel.Size = UDim2.fromOffset(Kit.profile == "phone" and 390 or 460, 76)
+	Tutorial.layout()
 	iconLabel.Text = st.icon
 	text.Text = stepText(st)
 	nextButton.Visible = st.skippable == true or st.timer ~= nil
 	paintDots()
 	stepStarted = os.clock()
-	stepState = { dishes = stat("dishes"), washed = stat("washed"), purchases = purchases() }
+	stepState = doneState or { dishes = stat("dishes"), washed = stat("washed"), purchases = purchases() }
+	doneState = nil
 	if st.reward then
 		NetDef.event("TutorialReward"):FireServer(st.reward)
 	end
@@ -25541,8 +25558,34 @@ local function offerDaily(delay)
 	end)
 end
 
+-- the banner's measures: on a phone a smaller card (smaller icon and buttons), with the same room
+-- for the words, so the game stays in view and the text keeps its size
+function Tutorial.layout()
+	if not panel then
+		return
+	end
+	local phone = Kit.profile == "phone"
+	local w, h = phone and 360 or 460, phone and 68 or 76
+	local iconSize, bw = phone and 44 or 56, phone and 64 or 76
+	local textX = phone and 60 or 76
+	panel.Size = UDim2.fromOffset(w, h)
+	tile.Position = UDim2.fromOffset(phone and 8 or 10, (h - iconSize) / 2)
+	tile.Size = UDim2.fromOffset(iconSize, iconSize)
+	text.Position = UDim2.fromOffset(textX, 4)
+	text.Size = UDim2.new(1, -(textX + bw + 14), 0, h - 26)
+	dots.Position = UDim2.fromOffset(textX, h - 21)
+	dots.Size = UDim2.new(1, -(textX + bw + 14), 0, 16)
+	buttons.Position = UDim2.new(1, phone and -8 or -10, 0.5, 0)
+	buttons.Size = UDim2.fromOffset(bw, h - 8)
+	nextButton.Size = UDim2.fromOffset(bw, phone and 27 or 30)
+	skipButton.Size = UDim2.fromOffset(bw, phone and 27 or 30)
+	nextButton.TextSize = phone and 14 or 15
+	skipButton.TextSize = phone and 13 or 14
+end
+
 local function finish(skipped)
 	index = -1
+	doneState = nil
 	save()
 	hide()
 	if skipped then
@@ -25584,11 +25627,13 @@ function Tutorial.Init()
 		stroke.Color = T.gold
 		stroke.Thickness = 4
 	end
-	local tile = Kit.new("Frame", { Position = UDim2.fromOffset(10, 10), Size = UDim2.fromOffset(56, 56), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = panel }, { Kit.corner(28) })
+	tile = Kit.new("Frame", { Position = UDim2.fromOffset(10, 10), Size = UDim2.fromOffset(56, 56), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = panel }, { Kit.new("UICorner", { CornerRadius = UDim.new(0.5, 0) }) })
 	iconLabel = Kit.label("", { Parent = tile, Position = UDim2.fromOffset(8, 8), Size = UDim2.new(1, -16, 1, -16), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
 	text = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 6), Size = UDim2.new(1, -164, 0, 44), TextSize = 17, TextScaled = true, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center })
 	-- 17 points, a little smaller when a longer text needs three lines
 	Kit.new("UITextSizeConstraint", { MaxTextSize = 17, MinTextSize = 12, Parent = text })
+	-- the banner follows the screen (phone, tablet, computer)
+	Core.C.UI.ProfileChanged:Connect(Tutorial.layout)
 	-- a different device (touch after the mouse, a gamepad...) changes the words at once
 	UserInputService.LastInputTypeChanged:Connect(function()
 		local st = STEPS[index]
@@ -25597,7 +25642,7 @@ function Tutorial.Init()
 		end
 	end)
 	dots = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 50), Size = UDim2.new(1, -164, 0, 18), TextSize = 12, TextColor3 = T.gold, FontFace = T.bold, TextWrapped = false })
-	local buttons = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(76, 66), Parent = panel }, { Kit.list(Enum.FillDirection.Vertical, 4, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
+	buttons = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(76, 66), Parent = panel }, { Kit.list(Enum.FillDirection.Vertical, 4, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
 	nextButton = Kit.button("▶", { parent = buttons, size = UDim2.fromOffset(76, 30), style = "gold", textSize = 15, order = 1, onClick = function()
 		local st = STEPS[index]
 		if st and (st.timer or st.skippable) then
@@ -25678,8 +25723,11 @@ function Tutorial.Start()
 			if st.progress then
 				text.Text = stepText(st)
 			end
-			if st.check and os.clock() - stepStarted >= TutorialCfg.MinStepSeconds and st.check(stepState) then
-				advance()
+			if st.check and (doneState or st.check(stepState)) then
+				doneState = doneState or { dishes = stat("dishes"), washed = stat("washed"), purchases = purchases() }
+				if os.clock() - stepStarted >= TutorialCfg.MinStepSeconds then
+					advance()
+				end
 			elseif st.timer and os.clock() - stepStarted > st.timer then
 				advance()
 			end
@@ -25848,17 +25896,26 @@ end
 
 local KIND_COLOR = { info = T.wood, success = T.green, error = T.red, warning = T.gold, level = T.gold }
 
+-- messages and pop-ups are smaller on a phone, so the game stays in view (the words still read
+-- well: 15 / 16 points); under the tutorial banner while it is on screen
+local function placeHolder()
+	local phone = Kit.profile == "phone"
+	local tut = Core.C.Tutorial
+	local below = tut and tut.active and tut.active()
+	toastHolder.Size = UDim2.fromOffset(phone and 340 or 460, 300)
+	toastHolder.Position = UDim2.new(0.5, 0, 0, below and (phone and 130 or 134) or (phone and 86 or 92))
+	return phone
+end
+
 function UI.toast(text, kind)
 	if not toastHolder then
 		return
 	end
-	-- under the tutorial banner while it is on screen
-	local tut = Core.C.Tutorial
-	toastHolder.Position = UDim2.new(0.5, 0, 0, (tut and tut.active and tut.active()) and 134 or 92)
+	local phone = placeHolder()
 	local f = Kit.panel({ Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = T.paper, Parent = toastHolder })
 	f:FindFirstChildOfClass("UIStroke").Color = KIND_COLOR[kind] or T.wood
-	Kit.padding(12, 8).Parent = f
-	Kit.label(text, { Parent = f, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, TextSize = 18, FontFace = T.bold, TextColor3 = kind == "error" and T.red or T.ink })
+	Kit.padding(phone and 10 or 12, phone and 5 or 8).Parent = f
+	Kit.label(text, { Parent = f, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, TextSize = phone and 15 or 18, FontFace = T.bold, TextColor3 = kind == "error" and T.red or T.ink })
 	Kit.popIn(f, 0.7)
 	task.delay(kind == "level" and 5 or 3.2, function()
 		if f.Parent then
@@ -25892,18 +25949,21 @@ function UI.popup(icon, title, sub, opts)
 		return
 	end
 	opts = opts or {}
-	local tut = Core.C.Tutorial
-	toastHolder.Position = UDim2.new(0.5, 0, 0, (tut and tut.active and tut.active()) and 134 or 92)
-	local f = Kit.panel({ Name = "Popup", Size = UDim2.new(1, 0, 0, 74), BackgroundColor3 = T.paper, Parent = toastHolder })
+	local phone = placeHolder()
+	-- (phone: 54 tall, a 40-point icon, 16 / 14 point words)
+	local h, tileSize = phone and 54 or 74, phone and 40 or 56
+	local pad = (h - tileSize) / 2
+	local textX = pad + tileSize + (phone and 8 or 11)
+	local f = Kit.panel({ Name = "Popup", Size = UDim2.new(1, 0, 0, h), BackgroundColor3 = T.paper, Parent = toastHolder })
 	local stroke = f:FindFirstChildOfClass("UIStroke")
 	if stroke then
 		stroke.Color = opts.color or T.gold
-		stroke.Thickness = 3
+		stroke.Thickness = phone and 2.5 or 3
 	end
-	local tile = Kit.new("Frame", { Position = UDim2.fromOffset(9, 9), Size = UDim2.fromOffset(56, 56), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = f }, { Kit.corner(28) })
-	Kit.label(icon, { Parent = tile, Position = UDim2.fromOffset(8, 8), Size = UDim2.new(1, -16, 1, -16), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
-	Kit.label(title, { Name = "Title", Parent = f, Position = UDim2.fromOffset(76, 8), Size = UDim2.new(1, -86, 0, 30), TextSize = 21, FontFace = T.bold, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
-	Kit.label(sub or "", { Name = "Sub", Parent = f, Position = UDim2.fromOffset(76, 38), Size = UDim2.new(1, -86, 0, 28), TextSize = 16, TextColor3 = T.muted, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
+	local tile = Kit.new("Frame", { Position = UDim2.fromOffset(pad, pad), Size = UDim2.fromOffset(tileSize, tileSize), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = f }, { Kit.corner(tileSize / 2) })
+	Kit.label(icon, { Parent = tile, Position = UDim2.fromOffset(tileSize / 7, tileSize / 7), Size = UDim2.new(1, -tileSize * 2 / 7, 1, -tileSize * 2 / 7), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
+	Kit.label(title, { Name = "Title", Parent = f, Position = UDim2.fromOffset(textX, phone and 5 or 8), Size = UDim2.new(1, -textX - 8, 0, phone and 24 or 30), TextSize = phone and 16 or 21, FontFace = T.bold, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
+	Kit.label(sub or "", { Name = "Sub", Parent = f, Position = UDim2.fromOffset(textX, phone and 29 or 38), Size = UDim2.new(1, -textX - 8, 0, phone and 20 or 28), TextSize = phone and 14 or 16, TextColor3 = T.muted, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
 	Kit.popIn(f, 0.6)
 	if opts.sound and Core.C.Audio then
 		Core.C.Audio.play(opts.sound)
@@ -26089,9 +26149,9 @@ local function make(adornee, height, width)
 	return { gui = gui, bg = bg, title = title, sub = sub, bar = bar, fill = fill, textOnly = true }
 end
 
--- Customer bubble: sized in studs (2.7 wide, narrower than the 3 studs between two stools, so
--- neighbours never overlap), always on top, a big icon (❗, the dish, 😋), the dish name, and a
--- thick patience bar that turns yellow and red
+-- Over a customer: sized in studs (2.7 wide, narrower than the 3 studs between two stools, so
+-- neighbours never overlap), always on top, no box: a big icon (❗, the dish, 😋), the dish name
+-- in white with a dark outline, and a slim patience bar that turns yellow and red
 local function makeCustomer(adornee)
 	local gui = Instance.new("BillboardGui")
 	gui.Size = UDim2.fromScale(2.7, 1.5)
@@ -26102,15 +26162,8 @@ local function makeCustomer(adornee)
 	gui.Adornee = adornee
 	local bg = Instance.new("Frame")
 	bg.Size = UDim2.fromScale(1, 1)
-	bg.BackgroundColor3 = Color.hex("#FFFBF2")
+	bg.BackgroundTransparency = 1
 	bg.Parent = gui
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0.22, 0)
-	c.Parent = bg
-	local s = Instance.new("UIStroke")
-	s.Color = Color.hex("#5B3A24")
-	s.Thickness = 2.5
-	s.Parent = bg
 	local icon = Instance.new("TextLabel")
 	icon.BackgroundTransparency = 1
 	icon.Position = UDim2.fromScale(0.03, 0.06)
@@ -26125,9 +26178,10 @@ local function makeCustomer(adornee)
 	title.TextScaled = true
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Heavy)
-	title.TextColor3 = Color.hex("#2B2320")
+	title.TextColor3 = Color.hex("#FFFFFF")
 	title.AutoLocalize = false
 	title.Parent = bg
+	outline(title, 2)
 	local sub = Instance.new("TextLabel")
 	sub.BackgroundTransparency = 1
 	sub.Position = UDim2.fromScale(0.38, 0.44)
@@ -26135,18 +26189,25 @@ local function makeCustomer(adornee)
 	sub.TextScaled = true
 	sub.TextXAlignment = Enum.TextXAlignment.Left
 	sub.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
-	sub.TextColor3 = Color.hex("#7A5A3A")
+	sub.TextColor3 = Color.hex("#FFE7B8")
 	sub.AutoLocalize = false
 	sub.Parent = bg
+	outline(sub, 1.5)
+	-- the patience bar: a dark track with a thin dark edge, so it reads on any background
 	local bar = Instance.new("Frame")
-	bar.BackgroundColor3 = Color.hex("#D8C8AE")
-	bar.Position = UDim2.fromScale(0.06, 0.78)
-	bar.Size = UDim2.fromScale(0.88, 0.14)
+	bar.BackgroundColor3 = Color.hex("#2B2320")
+	bar.BackgroundTransparency = 0.35
+	bar.Position = UDim2.fromScale(0.06, 0.8)
+	bar.Size = UDim2.fromScale(0.88, 0.1)
 	bar.Visible = false
 	bar.Parent = bg
 	local bc = Instance.new("UICorner")
 	bc.CornerRadius = UDim.new(0.5, 0)
 	bc.Parent = bar
+	local bs = Instance.new("UIStroke")
+	bs.Color = Color.hex("#1E1612")
+	bs.Thickness = 1.5
+	bs.Parent = bar
 	local fill = Instance.new("Frame")
 	fill.BackgroundColor3 = Color.hex("#5E8F3A")
 	fill.Size = UDim2.fromScale(1, 1)
@@ -26209,8 +26270,8 @@ local function updateEntity(model, b)
 			b.gui.Enabled = false
 		end
 		setBar(b, model:GetAttribute("Patience") or 1, state == "order" or state == "waiting")
-		-- a gentle pulse while the order waits to be taken
-		b.bg.BackgroundColor3 = state == "order" and Color.hex(math.floor(now * 2) % 2 == 0 and "#FFF1C2" or "#FFFBF2") or Color.hex("#FFFBF2")
+		-- a gentle pulse while the order waits to be taken: the words turn gold and white
+		b.title.TextColor3 = (state == "order" and math.floor(now * 2) % 2 == 0) and Color.hex("#FFD23B") or Color.hex("#FFFFFF")
 	elseif (kind == "station" or kind == "ricecooker") and Core.C.Interaction and Core.C.Interaction.lockOf(model, kind) then
 		-- not usable yet: name the license that unlocks it
 		local lock = Core.C.Interaction.lockOf(model, kind)

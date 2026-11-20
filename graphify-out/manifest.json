@@ -42,9 +42,9 @@
     "semantic_hash": ""
   },
   "src/client/Controllers/Effects.luau": {
-    "mtime": 1795165958.995804,
-    "seen": 1795166498.7744875,
-    "ast_hash": "7dbe3461d641b528742d8a3e37026824",
+    "mtime": 1795168439.6937556,
+    "seen": 1795168657.5965676,
+    "ast_hash": "c2f49f9634c97fdc9844a553e8d0170a",
     "semantic_hash": ""
   },
   "src/client/Controllers/Interaction.luau": {
@@ -60,21 +60,21 @@
     "semantic_hash": ""
   },
   "src/client/Controllers/Tutorial.luau": {
-    "mtime": 1795165506.5042706,
-    "seen": 1795166498.7745087,
-    "ast_hash": "9011ba4e94c7b4158cb4adc737fb86ba",
+    "mtime": 1795168596.7305033,
+    "seen": 1795168657.5965846,
+    "ast_hash": "00b2ce46b2b9132429da4936baa7b460",
     "semantic_hash": ""
   },
   "src/client/Controllers/UI.luau": {
-    "mtime": 1795165879.7599683,
-    "seen": 1795166498.7745109,
-    "ast_hash": "61686e27f4992ef1aabe9c55f5584f50",
+    "mtime": 1795168434.5194125,
+    "seen": 1795168657.5965862,
+    "ast_hash": "d6b218ec76ce3213ea892d666b585674",
     "semantic_hash": ""
   },
   "src/client/Controllers/WorldUI.luau": {
-    "mtime": 1795165616.7112544,
-    "seen": 1795166498.7745132,
-    "ast_hash": "93a09239ff095f957b0f4fd85ee216ea",
+    "mtime": 1795168457.3286397,
+    "seen": 1795168657.5965877,
+    "ast_hash": "e1d4b2cef399e2951997634bf694cca7",
     "semantic_hash": ""
   },
   "src/client/Core.luau": {
@@ -666,15 +666,15 @@
     "semantic_hash": ""
   },
   "docs/01-GAME-DESIGN.md": {
-    "mtime": 1795166354.5774057,
-    "seen": 1795166498.7747638,
-    "ast_hash": "d7f9b0684a889106ea1e811ca2f35d2d",
+    "mtime": 1795168653.2091975,
+    "seen": 1795168657.5968,
+    "ast_hash": "a37c87818a618a216076b150fb08ae72",
     "semantic_hash": ""
   },
   "docs/02-PIANO-TECNICO.md": {
-    "mtime": 1795166417.1680584,
-    "seen": 1795166498.7747655,
-    "ast_hash": "5c82ba8969e382870ebe12a102df9b26",
+    "mtime": 1795168653.2100997,
+    "seen": 1795168657.5968013,
+    "ast_hash": "b75e84c4610bb9bcf9c026590109ca14",
     "semantic_hash": ""
   },
   "docs/03-BILANCIAMENTO.md": {
@@ -960,9 +960,9 @@
     "semantic_hash": ""
   },
   "src/client/Controllers/Hints.luau": {
-    "mtime": 1795166154.3341541,
-    "seen": 1795166498.7744937,
-    "ast_hash": "e60a468316f26ca8e340598627fa6ba2",
+    "mtime": 1795168434.5201516,
+    "seen": 1795168657.596573,
+    "ast_hash": "695d1b741b17d5076c6574e4cd625360",
     "semantic_hash": ""
   },
   "src/client/UI/Pointer.luau": {
@@ -978,9 +978,9 @@
     "semantic_hash": ""
   },
   "tools/sim/scenarios/tutorial.lua": {
-    "mtime": 1795165518.5182748,
-    "seen": 1795166498.7747416,
-    "ast_hash": "7b4ce2aa97c37a6879af55aad5e1a22b",
+    "mtime": 1795168581.0676193,
+    "seen": 1795168657.5967815,
+    "ast_hash": "bbd06513a67fadd6ec96fb3c5c852c41",
     "semantic_hash": ""
   },
   "tools/sim/ui/tutorial.lua": {

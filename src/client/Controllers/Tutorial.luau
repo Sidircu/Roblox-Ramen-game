@@ -176,10 +176,14 @@ local STEPS = {
 }
 Tutorial.STEPS = STEPS
 
-local panel, iconLabel, text, dots, skipButton, nextButton
+local panel, iconLabel, text, dots, skipButton, nextButton, tile, buttons
 local pointer
 local index = 0
 local stepState = {}
+-- what the counters were when the step on screen was done (it may still stay a few seconds): the
+-- next step counts from there, so doing the next thing quickly (serving while "pick up the bowl" is
+-- still shown) is not lost
+local doneState = nil
 local stepStarted = 0
 
 local function save()
@@ -244,13 +248,14 @@ local function show()
 		return
 	end
 	panel.Visible = true
-	panel.Size = UDim2.fromOffset(Kit.profile == "phone" and 390 or 460, 76)
+	Tutorial.layout()
 	iconLabel.Text = st.icon
 	text.Text = stepText(st)
 	nextButton.Visible = st.skippable == true or st.timer ~= nil
 	paintDots()
 	stepStarted = os.clock()
-	stepState = { dishes = stat("dishes"), washed = stat("washed"), purchases = purchases() }
+	stepState = doneState or { dishes = stat("dishes"), washed = stat("washed"), purchases = purchases() }
+	doneState = nil
 	if st.reward then
 		NetDef.event("TutorialReward"):FireServer(st.reward)
 	end
@@ -287,8 +292,34 @@ local function offerDaily(delay)
 	end)
 end
 
+-- the banner's measures: on a phone a smaller card (smaller icon and buttons), with the same room
+-- for the words, so the game stays in view and the text keeps its size
+function Tutorial.layout()
+	if not panel then
+		return
+	end
+	local phone = Kit.profile == "phone"
+	local w, h = phone and 360 or 460, phone and 68 or 76
+	local iconSize, bw = phone and 44 or 56, phone and 64 or 76
+	local textX = phone and 60 or 76
+	panel.Size = UDim2.fromOffset(w, h)
+	tile.Position = UDim2.fromOffset(phone and 8 or 10, (h - iconSize) / 2)
+	tile.Size = UDim2.fromOffset(iconSize, iconSize)
+	text.Position = UDim2.fromOffset(textX, 4)
+	text.Size = UDim2.new(1, -(textX + bw + 14), 0, h - 26)
+	dots.Position = UDim2.fromOffset(textX, h - 21)
+	dots.Size = UDim2.new(1, -(textX + bw + 14), 0, 16)
+	buttons.Position = UDim2.new(1, phone and -8 or -10, 0.5, 0)
+	buttons.Size = UDim2.fromOffset(bw, h - 8)
+	nextButton.Size = UDim2.fromOffset(bw, phone and 27 or 30)
+	skipButton.Size = UDim2.fromOffset(bw, phone and 27 or 30)
+	nextButton.TextSize = phone and 14 or 15
+	skipButton.TextSize = phone and 13 or 14
+end
+
 local function finish(skipped)
 	index = -1
+	doneState = nil
 	save()
 	hide()
 	if skipped then
@@ -330,11 +361,13 @@ function Tutorial.Init()
 		stroke.Color = T.gold
 		stroke.Thickness = 4
 	end
-	local tile = Kit.new("Frame", { Position = UDim2.fromOffset(10, 10), Size = UDim2.fromOffset(56, 56), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = panel }, { Kit.corner(28) })
+	tile = Kit.new("Frame", { Position = UDim2.fromOffset(10, 10), Size = UDim2.fromOffset(56, 56), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = panel }, { Kit.new("UICorner", { CornerRadius = UDim.new(0.5, 0) }) })
 	iconLabel = Kit.label("", { Parent = tile, Position = UDim2.fromOffset(8, 8), Size = UDim2.new(1, -16, 1, -16), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
 	text = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 6), Size = UDim2.new(1, -164, 0, 44), TextSize = 17, TextScaled = true, FontFace = T.bold, TextYAlignment = Enum.TextYAlignment.Center })
 	-- 17 points, a little smaller when a longer text needs three lines
 	Kit.new("UITextSizeConstraint", { MaxTextSize = 17, MinTextSize = 12, Parent = text })
+	-- the banner follows the screen (phone, tablet, computer)
+	Core.C.UI.ProfileChanged:Connect(Tutorial.layout)
 	-- a different device (touch after the mouse, a gamepad...) changes the words at once
 	UserInputService.LastInputTypeChanged:Connect(function()
 		local st = STEPS[index]
@@ -343,7 +376,7 @@ function Tutorial.Init()
 		end
 	end)
 	dots = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 50), Size = UDim2.new(1, -164, 0, 18), TextSize = 12, TextColor3 = T.gold, FontFace = T.bold, TextWrapped = false })
-	local buttons = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(76, 66), Parent = panel }, { Kit.list(Enum.FillDirection.Vertical, 4, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
+	buttons = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(76, 66), Parent = panel }, { Kit.list(Enum.FillDirection.Vertical, 4, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
 	nextButton = Kit.button("▶", { parent = buttons, size = UDim2.fromOffset(76, 30), style = "gold", textSize = 15, order = 1, onClick = function()
 		local st = STEPS[index]
 		if st and (st.timer or st.skippable) then
@@ -424,8 +457,11 @@ function Tutorial.Start()
 			if st.progress then
 				text.Text = stepText(st)
 			end
-			if st.check and os.clock() - stepStarted >= TutorialCfg.MinStepSeconds and st.check(stepState) then
-				advance()
+			if st.check and (doneState or st.check(stepState)) then
+				doneState = doneState or { dishes = stat("dishes"), washed = stat("washed"), purchases = purchases() }
+				if os.clock() - stepStarted >= TutorialCfg.MinStepSeconds then
+					advance()
+				end
 			elseif st.timer and os.clock() - stepStarted > st.timer then
 				advance()
 			end

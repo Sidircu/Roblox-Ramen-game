@@ -78,12 +78,15 @@ while step() == "cook" and presses < 6 do
 end
 Sim.check("three presses cook the ramen", step() == "take" and presses == 3, presses .. " presses, step " .. tostring(step()))
 use(station.model)
-Sim.check("the bowl is picked up", waitStep("serve", 5), tostring(step()))
+-- a quick player serves at once, while "pick up the bowl" is still on screen (every card stays a
+-- few seconds): the serving step must count it
+Sim.check("the bowl is picked up", p:GetAttribute("HandsKind") == "dish" and step() == "take", tostring(step()))
 -- 5: serve, then the gift and the shop
 local yen = d.yen
 local cust = S.Entities.get(ticket.customer)
 use(cust.model)
-Sim.check("serving moves on to the gift", waitStep("reward", 5), tostring(step()))
+Sim.check("served before its card showed", d.stats.dishes >= 1 and step() ~= "reward", tostring(step()))
+Sim.check("serving at once still moves on to the gift", waitStep("reward", 12), tostring(step()))
 Sim.waitFor(function()
 	return d.meta.tutorialGifts.serve
 end, 3)

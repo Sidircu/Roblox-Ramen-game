@@ -84,9 +84,9 @@ local function make(adornee, height, width)
 	return { gui = gui, bg = bg, title = title, sub = sub, bar = bar, fill = fill, textOnly = true }
 end
 
--- Customer bubble: sized in studs (2.7 wide, narrower than the 3 studs between two stools, so
--- neighbours never overlap), always on top, a big icon (❗, the dish, 😋), the dish name, and a
--- thick patience bar that turns yellow and red
+-- Over a customer: sized in studs (2.7 wide, narrower than the 3 studs between two stools, so
+-- neighbours never overlap), always on top, no box: a big icon (❗, the dish, 😋), the dish name
+-- in white with a dark outline, and a slim patience bar that turns yellow and red
 local function makeCustomer(adornee)
 	local gui = Instance.new("BillboardGui")
 	gui.Size = UDim2.fromScale(2.7, 1.5)
@@ -97,15 +97,8 @@ local function makeCustomer(adornee)
 	gui.Adornee = adornee
 	local bg = Instance.new("Frame")
 	bg.Size = UDim2.fromScale(1, 1)
-	bg.BackgroundColor3 = Color.hex("#FFFBF2")
+	bg.BackgroundTransparency = 1
 	bg.Parent = gui
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0.22, 0)
-	c.Parent = bg
-	local s = Instance.new("UIStroke")
-	s.Color = Color.hex("#5B3A24")
-	s.Thickness = 2.5
-	s.Parent = bg
 	local icon = Instance.new("TextLabel")
 	icon.BackgroundTransparency = 1
 	icon.Position = UDim2.fromScale(0.03, 0.06)
@@ -120,9 +113,10 @@ local function makeCustomer(adornee)
 	title.TextScaled = true
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Heavy)
-	title.TextColor3 = Color.hex("#2B2320")
+	title.TextColor3 = Color.hex("#FFFFFF")
 	title.AutoLocalize = false
 	title.Parent = bg
+	outline(title, 2)
 	local sub = Instance.new("TextLabel")
 	sub.BackgroundTransparency = 1
 	sub.Position = UDim2.fromScale(0.38, 0.44)
@@ -130,18 +124,25 @@ local function makeCustomer(adornee)
 	sub.TextScaled = true
 	sub.TextXAlignment = Enum.TextXAlignment.Left
 	sub.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
-	sub.TextColor3 = Color.hex("#7A5A3A")
+	sub.TextColor3 = Color.hex("#FFE7B8")
 	sub.AutoLocalize = false
 	sub.Parent = bg
+	outline(sub, 1.5)
+	-- the patience bar: a dark track with a thin dark edge, so it reads on any background
 	local bar = Instance.new("Frame")
-	bar.BackgroundColor3 = Color.hex("#D8C8AE")
-	bar.Position = UDim2.fromScale(0.06, 0.78)
-	bar.Size = UDim2.fromScale(0.88, 0.14)
+	bar.BackgroundColor3 = Color.hex("#2B2320")
+	bar.BackgroundTransparency = 0.35
+	bar.Position = UDim2.fromScale(0.06, 0.8)
+	bar.Size = UDim2.fromScale(0.88, 0.1)
 	bar.Visible = false
 	bar.Parent = bg
 	local bc = Instance.new("UICorner")
 	bc.CornerRadius = UDim.new(0.5, 0)
 	bc.Parent = bar
+	local bs = Instance.new("UIStroke")
+	bs.Color = Color.hex("#1E1612")
+	bs.Thickness = 1.5
+	bs.Parent = bar
 	local fill = Instance.new("Frame")
 	fill.BackgroundColor3 = Color.hex("#5E8F3A")
 	fill.Size = UDim2.fromScale(1, 1)
@@ -204,8 +205,8 @@ local function updateEntity(model, b)
 			b.gui.Enabled = false
 		end
 		setBar(b, model:GetAttribute("Patience") or 1, state == "order" or state == "waiting")
-		-- a gentle pulse while the order waits to be taken
-		b.bg.BackgroundColor3 = state == "order" and Color.hex(math.floor(now * 2) % 2 == 0 and "#FFF1C2" or "#FFFBF2") or Color.hex("#FFFBF2")
+		-- a gentle pulse while the order waits to be taken: the words turn gold and white
+		b.title.TextColor3 = (state == "order" and math.floor(now * 2) % 2 == 0) and Color.hex("#FFD23B") or Color.hex("#FFFFFF")
 	elseif (kind == "station" or kind == "ricecooker") and Core.C.Interaction and Core.C.Interaction.lockOf(model, kind) then
 		-- not usable yet: name the license that unlocks it
 		local lock = Core.C.Interaction.lockOf(model, kind)

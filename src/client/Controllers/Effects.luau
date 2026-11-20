@@ -215,7 +215,8 @@ local function comboBanner(n, bonus)
 	local l = Instance.new("TextLabel")
 	l.AnchorPoint = Vector2.new(0.5, 0.5)
 	l.Position = UDim2.fromScale(0.5, 0.3)
-	l.Size = UDim2.fromOffset(420, 70)
+	-- (smaller on a phone)
+	l.Size = (Core.C.UI and Core.C.UI.profile == "phone") and UDim2.fromOffset(300, 50) or UDim2.fromOffset(420, 70)
 	l.BackgroundTransparency = 1
 	l.Text = Locale.t("ui.combo", { n = n, pct = math.floor((bonus or 0) * 100 + 0.5) })
 	l.TextScaled = true

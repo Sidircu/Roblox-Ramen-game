@@ -154,6 +154,17 @@ local function open(tip)
 	current = { id = tip.id, tip = tip, since = os.clock() }
 	cardText.Text = "💡 " .. t(tip.key)
 	card.Position = UDim2.new(Kit.profile == "desktop" and 0.5 or 0.57, 0, 1, -140)
+	-- smaller on a phone, so the game stays in view
+	local phone = Kit.profile == "phone"
+	card.Size = UDim2.fromOffset(phone and 330 or 420, 0)
+	cardText.TextSize = phone and 15 or 17
+	local pad = card:FindFirstChildOfClass("UIPadding")
+	if pad then
+		pad.PaddingLeft = UDim.new(0, phone and 10 or 14)
+		pad.PaddingRight = UDim.new(0, phone and 10 or 14)
+		pad.PaddingTop = UDim.new(0, phone and 7 or 10)
+		pad.PaddingBottom = UDim.new(0, phone and 7 or 10)
+	end
 	aim(tip)
 	card.Visible = true
 	Kit.popIn(card, 0.85)

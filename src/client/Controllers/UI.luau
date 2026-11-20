@@ -158,17 +158,26 @@ end
 
 local KIND_COLOR = { info = T.wood, success = T.green, error = T.red, warning = T.gold, level = T.gold }
 
+-- messages and pop-ups are smaller on a phone, so the game stays in view (the words still read
+-- well: 15 / 16 points); under the tutorial banner while it is on screen
+local function placeHolder()
+	local phone = Kit.profile == "phone"
+	local tut = Core.C.Tutorial
+	local below = tut and tut.active and tut.active()
+	toastHolder.Size = UDim2.fromOffset(phone and 340 or 460, 300)
+	toastHolder.Position = UDim2.new(0.5, 0, 0, below and (phone and 130 or 134) or (phone and 86 or 92))
+	return phone
+end
+
 function UI.toast(text, kind)
 	if not toastHolder then
 		return
 	end
-	-- under the tutorial banner while it is on screen
-	local tut = Core.C.Tutorial
-	toastHolder.Position = UDim2.new(0.5, 0, 0, (tut and tut.active and tut.active()) and 134 or 92)
+	local phone = placeHolder()
 	local f = Kit.panel({ Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = T.paper, Parent = toastHolder })
 	f:FindFirstChildOfClass("UIStroke").Color = KIND_COLOR[kind] or T.wood
-	Kit.padding(12, 8).Parent = f
-	Kit.label(text, { Parent = f, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, TextSize = 18, FontFace = T.bold, TextColor3 = kind == "error" and T.red or T.ink })
+	Kit.padding(phone and 10 or 12, phone and 5 or 8).Parent = f
+	Kit.label(text, { Parent = f, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, TextSize = phone and 15 or 18, FontFace = T.bold, TextColor3 = kind == "error" and T.red or T.ink })
 	Kit.popIn(f, 0.7)
 	task.delay(kind == "level" and 5 or 3.2, function()
 		if f.Parent then
@@ -202,18 +211,21 @@ function UI.popup(icon, title, sub, opts)
 		return
 	end
 	opts = opts or {}
-	local tut = Core.C.Tutorial
-	toastHolder.Position = UDim2.new(0.5, 0, 0, (tut and tut.active and tut.active()) and 134 or 92)
-	local f = Kit.panel({ Name = "Popup", Size = UDim2.new(1, 0, 0, 74), BackgroundColor3 = T.paper, Parent = toastHolder })
+	local phone = placeHolder()
+	-- (phone: 54 tall, a 40-point icon, 16 / 14 point words)
+	local h, tileSize = phone and 54 or 74, phone and 40 or 56
+	local pad = (h - tileSize) / 2
+	local textX = pad + tileSize + (phone and 8 or 11)
+	local f = Kit.panel({ Name = "Popup", Size = UDim2.new(1, 0, 0, h), BackgroundColor3 = T.paper, Parent = toastHolder })
 	local stroke = f:FindFirstChildOfClass("UIStroke")
 	if stroke then
 		stroke.Color = opts.color or T.gold
-		stroke.Thickness = 3
+		stroke.Thickness = phone and 2.5 or 3
 	end
-	local tile = Kit.new("Frame", { Position = UDim2.fromOffset(9, 9), Size = UDim2.fromOffset(56, 56), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = f }, { Kit.corner(28) })
-	Kit.label(icon, { Parent = tile, Position = UDim2.fromOffset(8, 8), Size = UDim2.new(1, -16, 1, -16), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
-	Kit.label(title, { Name = "Title", Parent = f, Position = UDim2.fromOffset(76, 8), Size = UDim2.new(1, -86, 0, 30), TextSize = 21, FontFace = T.bold, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
-	Kit.label(sub or "", { Name = "Sub", Parent = f, Position = UDim2.fromOffset(76, 38), Size = UDim2.new(1, -86, 0, 28), TextSize = 16, TextColor3 = T.muted, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
+	local tile = Kit.new("Frame", { Position = UDim2.fromOffset(pad, pad), Size = UDim2.fromOffset(tileSize, tileSize), BackgroundColor3 = Color3.fromRGB(255, 236, 196), Parent = f }, { Kit.corner(tileSize / 2) })
+	Kit.label(icon, { Parent = tile, Position = UDim2.fromOffset(tileSize / 7, tileSize / 7), Size = UDim2.new(1, -tileSize * 2 / 7, 1, -tileSize * 2 / 7), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
+	Kit.label(title, { Name = "Title", Parent = f, Position = UDim2.fromOffset(textX, phone and 5 or 8), Size = UDim2.new(1, -textX - 8, 0, phone and 24 or 30), TextSize = phone and 16 or 21, FontFace = T.bold, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
+	Kit.label(sub or "", { Name = "Sub", Parent = f, Position = UDim2.fromOffset(textX, phone and 29 or 38), Size = UDim2.new(1, -textX - 8, 0, phone and 20 or 28), TextSize = phone and 14 or 16, TextColor3 = T.muted, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
 	Kit.popIn(f, 0.6)
 	if opts.sound and Core.C.Audio then
 		Core.C.Audio.play(opts.sound)
