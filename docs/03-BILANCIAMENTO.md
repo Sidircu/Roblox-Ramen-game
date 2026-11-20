@@ -378,7 +378,7 @@ Ogni stile di pavimento/parete dà punti ambiente pari a `prezzo / 1.000` (massi
 | `zone_garden` | Giardino zen | 15 | ¥100.000 | 48×36 sul retro | esterno |
 | `zone_tatami` | Sala tatami privata | 18 | ¥180.000 | 32×32 | clienti VIP |
 | `zone_kitchen_pro` | Cucina professionale | 20 | ¥250.000 | +32×14 di cucina | +3 posti personale |
-| `zone_floor2` | Secondo piano | 25 | ¥600.000 | 72×46 + scala ad angolo larga 6 | +3 posti personale |
+| `zone_floor2` | Secondo piano | 25 | ¥600.000 | 72×46 + scala ad angolo larga 8 (rampe da 13 gradini, pianerottolo su una cassettiera, ringhiere su tutti i lati aperti) | +3 posti personale |
 | `sign_rooftop` | Insegna gigante | 28 | ¥500.000 | — | +0,3 popolarità |
 | `facade_deluxe` | Facciata deluxe | 30 | ¥1.000.000 | — | +60 ambiente |
 | `zone_rooftop` | Terrazza sul tetto | 35 | ¥2.000.000 | 72×46 esterno + scala ad angolo | vista, fuochi d'artificio |
@@ -460,7 +460,7 @@ Totale ¥226.800 e +122 atmosfera (circa un livello di ambiente in più a metà 
 | Tutorial (`Config/Tutorial.luau`) | dopo il primo piatto servito: ¥1.000 da spendere subito nel negozio; alla fine (primo piatto lavato): 🌸10; una volta per giocatore. Benvenuto 7 s (`WelcomeSeconds`), ogni scheda almeno 3 s (`MinStepSeconds`), la prima aspetta la fine del caricamento al massimo 30 s (`StartWait`) |
 | Consigli della prima volta | scaffali: un ingrediente del menu a 3 porzioni o meno · piatti: 3 sporchi nel lavello · negozio: qualcosa da comprare · personale: livello 6 senza aiutanti · cartello OPEN: dopo 3 piatti serviti; ognuno resta 12 s, almeno 20 s tra due consigli |
 | Apertura | il ristorante è aperto a ogni ingresso; il cartello OPEN/CLOSED accanto alla porta lo chiude (nessun nuovo cliente) e lo riapre; solo proprietario e co-gestori, a meno di 17 stud dal cartello |
-| Sensibilità (`GameConfig.Sensitivity`) | Alta ×2,4 · Media ×1,6 (predefinita) · Bassa ×1 sulla sensibilità del mouse di Roblox in prima persona; la terza persona usa la scelta divisa per Media (Media = velocità di prima) |
+| Sensibilità (`GameConfig.Sensitivity`) | Alta ×2,4 · Media ×1,6 (predefinita) · Bassa ×1 sulla rotazione della telecamera di Roblox in prima persona (mouse, gamepad e touch; si moltiplica con la sensibilità del menu Esc di Roblox); la terza persona usa la scelta divisa per Media (Media = velocità di prima) |
 
 ---
 

@@ -152,6 +152,37 @@ Sim.check("high sensitivity is saved", d.settings.camSpeed == Sens.High, tostrin
 Sim.fire(p, "SetSetting", "camSpeed", 9)
 task.wait(0.3)
 Sim.check("a made-up sensitivity is refused", d.settings.camSpeed == Sens.High, tostring(d.settings.camSpeed))
+-- the setting reaches Roblox's own camera: right after it turns the view, the turn is scaled
+-- (a 2 degree turn becomes 3.2 with medium, 4.8 with high; a jump such as a teleport is left alone)
+do
+	local Cam = C.Camera
+	local cam = workspace.CurrentCamera
+	local function yawOf()
+		local l = cam.CFrame.LookVector
+		return math.deg(math.atan2(-l.X, -l.Z))
+	end
+	local function robloxTurn(deg)
+		local l = cam.CFrame.LookVector
+		local yaw = math.atan2(-l.X, -l.Z) + math.rad(deg)
+		local pos = cam.Focus.Position
+		cam.CFrame = CFrame.lookAt(pos - Vector3.new(-math.sin(yaw), 0, -math.cos(yaw)) * 0.5, pos)
+	end
+	cam.Focus = CFrame.new(0, 5, 0)
+	cam.CFrame = CFrame.lookAt(Vector3.new(0, 5, 0.5), Vector3.new(0, 5, 0))
+	Cam.scaleTurn(cam, Sens.Medium)
+	local before = yawOf()
+	robloxTurn(2)
+	Cam.scaleTurn(cam, Sens.Medium)
+	Sim.check("medium sensitivity: 1.6 times Roblox's turn", math.abs((yawOf() - before) - 2 * Sens.Medium) < 0.05, string.format("%.2f", yawOf() - before))
+	before = yawOf()
+	robloxTurn(2)
+	Cam.scaleTurn(cam, Sens.High)
+	Sim.check("high sensitivity: 2.4 times", math.abs((yawOf() - before) - 2 * Sens.High) < 0.05, string.format("%.2f", yawOf() - before))
+	before = yawOf()
+	robloxTurn(90)
+	Cam.scaleTurn(cam, Sens.High)
+	Sim.check("a jump of the camera is not scaled", math.abs((yawOf() - before) - 90) < 0.05, string.format("%.2f", yawOf() - before))
+end
 C.UI.open("Settings")
 task.wait(0.5)
 Sim.check("the settings offer high, medium and low", Sim.findText(t("ui.sens_high")) ~= nil and Sim.findText(t("ui.sens_medium")) ~= nil and Sim.findText(t("ui.sens_low")) ~= nil)

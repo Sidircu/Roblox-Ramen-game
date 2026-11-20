@@ -25,6 +25,10 @@ math.round = function(x)
 	end
 	return math.ceil(x - 0.5)
 end
+-- Luau keeps math.atan2 (Lua 5.4 folded it into math.atan)
+math.atan2 = math.atan2 or function(y, x)
+	return math.atan(y, x)
+end
 math.sign = function(x)
 	if x > 0 then
 		return 1

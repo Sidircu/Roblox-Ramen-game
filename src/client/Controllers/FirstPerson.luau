@@ -294,25 +294,70 @@ function FirstPerson.Init()
 	Locale.Changed:Connect(refreshKeys)
 end
 
+-- true while the player types (a text box or the chat bar has the keyboard)
+local function typing()
+	if UserInputService:GetFocusedTextBox() then
+		return true
+	end
+	local ok, focused = pcall(function()
+		return game:GetService("TextChatService").ChatInputBarConfiguration.IsFocused
+	end)
+	return ok and focused == true
+end
+
+-- O (supplier) is also Roblox's "zoom out" key and Roblox's camera keeps it: depending on the
+-- version the press reaches scripts marked as used, through an action bound above the camera, or
+-- only as the release. Whichever comes first toggles the supplier, once per press: the press if it
+-- arrives, otherwise the release; never while typing or building. The same press can arrive twice
+-- (the action and UserInputService): it is the same InputObject, or the same moment
+local oDown, oLast, oActAt, oEndAt = false, nil, -math.huge, -math.huge
+local function supplierKey(began, input)
+	local now = os.clock()
+	if input ~= nil and input == oLast and (began or not oDown) then
+		return
+	end
+	local act = false
+	if began then
+		if not (oDown and now - oActAt < 0.05) then
+			oDown = true
+			act = true
+		end
+	elseif oDown then
+		oDown = false
+		oEndAt = now
+	elseif now - oEndAt >= 0.05 then
+		oEndAt = now
+		act = true
+	end
+	oLast = input or oLast
+	if act then
+		oActAt = now
+		if not typing() and not (Core.C.Build and Core.C.Build.active) then
+			shortcut(Enum.KeyCode.O)
+		end
+	end
+end
+
 function FirstPerson.Start()
 	RunService.RenderStepped:Connect(function(dt)
 		updateCrosshair()
 		updateViews(dt)
 		updateRun()
 	end)
-	-- O (supplier) is also Roblox's "zoom out" key: the Roblox camera takes it before
-	-- UserInputService hears it, so this shortcut is bound above the camera
-	ContextActionService:BindActionAtPriority("RamenSupplierKey", function(_, state)
-		if state ~= Enum.UserInputState.Begin or UserInputService:GetFocusedTextBox() then
-			return Enum.ContextActionResult.Pass
+	ContextActionService:BindActionAtPriority("RamenSupplierKey", function(_, state, input)
+		if state == Enum.UserInputState.Begin then
+			supplierKey(true, input)
+		elseif state == Enum.UserInputState.End then
+			supplierKey(false, input)
 		end
-		if Core.C.Build and Core.C.Build.active then
-			return Enum.ContextActionResult.Pass
-		end
-		shortcut(Enum.KeyCode.O)
 		return Enum.ContextActionResult.Sink
-	end, false, Enum.ContextActionPriority.High.Value, Enum.KeyCode.O)
+	end, false, Enum.ContextActionPriority.High.Value + 1000, Enum.KeyCode.O)
 	UserInputService.InputBegan:Connect(function(input, processed)
+		-- (O: even when Roblox's camera marked it as used)
+		if input.KeyCode == Enum.KeyCode.O then
+			supplierKey(true, input)
+			return
+		end
 		if input.KeyCode == Enum.KeyCode.LeftAlt or input.KeyCode == Enum.KeyCode.RightAlt then
 			altHeld = true
 			return
@@ -331,12 +376,13 @@ function FirstPerson.Start()
 			end
 			return
 		end
-		-- (O comes through the action bound above the camera, see FirstPerson.Start)
-		if input.KeyCode ~= Enum.KeyCode.O then
-			shortcut(input.KeyCode)
-		end
+		shortcut(input.KeyCode)
 	end)
 	UserInputService.InputEnded:Connect(function(input)
+		if input.KeyCode == Enum.KeyCode.O then
+			supplierKey(false, input)
+			return
+		end
 		if input.KeyCode == Enum.KeyCode.LeftAlt or input.KeyCode == Enum.KeyCode.RightAlt then
 			altHeld = false
 		elseif input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.RightShift then

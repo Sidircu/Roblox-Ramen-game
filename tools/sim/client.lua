@@ -681,15 +681,21 @@ local function casDispatch(key, state, input)
 	return false
 end
 
+-- Sim.cameraKeepsIOPress = true: like some Roblox versions, the camera keeps the press of I and O
+-- entirely (only the release reaches scripts)
 function Sim.press(key, hold)
 	local uis = game:GetService("UserInputService")
 	keysDown[key] = true
 	local down = inputObject(Enum.UserInputType.Keyboard, key)
-	local sunk = casDispatch(key, Enum.UserInputState.Begin, down)
-	uis.InputBegan:Fire(down, sunk)
+	local kept = Sim.cameraKeepsIOPress and (key == Enum.KeyCode.I or key == Enum.KeyCode.O)
+	if not kept then
+		local sunk = casDispatch(key, Enum.UserInputState.Begin, down)
+		uis.InputBegan:Fire(down, sunk)
+	end
 	task.wait(hold or 0.1)
 	keysDown[key] = nil
-	local up = inputObject(Enum.UserInputType.Keyboard, key)
+	-- (as in Roblox, the press and the release are the same InputObject)
+	local up = down
 	up.UserInputState = Enum.UserInputState.End
 	sunk = casDispatch(key, Enum.UserInputState.End, up)
 	uis.InputEnded:Fire(up, sunk)

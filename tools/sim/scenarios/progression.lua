@@ -519,6 +519,17 @@ for _, l in ipairs(levels) do
 	table.insert(line, string.format("L%d %.0fm", l.level, l.t))
 end
 Sim.say("levels: " .. table.concat(line, " · "))
+-- the economy: what the restaurant earned (sales and tips) for every point of XP, and the days
+local Formulas = Sim.shared("Logic.Formulas")
+local totalXp = d.xp
+for l = 1, d.level - 1 do
+	totalXp += Formulas.xpForLevel(l)
+end
+local days = {}
+for _, v in ipairs(d.stats.dayHistory or {}) do
+	table.insert(days, tostring(math.floor(v)))
+end
+Sim.say(string.format("earned ¥%d (sales and tips) for %d XP: ¥%.1f per XP; last days ¥%s", math.floor(d.stats.earned), totalXp, d.stats.earned / math.max(totalXp, 1), table.concat(days, ", ¥")))
 local sp = {}
 for k, v in pairs(spent) do
 	table.insert(sp, string.format("%s %.0fs", k, v))

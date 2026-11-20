@@ -113,6 +113,51 @@ local function sensitivity()
 	return BASE_SENS * lookSetting() / SENS.Medium
 end
 
+-- Sensitivity on Roblox's own camera (first person and the "roblox" camera): right after Roblox's
+-- camera turns the view, this frame's turn is multiplied by the setting. Roblox's camera starts
+-- every frame from the current camera look, so the scaled look carries on. This works with the
+-- mouse, a gamepad and touch (UserInputService.MouseDeltaSensitivity does not reach that camera
+-- in first person). k = 1: Roblox's own speed (the player's Roblox sensitivity applies as well).
+local lastLook = nil
+function Camera.scaleTurn(cam, k)
+	local look = cam.CFrame.LookVector
+	if not lastLook or math.abs(k - 1) < 1e-3 then
+		lastLook = look
+		return
+	end
+	local yaw0 = math.atan2(-lastLook.X, -lastLook.Z)
+	local yaw1 = math.atan2(-look.X, -look.Z)
+	local dyaw = (yaw1 - yaw0 + math.pi) % (2 * math.pi) - math.pi
+	local pitch0 = math.asin(math.clamp(lastLook.Y, -1, 1))
+	local pitch1 = math.asin(math.clamp(look.Y, -1, 1))
+	local dpitch = pitch1 - pitch0
+	-- no turn, or a jump (respawn, teleport, another camera mode): nothing to scale
+	if (math.abs(dyaw) < 1e-6 and math.abs(dpitch) < 1e-6) or math.abs(dyaw) > math.rad(45) or math.abs(dpitch) > math.rad(45) then
+		lastLook = look
+		return
+	end
+	local yaw = yaw0 + dyaw * k
+	local pitch = math.clamp(pitch0 + dpitch * k, math.rad(-80), math.rad(80))
+	local newLook = Vector3.new(-math.sin(yaw) * math.cos(pitch), math.sin(pitch), -math.cos(yaw) * math.cos(pitch))
+	local focus = cam.Focus.Position
+	local dist = (cam.CFrame.Position - focus).Magnitude
+	if dist < 0.05 then
+		cam.CFrame = CFrame.lookAt(cam.CFrame.Position, cam.CFrame.Position + newLook)
+	else
+		cam.CFrame = CFrame.lookAt(focus - newLook * dist, focus)
+	end
+	lastLook = newLook
+end
+
+local function turnStep()
+	local cam = workspace.CurrentCamera
+	if not cam or cam.CameraType ~= Enum.CameraType.Custom or Camera.mode() == "game" or Camera.build or Camera.top then
+		lastLook = nil
+		return
+	end
+	Camera.scaleTurn(cam, lookSetting())
+end
+
 -- Ray from the focus point to the wanted camera position, stopping before walls
 local function clearDistance(focus, dir, dist)
 	local params = RaycastParams.new()
@@ -293,6 +338,7 @@ end
 
 function Camera.Start()
 	RunService:BindToRenderStep("RamenCamera", Enum.RenderPriority.Camera.Value + 1, orbitLoop)
+	RunService:BindToRenderStep("RamenLookSensitivity", Enum.RenderPriority.Camera.Value + 2, turnStep)
 	Camera.apply()
 	player.CharacterAdded:Connect(function(char)
 		local root = char:WaitForChild("HumanoidRootPart", 10)
@@ -373,11 +419,10 @@ function Camera.Start()
 	while true do
 		task.wait(1)
 		Camera.apply()
-		-- Settings → Sensitivity scales the mouse in first person and with the Roblox camera (on
-		-- top of Roblox's own sensitivity); the orbit camera applies it itself
-		local want = Camera.mode() == "game" and 1 or lookSetting()
-		if UserInputService.MouseDeltaSensitivity ~= want then
-			UserInputService.MouseDeltaSensitivity = want
+		-- (Settings → Sensitivity is applied by turnStep and the orbit camera, not here: a value
+		-- left by an older version is put back)
+		if UserInputService.MouseDeltaSensitivity ~= 1 then
+			UserInputService.MouseDeltaSensitivity = 1
 		end
 		if Camera.build then
 			local f = Camera.currentFloor()

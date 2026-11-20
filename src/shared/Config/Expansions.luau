@@ -9,30 +9,37 @@
 -- (railings on every side but `exitSide`); entry/exit = where you step on / off.
 -- The restaurant is laid out at real scale for the avatars: the base is 72 x 56 studs.
 local function cornerStairs(floor, side)
-	-- side = -1: along the west wall, turning towards +X; side = 1: mirrored on the east wall
+	-- side = -1: along the west wall (1.6 studs from it) turning towards +X; side = 1: mirrored on
+	-- the east wall. Flights 8 studs wide and 12.5 long (13 low steps each, about 31 degrees) and an
+	-- 8 x 8 landing on a chest of drawers; railings on both sides of both flights, because the wall
+	-- beside the stairs goes away when the room beyond it is built
 	local s = side
-	local x0, x1 = s < 0 and -35 or 29, s < 0 and -29 or 35
-	local bx0, bx1 = s < 0 and -29 or 17, s < 0 and -17 or 29
+	local zA, zB, zC = 3, 15.5, 23.5
+	local x0, x1 = s < 0 and -34 or 26, s < 0 and -26 or 34 -- first flight and landing
+	local bx0, bx1 = s < 0 and -26 or 13, s < 0 and -13 or 26 -- second flight
+	local outerX = s < 0 and x0 + 0.2 or x1 - 0.2
 	return {
 		floor = floor,
 		flights = {
-			{ rect = { x0, 4, x1, 14 }, dir = "+z", from = 0, to = 0.5 },
-			{ rect = { bx0, 14, bx1, 20 }, dir = s < 0 and "+x" or "-x", from = 0.5, to = 1 },
+			{ rect = { x0, zA, x1, zB }, dir = "+z", from = 0, to = 0.5 },
+			{ rect = { bx0, zB, bx1, zC }, dir = s < 0 and "+x" or "-x", from = 0.5, to = 1 },
 		},
-		landing = { x0, 14, x1, 20 },
-		rects = { { x0, 4, x1, 14 }, { x0, 14, x1, 20 }, { bx0, 14, bx1, 20 } },
-		hole = { math.min(x0, bx0), 14, math.max(x1, bx1), 20 },
-		rect = { math.min(x0, bx0), 4, math.max(x1, bx1), 20 },
-		entry = { x = (x0 + x1) / 2, z = 2.5 },
-		exit = { x = s < 0 and -15.5 or 15.5, z = 17 },
+		landing = { x0, zB, x1, zC },
+		rects = { { x0, zA, x1, zB }, { x0, zB, x1, zC }, { bx0, zB, bx1, zC } },
+		hole = { math.min(x0, bx0), zB, math.max(x1, bx1), zC },
+		rect = { math.min(x0, bx0), zA, math.max(x1, bx1), zC },
+		entry = { x = (x0 + x1) / 2, z = zA - 1 },
+		exit = { x = s < 0 and bx1 + 1.5 or bx0 - 1.5, z = (zB + zC) / 2 },
 		exitSide = s < 0 and "x+" or "x-",
-		-- handrails: flight 1 on the room side, flight 2 on both sides, landing along the back
-		railSides = { { s < 0 and 1 or -1 }, { -1, 1 } },
-		landingPosts = { { s < 0 and x1 - 0.3 or x0 + 0.3, 19.7 } },
-		landingRails = { { x0 + 0.2, 19.8, x1 - 0.2, 19.8 } },
+		railSides = { { -1, 1 }, { -1, 1 } },
+		-- the landing's two outer sides (the wall side and the back)
+		landingRails = { { outerX, zB + 0.2, outerX, zC - 0.2 }, { x0 + 0.2, zC - 0.2, x1 - 0.2, zC - 0.2 } },
+		landingBase = true,
+		-- drawers in the first flight's side that faces the room (+1 / -1 across the flight)
+		drawerSide = s < 0 and 1 or -1,
 		-- kept clear so the stairs can be reached (lower floor) and left (upper floor)
-		entryRect = { x0, 1.5, x1, 4 },
-		exitRect = s < 0 and { -17, 14, -14.5, 20 } or { 14.5, 14, 17, 20 },
+		entryRect = { x0, 0.6, x1, zA },
+		exitRect = s < 0 and { bx1, zB, bx1 + 3, zC } or { bx0 - 3, zB, bx0, zC },
 	}
 end
 

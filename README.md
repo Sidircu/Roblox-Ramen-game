@@ -18,6 +18,18 @@ Pannello sviluppatore (P → app 🛠️ Dev, solo in Studio o per il creatore d
 
 In alternativa puoi usare [Rojo](https://rojo.space) (`rojo serve` con `default.project.json`) per sincronizzare il codice dal vivo.
 
+## Pubblicare il gioco su Roblox
+1. **Prima pubblicazione** (il gioco nasce privato, solo tu puoi entrarci): apri `build/SakuraRamenTycoon.rbxlx` in Studio con il tuo account, **File → Publish to Roblox**, scegli di creare un gioco nuovo, scrivi nome e descrizione, scegli i dispositivi (computer, telefono, tablet) e conferma.
+2. **In Studio, Game Settings**: *Security → Enable Studio Access to API Services* (i salvataggi funzionano anche nelle prove in Studio; attenzione, scrivono negli stessi dati del gioco vero).
+3. **Nella dashboard** ([create.roblox.com](https://create.roblox.com) → *Creations* → il tuo gioco):
+   - *Places* → il place → *Access*: **numero massimo di giocatori = 4** (un ristorante per giocatore; con più posti il quinto giocatore resterebbe senza ristorante). In Studio a volte non si riesce a salvare un valore sotto 11: usa la dashboard.
+   - icona quadrata (512×512) e immagini del gioco (1920×1080, anche screenshot presi in Studio).
+   - *Audience → Maturity & Compliance*: il questionario è obbligatorio per i giochi pubblici; rispondi con sincerità (qui niente violenza, sangue o gioco d'azzardo; c'è la chat di Roblox e ci sono acquisti con Robux).
+4. **Requisiti per renderlo pubblico** (in vigore dal 2026, controlla sempre la pagina ufficiale perché cambiano spesso): verifica dell'età del tuo account (stima del volto o documento) per pubblicare per i 16+ e gli amici fidati; per tutte le età anche una tariffa **rimborsabile** di 1.000 Robux per gioco oppure Roblox Plus/Premium per 2 mesi di fila, e un periodo di valutazione in cui il gioco è visibile solo ai 16+ verificati. Poi in *Creations* passa sopra la miniatura del gioco → **⋯ → Make Public**.
+5. **Robux** (facoltativo): *Monetization → Passes* per i pass (immagine, nome, descrizione, poi il prezzo) e *Monetization → Developer Products → Create developer product* per i prodotti; da **⋯ → Copy Asset ID** copi l'ID. I pass del gioco sono `gp_vip`, `gp_double_yen`, `gp_big_tray`, `gp_express`, `gp_extra_staff`, `gp_starter`; i prodotti `dp_yen_s/m/l/xl`, `dp_sakura_s/m/l`, `dp_rush_hour`, `dp_golden_sign`. Gli ID vanno in `src/shared/Config/Monetization.luau` (`assetId` dei pass, `productId` dei prodotti; 0 = pulsante nascosto) e poi si rigenera il file `.rbxlx`: se li cambi solo in Studio, la prossima versione del file li cancella.
+6. **Prova finale dal sito o dall'app di Roblox** (non da Studio), meglio con un amico: salvataggio e ritorno, quattro giocatori sulla stessa strada, un acquisto vero (in Studio gli acquisti sono finti).
+7. **Aggiornamenti**: apri il nuovo `.rbxlx` e di nuovo **File → Publish to Roblox** sul gioco esistente; i server già aperti restano alla versione vecchia finché non li riavvii dalla dashboard (*Places* → ⋯ → riavvia i server per l'aggiornamento).
+
 ## Robux, suoni, modelli
 - ID di gamepass e prodotti: `src/shared/Config/Monetization.luau` (0 = disattivato, il pulsante non compare).
 - Musica e suoni: `src/shared/Config/Audio.luau` (ID della libreria pubblica di Roblox: Pro Sound Effects, APM Music, suoni UI di Roblox; funzionano in qualsiasi gioco).
@@ -55,7 +67,9 @@ il server parte, entra un giocatore, l'autotest del gioco fa tutto il ciclo, arr
 all'uscita; il ciclo base con i tempi; la strada con quattro giocatori e gli aiutanti; i casi difficili dei
 salvataggi; un giocatore su telefono che gioca con il client vero (postazione, cliente e negozio toccati
 come sullo schermo); il tutorial completo; e chi torna a giocare (guadagni offline, calendario del premio
-giornaliero, bacheche delle classifiche, pass Personale extra). Ogni errore del gioco fa fallire la prova.
+giornaliero, bacheche delle classifiche, pass Personale extra); il primo franchise (cosa si azzera e cosa
+resta); il secondo piano e il tetto (gradini regolari, pianerottolo, ringhiere, apertura nel pavimento).
+Ogni errore del gioco fa fallire la prova.
 ```
 python3 tools/sim.py                 # tutti gli scenari
 python3 tools/sim.py --verbose core  # uno scenario, con notifiche e stampe del gioco

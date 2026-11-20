@@ -316,7 +316,7 @@ Il locale cresce per **zone**. Ogni espansione aggiunge una zona: muri, paviment
 | 5 | Giardino zen sul retro | decorazioni da giardino, bonus ambiente |
 | 6 | Sala tatami privata | clienti VIP |
 | 7 | Cucina professionale | più postazioni e più personale |
-| 8 | Secondo piano | una sala intera in più, con scala |
+| 8 | Secondo piano | una sala intera in più, con una scala ad angolo larga 8 stud in stile *hako-kaidan* (13 gradini bassi per rampa, pianerottolo su una cassettiera, fianchi pieni con cassetti, ringhiere con pilastri su tutti i lati aperti) |
 | 9 | Terrazza sul tetto | vista sulla città, fuochi d'artificio negli eventi |
 | 10 | Insegna gigante sul tetto | +clienti |
 | 11 | Facciata deluxe | aspetto esterno di lusso |
@@ -382,7 +382,7 @@ Come nei tycoon, dove si può costruire la prossima stanza al piano terra c'è u
 ### 8.9 Franchise (rinascita / prestigio)
 La prima volta è disponibile dopo poche ore di gioco: **livello 11, valutazione ≥ 4,0, Sala Est, Magazzino ampliato e Sala Ovest**. Ogni città successiva chiede di più (livello 16 con ★4,1 e anche terrazza e giardino; 20 con ★4,2 e sala tatami e cucina professionale; 25 e 30 con il secondo piano). Gli obiettivi (scheda Franchise) mostrano cosa manca, voce per voce.
 - Apri un nuovo locale in un'altra città: **Kyoto → Osaka → Sapporo → Fukuoka → Okinawa**. Ogni città ha una strada diversa (templi a Kyoto, insegne giganti a Osaka, neve a Sapporo…) e **2–3 piatti regionali** esclusivi.
-- Si azzerano: livello, yen, licenze, espansioni, personale.
+- Si azzerano: livello, yen, licenze, espansioni, miglioramenti, personale (e la media degli incassi usata per i guadagni offline, che riparte dalle giornate nella nuova città).
 - Si conservano: **tutte le decorazioni** (vanno nell'inventario), gettoni, ricettario, obiettivi.
 - Guadagni una **Stella Franchise**: +25% yen e +10% XP permanenti, e decorazioni esclusive della città.
 

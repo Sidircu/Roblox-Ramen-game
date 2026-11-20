@@ -58,6 +58,9 @@ local function open(player)
 		end
 	end
 	d.yen = Franchise.StartYen
+	-- the earnings while away come from the days played in this city (Meta), not the last one's
+	d.stats.dayHistory = {}
+	d.stats.lastDayEarned = 0
 	d.franchise = { stars = city.star, city = city.id, cities = {} }
 	for _, c in ipairs(Franchise.list) do
 		if c.star <= city.star then

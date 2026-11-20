@@ -228,6 +228,17 @@ Sim.press(Enum.KeyCode.O)
 Sim.check("O opens the supplier", C.UI.current == "Supplier", tostring(C.UI.current))
 Sim.press(Enum.KeyCode.O)
 Sim.check("O again closes it", C.UI.current == nil, tostring(C.UI.current))
+-- when Roblox's camera keeps the press of O entirely, the release opens and closes it
+Sim.cameraKeepsIOPress = true
+Sim.press(Enum.KeyCode.O)
+Sim.check("O opens the supplier on release when the camera keeps the press", C.UI.current == "Supplier", tostring(C.UI.current))
+Sim.press(Enum.KeyCode.O)
+Sim.check("and closes it the same way", C.UI.current == nil, tostring(C.UI.current))
+Sim.cameraKeepsIOPress = false
+-- a long press opens it once
+Sim.press(Enum.KeyCode.O, 1.2)
+Sim.check("holding O opens it once", C.UI.current == "Supplier", tostring(C.UI.current))
+C.UI.close("Supplier")
 Sim.press(Enum.KeyCode.U)
 Sim.check("U opens the shop", C.UI.current == "Shop", tostring(C.UI.current))
 C.UI.close("Shop")
