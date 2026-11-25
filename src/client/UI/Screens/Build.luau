@@ -15,6 +15,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Footprint = require(Shared.Logic.Footprint)
 local Kit = require(script.Parent.Parent.Kit)
 local Icons = require(script.Parent.Parent.Icons)
+local Thumbs = require(script.Parent.Parent.Thumbs)
 local Core = require(script.Parent.Parent.Parent.Core)
 
 local Screen = { modal = false }
@@ -77,7 +78,7 @@ function Screen.create(root)
 		Core.C.Camera.toggleTop()
 		Screen.refreshTools()
 	end })
-	refs.exit = Kit.button("", { parent = tools, size = UDim2.fromOffset(150, 38), style = "primary", order = 3, textSize = 14, radius = 19, onClick = function()
+	refs.exit = Kit.button("", { parent = tools, size = UDim2.fromOffset(150, 38), style = "close", order = 3, textSize = 14, radius = 19, onClick = function()
 		Core.C.Build.exit()
 	end })
 	-- action bar (bottom-centre) used while placing or with a selected object
@@ -101,8 +102,10 @@ local function itemCard(item, order, opts)
 		locked = false
 	end
 	local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(104, 118), BackgroundColor3 = locked and T.paperDark or Color3.fromRGB(251, 245, 234), LayoutOrder = order, Parent = refs.items }, { Kit.corner(10), Kit.stroke(T.woodLight, 2) })
-	Kit.label(Icons.forItem(item), { Parent = card, Size = UDim2.new(1, 0, 0, 36), Position = UDim2.fromOffset(0, 4), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
-	Kit.label(t("item." .. item.id), { Parent = card, Position = UDim2.fromOffset(4, 42), Size = UDim2.new(1, -8, 0, 30), TextSize = 12, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true })
+	-- the real object in 3D (the emoji shows until it is ready, or with low graphics)
+	local icon = Kit.label(Icons.forItem(item), { Parent = card, Size = UDim2.new(1, 0, 0, 36), Position = UDim2.fromOffset(0, 4), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
+	Thumbs.later(card, "item", item.id, { Size = UDim2.new(1, -8, 0, 42), Position = UDim2.fromOffset(4, 1), transparency = locked and 0.45 or 0 }, icon)
+	Kit.label(t("item." .. item.id), { Parent = card, Position = UDim2.fromOffset(4, 43), Size = UDim2.new(1, -8, 0, 30), TextSize = 12, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true })
 	local price
 	if opts.inventory then
 		price = "×" .. opts.count
@@ -184,7 +187,7 @@ local function renderTabs()
 	table.insert(tabs, { id = "surfaces", label = "🎨 " .. t("ui.surfaces") })
 	table.insert(tabs, { id = "inventory", label = "🎒 " .. t("ui.inventory") })
 	for i, tb in ipairs(tabs) do
-		local b = Kit.button(tb.label, { parent = refs.tabs, size = UDim2.fromOffset(118, 32), style = tb.id == category and "primary" or "plain", order = i, textSize = 13, radius = 16, onClick = function()
+		local b = Kit.button(tb.label, { parent = refs.tabs, size = UDim2.fromOffset(118, 32), style = tb.id == category and "selected" or "secondary", order = i, textSize = 13, radius = 16, onClick = function()
 			category = tb.id
 			Screen.refresh()
 		end })
@@ -225,13 +228,13 @@ function Screen.refreshTools()
 		refs.status.Text = t("item." .. Build.itemId) .. "   " .. status
 		refs.status.TextColor3 = Build.valid and T.green or T.red
 		refs.howto.Text = touch and t("ui.place_howto_touch") or t("ui.place_howto_pc")
-		Kit.button("🔄 " .. t("ui.rotate"), { parent = refs.actions, size = UDim2.fromOffset(130, 34), style = "dark", order = 1, textSize = 14, radius = 17, onClick = function()
+		Kit.button("🔄 " .. t("ui.rotate"), { parent = refs.actions, size = UDim2.fromOffset(130, 34), style = "secondary", order = 1, textSize = 14, radius = 17, onClick = function()
 			Build.rotate()
 		end })
 		Kit.button("✔ " .. t("ui.place"), { parent = refs.actions, size = UDim2.fromOffset(150, 34), style = Build.valid and "green" or "plain", order = 2, textSize = 15, radius = 17, onClick = function()
 			Build.place()
 		end })
-		Kit.button("✕ " .. t("ui.cancel"), { parent = refs.actions, size = UDim2.fromOffset(130, 34), style = "plain", order = 3, textSize = 14, radius = 17, onClick = function()
+		Kit.button("✕ " .. t("ui.cancel"), { parent = refs.actions, size = UDim2.fromOffset(130, 34), style = "close", order = 3, textSize = 14, radius = 17, onClick = function()
 			Build.cancel()
 		end })
 	elseif entry then
@@ -239,20 +242,20 @@ function Screen.refreshTools()
 		refs.status.Text = t("item." .. entry.i)
 		refs.status.TextColor3 = T.ink
 		refs.howto.Text = t("ui.selected_howto")
-		Kit.button("✋ " .. t("ui.move"), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "dark", order = 1, textSize = 14, radius = 17, onClick = function()
+		Kit.button("✋ " .. t("ui.move"), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "secondary", order = 1, textSize = 14, radius = 17, onClick = function()
 			Build.startMove(Build.selected)
 		end })
-		Kit.button("🔄 " .. t("ui.rotate"), { parent = refs.actions, size = UDim2.fromOffset(100, 34), style = "dark", order = 2, textSize = 14, radius = 17, onClick = function()
+		Kit.button("🔄 " .. t("ui.rotate"), { parent = refs.actions, size = UDim2.fromOffset(100, 34), style = "secondary", order = 2, textSize = 14, radius = 17, onClick = function()
 			Build.rotate()
 		end })
 		Kit.button("🎒 " .. t("ui.store"), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "plain", order = 3, textSize = 14, radius = 17, onClick = function()
 			Build.removeSelected("store")
 		end })
 		local refund = item and math.floor((entry.paid or item.price) * GameConfig.SellRefund) or 0
-		Kit.button("💴 " .. Format.yen(refund, L), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "primary", order = 4, textSize = 14, radius = 17, onClick = function()
+		Kit.button("💴 " .. Format.yen(refund, L), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "close", order = 4, textSize = 14, radius = 17, onClick = function()
 			Build.removeSelected("sell")
 		end })
-		Kit.button("✕", { parent = refs.actions, size = UDim2.fromOffset(44, 34), style = "plain", order = 5, textSize = 14, radius = 17, onClick = function()
+		Kit.button("✕", { parent = refs.actions, size = UDim2.fromOffset(44, 34), style = "close", order = 5, textSize = 14, radius = 17, onClick = function()
 			Build.select(nil)
 		end })
 	end

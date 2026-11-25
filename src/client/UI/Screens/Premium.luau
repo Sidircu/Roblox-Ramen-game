@@ -19,7 +19,7 @@ return Base.make("Premium", "ui.premium", UDim2.fromScale(0.6, 0.72), function(c
 			local card, right = Kit.row(ICON[gp.id] or "🎟️", t("gp." .. gp.id), t("gpdesc." .. gp.id), 76)
 			card.Parent = scroll
 			card.LayoutOrder = i
-			Kit.button("R$", { parent = right, size = UDim2.fromOffset(120, 38), style = "green", onClick = function()
+			Kit.button("R$", { parent = right, size = UDim2.fromOffset(120, 38), style = "reward", onClick = function()
 				NetDef.event("BuyWithRobux"):FireServer("gamepass", gp.id)
 			end })
 		end
@@ -31,7 +31,7 @@ return Base.make("Premium", "ui.premium", UDim2.fromScale(0.6, 0.72), function(c
 			local card, right = Kit.row(icon, t("dp." .. p.id), t("dpdesc." .. p.id), 70)
 			card.Parent = scroll
 			card.LayoutOrder = 100 + i
-			Kit.button("R$", { parent = right, size = UDim2.fromOffset(120, 38), style = "green", onClick = function()
+			Kit.button("R$", { parent = right, size = UDim2.fromOffset(120, 38), style = "reward", onClick = function()
 				NetDef.event("BuyWithRobux"):FireServer("product", p.id)
 			end })
 		end

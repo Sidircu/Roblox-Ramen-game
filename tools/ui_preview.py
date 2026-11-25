@@ -419,6 +419,17 @@ def draw_element(canvas, d):
         a = np.asarray(layer.getchannel("A"), dtype=np.uint16)
         layer.putalpha(Image.fromarray((a[: ring.shape[0], : ring.shape[1]] * ring // 255).astype(np.uint8)))
         canvas.paste(layer, x - st, y - st, clip)
+    if d.get("polys") and w >= 1 and h >= 1:
+        # the 3D picture of a ViewportFrame, drawn far to near
+        layer = Image.new("RGBA", (int(w) + 1, int(h) + 1), (0, 0, 0, 0))
+        dr = ImageDraw.Draw(layer)
+        for q in d["polys"]:
+            pts = q.get("pts") or []
+            xy = [(pts[i] * z, pts[i + 1] * z) for i in range(0, len(pts) - 1, 2)]
+            if len(xy) >= 3:
+                c = q.get("c") or (200, 200, 200)
+                dr.polygon(xy, fill=(int(c[0]), int(c[1]), int(c[2]), int(255 * (q.get("a") if q.get("a") is not None else 1))))
+        canvas.paste(layer, x, y, clip)
     if d.get("text"):
         draw_text(canvas, d, x, y, w, h, clip)
     if d.get("cls") == "ScrollingFrame" and d.get("canvasH") and d.get("windowH") and d["canvasH"] > d["windowH"] + 1:

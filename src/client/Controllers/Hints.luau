@@ -184,7 +184,7 @@ function Hints.Init()
 	end
 	Kit.padding(14, 10).Parent = card
 	cardText = Kit.label("", { Parent = card, Size = UDim2.new(1, -40, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, TextSize = 17, FontFace = T.bold })
-	Kit.button("✕", { parent = card, size = UDim2.fromOffset(32, 32), position = UDim2.new(1, -30, 0, -4), style = "plain", textSize = 14, radius = 16, onClick = close })
+	Kit.button("✕", { parent = card, size = UDim2.fromOffset(32, 32), position = UDim2.new(1, -30, 0, -4), style = "close", textSize = 14, radius = 16, onClick = close })
 	pointer = Pointer.new("#7FE0FF")
 end
 

@@ -170,7 +170,9 @@ end
 -- Button styles: "primary" (red), "gold", "green", "plain", "dark"
 function Kit.button(text, opts)
 	opts = opts or {}
-	local style = opts.style or "primary"
+	-- one colour per kind of action: buy / confirm green, close / cancel / remove red, rewards and
+	-- offers gold, everything else beige; the chosen option of a row is dark wood
+	local style = ({ buy = "green", close = "primary", reward = "gold", secondary = "plain", selected = "dark" })[opts.style] or opts.style or "primary"
 	local bg = ({ primary = T.red, gold = T.gold, green = T.green, plain = T.paperDark, dark = T.wood, blue = T.blue })[style] or T.red
 	local fg = (style == "plain" or style == "gold") and T.ink or T.white
 	local b = Kit.new("TextButton", {
@@ -353,7 +355,7 @@ function Kit.window(parent, size, titleText, onClose)
 	Kit.new("TextLabel", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "和", TextScaled = true, TextColor3 = T.paper, FontFace = T.title, AutoLocalize = false, Parent = seal })
 	local title = Kit.title(titleText or "", { Parent = header, Size = UDim2.new(1, -150, 1, 0), Position = UDim2.fromOffset(52, 0), TextColor3 = T.paper, TextSize = 24, TextYAlignment = Enum.TextYAlignment.Center })
 	title.TextStrokeTransparency = 0.7
-	Kit.button("✕", { parent = header, size = UDim2.fromOffset(44, 40), position = UDim2.new(1, -50, 0, 4), style = "primary", textSize = 20, onClick = onClose })
+	Kit.button("✕", { parent = header, size = UDim2.fromOffset(44, 40), position = UDim2.new(1, -50, 0, 4), style = "close", textSize = 20, onClick = onClose })
 	local content = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 56), Size = UDim2.new(1, -24, 1, -66), Parent = frame, Name = "Content" })
 	return { frame = frame, content = content, title = title, header = header }
 end
@@ -386,8 +388,8 @@ function Kit.tabs(parent, tabs, onSelect, current, height)
 	local buttons, badges = {}, {}
 	local function paint(sel)
 		for id, b in pairs(buttons) do
-			b.BackgroundColor3 = id == sel and T.red or T.paperDark
-			b.TextColor3 = id == sel and T.white or T.ink
+			b.BackgroundColor3 = id == sel and T.wood or T.paperDark
+			b.TextColor3 = id == sel and T.paper or T.ink
 		end
 	end
 	for i, t in ipairs(tabs) do

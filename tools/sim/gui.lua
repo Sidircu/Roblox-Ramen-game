@@ -683,6 +683,78 @@ local function enumName(v)
 	return v.Name or tostring(v)
 end
 
+-- What a ViewportFrame shows, as flat-shaded polygons in the frame's own pixels (far first): every
+-- visible part is drawn as its box seen through CurrentCamera (balls and cylinders become boxes,
+-- good enough to check how a picture is framed)
+local BOX_FACES = {
+	{ { 1, 3, 7, 5 }, Vector3.new(1, 0, 0) }, { { 0, 4, 6, 2 }, Vector3.new(-1, 0, 0) },
+	{ { 2, 6, 7, 3 }, Vector3.new(0, 1, 0) }, { { 0, 1, 5, 4 }, Vector3.new(0, -1, 0) },
+	{ { 4, 5, 7, 6 }, Vector3.new(0, 0, 1) }, { { 0, 2, 3, 1 }, Vector3.new(0, 0, -1) },
+}
+local function viewportPolys(o, r)
+	local p = props(o)
+	local cam = p.CurrentCamera
+	if not cam then
+		return nil
+	end
+	local camCf = props(cam).CFrame
+	if not camCf then
+		return nil
+	end
+	local inv = camCf:Inverse()
+	local f = (r.h / 2) / math.tan(math.rad(props(cam).FieldOfView or 70) / 2)
+	local light = (p.LightDirection or Vector3.new(-1, -1, -1)).Unit
+	local camPos = camCf.Position
+	local polys = {}
+	local function walk(n)
+		for _, c in ipairs(kids(n)) do
+			if isA(cls(c), "BasePart") and (props(c).Transparency or 0) < 1 then
+				local pp = props(c)
+				local cf, size = pp.CFrame, pp.Size
+				local corners = {}
+				for i = 0, 7 do
+					local lx = (i % 2 == 0) and -0.5 or 0.5
+					local ly = (math.floor(i / 2) % 2 == 0) and -0.5 or 0.5
+					local lz = (math.floor(i / 4) == 0) and -0.5 or 0.5
+					corners[i] = cf * Vector3.new(lx * size.X, ly * size.Y, lz * size.Z)
+				end
+				local col = rgb(pp.Color) or { 200, 200, 200 }
+				for _, face in ipairs(BOX_FACES) do
+					local normal = (cf * face[2]) - cf.Position
+					local mid = (corners[face[1][1]] + corners[face[1][3]]) / 2
+					if normal:Dot(camPos - mid) > 0 then
+						local pts, depth, ok = {}, 0, true
+						for _, idx in ipairs(face[1]) do
+							local q = inv * corners[idx]
+							if q.Z >= -0.05 then
+								ok = false
+								break
+							end
+							table.insert(pts, r.w / 2 + f * q.X / -q.Z)
+							table.insert(pts, r.h / 2 - f * q.Y / -q.Z)
+							depth = depth - q.Z
+						end
+						if ok then
+							local shade = 0.55 + 0.45 * math.max(0, -normal:Dot(light))
+							table.insert(polys, { d = depth / 4, c = { math.floor(col[1] * shade), math.floor(col[2] * shade), math.floor(col[3] * shade) }, a = 1 - (pp.Transparency or 0), pts = pts })
+						end
+					end
+				end
+			end
+			walk(c)
+		end
+	end
+	walk(o)
+	table.sort(polys, function(a, b)
+		return a.d > b.d
+	end)
+	local out = {}
+	for _, q in ipairs(polys) do
+		table.insert(out, { c = q.c, a = q.a * (1 - (p.ImageTransparency or 0)), pts = q.pts })
+	end
+	return out
+end
+
 local function describe(o, r)
 	local p = props(o)
 	local d = {
@@ -735,6 +807,9 @@ local function describe(o, r)
 		d.image = tostring(p.Image or "")
 		d.imageColor = rgb(p.ImageColor3)
 		d.imageT = p.ImageTransparency or 0
+	end
+	if cls(o) == "ViewportFrame" then
+		d.polys = viewportPolys(o, r)
 	end
 	if cls(o) == "ScrollingFrame" then
 		d.scrollBar = (p.ScrollBarThickness or 12) * r.k

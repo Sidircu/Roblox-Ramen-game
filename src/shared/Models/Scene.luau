@@ -162,12 +162,29 @@ function Scene.shell(shell, geo, data)
 					B.tag(beam, "Roof")
 				end
 			end
+			local work = zone.area == "kitchen" or zone.area == "storage"
+			if not work then
+				-- a warm wooden ceiling: thin light slats under the boards
+				for x = r[1] + 1, r[3] - 0.5, 2 do
+					local slat = Kit.box(shell, 0.3, 0.12, r[4] - r[2] - 0.4, x, fy + GameConfig.WallHeight - 0.07, (r[2] + r[4]) / 2, P.wood_light, P.M.wood, { collide = false, shadow = false })
+					slat.CanQuery = false
+					B.tag(slat, "Roof")
+				end
+			end
 			for x = r[1] + 7, r[3] - 3, 14 do
 				for z = r[2] + 7, r[4] - 3, 14 do
-					local fixture = Kit.box(shell, 1.2, 0.2, 1.2, x, fy + GameConfig.WallHeight - 0.8, z, P.paper_warm, P.M.neon, { collide = false, shadow = false })
-					fixture.CanQuery = false
-					Kit.light(fixture, "Point", P.lamp, 22, 0.55, { night = false })
-					B.tag(fixture, "Roof")
+					if work then
+						-- bright work light over the kitchen and the storage room
+						local fixture = Kit.box(shell, 1.2, 0.2, 1.2, x, fy + GameConfig.WallHeight - 0.8, z, P.paper_warm, P.M.neon, { collide = false, shadow = false })
+						fixture.CanQuery = false
+						Kit.light(fixture, "Point", P.lamp, 22, 0.55, { night = false })
+						B.tag(fixture, "Roof")
+					else
+						-- dining rooms: round paper lanterns hanging low, with a warm light
+						for _, part in ipairs(B.pendantLantern(shell, x, fy + GameConfig.WallHeight, z)) do
+							B.tag(part, "Roof")
+						end
+					end
 				end
 			end
 			if zone.area == "kitchen" or zone.area == "storage" then

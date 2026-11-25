@@ -259,7 +259,7 @@ end
 function Guide.create(root)
 	frame = Kit.panel({ Name = "Guide", Position = UDim2.fromOffset(10, 124), Size = UDim2.fromOffset(320, 300), Visible = false, ZIndex = 5, Parent = root })
 	title = Kit.title("", { Parent = frame, Position = UDim2.fromOffset(12, 6), Size = UDim2.new(1, -54, 0, 30), TextSize = 18, TextTruncate = Enum.TextTruncate.AtEnd })
-	Kit.button("✕", { parent = frame, size = UDim2.fromOffset(32, 32), position = UDim2.new(1, -40, 0, 6), style = "plain", textSize = 14, radius = 16, onClick = function()
+	Kit.button("✕", { parent = frame, size = UDim2.fromOffset(32, 32), position = UDim2.new(1, -40, 0, 6), style = "close", textSize = 14, radius = 16, onClick = function()
 		Guide.hide()
 	end })
 	list = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 42), Size = UDim2.new(1, -20, 1, -48), Parent = frame }, { Kit.list(Enum.FillDirection.Vertical, 3) })

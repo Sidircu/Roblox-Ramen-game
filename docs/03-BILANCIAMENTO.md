@@ -406,7 +406,7 @@ Il locale iniziale è spoglio. Ogni ristrutturazione si compra una volta; l'atmo
 
 Totale ¥226.800 e +122 atmosfera (circa un livello di ambiente in più a metà partita). Anche `sign_rooftop` e `facade_deluxe` stanno nella scheda Ristrutturazioni. Traguardo *Completa {n} ristrutturazioni*: 3 / 8 / 15 → 🌸5 / 15 / 40.
 
-**Si parte con il magazzino vuoto** (¥500 per il primo ordine: gli ingredienti del ramen costano ¥281), ma con il **pentolone già pieno di brodo shoyu** e il **cuociriso pieno**. Oggetti iniziali: bancone (12 moduli da 3 stud + 2 terminali, 40 stud, alto 3 e profondo 3,8), 12 sgabelli allineati ai moduli, postazioni sushi e ramen, 2 mensole, cucina componibile (cuociriso, fornello con pentolone, 2 piani di lavoro, lavello), scaffale del magazzino e **una sola lanterna**: tutte le altre decorazioni si comprano.
+**Si parte con il magazzino vuoto** (¥500 per il primo ordine: gli ingredienti del ramen costano ¥281), ma con il **pentolone già pieno di brodo shoyu** e il **cuociriso pieno**. Oggetti iniziali: bancone (12 moduli da 3 stud + 2 terminali, 40 stud, alto 3 e profondo 3,8), 12 sgabelli allineati ai moduli, postazioni sushi e ramen, 2 mensole, cucina componibile (cuociriso, fornello con pentolone, 2 piani di lavoro, lavello), scaffale del magazzino, **tre lanterne di carta sopra il bancone** (rossa, bianca, rossa) e **quattro bambù in vaso** negli angoli della sala (+18 atmosfera): tutte le altre decorazioni si comprano. Il soffitto delle sale ha listelli di legno chiaro e lanterne di carta con luce calda (ogni 14 stud, come prima le plafoniere), anche nei locali già aperti.
 
 ---
 
@@ -462,6 +462,7 @@ Totale ¥226.800 e +122 atmosfera (circa un livello di ambiente in più a metà 
 | Tutorial (`Config/Tutorial.luau`) | dopo il primo piatto servito: ¥1.000 da spendere subito nel negozio; alla fine (primo piatto lavato): 🌸10; una volta per giocatore. Benvenuto 7 s (`WelcomeSeconds`), ogni scheda almeno 3 s (`MinStepSeconds`), la prima aspetta la fine del caricamento al massimo 30 s (`StartWait`) |
 | Consigli della prima volta | scaffali: un ingrediente del menu a 3 porzioni o meno · piatti: 3 sporchi nel lavello · negozio: qualcosa da comprare · personale: livello 6 senza aiutanti · cartello OPEN: dopo 3 piatti serviti; ognuno resta 12 s, almeno 20 s tra due consigli |
 | Apertura | il ristorante è aperto a ogni ingresso; il cartello OPEN/CLOSED accanto alla porta lo chiude (nessun nuovo cliente) e lo riapre; solo proprietario e co-gestori, a meno di 17 stud dal cartello |
+| Altri locali (`settings.others`) | «show» (predefinito) o «hide»: con «hide» gli interni degli altri ristoranti distanti almeno 150 stud lungo la strada si nascondono sul tuo schermo |
 | Sensibilità (`GameConfig.Sensitivity`) | Alta ×2,4 · Media ×1,6 (predefinita) · Bassa ×1 sulla rotazione della telecamera di Roblox in prima persona (mouse, gamepad e touch; si moltiplica con la sensibilità del menu Esc di Roblox); la terza persona usa la scelta divisa per Media (Media = velocità di prima) |
 
 ---

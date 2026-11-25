@@ -21,7 +21,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 		Kit.label(label, { Parent = row, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(0.4, 0, 1, 0), FontFace = Kit.Theme.bold })
 		local holder = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromScale(0.4, 0), Size = UDim2.new(0.6, -10, 1, 0), Parent = row }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
 		for i, o in ipairs(options) do
-			Kit.button(o.label, { parent = holder, size = UDim2.fromOffset(o.width or 86, 38), style = (current == o.value) and "primary" or "plain", order = i, textSize = 15, onClick = function()
+			Kit.button(o.label, { parent = holder, size = UDim2.fromOffset(o.width or 86, 38), style = (current == o.value) and "selected" or "secondary", order = i, textSize = 15, onClick = function()
 				set(key, o.value)
 			end })
 		end
@@ -44,6 +44,8 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 	local S = GameConfig.Sensitivity
 	choice(2, "🖱️ " .. t("ui.cam_speed"), { { label = t("ui.sens_high"), value = S.High }, { label = t("ui.sens_medium"), value = S.Medium }, { label = t("ui.sens_low"), value = S.Low } }, s.camSpeed or S.Medium, "camSpeed")
 	choice(8, "🖥️ " .. t("ui.low_graphics"), { { label = t("ui.on"), value = true }, { label = t("ui.off"), value = false } }, s.lowGfx == true, "lowGfx")
+	-- the other restaurants of the street: everything, or only the building from outside (lighter)
+	choice(9, "🏘️ " .. t("ui.others_detail"), { { label = t("ui.others_show"), value = "show", width = 124 }, { label = t("ui.others_hide"), value = "hide", width = 124 } }, s.others or "show", "others")
 	Kit.button("🎓 " .. t("ui.restart_tutorial"), { parent = scroll, size = UDim2.new(1, -8, 0, 44), style = "plain", order = 10, onClick = function()
 		NetDef.event("TutorialStep"):FireServer(0)
 		Core.C.UI.close("Settings")

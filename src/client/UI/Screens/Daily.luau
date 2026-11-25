@@ -65,7 +65,7 @@ screen = Base.make("Daily", "ui.daily_gift", UDim2.fromScale(0.68, 0.5), functio
 		end
 	end
 	local b = Kit.button(claimed and t("ui.daily_tomorrow") or ("🎁 " .. t("ui.claim")), {
-		parent = content, size = UDim2.new(0, 280, 0, 52), position = UDim2.new(0.5, -140, 1, -56), style = claimed and "plain" or "green", textSize = 20, disabled = claimed,
+		parent = content, size = UDim2.new(0, 280, 0, 52), position = UDim2.new(0.5, -140, 1, -56), style = claimed and "secondary" or "reward", textSize = 20, disabled = claimed,
 		onClick = function()
 			NetDef.event("ClaimDaily"):FireServer()
 			if Core.C.Audio then

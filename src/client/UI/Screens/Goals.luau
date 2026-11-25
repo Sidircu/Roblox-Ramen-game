@@ -108,7 +108,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 			Kit.label(r.yen and "💴" or "🌸", { Parent = c, Position = UDim2.fromOffset(0, 24), Size = UDim2.new(1, 0, 0, 44), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
 			Kit.label(reward .. (r.item and " +🎁" or ""), { Parent = c, Position = UDim2.fromOffset(2, 74), Size = UDim2.new(1, -4, 0, 40), TextSize = 14, TextXAlignment = Enum.TextXAlignment.Center })
 		end
-		Kit.button(claimedToday and t("ui.daily_tomorrow") or t("ui.claim"), { parent = scroll, size = UDim2.new(1, -8, 0, 46), style = "green", disabled = claimedToday, onClick = function()
+		Kit.button(claimedToday and t("ui.daily_tomorrow") or t("ui.claim"), { parent = scroll, size = UDim2.new(1, -8, 0, 46), style = "reward", disabled = claimedToday, onClick = function()
 			NetDef.event("ClaimDaily"):FireServer()
 		end })
 	elseif tab == "leaderboard" then
@@ -162,7 +162,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 			for _, z in ipairs(step.zones) do
 				need(w.zones and w.zones[z] == true, t("zone." .. z))
 			end
-			local b = Kit.button("🗾 " .. t("ui.franchise_open", { city = "city." .. nextCity.id }), { parent = scroll, size = UDim2.new(1, -8, 0, 50), style = all and "primary" or "plain", disabled = Core.C.Data.role() ~= "owner" or not all, onClick = function()
+			local b = Kit.button("🗾 " .. t("ui.franchise_open", { city = "city." .. nextCity.id }), { parent = scroll, size = UDim2.new(1, -8, 0, 50), style = all and "buy" or "secondary", disabled = Core.C.Data.role() ~= "owner" or not all, onClick = function()
 				NetDef.event("Franchise"):FireServer(nextCity.id)
 			end })
 			b.LayoutOrder = 50

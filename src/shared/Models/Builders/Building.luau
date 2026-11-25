@@ -235,6 +235,29 @@ function B.railing(parent, seg, y0, color)
 	end
 end
 
+-- Paper lantern (chochin) hanging from the ceiling at height `top`: a cord, dark caps, a glowing
+-- paper body with two ribs and a warm light inside. Returns its parts (none can be clicked).
+function B.pendantLantern(parent, x, top, z)
+	local NQ = { collide = false, shadow = false }
+	local parts = {}
+	local function add(p)
+		p.CanQuery = false
+		table.insert(parts, p)
+		return p
+	end
+	local bodyY = top - 2.9
+	add(Kit.box(parent, 0.08, top - (bodyY + 0.75), 0.08, x, (top + bodyY + 0.75) / 2, z, P.black, M.smooth, NQ))
+	add(Kit.cyl(parent, 0.7, 0.2, x, bodyY + 0.68, z, P.wood_black, M.wood, NQ))
+	local body = add(Kit.blob(parent, 1.35, 1.35, 1.35, x, bodyY, z, P.paper_warm, M.neon, NQ))
+	body.Transparency = 0.05
+	add(Kit.cyl(parent, 0.7, 0.18, x, bodyY - 0.66, z, P.wood_black, M.wood, NQ))
+	for _, dy in ipairs({ -0.3, 0.3 }) do
+		add(Kit.cyl(parent, 1.33, 0.05, x, bodyY + dy, z, P.lacquer, M.smooth, NQ))
+	end
+	Kit.light(body, "Point", P.lamp_warm, 22, 0.7, { night = false })
+	return parts
+end
+
 -- Staircase in the hako-kaidan style (the Japanese chest of drawers under the stairs):
 -- * flights of light treads with a dark nosing and closed risers between closed stringers;
 -- * a flight that starts on the floor has solid sides down to the floor (drawers in the side that

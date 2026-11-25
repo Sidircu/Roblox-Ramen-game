@@ -1234,8 +1234,9 @@ return {
 	SlotsByZone = { zone_east = 1, zone_west = 1, zone_terrace = 1, zone_tatami = 1, zone_kitchen_pro = 3, zone_floor2 = 3 },
 }
 ]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000024"><Properties><string name="Name">StarterLayout</string><ProtectedString name="Source"><![CDATA[--!nonstrict
--- Objects placed in a brand-new restaurant (all can be moved later). The start is plain on
--- purpose: decorations and renovations (Config/Expansions) are bought over time.
+-- Objects placed in a brand-new restaurant (all can be moved later). The start is simple but
+-- warm: paper lanterns over the counter and bamboo in the corners of the dining room; the other
+-- decorations and the renovations (Config/Expansions) are bought over time.
 -- s: "f" floor, "w" wall (y = height of the object's center), "c" ceiling, "t" on top of item index p
 return {
 	items = {
@@ -1283,8 +1284,15 @@ return {
 		{ i = "sink", x = 9.8, z = 44.3, r = 0, s = "f" },
 		{ i = "kitchen_counter", x = 13.1, z = 44.3, r = 0, s = "f" },
 		{ i = "storage_rack", x = 48, z = 54.6, r = 0, s = "f" },
-		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
-		{ i = "chochin_white", x = -6, z = 20, r = 0, s = "c" },
+		-- three paper lanterns over the counter and potted bamboo in the four corners of the dining
+		-- room: every other decoration is bought (see docs/01-GAME-DESIGN.md)
+		{ i = "chochin_red", x = -17, z = 29.6, r = 0, s = "c" },
+		{ i = "chochin_white", x = -4, z = 29.6, r = 0, s = "c" },
+		{ i = "chochin_red", x = 9, z = 29.6, r = 0, s = "c" },
+		{ i = "bamboo_pot", x = -34.4, z = 1.8, r = 0, s = "f" },
+		{ i = "bamboo_pot", x = 34.4, z = 1.8, r = 0, s = "f" },
+		{ i = "bamboo_pot", x = -34.4, z = 30, r = 0, s = "f" },
+		{ i = "bamboo_pot", x = 34.4, z = 30, r = 0, s = "f" },
 	},
 	-- a brand-new restaurant can serve its first customers within seconds: the two shelves start
 	-- stocked with the ramen ingredients (one list per shelf, in the order above, one ingredient per
@@ -2202,6 +2210,7 @@ return {
 	["ui.lb_you"] = "⭐ You",
 	["ui.level_n"] = "Level {n}",
 	["ui.level_of"] = "Level {level}/{max}",
+	["ui.level_short"] = "Lv. {level}/{max}",
 	["ui.licenses"] = "Licenses",
 	["ui.like"] = "Like",
 	["ui.locked_level"] = "License from level {level} · 📱 Licenses",
@@ -2223,6 +2232,7 @@ return {
 	["ui.objective_claim"] = "Claim!",
 	["ui.off"] = "Off",
 	["ui.offline"] = "Welcome back!",
+	["ui.offline_rule"] = "{h} h at {pct}%",
 	["ui.offline_text"] = "While you were away ({hours} h) your restaurant earned ¥{yen}.",
 	["ui.ok"] = "OK",
 	["ui.on"] = "On",
@@ -2230,6 +2240,9 @@ return {
 	["ui.open_restaurant"] = "Open restaurant",
 	["ui.open_tap"] = "OPEN",
 	["ui.order"] = "Order",
+	["ui.others_detail"] = "Other restaurants",
+	["ui.others_hide"] = "Only the outside",
+	["ui.others_show"] = "Show all",
 	["ui.owned"] = "Owned",
 	["ui.phone"] = "Phone",
 	["ui.place"] = "Place",
@@ -2282,6 +2295,7 @@ return {
 	["ui.staff"] = "Staff",
 	["ui.staff_team"] = "Your team ({n}/{max})",
 	["ui.stand_in_zone"] = "Stand inside a room to change its floor and walls.",
+	["ui.stock_line"] = "Shelves {shelf} · Boxes {boxes}",
 	["ui.store"] = "Store",
 	["ui.street_players"] = "Players on this street",
 	["ui.supplier"] = "Supplier",
@@ -2323,17 +2337,17 @@ return {
 	["upg.up_supplier"] = "Premium supplier",
 	["upg.up_ticket"] = "Order rail",
 	["upg.up_tray"] = "Tray",
-	["upgdesc.ambience"] = "Ambience bonus",
+	["upgdesc.ambience"] = "Ambience of the restaurant",
 	["upgdesc.autorestock"] = "The stocker orders what is running out",
 	["upgdesc.cart"] = "Boxes you carry at once",
-	["upgdesc.discount"] = "Big boxes with a discount",
+	["upgdesc.discount"] = "Big boxes (three in one) cost less",
 	["upgdesc.offline"] = "Earnings while you are away",
-	["upgdesc.popularity"] = "More customers",
-	["upgdesc.shelf"] = "More rows of products on every shelf slot",
-	["upgdesc.step"] = "Duration of the cooking steps",
-	["upgdesc.tickets"] = "Order tickets at the same time",
-	["upgdesc.tray"] = "Plates and dirty dishes you can carry",
-	["upgdesc.walk"] = "Walking speed",
+	["upgdesc.popularity"] = "More customers come in",
+	["upgdesc.shelf"] = "More products on every shelf slot",
+	["upgdesc.step"] = "Less time for every cooking step",
+	["upgdesc.tickets"] = "Orders on the rail at the same time (useful with cooks)",
+	["upgdesc.tray"] = "Dishes you carry at once",
+	["upgdesc.walk"] = "Faster walking",
 	["zone.base_dining"] = "Dining room",
 	["zone.base_kitchen"] = "Kitchen",
 	["zone.base_storage"] = "Storage room",
@@ -3103,6 +3117,7 @@ return {
 	["ui.lb_you"] = "⭐ Tu",
 	["ui.level_n"] = "Livello {n}",
 	["ui.level_of"] = "Livello {level}/{max}",
+	["ui.level_short"] = "Liv. {level}/{max}",
 	["ui.licenses"] = "Licenze",
 	["ui.like"] = "Mi piace",
 	["ui.locked_level"] = "Licenza dal livello {level} · 📱 Licenze",
@@ -3124,6 +3139,7 @@ return {
 	["ui.objective_claim"] = "Ritira!",
 	["ui.off"] = "No",
 	["ui.offline"] = "Bentornato!",
+	["ui.offline_rule"] = "{h} h al {pct}%",
 	["ui.offline_text"] = "Mentre eri via ({hours} h) il ristorante ha guadagnato ¥{yen}.",
 	["ui.ok"] = "OK",
 	["ui.on"] = "Sì",
@@ -3131,6 +3147,9 @@ return {
 	["ui.open_restaurant"] = "Apri il ristorante",
 	["ui.open_tap"] = "APERTO",
 	["ui.order"] = "Ordina",
+	["ui.others_detail"] = "Altri locali",
+	["ui.others_hide"] = "Solo fuori",
+	["ui.others_show"] = "Mostra tutto",
 	["ui.owned"] = "Acquistato",
 	["ui.phone"] = "Telefono",
 	["ui.place"] = "Piazza",
@@ -3183,6 +3202,7 @@ return {
 	["ui.staff"] = "Personale",
 	["ui.staff_team"] = "La tua squadra ({n}/{max})",
 	["ui.stand_in_zone"] = "Mettiti dentro una stanza per cambiarne pavimento e pareti.",
+	["ui.stock_line"] = "Mensole {shelf} · Scatole {boxes}",
 	["ui.store"] = "Metti via",
 	["ui.street_players"] = "Giocatori su questa strada",
 	["ui.supplier"] = "Fornitore",
@@ -3224,17 +3244,17 @@ return {
 	["upg.up_supplier"] = "Fornitore premium",
 	["upg.up_ticket"] = "Barra degli ordini",
 	["upg.up_tray"] = "Vassoio",
-	["upgdesc.ambience"] = "Bonus ambiente",
+	["upgdesc.ambience"] = "Atmosfera del locale",
 	["upgdesc.autorestock"] = "Il magazziniere ordina ciò che sta finendo",
-	["upgdesc.cart"] = "Scatole che porti in una volta",
-	["upgdesc.discount"] = "Scatole grandi scontate",
+	["upgdesc.cart"] = "Scatole che porti insieme",
+	["upgdesc.discount"] = "Scatole grandi (tre in una) che costano meno",
 	["upgdesc.offline"] = "Guadagni mentre sei via",
-	["upgdesc.popularity"] = "Più clienti",
-	["upgdesc.shelf"] = "Più file di prodotti su ogni ripiano",
-	["upgdesc.step"] = "Durata dei passaggi in cucina",
-	["upgdesc.tickets"] = "Biglietti d'ordine contemporanei",
-	["upgdesc.tray"] = "Piatti e stoviglie che puoi portare",
-	["upgdesc.walk"] = "Velocità di camminata",
+	["upgdesc.popularity"] = "Entrano più clienti",
+	["upgdesc.shelf"] = "Più prodotti su ogni ripiano",
+	["upgdesc.step"] = "Meno tempo per ogni passaggio in cucina",
+	["upgdesc.tickets"] = "Ordini sulla barra nello stesso momento (utile con i cuochi)",
+	["upgdesc.tray"] = "Piatti che porti insieme",
+	["upgdesc.walk"] = "Cammini più veloce",
 	["zone.base_dining"] = "Sala",
 	["zone.base_kitchen"] = "Cucina",
 	["zone.base_storage"] = "Magazzino",
@@ -5079,6 +5099,29 @@ function B.railing(parent, seg, y0, color)
 	end
 end
 
+-- Paper lantern (chochin) hanging from the ceiling at height `top`: a cord, dark caps, a glowing
+-- paper body with two ribs and a warm light inside. Returns its parts (none can be clicked).
+function B.pendantLantern(parent, x, top, z)
+	local NQ = { collide = false, shadow = false }
+	local parts = {}
+	local function add(p)
+		p.CanQuery = false
+		table.insert(parts, p)
+		return p
+	end
+	local bodyY = top - 2.9
+	add(Kit.box(parent, 0.08, top - (bodyY + 0.75), 0.08, x, (top + bodyY + 0.75) / 2, z, P.black, M.smooth, NQ))
+	add(Kit.cyl(parent, 0.7, 0.2, x, bodyY + 0.68, z, P.wood_black, M.wood, NQ))
+	local body = add(Kit.blob(parent, 1.35, 1.35, 1.35, x, bodyY, z, P.paper_warm, M.neon, NQ))
+	body.Transparency = 0.05
+	add(Kit.cyl(parent, 0.7, 0.18, x, bodyY - 0.66, z, P.wood_black, M.wood, NQ))
+	for _, dy in ipairs({ -0.3, 0.3 }) do
+		add(Kit.cyl(parent, 1.33, 0.05, x, bodyY + dy, z, P.lacquer, M.smooth, NQ))
+	end
+	Kit.light(body, "Point", P.lamp_warm, 22, 0.7, { night = false })
+	return parts
+end
+
 -- Staircase in the hako-kaidan style (the Japanese chest of drawers under the stairs):
 -- * flights of light treads with a dark nosing and closed risers between closed stringers;
 -- * a flight that starts on the floor has solid sides down to the floor (drawers in the side that
@@ -6912,6 +6955,14 @@ local function fishOf(recipe)
 	return "salmon"
 end
 
+-- a light wisp of steam over a hot dish (y = height of the surface, w = width of the source)
+local function hotSteam(m, y, w, rate, x, z)
+	local src = Kit.box(m, w, 0.05, w, x or 0, y, z or 0, P.white, M.smooth, nc({ transparency = 1 }))
+	src.Name = "Steam"
+	Kit.particles(src, "steam", { rate = rate or 2 })
+	return src
+end
+
 local function dishNigiri(m, recipe)
 	local y = geta(m, 1.5, 0.75)
 	local kind = fishOf(recipe)
@@ -7080,6 +7131,7 @@ local function dishTsukemen(m, recipe)
 			d.CFrame = CFrame.new(0.5, 0, 0.2) * d.CFrame
 		end
 	end
+	hotSteam(m, dy + 0.2, 0.35, 2, 0.5, 0.2)
 	local _ = recipe
 end
 
@@ -7121,6 +7173,7 @@ local function dishSoup(m, recipe)
 		end
 		scallions(m, 0.05, 0.56, 0.02, 6, 2)
 		chopsticks(m, 0, -0.75, 0)
+		hotSteam(m, 0.6, 0.55, 2)
 		return
 	end
 	-- miso soup in a red and black lacquer owan
@@ -7140,6 +7193,7 @@ local function dishSoup(m, recipe)
 		Kit.blob(m, 0.2, 0.02, 0.1, 0.18 - k * 0.15, 0.5, 0.18 - k * 0.12, F.wakame, M.smooth, nc({ rot = CFrame.Angles(0, k * 1.2, 0) }))
 	end
 	scallions(m, 0, 0.51, 0, 7, 3)
+	hotSteam(m, 0.55, 0.45, 2)
 end
 
 local function dishEdamame(m, recipe)
@@ -7222,6 +7276,7 @@ local function dishGyoza(m, recipe)
 			Kit.cyl(m, 0.05, 0.012, -0.4 + k * 0.17, y + 0.23, 0, F.chili, M.smooth, nc({ reflectance = 0.3 }))
 		end
 	end
+	hotSteam(m, y + 0.25, 0.6, 1, -0.1, 0)
 end
 
 local function shrimpTempura(m, base)
@@ -7289,6 +7344,7 @@ local function dishFried(m, recipe)
 		Kit.blob(m, 0.16, 0.08, 0.14, 0.3, y + 0.15, -0.25, F.mayo, M.smooth, nc({ reflectance = 0.1 }))
 	end
 	lemonWedge(m, 0.4, -0.05, y)
+	hotSteam(m, y + 0.3, 0.5, 1, -0.1, 0)
 end
 
 local function dishTakoyaki(m, recipe)
@@ -7312,6 +7368,7 @@ local function dishTakoyaki(m, recipe)
 	for k = 0, 1 do
 		Kit.part(m, Vector3.new(0.02, 0.5, 0.02), CFrame.new(0.38 - k * 0.06, 0.45, -0.16) * CFrame.Angles(math.rad(25), 0, math.rad(-20 + k * 8)), P.wood_light, M.wood, nc())
 	end
+	hotSteam(m, 0.35, 0.5, 1)
 	local _ = recipe
 end
 
@@ -8072,8 +8129,8 @@ local function counter(m, item, kind)
 	for x = -w / 2 + 0.5, w / 2 - 0.3, 2 do
 		Kit.box(dc, 0.08, 0.08, 0.36, x, 0.7, -d / 2 + 0.43, P.brass, M.metal, nc())
 	end
-	-- warm light strip hidden under the overhang
-	Kit.box(dc, w - 0.1, 0.05, 0.08, 0, h - 0.27, -d / 2 + 0.66, P.lamp_warm, M.neon, nc())
+	-- warm light strip hidden under the overhang (every counter has it: a cosy glow from the start)
+	Kit.box(m, w - 0.1, 0.05, 0.08, 0, h - 0.27, -d / 2 + 0.66, P.lamp_warm, M.neon, nc())
 	-- hinoki top with a dark edge band, hinoki cap on the ledge
 	Kit.box(dc, w, 0.04, d, 0, h + 0.005, 0, P.hinoki, M.wood, nc())
 	Kit.box(dc, w, 0.1, 0.06, 0, h - 0.17, -d / 2 - 0.02, P.wood_dark, M.wood, nc())
@@ -10559,6 +10616,14 @@ function S.planterTree(parent, x, z, color, k)
 	for _, b in ipairs({ { 0, 7.5, 0, 5 }, { -1.4, 6.6, 0.6, 3.4 }, { 1.4, 6.8, -0.5, 3.6 }, { 0.4, 8.6, 0.4, 3 } }) do
 		Kit.blob(parent, b[4] * k, b[4] * 0.7 * k, b[4] * k, x + b[1] * k, b[2] * k, z + b[3] * k, color, M.leafy, { collide = false })
 	end
+	if color == P.sakura then
+		-- a few petals drifting down from the cherry trees
+		local src = Kit.box(parent, 4.5 * k, 0.2, 4.5 * k, x, 6.6 * k, z, P.white, M.smooth, { collide = false, transparency = 1, shadow = false })
+		src.CanQuery = false
+		src.CanTouch = false
+		src.Name = "Petals"
+		Kit.particles(src, "petals", { rate = 1.5 })
+	end
 end
 
 function S.viaduct(parent, z, y, x0, x1)
@@ -11315,12 +11380,29 @@ function Scene.shell(shell, geo, data)
 					B.tag(beam, "Roof")
 				end
 			end
+			local work = zone.area == "kitchen" or zone.area == "storage"
+			if not work then
+				-- a warm wooden ceiling: thin light slats under the boards
+				for x = r[1] + 1, r[3] - 0.5, 2 do
+					local slat = Kit.box(shell, 0.3, 0.12, r[4] - r[2] - 0.4, x, fy + GameConfig.WallHeight - 0.07, (r[2] + r[4]) / 2, P.wood_light, P.M.wood, { collide = false, shadow = false })
+					slat.CanQuery = false
+					B.tag(slat, "Roof")
+				end
+			end
 			for x = r[1] + 7, r[3] - 3, 14 do
 				for z = r[2] + 7, r[4] - 3, 14 do
-					local fixture = Kit.box(shell, 1.2, 0.2, 1.2, x, fy + GameConfig.WallHeight - 0.8, z, P.paper_warm, P.M.neon, { collide = false, shadow = false })
-					fixture.CanQuery = false
-					Kit.light(fixture, "Point", P.lamp, 22, 0.55, { night = false })
-					B.tag(fixture, "Roof")
+					if work then
+						-- bright work light over the kitchen and the storage room
+						local fixture = Kit.box(shell, 1.2, 0.2, 1.2, x, fy + GameConfig.WallHeight - 0.8, z, P.paper_warm, P.M.neon, { collide = false, shadow = false })
+						fixture.CanQuery = false
+						Kit.light(fixture, "Point", P.lamp, 22, 0.55, { night = false })
+						B.tag(fixture, "Roof")
+					else
+						-- dining rooms: round paper lanterns hanging low, with a warm light
+						for _, part in ipairs(B.pendantLantern(shell, x, fy + GameConfig.WallHeight, z)) do
+							B.tag(part, "Roof")
+						end
+					end
 				end
 			end
 			if zone.area == "kitchen" or zone.area == "storage" then
@@ -14612,7 +14694,7 @@ function Data.newProfile()
 		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, tutorialGifts = {}, hints = {}, offlinePending = 0, codes = {}, onboarding = true, funnel = {} },
 		franchise = { stars = 0, city = "tokyo" },
 		perms = {},
-		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = GameConfig.Sensitivity.Medium, coop = "friends" },
+		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = GameConfig.Sensitivity.Medium, coop = "friends", others = "show" },
 		passes = {},
 		receipts = {},
 		created = os.time(),
@@ -16651,6 +16733,10 @@ function Meta.Init()
 		camSpeed = function(v)
 			local S = GameConfig.Sensitivity
 			return v == S.High or v == S.Medium or v == S.Low
+		end,
+		-- the other restaurants of the street: complete, or only their outside (Controllers/Neighbours)
+		others = function(v)
+			return v == "show" or v == "hide"
 		end,
 		-- who may help in your restaurant: "friends" or "everyone"
 		coop = function(v)
@@ -21719,7 +21805,7 @@ function World.Start()
 end
 
 return World
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000145"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000144"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000143"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000117"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000147"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000146"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000145"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000118"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client-only animations: swaying lanterns and noren, maneki-neko paws, koi, shishi-odoshi,
 -- streamers, and the evening train on the viaduct.
 local RunService = game:GetService("RunService")
@@ -24331,7 +24417,7 @@ function Hints.Init()
 	end
 	Kit.padding(14, 10).Parent = card
 	cardText = Kit.label("", { Parent = card, Size = UDim2.new(1, -40, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, TextSize = 17, FontFace = T.bold })
-	Kit.button("✕", { parent = card, size = UDim2.fromOffset(32, 32), position = UDim2.new(1, -30, 0, -4), style = "plain", textSize = 14, radius = 16, onClick = close })
+	Kit.button("✕", { parent = card, size = UDim2.fromOffset(32, 32), position = UDim2.new(1, -30, 0, -4), style = "close", textSize = 14, radius = 16, onClick = close })
 	pointer = Pointer.new("#7FE0FF")
 end
 
@@ -24391,6 +24477,8 @@ local player = Players.LocalPlayer
 local t = Locale.t
 
 local highlight, label, labelText
+local useGui, useButton, useKey, useText -- our own look for the prompt (see showPrompt)
+local handlers = setmetatable({}, { __mode = "k" }) -- [prompt] = { begin, ended }
 local current = nil -- { model, uid, kind, slot }
 local prompts = setmetatable({}, { __mode = "k" }) -- [model] = ProximityPrompt (local to this client)
 local shownPrompt = nil
@@ -24618,25 +24706,54 @@ local function promptFor(model)
 	p.HoldDuration = 0
 	p.MaxActivationDistance = 40
 	p.Enabled = false
+	-- Roblox's prompt bubble cannot be made bigger: ours is drawn instead (useGui), the prompt
+	-- still takes E and ButtonX
+	p.Style = Enum.ProximityPromptStyle.Custom
 	local pressedAt = 0
-	p.Triggered:Connect(function()
+	local function begin()
 		pressedAt = os.clock()
 		if current and current.model == model then
 			-- on a touch screen a tap on the prompt is a tap (it toggles washing)
 			act(UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
 		end
-	end)
+	end
 	-- releasing the button stops washing at the sink; a quick tap on a touch screen leaves the
 	-- tap running (washing goes on by itself until the sink is empty or you tap again)
-	p.TriggerEnded:Connect(function()
+	local function ended()
 		local touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 		if Core.C.Sink and not (touch and os.clock() - pressedAt < 0.35) then
 			Core.C.Sink.endHold()
 		end
-	end)
+	end
+	p.Triggered:Connect(begin)
+	p.TriggerEnded:Connect(ended)
+	handlers[p] = { begin = begin, ended = ended }
 	p.Parent = part
 	prompts[model] = p
 	return p
+end
+
+-- the button over the object: big and tappable on touch screens, with the key to press (E, or X
+-- on a gamepad) on a computer
+local function paintUseButton(p, text)
+	if not useGui then
+		return
+	end
+	if not p then
+		useGui.Enabled = false
+		useGui.Adornee = nil
+		return
+	end
+	local mode = Core.C.UI and Core.C.UI.inputMode and Core.C.UI.inputMode() or "pc"
+	local touch = mode == "touch"
+	useGui.Size = touch and UDim2.fromOffset(230, 72) or UDim2.fromOffset(220, 50)
+	useKey.Visible = not touch
+	useKey.Text = mode == "pad" and "X" or "E"
+	useText.Position = touch and UDim2.fromOffset(12, 0) or UDim2.fromOffset(48, 0)
+	useText.Size = touch and UDim2.new(1, -24, 1, 0) or UDim2.new(1, -58, 1, 0)
+	useText.Text = text
+	useGui.Adornee = p.Parent
+	useGui.Enabled = true
 end
 
 local function showPrompt(model, text, near)
@@ -24651,6 +24768,7 @@ local function showPrompt(model, text, near)
 		end
 		p.Enabled = true
 	end
+	paintUseButton(p, text)
 end
 
 local function setCurrent(model, slot)
@@ -24893,6 +25011,74 @@ function Interaction.Init()
 	labelText.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
 	labelText.AutoLocalize = false
 	labelText.Parent = bg
+	-- the use button over the object (instead of Roblox's prompt bubble)
+	useGui = Instance.new("BillboardGui")
+	useGui.Name = "UseButton"
+	useGui.Size = UDim2.fromOffset(220, 50)
+	useGui.ExtentsOffsetWorldSpace = Vector3.new(0, 1, 0)
+	useGui.AlwaysOnTop = true
+	useGui.LightInfluence = 0
+	useGui.MaxDistance = 60
+	useGui.Active = true
+	useGui.ResetOnSpawn = false
+	useGui.Enabled = false
+	useGui.Parent = player.PlayerGui
+	useButton = Instance.new("TextButton")
+	useButton.Name = "Use"
+	useButton.Text = ""
+	useButton.AutoButtonColor = true
+	useButton.Size = UDim2.fromScale(1, 1)
+	useButton.BackgroundColor3 = Color.hex("#3A2618")
+	useButton.BackgroundTransparency = 0.08
+	useButton.Parent = useGui
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0, 14)
+	round.Parent = useButton
+	local rim = Instance.new("UIStroke")
+	rim.Color = Color.hex("#D4A23C")
+	rim.Thickness = 2
+	rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	rim.Parent = useButton
+	useKey = Instance.new("TextLabel")
+	useKey.Name = "Key"
+	useKey.Size = UDim2.fromOffset(32, 32)
+	useKey.AnchorPoint = Vector2.new(0, 0.5)
+	useKey.Position = UDim2.new(0, 9, 0.5, 0)
+	useKey.BackgroundColor3 = Color.hex("#F4EBDD")
+	useKey.TextColor3 = Color.hex("#2B2320")
+	useKey.TextSize = 20
+	useKey.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json")
+	useKey.AutoLocalize = false
+	useKey.Parent = useButton
+	local keyRound = Instance.new("UICorner")
+	keyRound.CornerRadius = UDim.new(0, 8)
+	keyRound.Parent = useKey
+	useText = Instance.new("TextLabel")
+	useText.Name = "Action"
+	useText.BackgroundTransparency = 1
+	useText.TextColor3 = Color.hex("#FFF6E8")
+	useText.TextScaled = true
+	useText.TextXAlignment = Enum.TextXAlignment.Left
+	useText.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json")
+	useText.AutoLocalize = false
+	useText.Parent = useButton
+	local fit = Instance.new("UITextSizeConstraint")
+	fit.MaxTextSize = 22
+	fit.MinTextSize = 12
+	fit.Parent = useText
+	-- pressing the button is the same as pressing E (holding it holds, for the sink)
+	useButton.MouseButton1Down:Connect(function()
+		local h = shownPrompt and handlers[shownPrompt]
+		if h then
+			h.begin()
+		end
+	end)
+	useButton.MouseButton1Up:Connect(function()
+		local h = shownPrompt and handlers[shownPrompt]
+		if h then
+			h.ended()
+		end
+	end)
 end
 
 Interaction.act = act
@@ -24971,7 +25157,7 @@ local LightingC = {}
 local atmosphere, bloom, grading, rays
 local lights = {}
 
-local DAY = { ambient = Color.hex("#8C8478"), outdoor = Color.hex("#9C9488"), top = Color.hex("#FFF3E0"), bright = 2.4, atm = Color.hex("#C9D9E8"), decay = Color.hex("#8FA8C0"), tint = Color.hex("#FFF6EC") }
+local DAY = { ambient = Color.hex("#8E8476"), outdoor = Color.hex("#9E9486"), top = Color.hex("#FFF1DC"), bright = 2.4, atm = Color.hex("#C9D9E8"), decay = Color.hex("#8FA8C0"), tint = Color.hex("#FFF2E2") }
 local SUNSET = { ambient = Color.hex("#8A6A5A"), outdoor = Color.hex("#A0786A"), top = Color.hex("#FFB070"), bright = 1.6, atm = Color.hex("#F0B08A"), decay = Color.hex("#A06A6A"), tint = Color.hex("#FFE2C8") }
 -- night: blue sky outside, but a warm, cosy grade so lanterns and pendants glow amber
 local NIGHT = { ambient = Color.hex("#4A4050"), outdoor = Color.hex("#2E3450"), top = Color.hex("#6A78B0"), bright = 0.5, atm = Color.hex("#2A3050"), decay = Color.hex("#1A1E38"), tint = Color.hex("#FFE9D4") }
@@ -24983,15 +25169,21 @@ local function blend(a, b, k)
 	}
 end
 
+-- a long golden hour (15:30 to 20:30, the lanterns light up when it starts) and a rosy dawn;
+-- the second value is how much of the night it is (lights on from 0.2)
 local function look(clock)
-	if clock >= 7 and clock < 16.5 then
+	if clock >= 7.5 and clock < 15.5 then
 		return DAY, 0
-	elseif clock >= 16.5 and clock < 18.5 then
-		return blend(DAY, SUNSET, (clock - 16.5) / 2), 0.2
-	elseif clock >= 18.5 and clock < 20 then
-		return blend(SUNSET, NIGHT, (clock - 18.5) / 1.5), 0.6
-	elseif clock >= 5 and clock < 7 then
-		return blend(NIGHT, DAY, (clock - 5) / 2), 0.4
+	elseif clock >= 15.5 and clock < 17 then
+		return blend(DAY, SUNSET, (clock - 15.5) / 1.5), 0.2
+	elseif clock >= 17 and clock < 19 then
+		return SUNSET, 0.4
+	elseif clock >= 19 and clock < 20.5 then
+		return blend(SUNSET, NIGHT, (clock - 19) / 1.5), 0.6
+	elseif clock >= 5 and clock < 6 then
+		return blend(NIGHT, SUNSET, clock - 5), 0.6
+	elseif clock >= 6 and clock < 7.5 then
+		return blend(SUNSET, DAY, (clock - 6) / 1.5), 0.2
 	end
 	return NIGHT, 1
 end
@@ -25055,7 +25247,9 @@ function LightingC.Start()
 				if not light.Parent then
 					table.remove(lights, i)
 				elseif light:GetAttribute("NightLight") then
-					light.Enabled = on and not (low and light:IsA("SpotLight"))
+					-- (off inside the other restaurants hidden by Settings → Other restaurants)
+					local nb = Core.C.Neighbours
+					light.Enabled = on and not (low and light:IsA("SpotLight")) and not (nb and nb.hides(light))
 				end
 			end
 		end
@@ -25063,7 +25257,183 @@ function LightingC.Start()
 end
 
 return LightingC
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">ShelfTags</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Neighbours</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- Settings → Other restaurants. "Show all": the whole street as it is. "Only the outside": the
+-- restaurants you are not in keep their building (walls, roof, facade, the lanterns in the
+-- ceiling) but their objects, boxes and the people inside are hidden on this screen only, so a
+-- phone has much less to draw. The restaurant you stand in, and the next one as you walk up to
+-- it, are always complete. Nothing changes for the other players or on the server: parts get
+-- LocalTransparencyModifier 1, their lamps and painted signs are switched off here and come back
+-- as they were.
+local Players = game:GetService("Players")
+local Core = require(script.Parent.Parent.Core)
+
+local Neighbours = {}
+local player = Players.LocalPlayer
+
+-- a restaurant is complete when you are this close to the middle of its plot (along the street;
+-- plots are 240 studs apart, so the next one appears as you walk past the halfway point)
+Neighbours.Near = 150
+local DETAIL = { "Items", "Dynamic" }
+
+local hiddenPlots = {} -- [plot folder] = { connections }
+local prior = setmetatable({}, { __mode = "k" }) -- [light / gui / emitter] = Enabled before hiding
+local hiddenNpcs = setmetatable({}, { __mode = "k" }) -- [npc model] = true
+
+local function setting()
+	local s = Core.C.Data and Core.C.Data.m("settings")
+	return (s and s.others) or "show"
+end
+
+local function hereX()
+	local c = player.Character
+	local root = c and c:FindFirstChild("HumanoidRootPart")
+	if root then
+		return root.Position.X
+	end
+	local cam = workspace.CurrentCamera
+	return cam and cam.Focus.Position.X or 0
+end
+
+-- hides (or shows again) one instance of a restaurant's inside
+local function apply(d, hide)
+	if d:IsA("BasePart") or d:IsA("Decal") or d:IsA("Texture") then
+		d.LocalTransparencyModifier = hide and 1 or 0
+	elseif d:IsA("Light") then
+		-- night lights are switched by Controllers/Lighting, which asks Neighbours.hides
+		if d:GetAttribute("NightLight") ~= true then
+			if hide then
+				if prior[d] == nil then
+					prior[d] = d.Enabled
+				end
+				d.Enabled = false
+			elseif prior[d] ~= nil then
+				d.Enabled = prior[d]
+				prior[d] = nil
+			end
+		end
+	elseif d:IsA("SurfaceGui") then
+		-- (floating labels and smoke are left alone: they fade with distance anyway, and the
+		-- server switches some of them while the restaurant is hidden)
+		if hide then
+			if prior[d] == nil then
+				prior[d] = d.Enabled
+			end
+			d.Enabled = false
+		elseif prior[d] ~= nil then
+			d.Enabled = prior[d]
+			prior[d] = nil
+		end
+	end
+end
+
+local function setPlot(folder, hide)
+	if (hiddenPlots[folder] ~= nil) == hide then
+		return
+	end
+	if hide then
+		local conns = {}
+		for _, name in ipairs(DETAIL) do
+			local f = folder:FindFirstChild(name)
+			if f then
+				for _, d in ipairs(f:GetDescendants()) do
+					apply(d, true)
+				end
+				-- what arrives while hidden (a new object, a box, a dish) is hidden too
+				table.insert(conns, f.DescendantAdded:Connect(function(d)
+					apply(d, true)
+				end))
+			end
+		end
+		hiddenPlots[folder] = conns
+	else
+		for _, c in ipairs(hiddenPlots[folder]) do
+			c:Disconnect()
+		end
+		hiddenPlots[folder] = nil
+		for _, name in ipairs(DETAIL) do
+			local f = folder:FindFirstChild(name)
+			if f then
+				for _, d in ipairs(f:GetDescendants()) do
+					apply(d, false)
+				end
+			end
+		end
+	end
+end
+
+local function setNpc(model, hide)
+	if (hiddenNpcs[model] == true) == hide then
+		return
+	end
+	hiddenNpcs[model] = hide or nil
+	for _, d in ipairs(model:GetDescendants()) do
+		apply(d, hide)
+	end
+end
+
+-- true when `inst` belongs to the hidden inside of another restaurant (Controllers/Lighting)
+function Neighbours.hides(inst)
+	for folder in pairs(hiddenPlots) do
+		if inst:IsDescendantOf(folder) then
+			return true
+		end
+	end
+	return false
+end
+
+-- true when the inside of plot folder `folder` is drawn
+function Neighbours.shown(folder)
+	return hiddenPlots[folder] == nil
+end
+
+function Neighbours.step()
+	local plots = workspace:FindFirstChild("Plots")
+	if not plots then
+		return
+	end
+	local only = setting() == "hide"
+	local x = hereX()
+	local hiddenX = {}
+	for _, folder in ipairs(plots:GetChildren()) do
+		local ox = folder:GetAttribute("OriginX") or 0
+		local hide = only and math.abs(x - ox) >= Neighbours.Near
+		setPlot(folder, hide)
+		if hide then
+			table.insert(hiddenX, ox)
+		end
+	end
+	-- the people inside a hidden restaurant (those walking on the street stay)
+	local npcs = workspace:FindFirstChild("NPCs")
+	if npcs then
+		for _, m in ipairs(npcs:GetChildren()) do
+			local hide = false
+			if #hiddenX > 0 and m:IsA("Model") then
+				local pos = m:GetPivot().Position
+				if pos.Z > 0.5 then
+					for _, ox in ipairs(hiddenX) do
+						if math.abs(pos.X - ox) < 120 then
+							hide = true
+						end
+					end
+				end
+			end
+			setNpc(m, hide)
+		end
+	end
+end
+
+function Neighbours.Start()
+	task.spawn(function()
+		while true do
+			pcall(Neighbours.step)
+			task.wait(1)
+		end
+	end)
+end
+
+return Neighbours
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">ShelfTags</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shelf tags (as in shop games): a small paper tag on the front edge of every shelf slot with the
 -- icon and the name of the product it holds, written in your language. Empty slots get a blank
 -- tag. Tags are local parts, rebuilt only when a slot changes product.
@@ -25193,7 +25563,7 @@ end
 
 
 return ShelfTags
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Sink</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Sink</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Washing the dishes at the sink. While a sink has Washing = true (set by ApplianceService) every
 -- client shows a dirty plate under the running tap with a sponge scrubbing it in circles while the
 -- dirt fades away; each clean plate slides to the left, towards the drying rack, fading out.
@@ -25403,7 +25773,7 @@ function Sink.Start()
 end
 
 return Sink
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Timing</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Timing</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Noodle timing (optional skill): while the noodles boil, a bar with a green part and a moving
 -- needle appears under the middle of the screen. Click / E (or ✋) when the needle is in the
 -- green: "Perfect!" and that bowl gets a bigger tip. Missing it costs nothing.
@@ -25503,7 +25873,7 @@ function Timing.Start()
 end
 
 return Timing
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- The first two minutes, one short step at a time: a customer orders by themselves, the ramen
 -- station makes it in three presses (noodles, broth, toppings), you serve it and get paid; a gift
 -- of yen opens the shop and you buy your first upgrade; then you clear and wash the bowl, and a
@@ -25804,8 +26174,9 @@ function Tutorial.layout()
 		return
 	end
 	local phone = Kit.profile == "phone"
-	local w, h = phone and 360 or 460, phone and 68 or 76
-	local iconSize, bw = phone and 44 or 56, phone and 64 or 76
+	-- on a phone the two buttons are big enough for a thumb
+	local w, h = phone and 380 or 460, phone and 80 or 76
+	local iconSize, bw = phone and 44 or 56, phone and 84 or 76
 	local textX = phone and 60 or 76
 	panel.Size = UDim2.fromOffset(w, h)
 	tile.Position = UDim2.fromOffset(phone and 8 or 10, (h - iconSize) / 2)
@@ -25816,10 +26187,10 @@ function Tutorial.layout()
 	dots.Size = UDim2.new(1, -(textX + bw + 14), 0, 16)
 	buttons.Position = UDim2.new(1, phone and -8 or -10, 0.5, 0)
 	buttons.Size = UDim2.fromOffset(bw, h - 8)
-	nextButton.Size = UDim2.fromOffset(bw, phone and 27 or 30)
-	skipButton.Size = UDim2.fromOffset(bw, phone and 27 or 30)
-	nextButton.TextSize = phone and 14 or 15
-	skipButton.TextSize = phone and 13 or 14
+	nextButton.Size = UDim2.fromOffset(bw, phone and 34 or 30)
+	skipButton.Size = UDim2.fromOffset(bw, phone and 34 or 30)
+	nextButton.TextSize = phone and 18 or 15
+	skipButton.TextSize = phone and 16 or 14
 end
 
 local function finish(skipped)
@@ -25882,7 +26253,7 @@ function Tutorial.Init()
 	end)
 	dots = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 50), Size = UDim2.new(1, -164, 0, 18), TextSize = 12, TextColor3 = T.gold, FontFace = T.bold, TextWrapped = false })
 	buttons = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(76, 66), Parent = panel }, { Kit.list(Enum.FillDirection.Vertical, 4, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
-	nextButton = Kit.button("▶", { parent = buttons, size = UDim2.fromOffset(76, 30), style = "gold", textSize = 15, order = 1, onClick = function()
+	nextButton = Kit.button("▶", { parent = buttons, size = UDim2.fromOffset(76, 30), style = "buy", textSize = 15, order = 1, onClick = function()
 		local st = STEPS[index]
 		if st and (st.timer or st.skippable) then
 			advance()
@@ -25975,7 +26346,7 @@ function Tutorial.Start()
 end
 
 return Tutorial
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Screen manager, toasts and shared UI helpers.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -26302,7 +26673,7 @@ function UI.Start()
 end
 
 return UI
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Localized billboards over customers (order + patience), stations (board / next step),
 -- rice cookers & pots, shelf slots, dirty dishes and staff name tags.
 local Players = game:GetService("Players")
@@ -26812,13 +27183,13 @@ function WorldUI.Start()
 end
 
 return WorldUI
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of client controllers and UI screens.
 return {
 	C = {},
 	Screens = {},
 }
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000119"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000120"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client entry point.
 if not game:IsLoaded() then
 	game.Loaded:Wait()
@@ -26828,7 +27199,7 @@ local Core = require(script.Parent.Core)
 local Controllers = script.Parent.Controllers
 
 local ORDER = {
-	"Data", "Audio", "UI", "Lighting", "Ambient", "WorldUI", "Camera", "Interaction", "FirstPerson", "Sink", "ShelfTags", "Timing", "Build", "Tutorial", "Hints", "Effects",
+	"Data", "Audio", "UI", "Lighting", "Ambient", "WorldUI", "Camera", "Interaction", "FirstPerson", "Sink", "ShelfTags", "Timing", "Build", "Tutorial", "Hints", "Effects", "Neighbours",
 }
 
 for _, name in ipairs(ORDER) do
@@ -26864,7 +27235,7 @@ for _, name in ipairs(ORDER) do
 		end)
 	end
 end
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000142"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000120"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000144"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Helper to build standard modal screens: Base.make(name, titleKey, size, render)
 -- render(content, screen) rebuilds the content each refresh.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -26943,7 +27314,7 @@ function Base.make(name, titleKey, size, render)
 end
 
 return Base
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Emoji icons for catalog cards (no image assets needed).
 local Icons = {
 	cat = {
@@ -26987,7 +27358,7 @@ function Icons.forItem(item)
 end
 
 return Icons
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000123"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Tiny declarative UI toolkit + the visual theme (washi paper, dark wood, lacquer red, gold).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Color = require(Shared.Util.Color)
@@ -27159,7 +27530,9 @@ end
 -- Button styles: "primary" (red), "gold", "green", "plain", "dark"
 function Kit.button(text, opts)
 	opts = opts or {}
-	local style = opts.style or "primary"
+	-- one colour per kind of action: buy / confirm green, close / cancel / remove red, rewards and
+	-- offers gold, everything else beige; the chosen option of a row is dark wood
+	local style = ({ buy = "green", close = "primary", reward = "gold", secondary = "plain", selected = "dark" })[opts.style] or opts.style or "primary"
 	local bg = ({ primary = T.red, gold = T.gold, green = T.green, plain = T.paperDark, dark = T.wood, blue = T.blue })[style] or T.red
 	local fg = (style == "plain" or style == "gold") and T.ink or T.white
 	local b = Kit.new("TextButton", {
@@ -27342,7 +27715,7 @@ function Kit.window(parent, size, titleText, onClose)
 	Kit.new("TextLabel", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Text = "和", TextScaled = true, TextColor3 = T.paper, FontFace = T.title, AutoLocalize = false, Parent = seal })
 	local title = Kit.title(titleText or "", { Parent = header, Size = UDim2.new(1, -150, 1, 0), Position = UDim2.fromOffset(52, 0), TextColor3 = T.paper, TextSize = 24, TextYAlignment = Enum.TextYAlignment.Center })
 	title.TextStrokeTransparency = 0.7
-	Kit.button("✕", { parent = header, size = UDim2.fromOffset(44, 40), position = UDim2.new(1, -50, 0, 4), style = "primary", textSize = 20, onClick = onClose })
+	Kit.button("✕", { parent = header, size = UDim2.fromOffset(44, 40), position = UDim2.new(1, -50, 0, 4), style = "close", textSize = 20, onClick = onClose })
 	local content = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 56), Size = UDim2.new(1, -24, 1, -66), Parent = frame, Name = "Content" })
 	return { frame = frame, content = content, title = title, header = header }
 end
@@ -27375,8 +27748,8 @@ function Kit.tabs(parent, tabs, onSelect, current, height)
 	local buttons, badges = {}, {}
 	local function paint(sel)
 		for id, b in pairs(buttons) do
-			b.BackgroundColor3 = id == sel and T.red or T.paperDark
-			b.TextColor3 = id == sel and T.white or T.ink
+			b.BackgroundColor3 = id == sel and T.wood or T.paperDark
+			b.TextColor3 = id == sel and T.paper or T.ink
 		end
 	end
 	for i, t in ipairs(tabs) do
@@ -27406,7 +27779,7 @@ function Kit.row(icon, titleText, subtitle, height)
 end
 
 return Kit
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000123"><Properties><string name="Name">Pointer</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Pointer</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Arrows that show where to go next, used by the tutorial and the one-time tips:
 --   pointer:world(model)  a glowing beam from the player to the thing, with a bouncing ⬇️ above it
 --   pointer:gui(button)   a bouncing 👇 and a pulsing ring on a button of the interface
@@ -27551,7 +27924,7 @@ function Pointer:step()
 end
 
 return Pointer
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000141"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000142"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000125"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build panel: catalog by category, inventory, floor/wall styles, grid & rotation tools,
 -- selection actions (move / rotate / store / sell).
 local Players = game:GetService("Players")
@@ -27568,6 +27941,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Footprint = require(Shared.Logic.Footprint)
 local Kit = require(script.Parent.Parent.Kit)
 local Icons = require(script.Parent.Parent.Icons)
+local Thumbs = require(script.Parent.Parent.Thumbs)
 local Core = require(script.Parent.Parent.Parent.Core)
 
 local Screen = { modal = false }
@@ -27630,7 +28004,7 @@ function Screen.create(root)
 		Core.C.Camera.toggleTop()
 		Screen.refreshTools()
 	end })
-	refs.exit = Kit.button("", { parent = tools, size = UDim2.fromOffset(150, 38), style = "primary", order = 3, textSize = 14, radius = 19, onClick = function()
+	refs.exit = Kit.button("", { parent = tools, size = UDim2.fromOffset(150, 38), style = "close", order = 3, textSize = 14, radius = 19, onClick = function()
 		Core.C.Build.exit()
 	end })
 	-- action bar (bottom-centre) used while placing or with a selected object
@@ -27654,8 +28028,10 @@ local function itemCard(item, order, opts)
 		locked = false
 	end
 	local card = Kit.new("TextButton", { Text = "", Size = UDim2.fromOffset(104, 118), BackgroundColor3 = locked and T.paperDark or Color3.fromRGB(251, 245, 234), LayoutOrder = order, Parent = refs.items }, { Kit.corner(10), Kit.stroke(T.woodLight, 2) })
-	Kit.label(Icons.forItem(item), { Parent = card, Size = UDim2.new(1, 0, 0, 36), Position = UDim2.fromOffset(0, 4), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
-	Kit.label(t("item." .. item.id), { Parent = card, Position = UDim2.fromOffset(4, 42), Size = UDim2.new(1, -8, 0, 30), TextSize = 12, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true })
+	-- the real object in 3D (the emoji shows until it is ready, or with low graphics)
+	local icon = Kit.label(Icons.forItem(item), { Parent = card, Size = UDim2.new(1, 0, 0, 36), Position = UDim2.fromOffset(0, 4), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
+	Thumbs.later(card, "item", item.id, { Size = UDim2.new(1, -8, 0, 42), Position = UDim2.fromOffset(4, 1), transparency = locked and 0.45 or 0 }, icon)
+	Kit.label(t("item." .. item.id), { Parent = card, Position = UDim2.fromOffset(4, 43), Size = UDim2.new(1, -8, 0, 30), TextSize = 12, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Top, TextWrapped = true })
 	local price
 	if opts.inventory then
 		price = "×" .. opts.count
@@ -27737,7 +28113,7 @@ local function renderTabs()
 	table.insert(tabs, { id = "surfaces", label = "🎨 " .. t("ui.surfaces") })
 	table.insert(tabs, { id = "inventory", label = "🎒 " .. t("ui.inventory") })
 	for i, tb in ipairs(tabs) do
-		local b = Kit.button(tb.label, { parent = refs.tabs, size = UDim2.fromOffset(118, 32), style = tb.id == category and "primary" or "plain", order = i, textSize = 13, radius = 16, onClick = function()
+		local b = Kit.button(tb.label, { parent = refs.tabs, size = UDim2.fromOffset(118, 32), style = tb.id == category and "selected" or "secondary", order = i, textSize = 13, radius = 16, onClick = function()
 			category = tb.id
 			Screen.refresh()
 		end })
@@ -27778,13 +28154,13 @@ function Screen.refreshTools()
 		refs.status.Text = t("item." .. Build.itemId) .. "   " .. status
 		refs.status.TextColor3 = Build.valid and T.green or T.red
 		refs.howto.Text = touch and t("ui.place_howto_touch") or t("ui.place_howto_pc")
-		Kit.button("🔄 " .. t("ui.rotate"), { parent = refs.actions, size = UDim2.fromOffset(130, 34), style = "dark", order = 1, textSize = 14, radius = 17, onClick = function()
+		Kit.button("🔄 " .. t("ui.rotate"), { parent = refs.actions, size = UDim2.fromOffset(130, 34), style = "secondary", order = 1, textSize = 14, radius = 17, onClick = function()
 			Build.rotate()
 		end })
 		Kit.button("✔ " .. t("ui.place"), { parent = refs.actions, size = UDim2.fromOffset(150, 34), style = Build.valid and "green" or "plain", order = 2, textSize = 15, radius = 17, onClick = function()
 			Build.place()
 		end })
-		Kit.button("✕ " .. t("ui.cancel"), { parent = refs.actions, size = UDim2.fromOffset(130, 34), style = "plain", order = 3, textSize = 14, radius = 17, onClick = function()
+		Kit.button("✕ " .. t("ui.cancel"), { parent = refs.actions, size = UDim2.fromOffset(130, 34), style = "close", order = 3, textSize = 14, radius = 17, onClick = function()
 			Build.cancel()
 		end })
 	elseif entry then
@@ -27792,20 +28168,20 @@ function Screen.refreshTools()
 		refs.status.Text = t("item." .. entry.i)
 		refs.status.TextColor3 = T.ink
 		refs.howto.Text = t("ui.selected_howto")
-		Kit.button("✋ " .. t("ui.move"), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "dark", order = 1, textSize = 14, radius = 17, onClick = function()
+		Kit.button("✋ " .. t("ui.move"), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "secondary", order = 1, textSize = 14, radius = 17, onClick = function()
 			Build.startMove(Build.selected)
 		end })
-		Kit.button("🔄 " .. t("ui.rotate"), { parent = refs.actions, size = UDim2.fromOffset(100, 34), style = "dark", order = 2, textSize = 14, radius = 17, onClick = function()
+		Kit.button("🔄 " .. t("ui.rotate"), { parent = refs.actions, size = UDim2.fromOffset(100, 34), style = "secondary", order = 2, textSize = 14, radius = 17, onClick = function()
 			Build.rotate()
 		end })
 		Kit.button("🎒 " .. t("ui.store"), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "plain", order = 3, textSize = 14, radius = 17, onClick = function()
 			Build.removeSelected("store")
 		end })
 		local refund = item and math.floor((entry.paid or item.price) * GameConfig.SellRefund) or 0
-		Kit.button("💴 " .. Format.yen(refund, L), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "primary", order = 4, textSize = 14, radius = 17, onClick = function()
+		Kit.button("💴 " .. Format.yen(refund, L), { parent = refs.actions, size = UDim2.fromOffset(110, 34), style = "close", order = 4, textSize = 14, radius = 17, onClick = function()
 			Build.removeSelected("sell")
 		end })
-		Kit.button("✕", { parent = refs.actions, size = UDim2.fromOffset(44, 34), style = "plain", order = 5, textSize = 14, radius = 17, onClick = function()
+		Kit.button("✕", { parent = refs.actions, size = UDim2.fromOffset(44, 34), style = "close", order = 5, textSize = 14, radius = 17, onClick = function()
 			Build.select(nil)
 		end })
 	end
@@ -27846,7 +28222,7 @@ function Screen.close()
 end
 
 return Screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000125"><Properties><string name="Name">Codes</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000126"><Properties><string name="Name">Codes</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Redeem a code (Config/Rewards.Codes): each code works once per player.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -27877,7 +28253,7 @@ return Base.make("Codes", "ui.codes", UDim2.fromScale(0.4, 0.42), function(conte
 	end)
 	Kit.button(t("ui.redeem"), { parent = content, size = UDim2.new(1, 0, 0, 46), position = UDim2.new(0, 0, 1, -48), style = "green", onClick = redeem })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000126"><Properties><string name="Name">Daily</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000127"><Properties><string name="Name">Daily</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily login gift: a calendar of seven days that opens when you join and today's gift is still
 -- there (not during the tutorial). Past days are ticked, today's card is gold with one big button,
 -- the coming days show what waits for you tomorrow and after. Claimed by the server
@@ -27944,7 +28320,7 @@ screen = Base.make("Daily", "ui.daily_gift", UDim2.fromScale(0.68, 0.5), functio
 		end
 	end
 	local b = Kit.button(claimed and t("ui.daily_tomorrow") or ("🎁 " .. t("ui.claim")), {
-		parent = content, size = UDim2.new(0, 280, 0, 52), position = UDim2.new(0.5, -140, 1, -56), style = claimed and "plain" or "green", textSize = 20, disabled = claimed,
+		parent = content, size = UDim2.new(0, 280, 0, 52), position = UDim2.new(0.5, -140, 1, -56), style = claimed and "secondary" or "reward", textSize = 20, disabled = claimed,
 		onClick = function()
 			NetDef.event("ClaimDaily"):FireServer()
 			if Core.C.Audio then
@@ -27967,7 +28343,7 @@ function screen.ready()
 end
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000127"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000128"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Locale = require(Shared.Locale)
 local Format = require(Shared.Util.Format)
@@ -28013,7 +28389,7 @@ screen = Base.make("DayReport", "ui.report", UDim2.fromScale(0.42, 0.74), functi
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000128"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000129"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Kit = require(script.Parent.Parent.Kit)
@@ -28043,7 +28419,7 @@ return Base.make("Dev", "ui.dev", UDim2.fromScale(0.5, 0.6), function(content)
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000129"><Properties><string name="Name">Gifts</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000130"><Properties><string name="Name">Gifts</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Free gifts for the minutes played in this session (Config/Rewards.Gifts). Timers tick every
 -- second without rebuilding the list.
 local Players = game:GetService("Players")
@@ -28140,8 +28516,8 @@ function screen.tick()
 			row.button.BackgroundColor3 = T.paperDark
 		elseif left <= 0 then
 			row.button.Text = t("ui.claim")
-			row.button.BackgroundColor3 = T.green
-			row.button.TextColor3 = T.white
+			row.button.BackgroundColor3 = T.gold
+			row.button.TextColor3 = T.ink
 		else
 			row.button.Text = "⏳ " .. Format.duration(left)
 			row.button.BackgroundColor3 = T.paperDark
@@ -28167,7 +28543,7 @@ player:GetAttributeChangedSignal("GiftsClaimed"):Connect(function()
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000130"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000131"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login calendar, leaderboards and franchise.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -28277,7 +28653,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 			Kit.label(r.yen and "💴" or "🌸", { Parent = c, Position = UDim2.fromOffset(0, 24), Size = UDim2.new(1, 0, 0, 44), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
 			Kit.label(reward .. (r.item and " +🎁" or ""), { Parent = c, Position = UDim2.fromOffset(2, 74), Size = UDim2.new(1, -4, 0, 40), TextSize = 14, TextXAlignment = Enum.TextXAlignment.Center })
 		end
-		Kit.button(claimedToday and t("ui.daily_tomorrow") or t("ui.claim"), { parent = scroll, size = UDim2.new(1, -8, 0, 46), style = "green", disabled = claimedToday, onClick = function()
+		Kit.button(claimedToday and t("ui.daily_tomorrow") or t("ui.claim"), { parent = scroll, size = UDim2.new(1, -8, 0, 46), style = "reward", disabled = claimedToday, onClick = function()
 			NetDef.event("ClaimDaily"):FireServer()
 		end })
 	elseif tab == "leaderboard" then
@@ -28331,7 +28707,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 			for _, z in ipairs(step.zones) do
 				need(w.zones and w.zones[z] == true, t("zone." .. z))
 			end
-			local b = Kit.button("🗾 " .. t("ui.franchise_open", { city = "city." .. nextCity.id }), { parent = scroll, size = UDim2.new(1, -8, 0, 50), style = all and "primary" or "plain", disabled = Core.C.Data.role() ~= "owner" or not all, onClick = function()
+			local b = Kit.button("🗾 " .. t("ui.franchise_open", { city = "city." .. nextCity.id }), { parent = scroll, size = UDim2.new(1, -8, 0, 50), style = all and "buy" or "secondary", disabled = Core.C.Data.role() ~= "owner" or not all, onClick = function()
 				NetDef.event("Franchise"):FireServer(nextCity.id)
 			end })
 			b.LayoutOrder = 50
@@ -28347,7 +28723,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000131"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000132"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Order guide: tapping an order ticket (right) shows what to do, in a few short lines with live
 -- ticks, highlights the shelf slots and the station to use and draws a glowing arrow from you to
 -- the next thing to click. The card stands on the left, under the wallet; on phones the second
@@ -28608,7 +28984,7 @@ end
 function Guide.create(root)
 	frame = Kit.panel({ Name = "Guide", Position = UDim2.fromOffset(10, 124), Size = UDim2.fromOffset(320, 300), Visible = false, ZIndex = 5, Parent = root })
 	title = Kit.title("", { Parent = frame, Position = UDim2.fromOffset(12, 6), Size = UDim2.new(1, -54, 0, 30), TextSize = 18, TextTruncate = Enum.TextTruncate.AtEnd })
-	Kit.button("✕", { parent = frame, size = UDim2.fromOffset(32, 32), position = UDim2.new(1, -40, 0, 6), style = "plain", textSize = 14, radius = 16, onClick = function()
+	Kit.button("✕", { parent = frame, size = UDim2.fromOffset(32, 32), position = UDim2.new(1, -40, 0, 6), style = "close", textSize = 14, radius = 16, onClick = function()
 		Guide.hide()
 	end })
 	list = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(10, 42), Size = UDim2.new(1, -20, 1, -48), Parent = frame }, { Kit.list(Enum.FillDirection.Vertical, 3) })
@@ -28728,7 +29104,7 @@ function Guide.close()
 end
 
 return Guide
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000132"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000133"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Always-visible HUD, as little as possible:
 --   top-left    wallet: yen, sakura, level badge and XP bar; under it the free gift timer
 --   top-centre  clock and day (tap: last day's summary), today's objective under it
@@ -28822,11 +29198,17 @@ local function pill(props, onClick)
 end
 
 local function pillLabel(parent, size, props)
-	local base = { Parent = parent, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -24, 1, 0), TextSize = size or 16, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd, TextWrapped = false }
+	-- pills hold numbers (clock, rating, timers): the round title font, like the yen
+	local base = { Parent = parent, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -24, 1, 0), TextSize = size or 16, FontFace = T.title, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd, TextWrapped = false }
 	for k, v in pairs(props or {}) do
 		base[k] = v
 	end
-	return Kit.label("", base)
+	-- the round font is wide: a long text gets a little smaller instead of being cut
+	base.TextScaled = true
+	base.TextTruncate = Enum.TextTruncate.None
+	local l = Kit.label("", base)
+	Kit.new("UITextSizeConstraint", { MaxTextSize = base.TextSize, MinTextSize = 10, Parent = l })
+	return l
 end
 
 function HUD.create(root)
@@ -28837,10 +29219,10 @@ function HUD.create(root)
 	local wallet = pill({ Name = "Wallet", Size = UDim2.fromOffset(258, 66), Position = UDim2.fromOffset(10, 8), Parent = top })
 	refs.wallet = wallet
 	refs.yen = Kit.label("¥0", { Parent = wallet, Position = UDim2.fromOffset(14, 4), Size = UDim2.new(1, -110, 0, 32), TextSize = 27, FontFace = T.title, TextColor3 = T.wood, TextWrapped = false, TextYAlignment = Enum.TextYAlignment.Center })
-	refs.sakura = Kit.label("🌸0", { Parent = wallet, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 8), Size = UDim2.fromOffset(92, 24), TextSize = 17, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+	refs.sakura = Kit.label("🌸0", { Parent = wallet, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 8), Size = UDim2.fromOffset(92, 24), TextSize = 17, FontFace = T.title, TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
 	local badge = Kit.new("Frame", { Name = "Level", Position = UDim2.fromOffset(10, 36), Size = UDim2.fromOffset(26, 26), BackgroundColor3 = T.gold, Parent = wallet }, { Kit.corner(13), Kit.stroke(T.wood, 2, 0.1) })
 	refs.levelBadge = badge
-	refs.level = Kit.label("1", { Parent = badge, Size = UDim2.fromScale(1, 1), TextSize = 15, FontFace = T.bold, TextColor3 = T.ink, TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = false })
+	refs.level = Kit.label("1", { Parent = badge, Size = UDim2.fromScale(1, 1), TextSize = 15, FontFace = T.title, TextColor3 = T.ink, TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = false })
 	local bar, fill = Kit.bar(0, T.gold, { Parent = wallet, Position = UDim2.fromOffset(42, 42), Size = UDim2.new(1, -56, 0, 14) })
 	refs.xpFill = fill
 	refs.xpText = Kit.label("", { Parent = bar, Size = UDim2.fromScale(1, 1), TextSize = 11, FontFace = T.bold, TextColor3 = T.wood, TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = false, ZIndex = 2 })
@@ -28875,7 +29257,7 @@ function HUD.create(root)
 	refs.place = pill({ Name = "Place", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 8), Size = UDim2.fromOffset(176, 36), Parent = top })
 	refs.placeLabel = pillLabel(refs.place, 16)
 	refs.visit = Kit.new("Frame", { Name = "Visit", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 50), Size = UDim2.fromOffset(300, 38), Visible = false, Parent = top }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Right) })
-	refs.like = Kit.button("❤️ " .. t("ui.like"), { parent = refs.visit, size = UDim2.fromOffset(140, 36), style = "primary", textSize = 15, order = 1, onClick = function()
+	refs.like = Kit.button("❤️ " .. t("ui.like"), { parent = refs.visit, size = UDim2.fromOffset(140, 36), style = "reward", textSize = 15, order = 1, onClick = function()
 		NetDef.event("Like"):FireServer()
 	end })
 	refs.home = Kit.button("🏠 " .. t("ui.home"), { parent = refs.visit, size = UDim2.fromOffset(120, 36), style = "plain", textSize = 15, order = 2, onClick = function()
@@ -29280,7 +29662,7 @@ function HUD.open() end
 function HUD.close() end
 
 return HUD
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000133"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000134"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Friends and helpers: invite friends to this street (they get a restaurant of their own and can
 -- help in yours), choose who may help in your restaurant (friends or everyone), give players a
 -- role in your restaurant (helper / co-manager / none) and go back to your own door.
@@ -29326,7 +29708,7 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.7), function(cont
 	Kit.label("🤝 " .. t("ui.coop_who"), { Parent = row, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(0.45, 0, 1, 0), FontFace = Kit.Theme.bold, TextYAlignment = Enum.TextYAlignment.Center })
 	local holder = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromScale(0.45, 0), Size = UDim2.new(0.55, -10, 1, 0), Parent = row }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
 	for i, o in ipairs({ { value = "friends", label = t("ui.coop_friends") }, { value = "everyone", label = t("ui.coop_everyone") } }) do
-		Kit.button(o.label, { parent = holder, size = UDim2.fromOffset(110, 36), style = coop == o.value and "primary" or "plain", order = i, textSize = 14, onClick = function()
+		Kit.button(o.label, { parent = holder, size = UDim2.fromOffset(110, 36), style = coop == o.value and "selected" or "secondary", order = i, textSize = 14, onClick = function()
 			NetDef.event("SetSetting"):FireServer("coop", o.value)
 		end })
 	end
@@ -29347,14 +29729,14 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.7), function(cont
 				NetDef.event("SetPermission"):FireServer(p.UserId, role == "comanager" and "helper" or "comanager")
 			end })
 			if perm then
-				Kit.button("✕", { parent = actions, size = UDim2.fromOffset(40, 34), style = "plain", order = 2, onClick = function()
+				Kit.button("✕", { parent = actions, size = UDim2.fromOffset(40, 34), style = "close", order = 2, onClick = function()
 					NetDef.event("SetPermission"):FireServer(p.UserId, "none")
 				end })
 			end
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000134"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000135"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Menu board: enable dishes, set prices (-30%..+30%), recipe book with mastery.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -29447,7 +29829,7 @@ screen = Base.make("Menu", "ui.menu", UDim2.fromScale(0.66, 0.76), function(cont
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000135"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000136"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -29463,12 +29845,12 @@ return Base.make("Offline", "ui.offline", UDim2.fromScale(0.36, 0.4), function(c
 	local amount = meta.offlinePending or 0
 	Kit.label("💰", { Parent = content, Size = UDim2.new(1, 0, 0, 60), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center })
 	Kit.label(t("ui.offline_text", { hours = math.floor((meta.offlineHours or 0) * 10) / 10, yen = amount }), { Parent = content, Position = UDim2.fromOffset(0, 70), Size = UDim2.new(1, 0, 0, 60), TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center })
-	Kit.button(t("ui.claim") .. " " .. Format.yen(amount, Locale.get()), { parent = content, size = UDim2.new(1, 0, 0, 48), position = UDim2.new(0, 0, 1, -50), style = "green", onClick = function()
+	Kit.button(t("ui.claim") .. " " .. Format.yen(amount, Locale.get()), { parent = content, size = UDim2.new(1, 0, 0, 48), position = UDim2.new(0, 0, 1, -50), style = "reward", onClick = function()
 		NetDef.event("ClaimOffline"):FireServer()
 		Core.C.UI.close("Offline")
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000136"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000137"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Phone ("More"): the screens that are not needed every minute, as apps. Opens from the 📱 button
 -- of the HUD and closes when an app is opened. Everything bought with yen is in the shop.
 local Players = game:GetService("Players")
@@ -29588,7 +29970,7 @@ function Phone.close()
 end
 
 return Phone
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000137"><Properties><string name="Name">Premium</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000138"><Properties><string name="Name">Premium</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Robux shop: game passes and products (only the ones with an id in Config/Monetization).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -29609,7 +29991,7 @@ return Base.make("Premium", "ui.premium", UDim2.fromScale(0.6, 0.72), function(c
 			local card, right = Kit.row(ICON[gp.id] or "🎟️", t("gp." .. gp.id), t("gpdesc." .. gp.id), 76)
 			card.Parent = scroll
 			card.LayoutOrder = i
-			Kit.button("R$", { parent = right, size = UDim2.fromOffset(120, 38), style = "green", onClick = function()
+			Kit.button("R$", { parent = right, size = UDim2.fromOffset(120, 38), style = "reward", onClick = function()
 				NetDef.event("BuyWithRobux"):FireServer("gamepass", gp.id)
 			end })
 		end
@@ -29621,7 +30003,7 @@ return Base.make("Premium", "ui.premium", UDim2.fromScale(0.6, 0.72), function(c
 			local card, right = Kit.row(icon, t("dp." .. p.id), t("dpdesc." .. p.id), 70)
 			card.Parent = scroll
 			card.LayoutOrder = 100 + i
-			Kit.button("R$", { parent = right, size = UDim2.fromOffset(120, 38), style = "green", onClick = function()
+			Kit.button("R$", { parent = right, size = UDim2.fromOffset(120, 38), style = "reward", onClick = function()
 				NetDef.event("BuyWithRobux"):FireServer("product", p.id)
 			end })
 		end
@@ -29630,7 +30012,7 @@ return Base.make("Premium", "ui.premium", UDim2.fromScale(0.6, 0.72), function(c
 		Kit.label("🛒 " .. t("ui.shop_soon"), { Parent = scroll, Size = UDim2.new(1, 0, 0, 80), TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000138"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000139"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -29653,7 +30035,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 		Kit.label(label, { Parent = row, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(0.4, 0, 1, 0), FontFace = Kit.Theme.bold })
 		local holder = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromScale(0.4, 0), Size = UDim2.new(0.6, -10, 1, 0), Parent = row }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
 		for i, o in ipairs(options) do
-			Kit.button(o.label, { parent = holder, size = UDim2.fromOffset(o.width or 86, 38), style = (current == o.value) and "primary" or "plain", order = i, textSize = 15, onClick = function()
+			Kit.button(o.label, { parent = holder, size = UDim2.fromOffset(o.width or 86, 38), style = (current == o.value) and "selected" or "secondary", order = i, textSize = 15, onClick = function()
 				set(key, o.value)
 			end })
 		end
@@ -29676,6 +30058,8 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 	local S = GameConfig.Sensitivity
 	choice(2, "🖱️ " .. t("ui.cam_speed"), { { label = t("ui.sens_high"), value = S.High }, { label = t("ui.sens_medium"), value = S.Medium }, { label = t("ui.sens_low"), value = S.Low } }, s.camSpeed or S.Medium, "camSpeed")
 	choice(8, "🖥️ " .. t("ui.low_graphics"), { { label = t("ui.on"), value = true }, { label = t("ui.off"), value = false } }, s.lowGfx == true, "lowGfx")
+	-- the other restaurants of the street: everything, or only the building from outside (lighter)
+	choice(9, "🏘️ " .. t("ui.others_detail"), { { label = t("ui.others_show"), value = "show", width = 124 }, { label = t("ui.others_hide"), value = "hide", width = 124 } }, s.others or "show", "others")
 	Kit.button("🎓 " .. t("ui.restart_tutorial"), { parent = scroll, size = UDim2.new(1, -8, 0, 44), style = "plain", order = 10, onClick = function()
 		NetDef.event("TutorialStep"):FireServer(0)
 		Core.C.UI.close("Settings")
@@ -29684,7 +30068,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 		end
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000139"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000140"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- The shop: everything the restaurant buys with yen, in five tabs of big cards (upgrades and
 -- adverts, recipes, staff, rooms, renovations). Every card says what it is and what it does, and
 -- has one clear button:
@@ -29712,6 +30096,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Kit = require(script.Parent.Parent.Kit)
 local Base = require(script.Parent.Parent.Base)
 local Icons = require(script.Parent.Parent.Icons)
+local Thumbs = require(script.Parent.Parent.Thumbs)
 local Core = require(script.Parent.Parent.Parent.Core)
 
 local t = Locale.t
@@ -29743,24 +30128,35 @@ local function cardSize()
 	return 192, 240
 end
 
--- what an upgrade does now and at the next level
+-- what an upgrade does now and at the next level, as a change you can read at a glance:
+-- "+8%" more speed or customers, "-10%" time or price, "2 h at 10%" while away...
+local function pct(x)
+	return math.floor(x * 100 + 0.5)
+end
 local function effectText(u, value, lvl)
-	local L = Locale.get()
 	if value == nil then
 		return ""
 	end
-	if u.effect == "step" or u.effect == "walk" or u.effect == "shelf" then
-		return math.floor(value * 100 + 0.5) .. "%"
+	if u.effect == "walk" or u.effect == "shelf" then
+		return "+" .. pct(value - 1) .. "%"
+	elseif u.effect == "step" then
+		local p = pct(1 - value)
+		return p == 0 and "0%" or ("-" .. p .. "%")
+	elseif u.effect == "popularity" then
+		return "+" .. pct(value) .. "%"
+	elseif u.effect == "discount" then
+		local p = pct(value)
+		return p == 0 and "0%" or ("-" .. p .. "%")
 	elseif u.effect == "cart" then
 		return value .. " 📦"
+	elseif u.effect == "tray" then
+		return value .. " 🍜"
+	elseif u.effect == "ambience" then
+		return "+" .. value .. " ✨"
 	elseif u.effect == "delivery" then
 		return value .. "s"
-	elseif u.effect == "discount" then
-		return "-" .. math.floor(value * 100 + 0.5) .. "%"
-	elseif u.effect == "popularity" then
-		return "+" .. Format.decimal(value, 2, L)
 	elseif u.effect == "offline" then
-		return value .. "h · " .. math.floor((u.pct[lvl + 1] or 0) * 100) .. "%"
+		return t("ui.offline_rule", { h = value, pct = pct(u.pct[lvl + 1] or 0) })
 	elseif u.effect == "autorestock" then
 		return value > 0 and "✓" or "—"
 	end
@@ -29817,7 +30213,11 @@ local function card(parent, order, o)
 	end
 	-- big icon on a round tile
 	local tile = Kit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8), Size = UDim2.fromOffset(64, 64), BackgroundColor3 = Color.hex(o.tint or "#EBDDC4"), Parent = c }, { Kit.corner(32) })
-	Kit.label(o.icon or "🎁", { Parent = tile, Position = UDim2.fromOffset(10, 10), Size = UDim2.new(1, -20, 1, -20), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center, TextTransparency = locked and 0.45 or 0 })
+	local emoji = Kit.label(o.icon or "🎁", { Parent = tile, Position = UDim2.fromOffset(10, 10), Size = UDim2.new(1, -20, 1, -20), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center, TextTransparency = locked and 0.45 or 0 })
+	if o.thumb then
+		-- the real dish (or object) in 3D on the round tile
+		Thumbs.later(tile, o.thumb[1], o.thumb[2], { Size = UDim2.new(1, 6, 1, 6), Position = UDim2.fromOffset(-3, -3), transparency = locked and 0.45 or 0, zoom = 0.85 }, emoji)
+	end
 	if locked then
 		Kit.label("🔒", { Parent = tile, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, 6, 1, 4), Size = UDim2.fromOffset(28, 28), TextScaled = true })
 	end
@@ -29825,7 +30225,9 @@ local function card(parent, order, o)
 		local tag = Kit.new("Frame", { Position = UDim2.fromOffset(8, 8), Size = UDim2.fromOffset(0, 22), AutomaticSize = Enum.AutomaticSize.X, BackgroundColor3 = T.wood, Parent = c }, { Kit.corner(11), Kit.padding(8, 0) })
 		Kit.label(o.corner, { Parent = tag, Size = UDim2.fromOffset(0, 22), AutomaticSize = Enum.AutomaticSize.X, TextSize = 13, FontFace = T.bold, TextColor3 = T.white, TextWrapped = false })
 	end
-	Kit.label(o.title or "", { Parent = c, Position = UDim2.fromOffset(6, 76), Size = UDim2.new(1, -12, 0, 22), TextSize = 16, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
+	-- the name in the round font, a little smaller when it is long so it stays on one line
+	local name = Kit.label(o.title or "", { Parent = c, Position = UDim2.fromOffset(6, 76), Size = UDim2.new(1, -12, 0, 22), TextScaled = true, FontFace = T.title, TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = false })
+	Kit.new("UITextSizeConstraint", { MaxTextSize = 17, MinTextSize = 11, Parent = name })
 	Kit.label(o.sub or "", { Parent = c, Position = UDim2.fromOffset(8, 100), Size = UDim2.new(1, -16, 0, ch - 100 - 74), TextSize = 14, TextColor3 = T.muted, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Top, TextTruncate = Enum.TextTruncate.AtEnd })
 	-- one clear action at the bottom
 	local L = Locale.get()
@@ -29839,7 +30241,7 @@ local function card(parent, order, o)
 	elseif st.state == "active" then
 		text, style = "📣 " .. t("ui.active"), "plain"
 	elseif locked then
-		text, style = "🔒 " .. needText(st.need), "dark"
+		text, style = "🔒 " .. needText(st.need), "secondary"
 	elseif st.state == "poor" then
 		text, style = Format.yen(st.price, L), "plain"
 		note.Text = t("ui.missing", { yen = Format.yen(st.missing, L) })
@@ -29883,6 +30285,13 @@ local function card(parent, order, o)
 		end,
 	})
 	btn.Name = "Buy"
+	if st.state == "buy" or st.state == "poor" then
+		-- prices in the round font, like every number in the game
+		btn.FontFace = T.title
+	end
+	if locked then
+		btn.TextColor3 = T.muted
+	end
 	if st.state == "poor" then
 		btn.TextColor3 = T.red
 	elseif done then
@@ -29919,11 +30328,9 @@ local function fill(grid, entries)
 	end
 end
 
+-- "Lv. 2/5" in the corner of an upgrade card
 local function pips(level, max)
-	if max > 6 then
-		return level .. "/" .. max
-	end
-	return string.rep("●", level) .. string.rep("○", max - level)
+	return t("ui.level_short", { level = level, max = max })
 end
 
 ------------------------------------------------------------------ the tabs
@@ -29968,7 +30375,7 @@ function BUILD.recipes(scroll, w, rating)
 			table.insert(dishes, (r and r.icon or "") .. " " .. t("rec." .. rid))
 		end
 		table.insert(entries, {
-			key = "l:" .. lic.id, icon = BRANCH_ICON[lic.branch] or "🎫", tint = BRANCH_TINT[lic.branch], title = t("lic." .. lic.id), sub = table.concat(dishes, "\n"),
+			key = "l:" .. lic.id, icon = BRANCH_ICON[lic.branch] or "🎫", thumb = { "dish", lic.recipes[1] }, tint = BRANCH_TINT[lic.branch], title = t("lic." .. lic.id), sub = table.concat(dishes, "\n"),
 			st = ShopLogic.license(w, lic, rating), order = lic.order,
 			onBuy = function()
 				NetDef.event("BuyLicense"):FireServer(lic.id)
@@ -29998,7 +30405,7 @@ function BUILD.staff(scroll, w)
 			if cfg and s.lvl < StaffCfg.MaxTrainLevel then
 				local price = Formulas.staffTrainCost(cfg.hire, s.lvl + 1)
 				local rich = (w.yen or 0) >= price
-				local b = Kit.button("⬆️ " .. Format.yen(price, L), { parent = row, size = UDim2.new(1, -50, 1, 0), style = (can and rich) and "gold" or "plain", textSize = 15, order = 1, onClick = function()
+				local b = Kit.button("⬆️ " .. Format.yen(price, L), { parent = row, size = UDim2.new(1, -50, 1, 0), style = (can and rich) and "buy" or "secondary", textSize = 15, order = 1, onClick = function()
 					if not can then
 						return Core.C.UI.toast(t("ui.only_owner"), "warning")
 					end
@@ -30012,7 +30419,7 @@ function BUILD.staff(scroll, w)
 					b.TextColor3 = T.red
 				end
 			end
-			Kit.button("✕", { parent = row, size = UDim2.fromOffset(44, 44), style = "plain", order = 2, onClick = function()
+			Kit.button("✕", { parent = row, size = UDim2.fromOffset(44, 44), style = "close", order = 2, onClick = function()
 				if can then
 					NetDef.event("FireStaff"):FireServer(s.u)
 				end
@@ -30116,7 +30523,7 @@ screen = Base.make("Shop", "ui.shop", UDim2.fromScale(0.8, 0.84), function(conte
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000140"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000141"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier tablet: order boxes of ingredients and dish sets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -30214,7 +30621,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 			Kit.label(ing.icon, { Parent = card, Size = UDim2.fromOffset(36, 36), Position = UDim2.fromOffset(8, 6), TextScaled = true })
 			Kit.label(t("ing." .. ing.id), { Parent = card, Position = UDim2.fromOffset(50, 6), Size = UDim2.new(1, -56, 0, 22), TextSize = 17, FontFace = T.bold, TextTruncate = Enum.TextTruncate.AtEnd })
 			local shelf, boxes = stock(w, ing.id)
-			Kit.label("🗄️ " .. shelf .. "   📦 " .. boxes, { Parent = card, Position = UDim2.fromOffset(50, 28), Size = UDim2.new(1, -56, 0, 18), TextSize = 14, TextColor3 = T.muted })
+			Kit.label(t("ui.stock_line", { shelf = shelf, boxes = boxes }), { Parent = card, Position = UDim2.fromOffset(50, 28), Size = UDim2.new(1, -56, 0, 18), TextSize = 13, TextColor3 = T.muted, TextTruncate = Enum.TextTruncate.AtEnd })
 			local function qtyRow(y, kind, label, price)
 				Kit.label(label .. "  " .. Format.yen(price, L), { Parent = card, Position = UDim2.fromOffset(8, y), Size = UDim2.new(1, -16, 0, 18), TextSize = 14 })
 				local row = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(8, y + 20), Size = UDim2.new(1, -16, 0, 30), Parent = card }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center) })
@@ -30255,7 +30662,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 		Kit.stroke(T.red, 3).Parent = menuBtn
 	end
 	Kit.button("🍽️ " .. t("ui.buy_dishes", { n = GameConfig.DishSetSize, price = GameConfig.DishSetPrice }), {
-		parent = footer, size = UDim2.fromOffset(220, 46), position = UDim2.new(1, -400, 0, 5), style = "gold", textSize = 15,
+		parent = footer, size = UDim2.fromOffset(220, 46), position = UDim2.new(1, -400, 0, 5), style = "buy", textSize = 15,
 		onClick = function()
 			NetDef.event("BuyDishes"):FireServer(1)
 		end,
@@ -30271,4 +30678,125 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 end)
 
 return screen
-]]></ProtectedString></Properties></Item></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000146"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000147"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000148"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000143"><Properties><string name="Name">Thumbs</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- 3D pictures for catalog and shop cards: the real model of an object or a dish shown in a
+-- ViewportFrame, seen from the front, a little from above. Each model is built once and copied for
+-- every card; with low graphics (Settings) or when a model cannot be built, the card keeps its
+-- emoji instead.
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Registry = require(Shared.Models.Registry)
+local Core = require(script.Parent.Parent.Core)
+
+local Thumbs = {}
+local cache = {}
+
+-- what a picture does not need: lights, particles, sounds, labels and click targets
+local STRIP = { "Light", "ParticleEmitter", "Sound", "BillboardGui", "SurfaceGui", "ProximityPrompt", "ClickDetector", "Beam", "Trail" }
+
+local function strip(m)
+	for _, d in ipairs(m:GetDescendants()) do
+		for _, class in ipairs(STRIP) do
+			if d:IsA(class) then
+				d:Destroy()
+				break
+			end
+		end
+	end
+end
+
+-- the model of `kind` ("item" or "dish") and `id`, built once; false when it cannot be built
+local function source(kind, id)
+	local key = kind .. ":" .. id
+	if cache[key] == nil then
+		local ok, m = pcall(function()
+			if kind == "item" then
+				return Registry.build(id, { styles = {} })
+			end
+			return Registry.food("dish", id)
+		end)
+		if ok and m then
+			strip(m)
+			cache[key] = m
+		else
+			cache[key] = false
+		end
+	end
+	return cache[key]
+end
+
+function Thumbs.enabled()
+	local s = Core.C.Data and Core.C.Data.m("settings")
+	return not (s and s.lowGfx)
+end
+
+-- Adds a ViewportFrame with the model to `parent` (props: Size, Position, AnchorPoint, ZIndex).
+-- Returns the frame, or nil: then the caller shows its emoji.
+function Thumbs.add(parent, kind, id, props)
+	if not Thumbs.enabled() then
+		return nil
+	end
+	local src = source(kind, id)
+	if not src then
+		return nil
+	end
+	local vf = Instance.new("ViewportFrame")
+	vf.Name = "Thumb"
+	vf.BackgroundTransparency = 1
+	vf.Size = props.Size or UDim2.fromScale(1, 1)
+	vf.Position = props.Position or UDim2.new()
+	vf.AnchorPoint = props.AnchorPoint or Vector2.new()
+	vf.ZIndex = props.ZIndex or 1
+	vf.ImageTransparency = props.transparency or 0
+	vf.Ambient = Color3.fromRGB(176, 164, 150)
+	vf.LightColor = Color3.fromRGB(255, 242, 224)
+	vf.LightDirection = Vector3.new(-0.5, -1, -0.7)
+	local m = src:Clone()
+	m.Parent = vf
+	local cam = Instance.new("Camera")
+	cam.FieldOfView = 30
+	cam.Parent = vf
+	vf.CurrentCamera = cam
+	-- frame the whole model: its bounding sphere fills the height of the picture
+	local box, size = m:GetBoundingBox()
+	local radius = math.max(size.Magnitude / 2, 0.3)
+	local dist = radius / math.sin(math.rad(cam.FieldOfView / 2)) * (props.zoom or 1)
+	local dir = Vector3.new(-0.42, -0.4, 0.81).Unit -- from the front (-Z), right and above
+	cam.CFrame = CFrame.lookAt(box.Position - dir * dist, box.Position)
+	vf.Parent = parent
+	return vf
+end
+
+-- Same as add, a few per frame so a long catalog opens at once: the emoji label `fallback` shows
+-- until the picture is ready, then hides. Cards that were closed meanwhile are skipped.
+local queue = {}
+local running = false
+function Thumbs.later(parent, kind, id, props, fallback)
+	if not Thumbs.enabled() then
+		return
+	end
+	table.insert(queue, { parent = parent, kind = kind, id = id, props = props, fallback = fallback })
+	if running then
+		return
+	end
+	running = true
+	task.spawn(function()
+		local built = 0
+		while #queue > 0 do
+			local job = table.remove(queue, 1)
+			if job.parent.Parent then
+				local vf = Thumbs.add(job.parent, job.kind, job.id, job.props)
+				if vf and job.fallback then
+					job.fallback.Visible = false
+				end
+				built += 1
+				if built % 4 == 0 then
+					task.wait()
+				end
+			end
+		end
+		running = false
+	end)
+end
+
+return Thumbs
+]]></ProtectedString></Properties></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000148"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000149"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000150"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

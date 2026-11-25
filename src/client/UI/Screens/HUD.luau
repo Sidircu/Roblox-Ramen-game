@@ -92,11 +92,17 @@ local function pill(props, onClick)
 end
 
 local function pillLabel(parent, size, props)
-	local base = { Parent = parent, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -24, 1, 0), TextSize = size or 16, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd, TextWrapped = false }
+	-- pills hold numbers (clock, rating, timers): the round title font, like the yen
+	local base = { Parent = parent, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -24, 1, 0), TextSize = size or 16, FontFace = T.title, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center, TextTruncate = Enum.TextTruncate.AtEnd, TextWrapped = false }
 	for k, v in pairs(props or {}) do
 		base[k] = v
 	end
-	return Kit.label("", base)
+	-- the round font is wide: a long text gets a little smaller instead of being cut
+	base.TextScaled = true
+	base.TextTruncate = Enum.TextTruncate.None
+	local l = Kit.label("", base)
+	Kit.new("UITextSizeConstraint", { MaxTextSize = base.TextSize, MinTextSize = 10, Parent = l })
+	return l
 end
 
 function HUD.create(root)
@@ -107,10 +113,10 @@ function HUD.create(root)
 	local wallet = pill({ Name = "Wallet", Size = UDim2.fromOffset(258, 66), Position = UDim2.fromOffset(10, 8), Parent = top })
 	refs.wallet = wallet
 	refs.yen = Kit.label("¥0", { Parent = wallet, Position = UDim2.fromOffset(14, 4), Size = UDim2.new(1, -110, 0, 32), TextSize = 27, FontFace = T.title, TextColor3 = T.wood, TextWrapped = false, TextYAlignment = Enum.TextYAlignment.Center })
-	refs.sakura = Kit.label("🌸0", { Parent = wallet, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 8), Size = UDim2.fromOffset(92, 24), TextSize = 17, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
+	refs.sakura = Kit.label("🌸0", { Parent = wallet, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 8), Size = UDim2.fromOffset(92, 24), TextSize = 17, FontFace = T.title, TextXAlignment = Enum.TextXAlignment.Right, TextWrapped = false })
 	local badge = Kit.new("Frame", { Name = "Level", Position = UDim2.fromOffset(10, 36), Size = UDim2.fromOffset(26, 26), BackgroundColor3 = T.gold, Parent = wallet }, { Kit.corner(13), Kit.stroke(T.wood, 2, 0.1) })
 	refs.levelBadge = badge
-	refs.level = Kit.label("1", { Parent = badge, Size = UDim2.fromScale(1, 1), TextSize = 15, FontFace = T.bold, TextColor3 = T.ink, TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = false })
+	refs.level = Kit.label("1", { Parent = badge, Size = UDim2.fromScale(1, 1), TextSize = 15, FontFace = T.title, TextColor3 = T.ink, TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = false })
 	local bar, fill = Kit.bar(0, T.gold, { Parent = wallet, Position = UDim2.fromOffset(42, 42), Size = UDim2.new(1, -56, 0, 14) })
 	refs.xpFill = fill
 	refs.xpText = Kit.label("", { Parent = bar, Size = UDim2.fromScale(1, 1), TextSize = 11, FontFace = T.bold, TextColor3 = T.wood, TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = false, ZIndex = 2 })
@@ -145,7 +151,7 @@ function HUD.create(root)
 	refs.place = pill({ Name = "Place", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 8), Size = UDim2.fromOffset(176, 36), Parent = top })
 	refs.placeLabel = pillLabel(refs.place, 16)
 	refs.visit = Kit.new("Frame", { Name = "Visit", BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 50), Size = UDim2.fromOffset(300, 38), Visible = false, Parent = top }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Right) })
-	refs.like = Kit.button("❤️ " .. t("ui.like"), { parent = refs.visit, size = UDim2.fromOffset(140, 36), style = "primary", textSize = 15, order = 1, onClick = function()
+	refs.like = Kit.button("❤️ " .. t("ui.like"), { parent = refs.visit, size = UDim2.fromOffset(140, 36), style = "reward", textSize = 15, order = 1, onClick = function()
 		NetDef.event("Like"):FireServer()
 	end })
 	refs.home = Kit.button("🏠 " .. t("ui.home"), { parent = refs.visit, size = UDim2.fromOffset(120, 36), style = "plain", textSize = 15, order = 2, onClick = function()

@@ -479,6 +479,14 @@ local function fishOf(recipe)
 	return "salmon"
 end
 
+-- a light wisp of steam over a hot dish (y = height of the surface, w = width of the source)
+local function hotSteam(m, y, w, rate, x, z)
+	local src = Kit.box(m, w, 0.05, w, x or 0, y, z or 0, P.white, M.smooth, nc({ transparency = 1 }))
+	src.Name = "Steam"
+	Kit.particles(src, "steam", { rate = rate or 2 })
+	return src
+end
+
 local function dishNigiri(m, recipe)
 	local y = geta(m, 1.5, 0.75)
 	local kind = fishOf(recipe)
@@ -647,6 +655,7 @@ local function dishTsukemen(m, recipe)
 			d.CFrame = CFrame.new(0.5, 0, 0.2) * d.CFrame
 		end
 	end
+	hotSteam(m, dy + 0.2, 0.35, 2, 0.5, 0.2)
 	local _ = recipe
 end
 
@@ -688,6 +697,7 @@ local function dishSoup(m, recipe)
 		end
 		scallions(m, 0.05, 0.56, 0.02, 6, 2)
 		chopsticks(m, 0, -0.75, 0)
+		hotSteam(m, 0.6, 0.55, 2)
 		return
 	end
 	-- miso soup in a red and black lacquer owan
@@ -707,6 +717,7 @@ local function dishSoup(m, recipe)
 		Kit.blob(m, 0.2, 0.02, 0.1, 0.18 - k * 0.15, 0.5, 0.18 - k * 0.12, F.wakame, M.smooth, nc({ rot = CFrame.Angles(0, k * 1.2, 0) }))
 	end
 	scallions(m, 0, 0.51, 0, 7, 3)
+	hotSteam(m, 0.55, 0.45, 2)
 end
 
 local function dishEdamame(m, recipe)
@@ -789,6 +800,7 @@ local function dishGyoza(m, recipe)
 			Kit.cyl(m, 0.05, 0.012, -0.4 + k * 0.17, y + 0.23, 0, F.chili, M.smooth, nc({ reflectance = 0.3 }))
 		end
 	end
+	hotSteam(m, y + 0.25, 0.6, 1, -0.1, 0)
 end
 
 local function shrimpTempura(m, base)
@@ -856,6 +868,7 @@ local function dishFried(m, recipe)
 		Kit.blob(m, 0.16, 0.08, 0.14, 0.3, y + 0.15, -0.25, F.mayo, M.smooth, nc({ reflectance = 0.1 }))
 	end
 	lemonWedge(m, 0.4, -0.05, y)
+	hotSteam(m, y + 0.3, 0.5, 1, -0.1, 0)
 end
 
 local function dishTakoyaki(m, recipe)
@@ -879,6 +892,7 @@ local function dishTakoyaki(m, recipe)
 	for k = 0, 1 do
 		Kit.part(m, Vector3.new(0.02, 0.5, 0.02), CFrame.new(0.38 - k * 0.06, 0.45, -0.16) * CFrame.Angles(math.rad(25), 0, math.rad(-20 + k * 8)), P.wood_light, M.wood, nc())
 	end
+	hotSteam(m, 0.35, 0.5, 1)
 	local _ = recipe
 end
 

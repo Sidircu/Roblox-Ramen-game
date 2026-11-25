@@ -11,7 +11,7 @@ local LightingC = {}
 local atmosphere, bloom, grading, rays
 local lights = {}
 
-local DAY = { ambient = Color.hex("#8C8478"), outdoor = Color.hex("#9C9488"), top = Color.hex("#FFF3E0"), bright = 2.4, atm = Color.hex("#C9D9E8"), decay = Color.hex("#8FA8C0"), tint = Color.hex("#FFF6EC") }
+local DAY = { ambient = Color.hex("#8E8476"), outdoor = Color.hex("#9E9486"), top = Color.hex("#FFF1DC"), bright = 2.4, atm = Color.hex("#C9D9E8"), decay = Color.hex("#8FA8C0"), tint = Color.hex("#FFF2E2") }
 local SUNSET = { ambient = Color.hex("#8A6A5A"), outdoor = Color.hex("#A0786A"), top = Color.hex("#FFB070"), bright = 1.6, atm = Color.hex("#F0B08A"), decay = Color.hex("#A06A6A"), tint = Color.hex("#FFE2C8") }
 -- night: blue sky outside, but a warm, cosy grade so lanterns and pendants glow amber
 local NIGHT = { ambient = Color.hex("#4A4050"), outdoor = Color.hex("#2E3450"), top = Color.hex("#6A78B0"), bright = 0.5, atm = Color.hex("#2A3050"), decay = Color.hex("#1A1E38"), tint = Color.hex("#FFE9D4") }
@@ -23,15 +23,21 @@ local function blend(a, b, k)
 	}
 end
 
+-- a long golden hour (15:30 to 20:30, the lanterns light up when it starts) and a rosy dawn;
+-- the second value is how much of the night it is (lights on from 0.2)
 local function look(clock)
-	if clock >= 7 and clock < 16.5 then
+	if clock >= 7.5 and clock < 15.5 then
 		return DAY, 0
-	elseif clock >= 16.5 and clock < 18.5 then
-		return blend(DAY, SUNSET, (clock - 16.5) / 2), 0.2
-	elseif clock >= 18.5 and clock < 20 then
-		return blend(SUNSET, NIGHT, (clock - 18.5) / 1.5), 0.6
-	elseif clock >= 5 and clock < 7 then
-		return blend(NIGHT, DAY, (clock - 5) / 2), 0.4
+	elseif clock >= 15.5 and clock < 17 then
+		return blend(DAY, SUNSET, (clock - 15.5) / 1.5), 0.2
+	elseif clock >= 17 and clock < 19 then
+		return SUNSET, 0.4
+	elseif clock >= 19 and clock < 20.5 then
+		return blend(SUNSET, NIGHT, (clock - 19) / 1.5), 0.6
+	elseif clock >= 5 and clock < 6 then
+		return blend(NIGHT, SUNSET, clock - 5), 0.6
+	elseif clock >= 6 and clock < 7.5 then
+		return blend(SUNSET, DAY, (clock - 6) / 1.5), 0.2
 	end
 	return NIGHT, 1
 end
@@ -95,7 +101,9 @@ function LightingC.Start()
 				if not light.Parent then
 					table.remove(lights, i)
 				elseif light:GetAttribute("NightLight") then
-					light.Enabled = on and not (low and light:IsA("SpotLight"))
+					-- (off inside the other restaurants hidden by Settings → Other restaurants)
+					local nb = Core.C.Neighbours
+					light.Enabled = on and not (low and light:IsA("SpotLight")) and not (nb and nb.hides(light))
 				end
 			end
 		end

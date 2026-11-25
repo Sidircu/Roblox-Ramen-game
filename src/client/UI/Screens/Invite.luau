@@ -44,7 +44,7 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.7), function(cont
 	Kit.label("🤝 " .. t("ui.coop_who"), { Parent = row, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(0.45, 0, 1, 0), FontFace = Kit.Theme.bold, TextYAlignment = Enum.TextYAlignment.Center })
 	local holder = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromScale(0.45, 0), Size = UDim2.new(0.55, -10, 1, 0), Parent = row }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
 	for i, o in ipairs({ { value = "friends", label = t("ui.coop_friends") }, { value = "everyone", label = t("ui.coop_everyone") } }) do
-		Kit.button(o.label, { parent = holder, size = UDim2.fromOffset(110, 36), style = coop == o.value and "primary" or "plain", order = i, textSize = 14, onClick = function()
+		Kit.button(o.label, { parent = holder, size = UDim2.fromOffset(110, 36), style = coop == o.value and "selected" or "secondary", order = i, textSize = 14, onClick = function()
 			NetDef.event("SetSetting"):FireServer("coop", o.value)
 		end })
 	end
@@ -65,7 +65,7 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.7), function(cont
 				NetDef.event("SetPermission"):FireServer(p.UserId, role == "comanager" and "helper" or "comanager")
 			end })
 			if perm then
-				Kit.button("✕", { parent = actions, size = UDim2.fromOffset(40, 34), style = "plain", order = 2, onClick = function()
+				Kit.button("✕", { parent = actions, size = UDim2.fromOffset(40, 34), style = "close", order = 2, onClick = function()
 					NetDef.event("SetPermission"):FireServer(p.UserId, "none")
 				end })
 			end

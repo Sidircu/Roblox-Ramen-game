@@ -95,8 +95,8 @@ function screen.tick()
 			row.button.BackgroundColor3 = T.paperDark
 		elseif left <= 0 then
 			row.button.Text = t("ui.claim")
-			row.button.BackgroundColor3 = T.green
-			row.button.TextColor3 = T.white
+			row.button.BackgroundColor3 = T.gold
+			row.button.TextColor3 = T.ink
 		else
 			row.button.Text = "⏳ " .. Format.duration(left)
 			row.button.BackgroundColor3 = T.paperDark

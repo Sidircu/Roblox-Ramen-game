@@ -10,7 +10,7 @@ Gioco Roblox tycoon: gestisci un ristorante giapponese di ramen e sushi, cucini 
 5. **Game Settings → Places → Max Players: 4** (un ristorante per giocatore lungo la strada).
 6. Premi **Play**. Per provare la strada con più giocatori: **Test → Clients and Servers** con 2–4 giocatori. In Studio tutti contano come amici, quindi ognuno può aiutare negli altri locali; nel gioco pubblicato possono aiutare gli amici del proprietario (o tutti, se lo sceglie nell'app Amici).
 
-**Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, tasto destro posa la scatola, G posa, Shift corri, Q per liberare il mouse e cliccare i pulsanti (di nuovo Q per tornare a guardare), U negozio, B costruisci, O fornitore, P altro, R regali. Su telefono e tablet si tocca il pulsante che compare sopra l'oggetto. Mentre i noodles bollono, clicca nel verde della barra per una ciotola perfetta. Il cartello **OPEN** accanto alla porta (fuori) apre e chiude il ristorante; la sensibilità della visuale si sceglie in Impostazioni (Alta, Media, Bassa) e si moltiplica con quella del menu di Roblox (Esc → Impostazioni → sensibilità della telecamera).
+**Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, tasto destro posa la scatola, G posa, Shift corri, Q per liberare il mouse e cliccare i pulsanti (di nuovo Q per tornare a guardare), U negozio, B costruisci, O fornitore, P altro, R regali. Su telefono e tablet si tocca il pulsante che compare sopra l'oggetto. Mentre i noodles bollono, clicca nel verde della barra per una ciotola perfetta. Il cartello **OPEN** accanto alla porta (fuori) apre e chiude il ristorante; la sensibilità della visuale si sceglie in Impostazioni (Alta, Media, Bassa) e si moltiplica con quella del menu di Roblox (Esc → Impostazioni → sensibilità della telecamera). Sempre in Impostazioni, **Altri locali → Solo fuori** nasconde sul tuo schermo gli interni degli altri ristoranti della strada (utile sui telefoni).
 
 Pannello sviluppatore (P → app 🛠️ Dev, solo in Studio o per il creatore del gioco): yen, livelli, licenze, zone, scorte, clienti, chiusura della giornata, premio giornaliero del giorno dopo.
 
@@ -68,7 +68,8 @@ all'uscita; il ciclo base con i tempi; la strada con quattro giocatori e gli aiu
 salvataggi; un giocatore su telefono che gioca con il client vero (postazione, cliente e negozio toccati
 come sullo schermo); il tutorial completo; e chi torna a giocare (guadagni offline, calendario del premio
 giornaliero, bacheche delle classifiche, pass Personale extra); il primo franchise (cosa si azzera e cosa
-resta); il secondo piano e il tetto (gradini regolari, pianerottolo, ringhiere, apertura nel pavimento).
+resta); il secondo piano e il tetto (gradini regolari, pianerottolo, ringhiere, apertura nel pavimento);
+l'impostazione Altri locali (interni degli altri ristoranti nascosti solo sul tuo schermo).
 Ogni errore del gioco fa fallire la prova.
 ```
 python3 tools/sim.py                 # tutti gli scenari

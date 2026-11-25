@@ -1,6 +1,7 @@
 --!nonstrict
--- Objects placed in a brand-new restaurant (all can be moved later). The start is plain on
--- purpose: decorations and renovations (Config/Expansions) are bought over time.
+-- Objects placed in a brand-new restaurant (all can be moved later). The start is simple but
+-- warm: paper lanterns over the counter and bamboo in the corners of the dining room; the other
+-- decorations and the renovations (Config/Expansions) are bought over time.
 -- s: "f" floor, "w" wall (y = height of the object's center), "c" ceiling, "t" on top of item index p
 return {
 	items = {
@@ -48,8 +49,15 @@ return {
 		{ i = "sink", x = 9.8, z = 44.3, r = 0, s = "f" },
 		{ i = "kitchen_counter", x = 13.1, z = 44.3, r = 0, s = "f" },
 		{ i = "storage_rack", x = 48, z = 54.6, r = 0, s = "f" },
-		-- a single paper lantern: every other decoration is bought (see docs/01-GAME-DESIGN.md)
-		{ i = "chochin_white", x = -6, z = 20, r = 0, s = "c" },
+		-- three paper lanterns over the counter and potted bamboo in the four corners of the dining
+		-- room: every other decoration is bought (see docs/01-GAME-DESIGN.md)
+		{ i = "chochin_red", x = -17, z = 29.6, r = 0, s = "c" },
+		{ i = "chochin_white", x = -4, z = 29.6, r = 0, s = "c" },
+		{ i = "chochin_red", x = 9, z = 29.6, r = 0, s = "c" },
+		{ i = "bamboo_pot", x = -34.4, z = 1.8, r = 0, s = "f" },
+		{ i = "bamboo_pot", x = 34.4, z = 1.8, r = 0, s = "f" },
+		{ i = "bamboo_pot", x = -34.4, z = 30, r = 0, s = "f" },
+		{ i = "bamboo_pot", x = 34.4, z = 30, r = 0, s = "f" },
 	},
 	-- a brand-new restaurant can serve its first customers within seconds: the two shelves start
 	-- stocked with the ramen ingredients (one list per shelf, in the order above, one ingredient per

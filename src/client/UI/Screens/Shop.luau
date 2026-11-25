@@ -26,6 +26,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Kit = require(script.Parent.Parent.Kit)
 local Base = require(script.Parent.Parent.Base)
 local Icons = require(script.Parent.Parent.Icons)
+local Thumbs = require(script.Parent.Parent.Thumbs)
 local Core = require(script.Parent.Parent.Parent.Core)
 
 local t = Locale.t
@@ -57,24 +58,35 @@ local function cardSize()
 	return 192, 240
 end
 
--- what an upgrade does now and at the next level
+-- what an upgrade does now and at the next level, as a change you can read at a glance:
+-- "+8%" more speed or customers, "-10%" time or price, "2 h at 10%" while away...
+local function pct(x)
+	return math.floor(x * 100 + 0.5)
+end
 local function effectText(u, value, lvl)
-	local L = Locale.get()
 	if value == nil then
 		return ""
 	end
-	if u.effect == "step" or u.effect == "walk" or u.effect == "shelf" then
-		return math.floor(value * 100 + 0.5) .. "%"
+	if u.effect == "walk" or u.effect == "shelf" then
+		return "+" .. pct(value - 1) .. "%"
+	elseif u.effect == "step" then
+		local p = pct(1 - value)
+		return p == 0 and "0%" or ("-" .. p .. "%")
+	elseif u.effect == "popularity" then
+		return "+" .. pct(value) .. "%"
+	elseif u.effect == "discount" then
+		local p = pct(value)
+		return p == 0 and "0%" or ("-" .. p .. "%")
 	elseif u.effect == "cart" then
 		return value .. " 📦"
+	elseif u.effect == "tray" then
+		return value .. " 🍜"
+	elseif u.effect == "ambience" then
+		return "+" .. value .. " ✨"
 	elseif u.effect == "delivery" then
 		return value .. "s"
-	elseif u.effect == "discount" then
-		return "-" .. math.floor(value * 100 + 0.5) .. "%"
-	elseif u.effect == "popularity" then
-		return "+" .. Format.decimal(value, 2, L)
 	elseif u.effect == "offline" then
-		return value .. "h · " .. math.floor((u.pct[lvl + 1] or 0) * 100) .. "%"
+		return t("ui.offline_rule", { h = value, pct = pct(u.pct[lvl + 1] or 0) })
 	elseif u.effect == "autorestock" then
 		return value > 0 and "✓" or "—"
 	end
@@ -131,7 +143,11 @@ local function card(parent, order, o)
 	end
 	-- big icon on a round tile
 	local tile = Kit.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8), Size = UDim2.fromOffset(64, 64), BackgroundColor3 = Color.hex(o.tint or "#EBDDC4"), Parent = c }, { Kit.corner(32) })
-	Kit.label(o.icon or "🎁", { Parent = tile, Position = UDim2.fromOffset(10, 10), Size = UDim2.new(1, -20, 1, -20), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center, TextTransparency = locked and 0.45 or 0 })
+	local emoji = Kit.label(o.icon or "🎁", { Parent = tile, Position = UDim2.fromOffset(10, 10), Size = UDim2.new(1, -20, 1, -20), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center, TextTransparency = locked and 0.45 or 0 })
+	if o.thumb then
+		-- the real dish (or object) in 3D on the round tile
+		Thumbs.later(tile, o.thumb[1], o.thumb[2], { Size = UDim2.new(1, 6, 1, 6), Position = UDim2.fromOffset(-3, -3), transparency = locked and 0.45 or 0, zoom = 0.85 }, emoji)
+	end
 	if locked then
 		Kit.label("🔒", { Parent = tile, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, 6, 1, 4), Size = UDim2.fromOffset(28, 28), TextScaled = true })
 	end
@@ -139,7 +155,9 @@ local function card(parent, order, o)
 		local tag = Kit.new("Frame", { Position = UDim2.fromOffset(8, 8), Size = UDim2.fromOffset(0, 22), AutomaticSize = Enum.AutomaticSize.X, BackgroundColor3 = T.wood, Parent = c }, { Kit.corner(11), Kit.padding(8, 0) })
 		Kit.label(o.corner, { Parent = tag, Size = UDim2.fromOffset(0, 22), AutomaticSize = Enum.AutomaticSize.X, TextSize = 13, FontFace = T.bold, TextColor3 = T.white, TextWrapped = false })
 	end
-	Kit.label(o.title or "", { Parent = c, Position = UDim2.fromOffset(6, 76), Size = UDim2.new(1, -12, 0, 22), TextSize = 16, FontFace = T.bold, TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd })
+	-- the name in the round font, a little smaller when it is long so it stays on one line
+	local name = Kit.label(o.title or "", { Parent = c, Position = UDim2.fromOffset(6, 76), Size = UDim2.new(1, -12, 0, 22), TextScaled = true, FontFace = T.title, TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = false })
+	Kit.new("UITextSizeConstraint", { MaxTextSize = 17, MinTextSize = 11, Parent = name })
 	Kit.label(o.sub or "", { Parent = c, Position = UDim2.fromOffset(8, 100), Size = UDim2.new(1, -16, 0, ch - 100 - 74), TextSize = 14, TextColor3 = T.muted, TextXAlignment = Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Top, TextTruncate = Enum.TextTruncate.AtEnd })
 	-- one clear action at the bottom
 	local L = Locale.get()
@@ -153,7 +171,7 @@ local function card(parent, order, o)
 	elseif st.state == "active" then
 		text, style = "📣 " .. t("ui.active"), "plain"
 	elseif locked then
-		text, style = "🔒 " .. needText(st.need), "dark"
+		text, style = "🔒 " .. needText(st.need), "secondary"
 	elseif st.state == "poor" then
 		text, style = Format.yen(st.price, L), "plain"
 		note.Text = t("ui.missing", { yen = Format.yen(st.missing, L) })
@@ -197,6 +215,13 @@ local function card(parent, order, o)
 		end,
 	})
 	btn.Name = "Buy"
+	if st.state == "buy" or st.state == "poor" then
+		-- prices in the round font, like every number in the game
+		btn.FontFace = T.title
+	end
+	if locked then
+		btn.TextColor3 = T.muted
+	end
 	if st.state == "poor" then
 		btn.TextColor3 = T.red
 	elseif done then
@@ -233,11 +258,9 @@ local function fill(grid, entries)
 	end
 end
 
+-- "Lv. 2/5" in the corner of an upgrade card
 local function pips(level, max)
-	if max > 6 then
-		return level .. "/" .. max
-	end
-	return string.rep("●", level) .. string.rep("○", max - level)
+	return t("ui.level_short", { level = level, max = max })
 end
 
 ------------------------------------------------------------------ the tabs
@@ -282,7 +305,7 @@ function BUILD.recipes(scroll, w, rating)
 			table.insert(dishes, (r and r.icon or "") .. " " .. t("rec." .. rid))
 		end
 		table.insert(entries, {
-			key = "l:" .. lic.id, icon = BRANCH_ICON[lic.branch] or "🎫", tint = BRANCH_TINT[lic.branch], title = t("lic." .. lic.id), sub = table.concat(dishes, "\n"),
+			key = "l:" .. lic.id, icon = BRANCH_ICON[lic.branch] or "🎫", thumb = { "dish", lic.recipes[1] }, tint = BRANCH_TINT[lic.branch], title = t("lic." .. lic.id), sub = table.concat(dishes, "\n"),
 			st = ShopLogic.license(w, lic, rating), order = lic.order,
 			onBuy = function()
 				NetDef.event("BuyLicense"):FireServer(lic.id)
@@ -312,7 +335,7 @@ function BUILD.staff(scroll, w)
 			if cfg and s.lvl < StaffCfg.MaxTrainLevel then
 				local price = Formulas.staffTrainCost(cfg.hire, s.lvl + 1)
 				local rich = (w.yen or 0) >= price
-				local b = Kit.button("⬆️ " .. Format.yen(price, L), { parent = row, size = UDim2.new(1, -50, 1, 0), style = (can and rich) and "gold" or "plain", textSize = 15, order = 1, onClick = function()
+				local b = Kit.button("⬆️ " .. Format.yen(price, L), { parent = row, size = UDim2.new(1, -50, 1, 0), style = (can and rich) and "buy" or "secondary", textSize = 15, order = 1, onClick = function()
 					if not can then
 						return Core.C.UI.toast(t("ui.only_owner"), "warning")
 					end
@@ -326,7 +349,7 @@ function BUILD.staff(scroll, w)
 					b.TextColor3 = T.red
 				end
 			end
-			Kit.button("✕", { parent = row, size = UDim2.fromOffset(44, 44), style = "plain", order = 2, onClick = function()
+			Kit.button("✕", { parent = row, size = UDim2.fromOffset(44, 44), style = "close", order = 2, onClick = function()
 				if can then
 					NetDef.event("FireStaff"):FireServer(s.u)
 				end

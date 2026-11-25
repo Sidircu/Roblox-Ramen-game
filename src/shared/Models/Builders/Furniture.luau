@@ -139,8 +139,8 @@ local function counter(m, item, kind)
 	for x = -w / 2 + 0.5, w / 2 - 0.3, 2 do
 		Kit.box(dc, 0.08, 0.08, 0.36, x, 0.7, -d / 2 + 0.43, P.brass, M.metal, nc())
 	end
-	-- warm light strip hidden under the overhang
-	Kit.box(dc, w - 0.1, 0.05, 0.08, 0, h - 0.27, -d / 2 + 0.66, P.lamp_warm, M.neon, nc())
+	-- warm light strip hidden under the overhang (every counter has it: a cosy glow from the start)
+	Kit.box(m, w - 0.1, 0.05, 0.08, 0, h - 0.27, -d / 2 + 0.66, P.lamp_warm, M.neon, nc())
 	-- hinoki top with a dark edge band, hinoki cap on the ledge
 	Kit.box(dc, w, 0.04, d, 0, h + 0.005, 0, P.hinoki, M.wood, nc())
 	Kit.box(dc, w, 0.1, 0.06, 0, h - 0.17, -d / 2 - 0.02, P.wood_dark, M.wood, nc())

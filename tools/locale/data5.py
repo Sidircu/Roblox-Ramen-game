@@ -145,3 +145,12 @@ REVAMP += [
 ("ui.closed","Closed","Chiuso"),
 ("hint.first_opensign","🏮 The OPEN sign by the door opens and closes your restaurant (use it like a station).","🏮 Il cartello OPEN accanto alla porta apre e chiude il ristorante (si usa come una postazione)."),
 ]
+# round 4: clearer cards, the setting for the other restaurants
+REVAMP += [
+("ui.offline_rule","{h} h at {pct}%","{h} h al {pct}%"),
+("ui.level_short","Lv. {level}/{max}","Liv. {level}/{max}"),
+("ui.stock_line","Shelves {shelf} · Boxes {boxes}","Mensole {shelf} · Scatole {boxes}"),
+("ui.others_detail","Other restaurants","Altri locali"),
+("ui.others_show","Show all","Mostra tutto"),
+("ui.others_hide","Only the outside","Solo fuori"),
+]

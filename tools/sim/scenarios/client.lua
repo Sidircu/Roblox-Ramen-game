@@ -36,12 +36,19 @@ Sim.check("the order is on screen", Sim.waitFor(function()
 	return Sim.findText(dishName)
 end, 5) ~= nil, dishName)
 
--- walk up to a thing and use its prompt (E / tap)
+-- walk up to a thing and tap the big button over it (our look for its prompt), like a phone player
+local tapped = 0
 local function use(model)
 	local pos = model:GetPivot().Position
 	local from = pos + Vector3.new(0, 0, -3)
 	p.Character:PivotTo(CFrame.lookAt(from, Vector3.new(pos.X, from.Y, pos.Z)))
 	task.wait(0.6)
+	local gui = p.PlayerGui:FindFirstChild("UseButton")
+	if gui and gui.Enabled and gui.Adornee and gui.Adornee:IsDescendantOf(model) then
+		tapped += 1
+		Sim.click(gui.Use)
+		return true
+	end
 	return Sim.trigger(model)
 end
 
@@ -60,6 +67,8 @@ while (station.model:GetAttribute("Ready") or "") == "" and presses < 8 do
 	end, 10)
 end
 Sim.check("cooked with the station's prompt", (station.model:GetAttribute("Ready") or "") == recipe.id, presses .. " presses")
+local useGui = p.PlayerGui:FindFirstChild("UseButton")
+Sim.check("a big button over the station, tapped on the phone (no key on it)", tapped >= 1 and useGui ~= nil and useGui.Size.Y.Offset >= 64 and useGui.Use.Key.Visible == false, tapped .. " taps")
 use(station.model)
 Sim.waitFor(function()
 	return p:GetAttribute("HandsKind") == "dish"

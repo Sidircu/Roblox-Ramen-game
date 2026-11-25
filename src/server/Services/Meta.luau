@@ -268,6 +268,10 @@ function Meta.Init()
 			local S = GameConfig.Sensitivity
 			return v == S.High or v == S.Medium or v == S.Low
 		end,
+		-- the other restaurants of the street: complete, or only their outside (Controllers/Neighbours)
+		others = function(v)
+			return v == "show" or v == "hide"
+		end,
 		-- who may help in your restaurant: "friends" or "everyone"
 		coop = function(v)
 			return v == "friends" or v == "everyone"

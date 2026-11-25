@@ -96,7 +96,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 			Kit.label(ing.icon, { Parent = card, Size = UDim2.fromOffset(36, 36), Position = UDim2.fromOffset(8, 6), TextScaled = true })
 			Kit.label(t("ing." .. ing.id), { Parent = card, Position = UDim2.fromOffset(50, 6), Size = UDim2.new(1, -56, 0, 22), TextSize = 17, FontFace = T.bold, TextTruncate = Enum.TextTruncate.AtEnd })
 			local shelf, boxes = stock(w, ing.id)
-			Kit.label("🗄️ " .. shelf .. "   📦 " .. boxes, { Parent = card, Position = UDim2.fromOffset(50, 28), Size = UDim2.new(1, -56, 0, 18), TextSize = 14, TextColor3 = T.muted })
+			Kit.label(t("ui.stock_line", { shelf = shelf, boxes = boxes }), { Parent = card, Position = UDim2.fromOffset(50, 28), Size = UDim2.new(1, -56, 0, 18), TextSize = 13, TextColor3 = T.muted, TextTruncate = Enum.TextTruncate.AtEnd })
 			local function qtyRow(y, kind, label, price)
 				Kit.label(label .. "  " .. Format.yen(price, L), { Parent = card, Position = UDim2.fromOffset(8, y), Size = UDim2.new(1, -16, 0, 18), TextSize = 14 })
 				local row = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(8, y + 20), Size = UDim2.new(1, -16, 0, 30), Parent = card }, { Kit.list(Enum.FillDirection.Horizontal, 6, Enum.HorizontalAlignment.Left, Enum.VerticalAlignment.Center) })
@@ -137,7 +137,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 		Kit.stroke(T.red, 3).Parent = menuBtn
 	end
 	Kit.button("🍽️ " .. t("ui.buy_dishes", { n = GameConfig.DishSetSize, price = GameConfig.DishSetPrice }), {
-		parent = footer, size = UDim2.fromOffset(220, 46), position = UDim2.new(1, -400, 0, 5), style = "gold", textSize = 15,
+		parent = footer, size = UDim2.fromOffset(220, 46), position = UDim2.new(1, -400, 0, 5), style = "buy", textSize = 15,
 		onClick = function()
 			NetDef.event("BuyDishes"):FireServer(1)
 		end,

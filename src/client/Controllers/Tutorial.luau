@@ -299,8 +299,9 @@ function Tutorial.layout()
 		return
 	end
 	local phone = Kit.profile == "phone"
-	local w, h = phone and 360 or 460, phone and 68 or 76
-	local iconSize, bw = phone and 44 or 56, phone and 64 or 76
+	-- on a phone the two buttons are big enough for a thumb
+	local w, h = phone and 380 or 460, phone and 80 or 76
+	local iconSize, bw = phone and 44 or 56, phone and 84 or 76
 	local textX = phone and 60 or 76
 	panel.Size = UDim2.fromOffset(w, h)
 	tile.Position = UDim2.fromOffset(phone and 8 or 10, (h - iconSize) / 2)
@@ -311,10 +312,10 @@ function Tutorial.layout()
 	dots.Size = UDim2.new(1, -(textX + bw + 14), 0, 16)
 	buttons.Position = UDim2.new(1, phone and -8 or -10, 0.5, 0)
 	buttons.Size = UDim2.fromOffset(bw, h - 8)
-	nextButton.Size = UDim2.fromOffset(bw, phone and 27 or 30)
-	skipButton.Size = UDim2.fromOffset(bw, phone and 27 or 30)
-	nextButton.TextSize = phone and 14 or 15
-	skipButton.TextSize = phone and 13 or 14
+	nextButton.Size = UDim2.fromOffset(bw, phone and 34 or 30)
+	skipButton.Size = UDim2.fromOffset(bw, phone and 34 or 30)
+	nextButton.TextSize = phone and 18 or 15
+	skipButton.TextSize = phone and 16 or 14
 end
 
 local function finish(skipped)
@@ -377,7 +378,7 @@ function Tutorial.Init()
 	end)
 	dots = Kit.label("", { Parent = panel, Position = UDim2.fromOffset(76, 50), Size = UDim2.new(1, -164, 0, 18), TextSize = 12, TextColor3 = T.gold, FontFace = T.bold, TextWrapped = false })
 	buttons = Kit.new("Frame", { BackgroundTransparency = 1, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(76, 66), Parent = panel }, { Kit.list(Enum.FillDirection.Vertical, 4, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
-	nextButton = Kit.button("▶", { parent = buttons, size = UDim2.fromOffset(76, 30), style = "gold", textSize = 15, order = 1, onClick = function()
+	nextButton = Kit.button("▶", { parent = buttons, size = UDim2.fromOffset(76, 30), style = "buy", textSize = 15, order = 1, onClick = function()
 		local st = STEPS[index]
 		if st and (st.timer or st.skippable) then
 			advance()

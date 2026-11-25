@@ -27,6 +27,8 @@ local player = Players.LocalPlayer
 local t = Locale.t
 
 local highlight, label, labelText
+local useGui, useButton, useKey, useText -- our own look for the prompt (see showPrompt)
+local handlers = setmetatable({}, { __mode = "k" }) -- [prompt] = { begin, ended }
 local current = nil -- { model, uid, kind, slot }
 local prompts = setmetatable({}, { __mode = "k" }) -- [model] = ProximityPrompt (local to this client)
 local shownPrompt = nil
@@ -254,25 +256,54 @@ local function promptFor(model)
 	p.HoldDuration = 0
 	p.MaxActivationDistance = 40
 	p.Enabled = false
+	-- Roblox's prompt bubble cannot be made bigger: ours is drawn instead (useGui), the prompt
+	-- still takes E and ButtonX
+	p.Style = Enum.ProximityPromptStyle.Custom
 	local pressedAt = 0
-	p.Triggered:Connect(function()
+	local function begin()
 		pressedAt = os.clock()
 		if current and current.model == model then
 			-- on a touch screen a tap on the prompt is a tap (it toggles washing)
 			act(UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
 		end
-	end)
+	end
 	-- releasing the button stops washing at the sink; a quick tap on a touch screen leaves the
 	-- tap running (washing goes on by itself until the sink is empty or you tap again)
-	p.TriggerEnded:Connect(function()
+	local function ended()
 		local touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 		if Core.C.Sink and not (touch and os.clock() - pressedAt < 0.35) then
 			Core.C.Sink.endHold()
 		end
-	end)
+	end
+	p.Triggered:Connect(begin)
+	p.TriggerEnded:Connect(ended)
+	handlers[p] = { begin = begin, ended = ended }
 	p.Parent = part
 	prompts[model] = p
 	return p
+end
+
+-- the button over the object: big and tappable on touch screens, with the key to press (E, or X
+-- on a gamepad) on a computer
+local function paintUseButton(p, text)
+	if not useGui then
+		return
+	end
+	if not p then
+		useGui.Enabled = false
+		useGui.Adornee = nil
+		return
+	end
+	local mode = Core.C.UI and Core.C.UI.inputMode and Core.C.UI.inputMode() or "pc"
+	local touch = mode == "touch"
+	useGui.Size = touch and UDim2.fromOffset(230, 72) or UDim2.fromOffset(220, 50)
+	useKey.Visible = not touch
+	useKey.Text = mode == "pad" and "X" or "E"
+	useText.Position = touch and UDim2.fromOffset(12, 0) or UDim2.fromOffset(48, 0)
+	useText.Size = touch and UDim2.new(1, -24, 1, 0) or UDim2.new(1, -58, 1, 0)
+	useText.Text = text
+	useGui.Adornee = p.Parent
+	useGui.Enabled = true
 end
 
 local function showPrompt(model, text, near)
@@ -287,6 +318,7 @@ local function showPrompt(model, text, near)
 		end
 		p.Enabled = true
 	end
+	paintUseButton(p, text)
 end
 
 local function setCurrent(model, slot)
@@ -529,6 +561,74 @@ function Interaction.Init()
 	labelText.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold)
 	labelText.AutoLocalize = false
 	labelText.Parent = bg
+	-- the use button over the object (instead of Roblox's prompt bubble)
+	useGui = Instance.new("BillboardGui")
+	useGui.Name = "UseButton"
+	useGui.Size = UDim2.fromOffset(220, 50)
+	useGui.ExtentsOffsetWorldSpace = Vector3.new(0, 1, 0)
+	useGui.AlwaysOnTop = true
+	useGui.LightInfluence = 0
+	useGui.MaxDistance = 60
+	useGui.Active = true
+	useGui.ResetOnSpawn = false
+	useGui.Enabled = false
+	useGui.Parent = player.PlayerGui
+	useButton = Instance.new("TextButton")
+	useButton.Name = "Use"
+	useButton.Text = ""
+	useButton.AutoButtonColor = true
+	useButton.Size = UDim2.fromScale(1, 1)
+	useButton.BackgroundColor3 = Color.hex("#3A2618")
+	useButton.BackgroundTransparency = 0.08
+	useButton.Parent = useGui
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0, 14)
+	round.Parent = useButton
+	local rim = Instance.new("UIStroke")
+	rim.Color = Color.hex("#D4A23C")
+	rim.Thickness = 2
+	rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	rim.Parent = useButton
+	useKey = Instance.new("TextLabel")
+	useKey.Name = "Key"
+	useKey.Size = UDim2.fromOffset(32, 32)
+	useKey.AnchorPoint = Vector2.new(0, 0.5)
+	useKey.Position = UDim2.new(0, 9, 0.5, 0)
+	useKey.BackgroundColor3 = Color.hex("#F4EBDD")
+	useKey.TextColor3 = Color.hex("#2B2320")
+	useKey.TextSize = 20
+	useKey.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json")
+	useKey.AutoLocalize = false
+	useKey.Parent = useButton
+	local keyRound = Instance.new("UICorner")
+	keyRound.CornerRadius = UDim.new(0, 8)
+	keyRound.Parent = useKey
+	useText = Instance.new("TextLabel")
+	useText.Name = "Action"
+	useText.BackgroundTransparency = 1
+	useText.TextColor3 = Color.hex("#FFF6E8")
+	useText.TextScaled = true
+	useText.TextXAlignment = Enum.TextXAlignment.Left
+	useText.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json")
+	useText.AutoLocalize = false
+	useText.Parent = useButton
+	local fit = Instance.new("UITextSizeConstraint")
+	fit.MaxTextSize = 22
+	fit.MinTextSize = 12
+	fit.Parent = useText
+	-- pressing the button is the same as pressing E (holding it holds, for the sink)
+	useButton.MouseButton1Down:Connect(function()
+		local h = shownPrompt and handlers[shownPrompt]
+		if h then
+			h.begin()
+		end
+	end)
+	useButton.MouseButton1Up:Connect(function()
+		local h = shownPrompt and handlers[shownPrompt]
+		if h then
+			h.ended()
+		end
+	end)
 end
 
 Interaction.act = act

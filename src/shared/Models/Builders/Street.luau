@@ -307,6 +307,14 @@ function S.planterTree(parent, x, z, color, k)
 	for _, b in ipairs({ { 0, 7.5, 0, 5 }, { -1.4, 6.6, 0.6, 3.4 }, { 1.4, 6.8, -0.5, 3.6 }, { 0.4, 8.6, 0.4, 3 } }) do
 		Kit.blob(parent, b[4] * k, b[4] * 0.7 * k, b[4] * k, x + b[1] * k, b[2] * k, z + b[3] * k, color, M.leafy, { collide = false })
 	end
+	if color == P.sakura then
+		-- a few petals drifting down from the cherry trees
+		local src = Kit.box(parent, 4.5 * k, 0.2, 4.5 * k, x, 6.6 * k, z, P.white, M.smooth, { collide = false, transparency = 1, shadow = false })
+		src.CanQuery = false
+		src.CanTouch = false
+		src.Name = "Petals"
+		Kit.particles(src, "petals", { rate = 1.5 })
+	end
 end
 
 function S.viaduct(parent, z, y, x0, x1)
