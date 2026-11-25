@@ -23,6 +23,7 @@ local APPS = {
 	{ id = "Premium", icon = "💎", key = "ui.premium", color = "#2E5A8C" },
 	{ id = "Codes", icon = "🎟️", key = "ui.codes", color = "#3A8F8A" },
 	{ id = "Help", icon = "❓", key = "ui.howto", color = "#2EA3B3" },
+	{ id = "Sign", icon = "🏮", key = "ui.sign", color = "#C8462E" },
 	{ id = "Settings", icon = "⚙️", key = "ui.settings", color = "#5A5A64" },
 	{ id = "Dev", icon = "🛠️", key = "ui.dev", color = "#1E1E22", dev = true },
 }

@@ -165,7 +165,7 @@ NumberRange = dummy("NumberRange")
 Vector2 = { new = function(x, y) return { X = x or 0, Y = y or 0 } end }
 UDim = dummy("UDim")
 UDim2 = { new = function(...) return {} end, fromScale = function() return {} end, fromOffset = function() return {} end }
-Font = { new = function(...) return { __kind = "Font" } end }
+Font = { new = function(...) return { __kind = "Font" } end, fromEnum = function(...) return { __kind = "Font" } end }
 Random = {
 	new = function(seed)
 		local state = (seed or os.time()) % 2147483647

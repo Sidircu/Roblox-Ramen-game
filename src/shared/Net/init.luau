@@ -37,6 +37,7 @@ Net.Events = {
 	"SetPermission", -- (userId, level "helper"|"comanager"|"none") in your restaurant
 	"GoHome", -- back to the door of your restaurant
 	"ToggleOpen", -- the OPEN / CLOSED sign by the door of the restaurant you work in
+	"SetSign", -- ({ name, style, board, text }) the restaurant's sign over the door
 	"Franchise", -- (cityId)
 	"BuyWithRobux", -- (kind "gamepass"|"product", id)
 	"TutorialStep", -- (step)

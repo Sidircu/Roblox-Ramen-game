@@ -99,6 +99,35 @@ for _, part in ipairs(plot.folder:GetDescendants()) do
 end
 -- two sides of two flights and the landing's two outer sides
 Sim.check("invisible guards along both sides of the stairs", #guards >= 6, #guards .. " guards")
+-- slim balusters and sloping handrails you can see (a round part made with the same options table
+-- once turned every one of them into a small ball: Models/Kit copies the options now)
+local balusters, rails = 0, 0
+for _, part in ipairs(plot.folder:GetDescendants()) do
+	if part:IsA("Part") and part.Transparency < 1 and part.Shape == Enum.PartType.Block then
+		local pos = part.Position - O
+		if pos.X > -35 and pos.X < -12 and pos.Z > 2 and pos.Z < 24 and pos.Y > 1 and pos.Y < H + 3 then
+			if part.Size.X < 0.2 and part.Size.Z < 0.2 and part.Size.Y > 2.5 then
+				balusters += 1
+			elseif part.Size.X < 0.4 and part.Size.Y < 0.3 and part.Size.Z > 3 then
+				rails += 1
+			end
+		end
+	end
+end
+Sim.check("handrails and balusters on both sides", rails >= 20 and balusters >= 70, rails .. " handrails, " .. balusters .. " balusters")
+local odd = {}
+for _, part in ipairs(plot.folder:GetDescendants()) do
+	if part:IsA("Part") then
+		local sz = part.Size
+		if part.Shape == Enum.PartType.Ball and (math.abs(sz.X - sz.Y) > 0.001 or math.abs(sz.Y - sz.Z) > 0.001) then
+			table.insert(odd, part.Name)
+		elseif part.Shape == Enum.PartType.Cylinder and math.abs(sz.Y - sz.Z) > 0.001 then
+			table.insert(odd, part.Name)
+		end
+	end
+end
+-- (a ball is as wide as it is tall, a cylinder is round across)
+Sim.check("round parts are really round", #odd == 0, #odd .. " " .. (odd[1] or ""))
 local st = Expansions.byId.zone_floor2.stairs[1]
 local hole = st.hole
 local covering = tagged("Floor", function(part, pos)

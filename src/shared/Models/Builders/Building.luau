@@ -8,7 +8,17 @@ local P = require(script.Parent.Parent.Palette)
 local Color = require(script.Parent.Parent.Parent.Util.Color)
 local M = P.M
 
+local Signs = require(script.Parent.Parent.Parent.Config.Signs)
+
 local JP_FONT = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Bold)
+-- the letters of each style of shop sign (Config/Signs)
+local SIGN_FONTS = {
+	wood = Font.fromEnum(Enum.Font.Merriweather),
+	lacquer = Font.fromEnum(Enum.Font.Fondamento),
+	noren = Font.fromEnum(Enum.Font.PermanentMarker),
+	neon = Font.fromEnum(Enum.Font.FredokaOne),
+	lanterns = Font.fromEnum(Enum.Font.LuckiestGuy),
+}
 local B = {}
 
 local function tag(part, name, attrs)
@@ -727,21 +737,117 @@ function B.window(parent, along, y, seg, outsideSign, w, h, fancy)
 	end
 end
 
--- Big shop sign above the entrance
-function B.sign(parent, x, y, z, w, text, deluxe)
-	local board = Kit.box(parent, w, 2.6, 0.4, x, y, z, deluxe and P.black or P.wood_dark, M.wood, { collide = false })
-	tag(board, "Roof")
-	local face = Kit.box(parent, w - 0.4, 2.1, 0.05, x, y, z - 0.23, deluxe and P.black or P.hinoki, M.wood, { collide = false })
-	tag(face, "Roof")
-	Kit.text(face, Enum.NormalId.Front, text, { color = deluxe and "#FFD23B" or "#2B2320", font = JP_FONT, glow = deluxe, pps = 30 })
-	if deluxe then
-		for _, dy in ipairs({ -1.25, 1.25 }) do
-			local tube = Kit.box(parent, w, 0.1, 0.1, x, y + dy, z - 0.25, P.neon_yellow, M.neon, { collide = false })
-			tag(tube, "Roof")
+-- The restaurant's own sign over the door: the owner's name (filtered, `sign.shown`), style and
+-- colours from Config/Signs (sign = Data.sign; nil = the classic board). Returns the Model
+-- "ShopSign"; its PrimaryPart carries the letters on its front (-Z, towards the street).
+function B.shopSign(parent, sign, deluxe)
+	sign = sign or Signs.Default
+	local cfg = Signs.Facade
+	local x, y, z, w, h = cfg.x, cfg.y, cfg.z, cfg.width, cfg.height
+	local style = Signs.StyleById[sign.style or ""] and sign.style or Signs.Default.style
+	local boardC = Color.hex((Signs.ColorById[sign.board or ""] or Signs.ColorById[Signs.Default.board]).hex)
+	local textC = Color.hex((Signs.ColorById[sign.text or ""] or Signs.ColorById[Signs.Default.text]).hex)
+	local name = (sign.shown and sign.shown ~= "") and sign.shown or nil
+	local NC = { collide = false, shadow = false }
+	local m = Kit.model("ShopSign")
+	local face
+	if style == "lacquer" then
+		-- a glossy board with a gold frame
+		face = Kit.box(m, w, h, 0.4, x, y, z, boardC, M.smooth, { collide = false, reflectance = 0.12 })
+		for _, dy in ipairs({ -h / 2, h / 2 }) do
+			Kit.box(m, w + 0.3, 0.16, 0.48, x, y + dy, z, P.gold, M.foil, NC)
 		end
-		Kit.light(face, "Surface", P.neon_yellow, 12, 2, { face = Enum.NormalId.Front })
+		for _, sx in ipairs({ -1, 1 }) do
+			Kit.box(m, 0.16, h + 0.16, 0.48, x + sx * w / 2, y, z, P.gold, M.foil, NC)
+		end
+	elseif style == "noren" then
+		-- three cloth panels with slits between them, hanging from a rod with round ends
+		Kit.cylH(m, 0.22, w + 0.8, x, y + h / 2 + 0.12, z - 0.12, P.wood_dark, M.wood, NC)
+		for _, sx in ipairs({ -1, 1 }) do
+			Kit.ball(m, 0.36, x + sx * (w / 2 + 0.45), y + h / 2 + 0.12, z - 0.12, P.wood_black, M.wood, NC)
+		end
+		local pw = (w - 0.3) / 3
+		for i = 0, 2 do
+			Kit.box(m, pw - 0.14, h, 0.06, x - w / 2 + 0.15 + pw * (i + 0.5), y, z - 0.12, boardC, M.fabric, NC)
+		end
+		-- the letters run across the three panels
+		face = Kit.box(m, w - 0.2, h - 0.3, 0.02, x, y - 0.05, z - 0.17, boardC, M.fabric, NC)
+		face.Transparency = 1
+	elseif style == "neon" then
+		-- glowing letters and a neon tube round a dark board in the board's colour
+		face = Kit.box(m, w, h, 0.3, x, y, z, boardC:Lerp(Color3.new(0, 0, 0), 0.55), M.smooth, { collide = false })
+		for _, dy in ipairs({ -(h / 2 - 0.12), h / 2 - 0.12 }) do
+			Kit.box(m, w - 0.2, 0.1, 0.1, x, y + dy, z - 0.17, textC, M.neon, NC)
+		end
+		for _, sx in ipairs({ -1, 1 }) do
+			Kit.box(m, 0.1, h - 0.24, 0.1, x + sx * (w / 2 - 0.12), y, z - 0.17, textC, M.neon, NC)
+		end
+		Kit.light(face, "Surface", textC, 12, 1.6, { face = Enum.NormalId.Front })
+	else
+		-- wood (and lanterns): a board in a dark wooden frame
+		Kit.box(m, w, h, 0.4, x, y, z, style == "lanterns" and P.wood_black or P.wood_dark, M.wood, { collide = false })
+		face = Kit.box(m, w - 0.4, h - 0.5, 0.05, x, y, z - 0.23, boardC, M.wood, NC)
+		if style == "lanterns" then
+			-- a paper lantern hanging on each side
+			for _, sx in ipairs({ -1, 1 }) do
+				local lx = x + sx * (w / 2 + 1.1)
+				Kit.box(m, 0.06, 0.5, 0.06, lx, y + 1.15, z - 0.4, P.black, M.smooth, NC)
+				Kit.cyl(m, 0.62, 0.16, lx, y + 0.84, z - 0.4, P.wood_black, M.wood, NC)
+				local body = Kit.blob(m, 1.2, 1.5, 1.2, lx, y, z - 0.4, P.lacquer, M.smooth, NC)
+				Kit.cyl(m, 0.62, 0.16, lx, y - 0.84, z - 0.4, P.wood_black, M.wood, NC)
+				Kit.light(body, "Point", P.lamp_warm, 12, 1.2)
+			end
+		end
 	end
-	return face
+	-- the letters: the name (with a small らーめん ・ 寿司 under it) or the classic text
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = "Letters"
+	gui.Face = Enum.NormalId.Front
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 40
+	gui.LightInfluence = style == "neon" and 0 or 1
+	gui.Brightness = style == "neon" and 2.2 or 1
+	gui.Parent = face
+	local title = Instance.new("TextLabel")
+	title.Name = "Name"
+	title.BackgroundTransparency = 1
+	title.Position = UDim2.fromScale(0.03, name and 0.02 or 0.08)
+	title.Size = UDim2.fromScale(0.94, name and 0.68 or 0.84)
+	title.Text = name or Signs.DefaultText
+	title.TextScaled = true
+	title.TextColor3 = textC
+	title.FontFace = name and SIGN_FONTS[style] or JP_FONT
+	title.AutoLocalize = false
+	title.Parent = gui
+	if name then
+		local sub = Instance.new("TextLabel")
+		sub.Name = "Subtitle"
+		sub.BackgroundTransparency = 1
+		sub.Position = UDim2.fromScale(0.25, 0.72)
+		sub.Size = UDim2.fromScale(0.5, 0.24)
+		sub.Text = Signs.Subtitle
+		sub.TextScaled = true
+		sub.TextColor3 = textC
+		sub.TextTransparency = 0.15
+		sub.FontFace = JP_FONT
+		sub.AutoLocalize = false
+		sub.Parent = gui
+	end
+	-- the deluxe facade adds golden tubes over and under the sign (neon glows already)
+	if deluxe and style ~= "neon" then
+		for _, dy in ipairs({ -(h / 2 + 0.1), h / 2 + 0.1 }) do
+			Kit.box(m, w, 0.1, 0.1, x, y + dy, z - 0.25, P.neon_yellow, M.neon, NC)
+		end
+		Kit.light(face, "Surface", P.neon_yellow, 12, 1.5, { face = Enum.NormalId.Front })
+	end
+	for _, d in ipairs(m:GetDescendants()) do
+		if d:IsA("BasePart") then
+			tag(d, "Roof")
+		end
+	end
+	m.PrimaryPart = face
+	m.Parent = parent
+	return m
 end
 
 -- "Open / preparing" plate next to the door; returns the TextLabel

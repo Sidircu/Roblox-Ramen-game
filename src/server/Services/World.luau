@@ -165,6 +165,7 @@ function World.rebuild(plot, data)
 	local result = Scene.shell(f.shell, World.geo(plot), data)
 	plot.openLabel = result.openLabel
 	plot.openSign = result.openSign
+	plot.shopSign = result.shopSign
 	-- a "for sale" sign on every ground-floor room that can be built next (its rooms before it
 	-- are owned); the sign goes when the room is bought (the shell is built again)
 	for _, e in ipairs(Expansions.list) do
@@ -184,7 +185,7 @@ function World.rebuild(plot, data)
 	-- the supplier tablet and menu board are per restaurant
 	for _, d in ipairs(f.shell:GetDescendants()) do
 		local uid = d:GetAttribute("Uid")
-		if uid == "fixed_supplier" or uid == "fixed_menu" or uid == "fixed_opensign" then
+		if uid == "fixed_supplier" or uid == "fixed_menu" or uid == "fixed_opensign" or uid == "fixed_shopsign" then
 			d:SetAttribute("Uid", uid .. "_" .. plot.id)
 			d:SetAttribute("PlotId", plot.id)
 		end
@@ -222,11 +223,46 @@ function World.paintOpenSign(plot)
 	end
 end
 
+-- the restaurant's sign over the door is built again with the owner's name, style and colours
+-- (Signs); the giant sign on the roof, when bought, takes the new name at once
+function World.paintSign(plot)
+	local d = Core.S.Plots.data(plot)
+	local f = World.folders(plot)
+	if not d or not f.shell or not plot.shopSign then
+		return
+	end
+	local holder = Instance.new("Folder")
+	local m = Registry.Building.shopSign(holder, d.sign, d.zones.facade_deluxe)
+	m:SetAttribute("Uid", "fixed_shopsign_" .. plot.id)
+	m:SetAttribute("Kind", "shopsign")
+	m:SetAttribute("PlotId", plot.id)
+	CollectionService:AddTag(m, "Interactable")
+	for _, part in ipairs(m:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.CollisionGroup = "Shell"
+		end
+	end
+	Core.S.Plots.shift(m, plot)
+	local old = plot.shopSign
+	m.Parent = old.Parent or f.shell
+	old:Destroy()
+	holder:Destroy()
+	plot.shopSign = m
+	-- the giant sign on the roof shows the name too
+	local giant = f.shell:FindFirstChild("GiantName", true)
+	if giant then
+		local sign = d.sign
+		local named = sign and sign.shown and sign.shown ~= ""
+		giant.Text = named and sign.shown or "ラーメン 寿司"
+	end
+end
+
 -- the owner left: back to an empty lot
 function World.clear(plot)
 	plot.geo = nil
 	plot.openLabel = nil
 	plot.openSign = nil
+	plot.shopSign = nil
 	plot.closed = false
 	local f = World.folders(plot)
 	f.items:ClearAllChildren()

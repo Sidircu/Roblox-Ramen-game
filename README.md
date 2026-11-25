@@ -10,7 +10,7 @@ Gioco Roblox tycoon: gestisci un ristorante giapponese di ramen e sushi, cucini 
 5. **Game Settings → Places → Max Players: 4** (un ristorante per giocatore lungo la strada).
 6. Premi **Play**. Per provare la strada con più giocatori: **Test → Clients and Servers** con 2–4 giocatori. In Studio tutti contano come amici, quindi ognuno può aiutare negli altri locali; nel gioco pubblicato possono aiutare gli amici del proprietario (o tutti, se lo sceglie nell'app Amici).
 
-**Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, tasto destro posa la scatola, G posa, Shift corri, Q per liberare il mouse e cliccare i pulsanti (di nuovo Q per tornare a guardare), U negozio, B costruisci, O fornitore, P altro, R regali. Su telefono e tablet si tocca il pulsante che compare sopra l'oggetto. Mentre i noodles bollono, clicca nel verde della barra per una ciotola perfetta. Il cartello **OPEN** accanto alla porta (fuori) apre e chiude il ristorante; la sensibilità della visuale si sceglie in Impostazioni (Alta, Media, Bassa) e si moltiplica con quella del menu di Roblox (Esc → Impostazioni → sensibilità della telecamera). Sempre in Impostazioni, **Altri locali → Solo fuori** nasconde sul tuo schermo gli interni degli altri ristoranti della strada (utile sui telefoni).
+**Comandi** (prima persona, si cambia in Impostazioni → Telecamera): mouse per guardarti intorno, clic o E sul pallino al centro per usare, tasto destro posa la scatola, G posa, Shift corri, Q per liberare il mouse e cliccare i pulsanti (di nuovo Q per tornare a guardare), U negozio, B costruisci, O fornitore, P altro, R regali. Su telefono e tablet si tocca il pulsante che compare sopra l'oggetto. Mentre i noodles bollono, clicca nel verde della barra per una ciotola perfetta. Il cartello **OPEN** accanto alla porta (fuori) apre e chiude il ristorante; la sensibilità della visuale si sceglie in Impostazioni (Alta, Media, Bassa) e si moltiplica con quella del menu di Roblox (Esc → Impostazioni → sensibilità della telecamera). Sempre in Impostazioni, **Altri locali → Solo fuori** nasconde sul tuo schermo gli interni degli altri ristoranti della strada (utile sui telefoni). L'**insegna sopra la porta** si personalizza toccandola (o con l'app 🏮 Insegna del telefono): nome del ristorante, stile (legno, lacca, noren, neon, lanterne) e colori; il nome passa dal filtro di Roblox prima di comparire. In Studio il filtro di Roblox non filtra (il nome compare com'è scritto): per vedere i nomi bloccati prova il gioco pubblicato.
 
 Pannello sviluppatore (P → app 🛠️ Dev, solo in Studio o per il creatore del gioco): yen, livelli, licenze, zone, scorte, clienti, chiusura della giornata, premio giornaliero del giorno dopo.
 
@@ -69,7 +69,8 @@ salvataggi; un giocatore su telefono che gioca con il client vero (postazione, c
 come sullo schermo); il tutorial completo; e chi torna a giocare (guadagni offline, calendario del premio
 giornaliero, bacheche delle classifiche, pass Personale extra); il primo franchise (cosa si azzera e cosa
 resta); il secondo piano e il tetto (gradini regolari, pianerottolo, ringhiere, apertura nel pavimento);
-l'impostazione Altri locali (interni degli altri ristoranti nascosti solo sul tuo schermo).
+l'impostazione Altri locali (interni degli altri ristoranti nascosti solo sul tuo schermo); l'insegna del
+ristorante (editor, filtro, stili, chi può cambiarla).
 Ogni errore del gioco fa fallire la prova.
 ```
 python3 tools/sim.py                 # tutti gli scenari
@@ -96,6 +97,7 @@ python3 tools/preview.py facade out.png            # facciata del ristorante
 python3 tools/preview.py interior out.png --zones=dining,kitchen
 python3 tools/preview.py street out.png --focus=-60,20,-40,0
 python3 tools/preview.py plots out.png              # la strada con i 4 lotti (2 locali e 2 lotti liberi)
+python3 tools/preview.py signs out.png              # i cinque stili dell'insegna, uno sopra l'altro
 python3 tools/preview.py interior out.png --basic          # locale iniziale, senza ristrutturazioni
 python3 tools/preview.py interior out.png --swap=stool_wood:stool_red \
   "--place=ramenya_canopy@-6,15.6,0,c;water_pitcher@-7.5,14.6,0,t,3.5" --clip=-19,19,0.8,30 --view=14,72,2.4

@@ -209,6 +209,12 @@ local function actionText(model, kind, slot)
 		return t("hint.supplier")
 	elseif kind == "menuboard" then
 		return t("hint.menuboard")
+	elseif kind == "shopsign" then
+		-- the restaurant's sign over the door: its owner (or a co-manager) can change it
+		if Core.C.Data.canBuild() and Core.C.Data.isMine(model) then
+			return "🏮 " .. t("hint.sign_edit")
+		end
+		return nil
 	elseif kind == "opensign" then
 		-- the LED sign by the door: what pressing does now (Plots.setOpen, plot attribute "Open")
 		local folder = Core.C.Data.plotFolder(model:GetAttribute("PlotId"))
@@ -453,6 +459,9 @@ act = function(tap)
 		return
 	elseif current.kind == "menuboard" then
 		Core.C.UI.open("Menu")
+		return
+	elseif current.kind == "shopsign" then
+		Core.C.UI.open("Sign")
 		return
 	elseif current.kind == "opensign" then
 		-- opens or closes the restaurant (the server checks who you are and that you are near)

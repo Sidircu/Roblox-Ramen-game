@@ -11,6 +11,7 @@ It runs the real builder modules (src/shared/Models) on a small Roblox API mock
   python3 tools/preview.py interior out.png      (roof removed, starter layout)
   python3 tools/preview.py street out.png   [--focus=xmin,xmax,zmin,zmax] frames an area
   python3 tools/preview.py plots out.png     (the street of four restaurants, two of them empty lots)
+  python3 tools/preview.py signs out.png     (the five styles of the restaurant sign)
   python3 tools/preview.py people casual suit tourist elder trendy vip child:casual staff:staff_waiter casual@angry out.png
   --basic   plain starting look (no renovations / detail styles); default is the finished look
   --swap=stool_wood:stool_red   --place=id@x,z,r,s[,y];...   --surfaces=zone=floor_id/wall_id
@@ -130,6 +131,30 @@ function scene_items(ids)
       x = 0
       z = z + rowDepth + 2.5
       rowDepth = 0
+    end
+  end
+  return root
+end
+
+-- the five styles of the restaurant sign (Config/Signs) side by side, each with its own colours
+function scene_signs()
+  local root = Instance.new("Model")
+  local Signs = require(Shared.Config.Signs)
+  local B = Registry.Building
+  local looks = {
+    { style = "wood", board = "hinoki", text = "ink" },
+    { style = "lacquer", board = "red", text = "gold" },
+    { style = "noren", board = "indigo", text = "white" },
+    { style = "neon", board = "indigo", text = "sakura" },
+    { style = "lanterns", board = "cream", text = "red" },
+  }
+  for i, look in ipairs(looks) do
+    local sign = { name = "Sakura Ramen", shown = "Sakura Ramen", style = look.style, board = look.board, text = look.text }
+    local m = B.shopSign(root, sign, false)
+    for _, d in ipairs(m:GetDescendants()) do
+      if d:IsA("BasePart") then
+        d.CFrame = d.CFrame + Vector3.new(0, (3 - i) * 4.2, 0)
+      end
     end
   end
   return root
@@ -537,6 +562,10 @@ def main():
         root = lua.eval("scene_people")(lua.table_from(args[:-1]))
         out = args[-1]
         opts = {"elev": 6, "azim": 90, "zoom": 1.5} if "--view=" not in " ".join(sys.argv) else opts
+    elif kind == "signs":
+        root = lua.eval("scene_signs")()
+        out = args[0]
+        opts = {"elev": 4, "azim": 90, "zoom": 1.2} if "--view=" not in " ".join(sys.argv) else opts
     elif kind == "facade":
         root = lua.eval("scene_restaurant")(True)
         out = args[0]

@@ -463,6 +463,7 @@ Totale ¥226.800 e +122 atmosfera (circa un livello di ambiente in più a metà 
 | Consigli della prima volta | scaffali: un ingrediente del menu a 3 porzioni o meno · piatti: 3 sporchi nel lavello · negozio: qualcosa da comprare · personale: livello 6 senza aiutanti · cartello OPEN: dopo 3 piatti serviti; ognuno resta 12 s, almeno 20 s tra due consigli |
 | Apertura | il ristorante è aperto a ogni ingresso; il cartello OPEN/CLOSED accanto alla porta lo chiude (nessun nuovo cliente) e lo riapre; solo proprietario e co-gestori, a meno di 17 stud dal cartello |
 | Altri locali (`settings.others`) | «show» (predefinito) o «hide»: con «hide» gli interni degli altri ristoranti distanti almeno 150 stud lungo la strada si nascondono sul tuo schermo |
+| Insegna del ristorante (`Config/Signs.luau`) | gratis; nome da 2 a 24 lettere (`MinName`, `MaxName`, spazi compresi; vuoto = らーめん ・ 寿司), 5 stili (legno, lacca, noren, neon, lanterne), 12 colori per la tavola e 12 per le lettere; si parte da legno, tavola hinoki, lettere inchiostro; una modifica ogni 3 s (`MinSecondsBetweenChanges`); sulla facciata a 11,6 stud d'altezza, larga 18 e alta 2,6 (`Facade`); la versione neon aggiunge 1 luce, quella a lanterne 2; resta con il franchise |
 | Sensibilità (`GameConfig.Sensitivity`) | Alta ×2,4 · Media ×1,6 (predefinita) · Bassa ×1 sulla rotazione della telecamera di Roblox in prima persona (mouse, gamepad e touch; si moltiplica con la sensibilità del menu Esc di Roblox); la terza persona usa la scelta divisa per Media (Media = velocità di prima) |
 
 ---

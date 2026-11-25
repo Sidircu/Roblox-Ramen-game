@@ -8,6 +8,7 @@ local HttpService = game:GetService("HttpService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local StarterLayout = require(Shared.Config.StarterLayout)
+local Signs = require(Shared.Config.Signs)
 local Surfaces = require(Shared.Config.Surfaces)
 local Recipes = require(Shared.Config.Recipes)
 local Ingredients = require(Shared.Config.Ingredients)
@@ -33,7 +34,7 @@ local storeOk = false
 Data.WorldKeys = {
 	"level", "xp", "licenses", "menu", "mastery", "upgrades", "zones", "surfaces", "placed",
 	"staff", "reviews", "dishes", "franchise", "boosts", "ads", "perms", "stats", "storage",
-	"shelves", "appliances", "inventory", "yen", "sakura", "settings",
+	"shelves", "appliances", "inventory", "yen", "sakura", "settings", "sign",
 }
 local WORLD_KEY_SET = {}
 for _, k in ipairs(Data.WorldKeys) do
@@ -67,6 +68,9 @@ function Data.newProfile()
 		boosts = {},
 		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, tutorialGifts = {}, hints = {}, offlinePending = 0, codes = {}, onboarding = true, funnel = {} },
 		franchise = { stars = 0, city = "tokyo" },
+		-- the sign over the door (Config/Signs, Services/Signs): name typed, name shown after the
+		-- Roblox filter, style and colours
+		sign = { name = "", shown = "", style = Signs.Default.style, board = Signs.Default.board, text = Signs.Default.text },
 		perms = {},
 		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = GameConfig.Sensitivity.Medium, coop = "friends", others = "show" },
 		passes = {},
@@ -300,8 +304,15 @@ function Data.waitFor(player, timeout)
 	return Data.get(player)
 end
 
-local function payload(value)
-	return TableUtil.deepCopy(value)
+-- what a client gets of a profile key. The sign's name as it was typed stays on the server: other
+-- players (helpers, co-managers, the owner when someone else wrote it) may only see the text
+-- Roblox's filter returned (`shown`, Services/Signs)
+local function payload(k, value)
+	local copy = TableUtil.deepCopy(value)
+	if k == "sign" and type(copy) == "table" then
+		copy.name = nil
+	end
+	return copy
 end
 
 -- Notify clients that `k` changed in `player`'s profile: the player gets it as "me"; the helpers
@@ -312,13 +323,13 @@ function Data.changed(player, k)
 		return
 	end
 	local Net = Core.S.Net
-	Net.fire(player, "DataChanged", "me", k, payload(d[k]))
+	Net.fire(player, "DataChanged", "me", k, payload(k, d[k]))
 	local Plots = Core.S.Plots
 	local plot = WORLD_KEY_SET[k] and Plots and Plots.ofPlayer(player)
 	if plot then
 		for _, other in ipairs(Plots.workers(plot)) do
 			if other ~= player then
-				Net.fire(other, "DataChanged", "world", k, payload(d[k]))
+				Net.fire(other, "DataChanged", "world", k, payload(k, d[k]))
 			end
 		end
 	end
@@ -333,7 +344,7 @@ function Data.worldOf(plot)
 	end
 	local world = {}
 	for _, k in ipairs(Data.WorldKeys) do
-		world[k] = TableUtil.deepCopy(od[k])
+		world[k] = payload(k, od[k])
 	end
 	return world
 end
@@ -345,6 +356,7 @@ function Data.snapshot(player)
 	end
 	local me = TableUtil.deepCopy(d)
 	me.receipts = nil
+	me.sign = payload("sign", d.sign)
 	local Plots = Core.S.Plots
 	local plot = Plots and Plots.of(player)
 	-- in your own restaurant "world" is your own data (the client uses "me")

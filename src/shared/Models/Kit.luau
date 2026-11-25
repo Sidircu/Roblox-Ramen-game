@@ -35,6 +35,20 @@ local function apply(p, color, material, props)
 	return p
 end
 
+-- A copy of props with the given part shape. The callers' tables are often shared between many
+-- parts (a builder's NC / NQ), so the shape must never be written into them: a box made with the
+-- same table after a ball would turn into a ball too.
+local function withShape(props, shape)
+	local o = {}
+	if props then
+		for k, v in pairs(props) do
+			o[k] = v
+		end
+	end
+	o.shape = shape
+	return o
+end
+
 function Kit.model(name)
 	local m = Instance.new("Model")
 	m.Name = name or "Model"
@@ -72,8 +86,7 @@ end
 
 -- Vertical cylinder: diameter d, height h, centered at x, y, z
 function Kit.cyl(parent, d, h, x, y, z, color, material, props)
-	props = props or {}
-	props.shape = Enum.PartType.Cylinder
+	props = withShape(props, Enum.PartType.Cylinder)
 	local cf = CFrame.new(x, y, z) * CFrame.Angles(0, 0, math.rad(90))
 	if props.rot then
 		cf = CFrame.new(x, y, z) * props.rot * CFrame.Angles(0, 0, math.rad(90))
@@ -83,8 +96,7 @@ end
 
 -- Horizontal cylinder along X (length l) or along Z (axis = "z")
 function Kit.cylH(parent, d, l, x, y, z, color, material, props, axis)
-	props = props or {}
-	props.shape = Enum.PartType.Cylinder
+	props = withShape(props, Enum.PartType.Cylinder)
 	local cf = CFrame.new(x, y, z)
 	if axis == "z" then
 		cf = cf * CFrame.Angles(0, math.rad(90), 0)
@@ -96,8 +108,7 @@ function Kit.cylH(parent, d, l, x, y, z, color, material, props, axis)
 end
 
 function Kit.ball(parent, d, x, y, z, color, material, props)
-	props = props or {}
-	props.shape = Enum.PartType.Ball
+	props = withShape(props, Enum.PartType.Ball)
 	return Kit.part(parent, Vector3.new(d, d, d), CFrame.new(x, y, z), color, material, props)
 end
 

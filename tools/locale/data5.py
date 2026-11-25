@@ -154,3 +154,27 @@ REVAMP += [
 ("ui.others_show","Show all","Mostra tutto"),
 ("ui.others_hide","Only the outside","Solo fuori"),
 ]
+# the restaurant's sign over the door (Screens/Sign, Services/Signs)
+REVAMP += [
+("ui.sign","Sign","Insegna"),
+("ui.sign_name","Restaurant name","Nome del ristorante"),
+("ui.sign_placeholder","Your restaurant's name","Il nome del tuo ristorante"),
+("ui.sign_idea","Idea","Idea"),
+("ui.sign_style","Style","Stile"),
+("ui.sign_board","Sign colour","Colore dell'insegna"),
+("ui.sign_letters","Letter colour","Colore delle lettere"),
+("ui.sign_filter_note","Everybody on the street sees the name: Roblox checks it first, and words that are not allowed become ####.","Il nome lo vedono tutti sulla strada: Roblox lo controlla prima, e le parole non permesse diventano ####."),
+("ui.sign_owner_only","Only the owner and co-managers can change the sign","Solo il proprietario e i co-gestori possono cambiare l'insegna"),
+("ui.sign_classic","Classic","Classica"),
+("ui.sign_save","Save","Salva"),
+("sign.style_wood","Wood","Legno"),
+("sign.style_lacquer","Lacquer","Lacca"),
+("sign.style_noren","Noren","Noren"),
+("sign.style_neon","Neon","Neon"),
+("sign.style_lanterns","Lanterns","Lanterne"),
+("hint.sign_edit","Customise the sign","Personalizza l'insegna"),
+("msg.sign_saved","🏮 The new sign is up!","🏮 La nuova insegna è appesa!"),
+("msg.sign_length","The name needs {min} to {max} letters.","Il nome deve avere da {min} a {max} lettere."),
+("msg.sign_wait","Wait a moment before changing the sign again.","Aspetta un attimo prima di cambiare di nuovo l'insegna."),
+("msg.sign_filter_failed","Roblox cannot check the name right now: try again in a moment.","Roblox non riesce a controllare il nome in questo momento: riprova tra poco."),
+]

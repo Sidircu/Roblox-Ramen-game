@@ -107,7 +107,7 @@ do
 	spin:Disconnect()
 	gui:Destroy()
 end
-]]></ProtectedString></Properties></Item></Item><Item class="ReplicatedStorage" referent="RBX000068"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000066"><Properties><string name="Name">Shared</string></Properties><Item class="Folder" referent="RBX000028"><Properties><string name="Name">Config</string></Properties><Item class="ModuleScript" referent="RBX000003"><Properties><string name="Name">Achievements</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ReplicatedStorage" referent="RBX000069"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="Folder" referent="RBX000067"><Properties><string name="Name">Shared</string></Properties><Item class="Folder" referent="RBX000029"><Properties><string name="Name">Config</string></Properties><Item class="ModuleScript" referent="RBX000003"><Properties><string name="Name">Achievements</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Achievements are generated from tiered templates. Name key: "ach.<stat>" with {n}.
 local templates = {
 	{ stat = "dishes", tiers = { 10, 100, 1000, 10000, 100000 }, sakura = { 5, 10, 20, 35, 50 } },
@@ -1200,7 +1200,64 @@ for i, s in ipairs(list) do
 	byId[s.id] = s
 end
 return { list = list, byId = byId }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000023"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000023"><Properties><string name="Name">Signs</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- The restaurant's sign over the door (and the giant sign on the roof, when bought): the name,
+-- the look and the colours chosen by the owner in Screens/Sign. The name is filtered by Roblox
+-- (TextService, server Signs) before anybody sees it; with no name the sign says らーめん ・ 寿司.
+local Colors = {
+	{ id = "hinoki", hex = "#E3C79A" },
+	{ id = "wood", hex = "#8A5A36" },
+	{ id = "ink", hex = "#2B2320" },
+	{ id = "black", hex = "#151312" },
+	{ id = "red", hex = "#B3262E" },
+	{ id = "orange", hex = "#E07A2E" },
+	{ id = "gold", hex = "#D4A23C" },
+	{ id = "cream", hex = "#F4EBDD" },
+	{ id = "white", hex = "#FFFFFF" },
+	{ id = "sakura", hex = "#F2A7B5" },
+	{ id = "matcha", hex = "#5E8F3A" },
+	{ id = "indigo", hex = "#2E3A5C" },
+}
+
+-- wood: a carved board in a dark frame; lacquer: a glossy board with a gold frame; noren: three
+-- cloth panels hanging from a rod; neon: glowing letters and a neon tube round a dark board;
+-- lanterns: a board between two paper lanterns
+local Styles = {
+	{ id = "wood", icon = "🪵" },
+	{ id = "lacquer", icon = "🏯" },
+	{ id = "noren", icon = "🎌" },
+	{ id = "neon", icon = "💡" },
+	{ id = "lanterns", icon = "🏮" },
+}
+
+local colorById, styleById = {}, {}
+for i, c in ipairs(Colors) do
+	c.order = i
+	colorById[c.id] = c
+end
+for i, s in ipairs(Styles) do
+	s.order = i
+	styleById[s.id] = s
+end
+
+return {
+	Colors = Colors,
+	ColorById = colorById,
+	Styles = Styles,
+	StyleById = styleById,
+	-- letters in a name (spaces count)
+	MinName = 2,
+	MaxName = 24,
+	-- what every restaurant starts with: the classic board with dark letters
+	Default = { name = "", shown = "", style = "wood", board = "hinoki", text = "ink" },
+	-- the text of a sign without a name, and the small line under a name
+	DefaultText = "らーめん ・ 寿司",
+	Subtitle = "らーめん ・ 寿司",
+	-- the facade sign (restaurant-local, over the door) and how often a player may change it
+	Facade = { x = 0, y = 11.6, z = -0.9, width = 18, height = 2.6 },
+	MinSecondsBetweenChanges = 3,
+}
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000024"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Staff roles. Training levels 1..5: cost = hire * 0.8 * 2.2^(level-1), +15% speed per level.
 local list = {
 	{ id = "staff_waiter", icon = "🧑‍🍳", lv = 5, hire = 3500, salary = 300, tasks = { "order", "serve", "collect", "wash" }, shirt = "#2E3A5C" },
@@ -1233,7 +1290,7 @@ return {
 	PassSlots = 2, -- more places with the Extra staff game pass (Config/Monetization)
 	SlotsByZone = { zone_east = 1, zone_west = 1, zone_terrace = 1, zone_tatami = 1, zone_kitchen_pro = 3, zone_floor2 = 3 },
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000024"><Properties><string name="Name">StarterLayout</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000025"><Properties><string name="Name">StarterLayout</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Objects placed in a brand-new restaurant (all can be moved later). The start is simple but
 -- warm: paper lanterns over the counter and bamboo in the corners of the dining room; the other
 -- decorations and the renovations (Config/Expansions) are bought over time.
@@ -1310,7 +1367,7 @@ return {
 	broth = "broth_shoyu",
 
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000025"><Properties><string name="Name">Surfaces</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000026"><Properties><string name="Name">Surfaces</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Floor and wall styles, applied per zone.
 local list = {
 	{ id = "floor_wood_light", kind = "floor", price = 0, lv = 1, color = "#C8A27A", material = "WoodPlanks" },
@@ -1343,7 +1400,7 @@ return {
 	DefaultWall = "wall_plaster",
 	OutdoorFloor = "deck",
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000026"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000027"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- The first two minutes (Controllers/Tutorial) and the one-time tips that come after it
 -- (Controllers/Hints). Rewards are given by the server (Services/Meta) only when the player
 -- really did the thing: a dish served, a dish washed.
@@ -1370,7 +1427,7 @@ return {
 	HintSeconds = 12, -- a tip stays this long (or until it is done)
 	HintGap = 20, -- seconds between two tips
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000027"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000028"><Properties><string name="Name">Upgrades</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Upgrades: costs[n] buys level n, levels[n] is the required restaurant level,
 -- values[n + 1] is the effect at level n (values[1] = level 0).
 local function geometric(base, factor, count)
@@ -1421,7 +1478,7 @@ return {
 	byId = byId,
 	value = value,
 }
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000031"><Properties><string name="Name">Locale</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000032"><Properties><string name="Name">Locale</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Localization: Locale.t("key", { param = value }). Languages: en (base), it.
 local Signal = require(script.Parent.Util.Signal)
 local Format = require(script.Parent.Util.Format)
@@ -1504,7 +1561,7 @@ function Locale.name(prefix, id)
 end
 
 return Locale
-]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX000029"><Properties><string name="Name">en</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX000030"><Properties><string name="Name">en</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- English texts. Every key must exist in both en.luau and it.luau.
 return {
 	["ach.customers"] = "Welcome {n} customers",
@@ -1657,6 +1714,7 @@ return {
 	["hint.rice_status"] = "🍚 {n} portions ready",
 	["hint.serve"] = "Serve {dish}",
 	["hint.shelf_empty"] = "Empty slot",
+	["hint.sign_edit"] = "Customise the sign",
 	["hint.sink"] = "Sink",
 	["hint.sink_drop"] = "Put the dirty dishes here",
 	["hint.slot_add"] = "Add {name}: {free} free spots",
@@ -1970,6 +2028,10 @@ return {
 	["msg.shelf_full_other"] = "This shelf is full: another shelf has room for it.",
 	["msg.shop_closed"] = "🔴 Closed: no new customers until you open again (the ones inside are served).",
 	["msg.shop_opened"] = "🟢 The restaurant is open: customers are coming!",
+	["msg.sign_filter_failed"] = "Roblox cannot check the name right now: try again in a moment.",
+	["msg.sign_length"] = "The name needs {min} to {max} letters.",
+	["msg.sign_saved"] = "🏮 The new sign is up!",
+	["msg.sign_wait"] = "Wait a moment before changing the sign again.",
 	["msg.sink_hint"] = "Bring dirty dishes here.",
 	["msg.slot_full"] = "This slot is full: click another one.",
 	["msg.slot_other"] = "{name} is on this slot: put your box on an empty slot.",
@@ -2053,6 +2115,11 @@ return {
 	["set.sakura"] = "Cherry blossom set",
 	["set.samurai"] = "Samurai set",
 	["set.zen"] = "Zen garden set",
+	["sign.style_lacquer"] = "Lacquer",
+	["sign.style_lanterns"] = "Lanterns",
+	["sign.style_neon"] = "Neon",
+	["sign.style_noren"] = "Noren",
+	["sign.style_wood"] = "Wood",
 	["staff.staff_dishwasher"] = "Dishwasher",
 	["staff.staff_line_cook"] = "Line cook",
 	["staff.staff_manager"] = "Manager",
@@ -2290,6 +2357,17 @@ return {
 	["ui.sfx"] = "Sound effects",
 	["ui.shop"] = "Shop",
 	["ui.shop_soon"] = "Coming soon!",
+	["ui.sign"] = "Sign",
+	["ui.sign_board"] = "Sign colour",
+	["ui.sign_classic"] = "Classic",
+	["ui.sign_filter_note"] = "Everybody on the street sees the name: Roblox checks it first, and words that are not allowed become ####.",
+	["ui.sign_idea"] = "Idea",
+	["ui.sign_letters"] = "Letter colour",
+	["ui.sign_name"] = "Restaurant name",
+	["ui.sign_owner_only"] = "Only the owner and co-managers can change the sign",
+	["ui.sign_placeholder"] = "Your restaurant's name",
+	["ui.sign_save"] = "Save",
+	["ui.sign_style"] = "Style",
 	["ui.skip"] = "Skip",
 	["ui.slow"] = "Slow",
 	["ui.staff"] = "Staff",
@@ -2411,7 +2489,7 @@ return {
 	["zonedesc.zone_terrace"] = "Outdoor seats with lanterns",
 	["zonedesc.zone_west"] = "A big new dining hall",
 }
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000030"><Properties><string name="Name">it</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000031"><Properties><string name="Name">it</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Italian texts. Every key must exist in both en.luau and it.luau.
 return {
 	["ach.customers"] = "Accogli {n} clienti",
@@ -2564,6 +2642,7 @@ return {
 	["hint.rice_status"] = "🍚 {n} porzioni pronte",
 	["hint.serve"] = "Servi {dish}",
 	["hint.shelf_empty"] = "Slot vuoto",
+	["hint.sign_edit"] = "Personalizza l'insegna",
 	["hint.sink"] = "Lavello",
 	["hint.sink_drop"] = "Posa qui i piatti sporchi",
 	["hint.slot_add"] = "Aggiungi {name}: {free} posti liberi",
@@ -2877,6 +2956,10 @@ return {
 	["msg.shelf_full_other"] = "Questa mensola è piena: su un'altra c'è posto.",
 	["msg.shop_closed"] = "🔴 Chiuso: nessun nuovo cliente finché non riapri (chi è dentro viene servito).",
 	["msg.shop_opened"] = "🟢 Il ristorante è aperto: arrivano i clienti!",
+	["msg.sign_filter_failed"] = "Roblox non riesce a controllare il nome in questo momento: riprova tra poco.",
+	["msg.sign_length"] = "Il nome deve avere da {min} a {max} lettere.",
+	["msg.sign_saved"] = "🏮 La nuova insegna è appesa!",
+	["msg.sign_wait"] = "Aspetta un attimo prima di cambiare di nuovo l'insegna.",
 	["msg.sink_hint"] = "Porta qui le stoviglie sporche.",
 	["msg.slot_full"] = "Questo ripiano è pieno: clicca un altro ripiano.",
 	["msg.slot_other"] = "Su questo ripiano c'è {name}: metti la scatola su un ripiano vuoto.",
@@ -2960,6 +3043,11 @@ return {
 	["set.sakura"] = "Set Ciliegi",
 	["set.samurai"] = "Set Samurai",
 	["set.zen"] = "Set Giardino zen",
+	["sign.style_lacquer"] = "Lacca",
+	["sign.style_lanterns"] = "Lanterne",
+	["sign.style_neon"] = "Neon",
+	["sign.style_noren"] = "Noren",
+	["sign.style_wood"] = "Legno",
 	["staff.staff_dishwasher"] = "Lavapiatti",
 	["staff.staff_line_cook"] = "Cuoco di linea",
 	["staff.staff_manager"] = "Manager",
@@ -3197,6 +3285,17 @@ return {
 	["ui.sfx"] = "Effetti sonori",
 	["ui.shop"] = "Negozio",
 	["ui.shop_soon"] = "In arrivo!",
+	["ui.sign"] = "Insegna",
+	["ui.sign_board"] = "Colore dell'insegna",
+	["ui.sign_classic"] = "Classica",
+	["ui.sign_filter_note"] = "Il nome lo vedono tutti sulla strada: Roblox lo controlla prima, e le parole non permesse diventano ####.",
+	["ui.sign_idea"] = "Idea",
+	["ui.sign_letters"] = "Colore delle lettere",
+	["ui.sign_name"] = "Nome del ristorante",
+	["ui.sign_owner_only"] = "Solo il proprietario e i co-gestori possono cambiare l'insegna",
+	["ui.sign_placeholder"] = "Il nome del tuo ristorante",
+	["ui.sign_save"] = "Salva",
+	["ui.sign_style"] = "Stile",
 	["ui.skip"] = "Salta",
 	["ui.slow"] = "Lenta",
 	["ui.staff"] = "Personale",
@@ -3318,7 +3417,7 @@ return {
 	["zonedesc.zone_terrace"] = "Posti all'aperto con le lanterne",
 	["zonedesc.zone_west"] = "Una nuova sala grande",
 }
-]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000043"><Properties><string name="Name">Logic</string></Properties><Item class="ModuleScript" referent="RBX000032"><Properties><string name="Name">Ambience</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000044"><Properties><string name="Name">Logic</string></Properties><Item class="ModuleScript" referent="RBX000033"><Properties><string name="Name">Ambience</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Ambience score, tiers and decoration set bonuses (pure).
 local Ambience = {}
 
@@ -3397,7 +3496,7 @@ function Ambience.compute(placed, items, surfaces, zoneSurfaces, extra, sets)
 end
 
 return Ambience
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000033"><Properties><string name="Name">Footprint</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000034"><Properties><string name="Name">Footprint</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- 2D oriented rectangles on the XZ plane (pure). A footprint is {x, z, w, d, r} (r in degrees).
 local Footprint = {}
 
@@ -3543,7 +3642,7 @@ function Footprint.subtractRect(r, hole)
 end
 
 return Footprint
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000034"><Properties><string name="Name">Formulas</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000035"><Properties><string name="Name">Formulas</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Pure game formulas (no Roblox APIs). See docs/03-BILANCIAMENTO.md §1.
 local Formulas = {}
 
@@ -3702,7 +3801,7 @@ function Formulas.incomeMultiplier(opts)
 end
 
 return Formulas
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000035"><Properties><string name="Name">Geometry</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000036"><Properties><string name="Name">Geometry</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Unlocked restaurant geometry (zones, openings, stairs, walls, door clearances) computed from
 -- the owner's `zones` map. Shared by the server world builder and the client build preview.
 local Walls = require(script.Parent.Walls)
@@ -3800,7 +3899,7 @@ function Geometry.ctx(geo, items, placed, cfg)
 end
 
 return Geometry
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000036"><Properties><string name="Name">Grid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000037"><Properties><string name="Name">Grid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Grid snapping helpers (pure).
 local Grid = {}
 
@@ -3843,7 +3942,7 @@ function Grid.nextRotation(deg, step)
 end
 
 return Grid
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000037"><Properties><string name="Name">Locks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000038"><Properties><string name="Name">Locks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- What a station or the rice cooker still needs before it can be used (for the 🔒 hints): the
 -- cheapest-level license that unlocks one of its recipes, or nil when an owned license already does.
 local Locks = {}
@@ -3878,7 +3977,7 @@ function Locks.rice(owned, recipes, licenses)
 end
 
 return Locks
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000038"><Properties><string name="Name">Pathgrid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000039"><Properties><string name="Name">Pathgrid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Walkability check used when placing objects: every seat must stay reachable from the
 -- entrance, the kitchen and the storage must stay reachable, stairs must stay usable.
 -- Works on a 0.5-stud grid per floor (pure).
@@ -4095,7 +4194,7 @@ function Pathgrid.check(ctx, obstacles, targets, clearance)
 end
 
 return Pathgrid
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000039"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000040"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Placement validation shared by the client preview and the server (pure).
 --
 -- ctx = {
@@ -4431,7 +4530,7 @@ function Placement.wallSpot(ctx, floorWalls, hit, normal, stand, size, g, fy)
 end
 
 return Placement
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000040"><Properties><string name="Name">ShelfGrid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000041"><Properties><string name="Name">ShelfGrid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Product grid of a shelf slot. A slot holds half a supplier box (GameConfig.BoxShelfSlots = 2) laid
 -- out like a chessboard (2x3, 2x5, 3x5...), so a glance tells how many products fit and how many
 -- are missing. The shelf upgrade adds rows towards the back.
@@ -4480,7 +4579,7 @@ function ShelfGrid.cell(k, cols, rows, width, depth)
 end
 
 return ShelfGrid
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000041"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000042"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- What the shop shows for each thing on sale, from the restaurant data `w`:
 --   state "buy"    affordable now
 --         "poor"   unlocked, but not enough yen (missing = how much is missing)
@@ -4673,7 +4772,7 @@ function Shop.sort(entries)
 end
 
 return Shop
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000042"><Properties><string name="Name">Walls</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000043"><Properties><string name="Name">Walls</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Computes wall and railing segments from the unlocked zones (pure).
 -- Segment: { axis = "z" (runs along X at z = line) | "x" (runs along Z at x = line), line, a, b, floor, kind }
 -- Wall segments separate indoor cells from outside or from another room.
@@ -4862,7 +4961,7 @@ function Walls.along(seg, x, z)
 end
 
 return Walls
-]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000057"><Properties><string name="Name">Models</string></Properties><Item class="Folder" referent="RBX000052"><Properties><string name="Name">Builders</string></Properties><Item class="ModuleScript" referent="RBX000044"><Properties><string name="Name">Building</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX000058"><Properties><string name="Name">Models</string></Properties><Item class="Folder" referent="RBX000053"><Properties><string name="Name">Builders</string></Properties><Item class="ModuleScript" referent="RBX000045"><Properties><string name="Name">Building</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Building shell pieces used by the server WorldService (floors, walls, roof, stairs, facade).
 -- All coordinates are world coordinates (the plot origin is the world origin).
 local CollectionService = game:GetService("CollectionService")
@@ -4872,7 +4971,17 @@ local P = require(script.Parent.Parent.Palette)
 local Color = require(script.Parent.Parent.Parent.Util.Color)
 local M = P.M
 
+local Signs = require(script.Parent.Parent.Parent.Config.Signs)
+
 local JP_FONT = Font.new("rbxasset://fonts/families/FredokaOne.json", Enum.FontWeight.Bold)
+-- the letters of each style of shop sign (Config/Signs)
+local SIGN_FONTS = {
+	wood = Font.fromEnum(Enum.Font.Merriweather),
+	lacquer = Font.fromEnum(Enum.Font.Fondamento),
+	noren = Font.fromEnum(Enum.Font.PermanentMarker),
+	neon = Font.fromEnum(Enum.Font.FredokaOne),
+	lanterns = Font.fromEnum(Enum.Font.LuckiestGuy),
+}
 local B = {}
 
 local function tag(part, name, attrs)
@@ -5591,21 +5700,117 @@ function B.window(parent, along, y, seg, outsideSign, w, h, fancy)
 	end
 end
 
--- Big shop sign above the entrance
-function B.sign(parent, x, y, z, w, text, deluxe)
-	local board = Kit.box(parent, w, 2.6, 0.4, x, y, z, deluxe and P.black or P.wood_dark, M.wood, { collide = false })
-	tag(board, "Roof")
-	local face = Kit.box(parent, w - 0.4, 2.1, 0.05, x, y, z - 0.23, deluxe and P.black or P.hinoki, M.wood, { collide = false })
-	tag(face, "Roof")
-	Kit.text(face, Enum.NormalId.Front, text, { color = deluxe and "#FFD23B" or "#2B2320", font = JP_FONT, glow = deluxe, pps = 30 })
-	if deluxe then
-		for _, dy in ipairs({ -1.25, 1.25 }) do
-			local tube = Kit.box(parent, w, 0.1, 0.1, x, y + dy, z - 0.25, P.neon_yellow, M.neon, { collide = false })
-			tag(tube, "Roof")
+-- The restaurant's own sign over the door: the owner's name (filtered, `sign.shown`), style and
+-- colours from Config/Signs (sign = Data.sign; nil = the classic board). Returns the Model
+-- "ShopSign"; its PrimaryPart carries the letters on its front (-Z, towards the street).
+function B.shopSign(parent, sign, deluxe)
+	sign = sign or Signs.Default
+	local cfg = Signs.Facade
+	local x, y, z, w, h = cfg.x, cfg.y, cfg.z, cfg.width, cfg.height
+	local style = Signs.StyleById[sign.style or ""] and sign.style or Signs.Default.style
+	local boardC = Color.hex((Signs.ColorById[sign.board or ""] or Signs.ColorById[Signs.Default.board]).hex)
+	local textC = Color.hex((Signs.ColorById[sign.text or ""] or Signs.ColorById[Signs.Default.text]).hex)
+	local name = (sign.shown and sign.shown ~= "") and sign.shown or nil
+	local NC = { collide = false, shadow = false }
+	local m = Kit.model("ShopSign")
+	local face
+	if style == "lacquer" then
+		-- a glossy board with a gold frame
+		face = Kit.box(m, w, h, 0.4, x, y, z, boardC, M.smooth, { collide = false, reflectance = 0.12 })
+		for _, dy in ipairs({ -h / 2, h / 2 }) do
+			Kit.box(m, w + 0.3, 0.16, 0.48, x, y + dy, z, P.gold, M.foil, NC)
 		end
-		Kit.light(face, "Surface", P.neon_yellow, 12, 2, { face = Enum.NormalId.Front })
+		for _, sx in ipairs({ -1, 1 }) do
+			Kit.box(m, 0.16, h + 0.16, 0.48, x + sx * w / 2, y, z, P.gold, M.foil, NC)
+		end
+	elseif style == "noren" then
+		-- three cloth panels with slits between them, hanging from a rod with round ends
+		Kit.cylH(m, 0.22, w + 0.8, x, y + h / 2 + 0.12, z - 0.12, P.wood_dark, M.wood, NC)
+		for _, sx in ipairs({ -1, 1 }) do
+			Kit.ball(m, 0.36, x + sx * (w / 2 + 0.45), y + h / 2 + 0.12, z - 0.12, P.wood_black, M.wood, NC)
+		end
+		local pw = (w - 0.3) / 3
+		for i = 0, 2 do
+			Kit.box(m, pw - 0.14, h, 0.06, x - w / 2 + 0.15 + pw * (i + 0.5), y, z - 0.12, boardC, M.fabric, NC)
+		end
+		-- the letters run across the three panels
+		face = Kit.box(m, w - 0.2, h - 0.3, 0.02, x, y - 0.05, z - 0.17, boardC, M.fabric, NC)
+		face.Transparency = 1
+	elseif style == "neon" then
+		-- glowing letters and a neon tube round a dark board in the board's colour
+		face = Kit.box(m, w, h, 0.3, x, y, z, boardC:Lerp(Color3.new(0, 0, 0), 0.55), M.smooth, { collide = false })
+		for _, dy in ipairs({ -(h / 2 - 0.12), h / 2 - 0.12 }) do
+			Kit.box(m, w - 0.2, 0.1, 0.1, x, y + dy, z - 0.17, textC, M.neon, NC)
+		end
+		for _, sx in ipairs({ -1, 1 }) do
+			Kit.box(m, 0.1, h - 0.24, 0.1, x + sx * (w / 2 - 0.12), y, z - 0.17, textC, M.neon, NC)
+		end
+		Kit.light(face, "Surface", textC, 12, 1.6, { face = Enum.NormalId.Front })
+	else
+		-- wood (and lanterns): a board in a dark wooden frame
+		Kit.box(m, w, h, 0.4, x, y, z, style == "lanterns" and P.wood_black or P.wood_dark, M.wood, { collide = false })
+		face = Kit.box(m, w - 0.4, h - 0.5, 0.05, x, y, z - 0.23, boardC, M.wood, NC)
+		if style == "lanterns" then
+			-- a paper lantern hanging on each side
+			for _, sx in ipairs({ -1, 1 }) do
+				local lx = x + sx * (w / 2 + 1.1)
+				Kit.box(m, 0.06, 0.5, 0.06, lx, y + 1.15, z - 0.4, P.black, M.smooth, NC)
+				Kit.cyl(m, 0.62, 0.16, lx, y + 0.84, z - 0.4, P.wood_black, M.wood, NC)
+				local body = Kit.blob(m, 1.2, 1.5, 1.2, lx, y, z - 0.4, P.lacquer, M.smooth, NC)
+				Kit.cyl(m, 0.62, 0.16, lx, y - 0.84, z - 0.4, P.wood_black, M.wood, NC)
+				Kit.light(body, "Point", P.lamp_warm, 12, 1.2)
+			end
+		end
 	end
-	return face
+	-- the letters: the name (with a small らーめん ・ 寿司 under it) or the classic text
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = "Letters"
+	gui.Face = Enum.NormalId.Front
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 40
+	gui.LightInfluence = style == "neon" and 0 or 1
+	gui.Brightness = style == "neon" and 2.2 or 1
+	gui.Parent = face
+	local title = Instance.new("TextLabel")
+	title.Name = "Name"
+	title.BackgroundTransparency = 1
+	title.Position = UDim2.fromScale(0.03, name and 0.02 or 0.08)
+	title.Size = UDim2.fromScale(0.94, name and 0.68 or 0.84)
+	title.Text = name or Signs.DefaultText
+	title.TextScaled = true
+	title.TextColor3 = textC
+	title.FontFace = name and SIGN_FONTS[style] or JP_FONT
+	title.AutoLocalize = false
+	title.Parent = gui
+	if name then
+		local sub = Instance.new("TextLabel")
+		sub.Name = "Subtitle"
+		sub.BackgroundTransparency = 1
+		sub.Position = UDim2.fromScale(0.25, 0.72)
+		sub.Size = UDim2.fromScale(0.5, 0.24)
+		sub.Text = Signs.Subtitle
+		sub.TextScaled = true
+		sub.TextColor3 = textC
+		sub.TextTransparency = 0.15
+		sub.FontFace = JP_FONT
+		sub.AutoLocalize = false
+		sub.Parent = gui
+	end
+	-- the deluxe facade adds golden tubes over and under the sign (neon glows already)
+	if deluxe and style ~= "neon" then
+		for _, dy in ipairs({ -(h / 2 + 0.1), h / 2 + 0.1 }) do
+			Kit.box(m, w, 0.1, 0.1, x, y + dy, z - 0.25, P.neon_yellow, M.neon, NC)
+		end
+		Kit.light(face, "Surface", P.neon_yellow, 12, 1.5, { face = Enum.NormalId.Front })
+	end
+	for _, d in ipairs(m:GetDescendants()) do
+		if d:IsA("BasePart") then
+			tag(d, "Roof")
+		end
+	end
+	m.PrimaryPart = face
+	m.Parent = parent
+	return m
 end
 
 -- "Open / preparing" plate next to the door; returns the TextLabel
@@ -5651,7 +5856,7 @@ end
 return function(Registry)
 	Registry.Building = B
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000045"><Properties><string name="Name">Decor</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000046"><Properties><string name="Name">Decor</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Decorations: lighting, plants, art, statues, garden, festival, seasonal and city items.
 -- Parts with the attribute "Animate" are animated by the client (AmbientController).
 local Kit = require(script.Parent.Parent.Kit)
@@ -6474,7 +6679,7 @@ return function(Registry)
 		end
 	end)
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000046"><Properties><string name="Name">Food</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000047"><Properties><string name="Name">Food</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Food visuals: dishes (per recipe), ingredients, supplier boxes, dirty dishes, cooking tools.
 -- Everything is built from primitives with real-world proportions and colours: curved bowls
 -- with a glazed band, glossy broth with fat drops, wavy noodles, chashu with a browned edge and a
@@ -7988,7 +8193,7 @@ return function(Registry)
 	Registry.registerFood("tool", tool)
 	Registry.Food.BrothColors = BROTH
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000047"><Properties><string name="Name">Furniture</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000048"><Properties><string name="Name">Furniture</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Seating, counters, tables, benches and storage racks.
 local Kit = require(script.Parent.Parent.Kit)
 local P = require(script.Parent.Parent.Palette)
@@ -8383,7 +8588,7 @@ return function(Registry)
 	Registry.register("storage_rack", rack)
 	Registry.register("storage_rack_large", rack)
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000048"><Properties><string name="Name">Kitchen</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000049"><Properties><string name="Name">Kitchen</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Kitchen equipment: shelves, neta case, rice cookers, broth pots, stations, sink, dishwasher, fridge.
 -- Functional points (on Root): SlotN parts (shelves), Board/Plate/Tool attachments (stations).
 local Kit = require(script.Parent.Parent.Kit)
@@ -9065,7 +9270,7 @@ return function(Registry)
 		local _ = root
 	end)
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000049"><Properties><string name="Name">People</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000050"><Properties><string name="Name">People</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Detailed NPC looks built on the R15 rig: per-part clothing colours, layered clothes (sleeves,
 -- collars, jackets, ties, skirts, shoes), voluminous hair styles, accessories and a procedural
 -- face (eyes with highlights, brows, mouth, blush) whose expression follows the customer's mood.
@@ -9920,7 +10125,7 @@ end
 return function(Registry)
 	Registry.People = People
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000050"><Properties><string name="Name">RamenYa</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000051"><Properties><string name="Name">RamenYa</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- "Ramen-ya" decoration pack, modelled on real ramen counters: industrial pendant lamps, a red
 -- banner with white lettering, rows of menu posters, a retro ramen poster, a vertical sign, a
 -- framed soup signboard, a wooden canopy over the counter, water pitchers, condiment caddies,
@@ -10307,7 +10512,7 @@ return function(Registry)
 		root:SetAttribute("TopY", 2.7)
 	end)
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000051"><Properties><string name="Name">Street</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000052"><Properties><string name="Name">Street</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Street scenery: road, sidewalks, neighbour buildings, lamps, poles, trees, viaduct, truck, train.
 local Kit = require(script.Parent.Parent.Kit)
 local P = require(script.Parent.Parent.Palette)
@@ -10748,7 +10953,7 @@ return function(Registry)
 	Registry.Street = S
 	local _ = Color
 end
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000053"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000054"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Primitive helpers for procedural models. Coordinates are relative to the model's bottom center.
 local Color = require(script.Parent.Parent.Util.Color)
 
@@ -10783,6 +10988,20 @@ local function apply(p, color, material, props)
 		end
 	end
 	return p
+end
+
+-- A copy of props with the given part shape. The callers' tables are often shared between many
+-- parts (a builder's NC / NQ), so the shape must never be written into them: a box made with the
+-- same table after a ball would turn into a ball too.
+local function withShape(props, shape)
+	local o = {}
+	if props then
+		for k, v in pairs(props) do
+			o[k] = v
+		end
+	end
+	o.shape = shape
+	return o
 end
 
 function Kit.model(name)
@@ -10822,8 +11041,7 @@ end
 
 -- Vertical cylinder: diameter d, height h, centered at x, y, z
 function Kit.cyl(parent, d, h, x, y, z, color, material, props)
-	props = props or {}
-	props.shape = Enum.PartType.Cylinder
+	props = withShape(props, Enum.PartType.Cylinder)
 	local cf = CFrame.new(x, y, z) * CFrame.Angles(0, 0, math.rad(90))
 	if props.rot then
 		cf = CFrame.new(x, y, z) * props.rot * CFrame.Angles(0, 0, math.rad(90))
@@ -10833,8 +11051,7 @@ end
 
 -- Horizontal cylinder along X (length l) or along Z (axis = "z")
 function Kit.cylH(parent, d, l, x, y, z, color, material, props, axis)
-	props = props or {}
-	props.shape = Enum.PartType.Cylinder
+	props = withShape(props, Enum.PartType.Cylinder)
 	local cf = CFrame.new(x, y, z)
 	if axis == "z" then
 		cf = cf * CFrame.Angles(0, math.rad(90), 0)
@@ -10846,8 +11063,7 @@ function Kit.cylH(parent, d, l, x, y, z, color, material, props, axis)
 end
 
 function Kit.ball(parent, d, x, y, z, color, material, props)
-	props = props or {}
-	props.shape = Enum.PartType.Ball
+	props = withShape(props, Enum.PartType.Ball)
 	return Kit.part(parent, Vector3.new(d, d, d), CFrame.new(x, y, z), color, material, props)
 end
 
@@ -11010,7 +11226,7 @@ function Kit.slats(parent, count, sx, sy, sz, x0, x1, y, z, color, material, pro
 end
 
 return Kit
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000054"><Properties><string name="Name">Palette</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000055"><Properties><string name="Name">Palette</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Theme colors and materials used by every procedural model.
 local Color = require(script.Parent.Parent.Util.Color)
 
@@ -11082,7 +11298,7 @@ end
 Palette.hex = Color.hex
 
 return Palette
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000055"><Properties><string name="Name">Registry</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000056"><Properties><string name="Name">Registry</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Model registry: id -> builder. Models in ReplicatedStorage.AssetOverrides with the same name
 -- replace the procedural version (they are scaled to fit the configured size).
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -11216,7 +11432,7 @@ function Registry.place(model, x, y, z, r)
 end
 
 return Registry
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000056"><Properties><string name="Name">Scene</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000057"><Properties><string name="Name">Scene</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Builds the restaurant shell (floors, walls, roof, facade, stairs) and the street scenery.
 -- Shared so the server world builder and the preview renderer use the same code.
 local CollectionService = game:GetService("CollectionService")
@@ -11226,6 +11442,7 @@ local GameConfig = require(Config.GameConfig)
 local Expansions = require(Config.Expansions)
 local Surfaces = require(Config.Surfaces)
 local Franchise = require(Config.Franchise)
+local Signs = require(Config.Signs)
 local Footprint = require(script.Parent.Parent.Logic.Footprint)
 local Registry = require(script.Parent.Registry)
 local Kit = require(script.Parent.Kit)
@@ -11497,10 +11714,12 @@ function Scene.shell(shell, geo, data)
 		B.stairs(shell, s, floorY(s.floor), GameConfig.FloorHeight)
 	end
 
-	-- Facade: big sign, entrance lanterns, open plate
-	local signText = "らーめん ・ 寿司"
-	local face = B.sign(shell, 0, 11.6, -0.9, 18, signText, deluxe)
-	B.tag(face, "Roof")
+	-- Facade: the restaurant's own sign (name, style and colours chosen by the owner, Screens/Sign;
+	-- using it opens the editor), entrance lanterns, open plate
+	local shopSign = B.shopSign(shell, data.sign, deluxe)
+	shopSign:SetAttribute("Uid", "fixed_shopsign")
+	shopSign:SetAttribute("Kind", "shopsign")
+	CollectionService:AddTag(shopSign, "Interactable")
 	for _, x in ipairs({ -6.4, 6.4 }) do
 		local l = Kit.blob(shell, 1.3, 1.8, 1.3, x, 8.2, -1.6, P.lacquer, P.M.smooth, { collide = false })
 		Kit.cyl(shell, 0.8, 0.2, x, 9.2, -1.6, P.black, P.M.smooth, { collide = false })
@@ -11513,8 +11732,13 @@ function Scene.shell(shell, geo, data)
 	if data.zones.sign_rooftop then
 		local topY = floorY(topFloor) + GameConfig.WallHeight + 2
 		local board = Kit.box(shell, 20, 5, 0.6, 0, topY + 3.5, 2, P.black, P.M.smooth, { collide = false })
-		Kit.text(board, Enum.NormalId.Front, "ラーメン 寿司", { color = "#FF3B4A", glow = true })
-		Kit.light(board, "Surface", P.neon_red, 30, 3, { face = Enum.NormalId.Front })
+		-- the restaurant's name in neon, in the colour of the sign's letters (red without a name)
+		local sign = data.sign
+		local named = sign and sign.shown and sign.shown ~= ""
+		local glowColor = named and Color.hex((Signs.ColorById[sign.text or ""] or Signs.ColorById.red).hex) or Color.hex("#FF3B4A")
+		local _, giant = Kit.text(board, Enum.NormalId.Front, named and sign.shown or "ラーメン 寿司", { color = glowColor, glow = true })
+		giant.Name = "GiantName"
+		Kit.light(board, "Surface", glowColor, 30, 3, { face = Enum.NormalId.Front })
 		for _, x in ipairs({ -8, 8 }) do
 			Kit.box(shell, 0.4, 3.5, 0.4, x, topY + 1, 2.4, P.steel_dark, P.M.metal, { collide = false })
 		end
@@ -11552,7 +11776,7 @@ function Scene.shell(shell, geo, data)
 			d.CollisionGroup = "Shell"
 		end
 	end
-	return { openLabel = label, openSign = openSign }
+	return { openLabel = label, openSign = openSign, shopSign = shopSign }
 end
 
 -- A plot nobody owns yet: a low construction fence along the street and a lantern sign
@@ -11819,7 +12043,7 @@ end
 
 
 return Scene
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000058"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000059"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Remote definitions shared by server and client.
 -- The server creates the instances; the client waits for them.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -11858,6 +12082,7 @@ Net.Events = {
 	"SetPermission", -- (userId, level "helper"|"comanager"|"none") in your restaurant
 	"GoHome", -- back to the door of your restaurant
 	"ToggleOpen", -- the OPEN / CLOSED sign by the door of the restaurant you work in
+	"SetSign", -- ({ name, style, board, text }) the restaurant's sign over the door
 	"Franchise", -- (cityId)
 	"BuyWithRobux", -- (kind "gamepass"|"product", id)
 	"TutorialStep", -- (step)
@@ -11921,7 +12146,7 @@ function Net.func(name)
 end
 
 return Net
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000065"><Properties><string name="Name">Util</string></Properties><Item class="ModuleScript" referent="RBX000059"><Properties><string name="Name">Color</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000066"><Properties><string name="Name">Util</string></Properties><Item class="ModuleScript" referent="RBX000060"><Properties><string name="Name">Color</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Color = {}
 
 local cache = {}
@@ -11960,7 +12185,7 @@ function Color.lighten(c, amount)
 end
 
 return Color
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000060"><Properties><string name="Name">Format</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000061"><Properties><string name="Name">Format</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Format = {}
 
 local function group(n, sep)
@@ -12030,7 +12255,7 @@ function Format.duration(seconds)
 end
 
 return Format
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000061"><Properties><string name="Name">RateLimit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000062"><Properties><string name="Name">RateLimit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Token bucket rate limiter keyed by any value (player, player..remote, ...).
 local RateLimit = {}
 RateLimit.__index = RateLimit
@@ -12060,7 +12285,7 @@ function RateLimit:clear(key)
 end
 
 return RateLimit
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000062"><Properties><string name="Name">Signal</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000063"><Properties><string name="Name">Signal</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Minimal signal implementation (connect / once / fire / wait).
 local Signal = {}
 Signal.__index = Signal
@@ -12114,7 +12339,7 @@ function Signal:DisconnectAll()
 end
 
 return Signal
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000063"><Properties><string name="Name">TableUtil</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000064"><Properties><string name="Name">TableUtil</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local TableUtil = {}
 
 function TableUtil.deepCopy(value)
@@ -12211,7 +12436,7 @@ function TableUtil.weightedPick(list, weightFn, rng)
 end
 
 return TableUtil
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000064"><Properties><string name="Name">Uid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000065"><Properties><string name="Name">Uid</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Short unique ids for placed items, boxes, entities.
 local Uid = {}
 
@@ -12230,14 +12455,14 @@ function Uid.new(prefix)
 end
 
 return Uid
-]]></ProtectedString></Properties></Item></Item></Item><Item class="Folder" referent="RBX000067"><Properties><string name="Name">AssetOverrides</string></Properties></Item></Item><Item class="ServerScriptService" referent="RBX000100"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX000099"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX000069"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item><Item class="Folder" referent="RBX000068"><Properties><string name="Name">AssetOverrides</string></Properties></Item></Item><Item class="ServerScriptService" referent="RBX000102"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="Folder" referent="RBX000101"><Properties><string name="Name">Server</string></Properties><Item class="ModuleScript" referent="RBX000070"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of server services (avoids circular requires).
 local Core = {
 	S = {},
 	Started = false,
 }
 return Core
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000070"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX000071"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Server entry point: loads every service, then calls Init() and Start() in order.
 local Core = require(script.Parent.Core)
 local Services = script.Parent.Services
@@ -12245,7 +12470,7 @@ local Services = script.Parent.Services
 local ORDER = {
 	"Net", "Data", "Analytics", "Plots", "Economy", "Progression", "World", "Entities", "Placement", "Hands",
 	"Supply", "Appliance", "Seating", "Cooking", "Npc", "Customers", "Tasks", "Staff", "Day",
-	"Meta", "Rewards", "Franchise", "Monetization", "Leaderboard", "Interaction", "SelfTest", "Dev",
+	"Meta", "Rewards", "Franchise", "Monetization", "Leaderboard", "Interaction", "Signs", "SelfTest", "Dev",
 }
 
 for _, name in ipairs(ORDER) do
@@ -12285,7 +12510,7 @@ for _, name in ipairs(ORDER) do
 end
 
 Core.Started = true
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000098"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX000071"><Properties><string name="Name">Analytics</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000100"><Properties><string name="Name">Services</string></Properties><Item class="ModuleScript" referent="RBX000072"><Properties><string name="Name">Analytics</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Roblox Analytics: where new players stop in their first minutes (onboarding funnel), what they
 -- earn and spend (economy) and how they level up (progression). Every call is protected: analytics
 -- can never break the game. Sales and tips are summed and reported every few minutes.
@@ -12402,7 +12627,7 @@ function Analytics.Start()
 end
 
 return Analytics
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000072"><Properties><string name="Name">Appliance</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000073"><Properties><string name="Name">Appliance</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Rice cookers, broth pots, sink, dishwasher, fridges and the clean/dirty dish pool.
 -- Sink: dirty dishes brought here pile up in the soaking basin; a player holds the click / E on
 -- the sink to wash them one by one (hold sessions below), staff wash them on their own. The sink
@@ -12976,7 +13201,7 @@ function Appliance.Start()
 end
 
 return Appliance
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000073"><Properties><string name="Name">Cooking</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000074"><Properties><string name="Name">Cooking</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Stations: ingredients go on the board, each press runs the next step (cut, combine, roll,
 -- boil, pour, top, fry...), then the dish waits on the plate. Also the order tickets of every
 -- restaurant (plot.tickets).
@@ -13774,7 +13999,7 @@ function Cooking.Init()
 end
 
 return Cooking
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000074"><Properties><string name="Name">Customers</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000075"><Properties><string name="Name">Customers</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Customers of every restaurant (c.plot): arrive along the street, take a seat, order by
 -- themselves, wait (patience), pay when served, eat, review, leave.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -14624,7 +14849,7 @@ function Service.Start()
 end
 
 return Service
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000075"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000076"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Player profiles: loading, session locking, autosave, migrations and replication to clients.
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
@@ -14634,6 +14859,7 @@ local HttpService = game:GetService("HttpService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local StarterLayout = require(Shared.Config.StarterLayout)
+local Signs = require(Shared.Config.Signs)
 local Surfaces = require(Shared.Config.Surfaces)
 local Recipes = require(Shared.Config.Recipes)
 local Ingredients = require(Shared.Config.Ingredients)
@@ -14659,7 +14885,7 @@ local storeOk = false
 Data.WorldKeys = {
 	"level", "xp", "licenses", "menu", "mastery", "upgrades", "zones", "surfaces", "placed",
 	"staff", "reviews", "dishes", "franchise", "boosts", "ads", "perms", "stats", "storage",
-	"shelves", "appliances", "inventory", "yen", "sakura", "settings",
+	"shelves", "appliances", "inventory", "yen", "sakura", "settings", "sign",
 }
 local WORLD_KEY_SET = {}
 for _, k in ipairs(Data.WorldKeys) do
@@ -14693,6 +14919,9 @@ function Data.newProfile()
 		boosts = {},
 		meta = { quests = {}, questDay = 0, achievements = {}, daily = { streak = 0, last = 0 }, lastSeen = 0, tutorial = 0, tutorialGifts = {}, hints = {}, offlinePending = 0, codes = {}, onboarding = true, funnel = {} },
 		franchise = { stars = 0, city = "tokyo" },
+		-- the sign over the door (Config/Signs, Services/Signs): name typed, name shown after the
+		-- Roblox filter, style and colours
+		sign = { name = "", shown = "", style = Signs.Default.style, board = Signs.Default.board, text = Signs.Default.text },
 		perms = {},
 		settings = { lang = "auto", grid = 1, rot = 90, music = 0.5, sfx = 0.8, lowGfx = false, cam = "auto", camSpeed = GameConfig.Sensitivity.Medium, coop = "friends", others = "show" },
 		passes = {},
@@ -14926,8 +15155,15 @@ function Data.waitFor(player, timeout)
 	return Data.get(player)
 end
 
-local function payload(value)
-	return TableUtil.deepCopy(value)
+-- what a client gets of a profile key. The sign's name as it was typed stays on the server: other
+-- players (helpers, co-managers, the owner when someone else wrote it) may only see the text
+-- Roblox's filter returned (`shown`, Services/Signs)
+local function payload(k, value)
+	local copy = TableUtil.deepCopy(value)
+	if k == "sign" and type(copy) == "table" then
+		copy.name = nil
+	end
+	return copy
 end
 
 -- Notify clients that `k` changed in `player`'s profile: the player gets it as "me"; the helpers
@@ -14938,13 +15174,13 @@ function Data.changed(player, k)
 		return
 	end
 	local Net = Core.S.Net
-	Net.fire(player, "DataChanged", "me", k, payload(d[k]))
+	Net.fire(player, "DataChanged", "me", k, payload(k, d[k]))
 	local Plots = Core.S.Plots
 	local plot = WORLD_KEY_SET[k] and Plots and Plots.ofPlayer(player)
 	if plot then
 		for _, other in ipairs(Plots.workers(plot)) do
 			if other ~= player then
-				Net.fire(other, "DataChanged", "world", k, payload(d[k]))
+				Net.fire(other, "DataChanged", "world", k, payload(k, d[k]))
 			end
 		end
 	end
@@ -14959,7 +15195,7 @@ function Data.worldOf(plot)
 	end
 	local world = {}
 	for _, k in ipairs(Data.WorldKeys) do
-		world[k] = TableUtil.deepCopy(od[k])
+		world[k] = payload(k, od[k])
 	end
 	return world
 end
@@ -14971,6 +15207,7 @@ function Data.snapshot(player)
 	end
 	local me = TableUtil.deepCopy(d)
 	me.receipts = nil
+	me.sign = payload("sign", d.sign)
 	local Plots = Core.S.Plots
 	local plot = Plots and Plots.of(player)
 	-- in your own restaurant "world" is your own data (the client uses "me")
@@ -15229,7 +15466,7 @@ end
 
 local _ = { RunService, HttpService }
 return Data
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000076"><Properties><string name="Name">Day</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000077"><Properties><string name="Name">Day</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Time of day, the same for the whole street. The restaurants are always open: the clock turns
 -- continuously for the light (day, sunset, lantern-lit evening, a quick night) and the lunch and
 -- dinner rush. Every day at Day.DayStartHour each restaurant closes its accounts: salaries, stats,
@@ -15385,7 +15622,7 @@ function Day.Start()
 end
 
 return Day
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000077"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000078"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Developer tools: available in Studio or to the experience creator.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -15508,7 +15745,7 @@ function Dev.Start()
 end
 
 return Dev
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000078"><Properties><string name="Name">Economy</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000079"><Properties><string name="Name">Economy</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Yen and sakura tokens, income multipliers, boosts and the per-day ledger.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Franchise = require(Shared.Config.Franchise)
@@ -15752,7 +15989,7 @@ function Economy.Start()
 end
 
 return Economy
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000079"><Properties><string name="Name">Entities</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000080"><Properties><string name="Name">Entities</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Registry of interactable things in the world (placed items, boxes, customers, fixed props).
 -- Every entity belongs to a restaurant: e.plot (also published as the PlotId attribute).
 local CollectionService = game:GetService("CollectionService")
@@ -15823,7 +16060,7 @@ function Entities.position(e)
 end
 
 return Entities
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000080"><Properties><string name="Name">Franchise</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000081"><Properties><string name="Name">Franchise</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Franchise (prestige): open a restaurant in the next city with permanent bonuses.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Franchise = require(Shared.Config.Franchise)
@@ -15859,7 +16096,7 @@ function Service.check(d, plot)
 	return true, nil, nil, nextCity
 end
 
-local KEEP = { sakura = true, mastery = true, stats = true, meta = true, settings = true, passes = true, receipts = true, created = true, inventory = true, perms = true }
+local KEEP = { sakura = true, mastery = true, stats = true, meta = true, settings = true, passes = true, receipts = true, created = true, inventory = true, perms = true, sign = true }
 
 local function open(player)
 	local Plots, Net = Core.S.Plots, Core.S.Net
@@ -15919,7 +16156,7 @@ function Service.Init()
 end
 
 return Service
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000081"><Properties><string name="Name">Hands</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000082"><Properties><string name="Name">Hands</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- What every actor (player or staff NPC) is carrying, with visuals welded in front of the body.
 -- Everything in hand belongs to one restaurant (s.plot): boxes go back to its storage, plates to
 -- its sink, and a dish can only be served to a customer of that restaurant.
@@ -16255,7 +16492,7 @@ function Hands.Start()
 end
 
 return Hands
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000082"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000083"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Receives clicks/taps from players, checks distance and permissions, dispatches to services.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -16375,7 +16612,7 @@ function Interaction.Init()
 end
 
 return Interaction
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000083"><Properties><string name="Name">Leaderboard</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000084"><Properties><string name="Name">Leaderboard</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Global leaderboards (dishes served, yen earned, likes from visitors) with a small cache.
 local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
@@ -16464,7 +16701,7 @@ function Leaderboard.Start()
 end
 
 return Leaderboard
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000084"><Properties><string name="Name">Meta</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000085"><Properties><string name="Name">Meta</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login streak, offline earnings and tutorial progress.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Quests = require(Shared.Config.Quests)
@@ -16810,7 +17047,7 @@ function Meta.Start()
 end
 
 return Meta
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000085"><Properties><string name="Name">Monetization</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000086"><Properties><string name="Name">Monetization</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Game passes and developer products (IDs in Shared.Config.Monetization; 0 = disabled).
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -16981,7 +17218,7 @@ function Monetization.Start()
 end
 
 return Monetization
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000086"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000087"><Properties><string name="Name">Net</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Server networking helpers: rate-limited handlers and broadcast helpers.
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -17075,7 +17312,7 @@ end
 
 local _ = Core
 return Net
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000087"><Properties><string name="Name">Npc</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000088"><Properties><string name="Name">Npc</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- NPC characters (customers and staff): creation, pooling, animations, walking with pathfinding,
 -- sitting and simple emotes.
 local Players = game:GetService("Players")
@@ -17445,7 +17682,7 @@ function Npc.Start()
 end
 
 return Npc
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000088"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000089"><Properties><string name="Name">Placement</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Placed objects of every restaurant: spawning models from the owner's data (restaurant-local
 -- coordinates moved onto the plot), building remotes, inventory, painting, ambience. Functional
 -- services subscribe to ItemAdded / ItemRemoved / ItemMoved (the entity knows its plot).
@@ -17951,7 +18188,7 @@ function Placement.Start()
 end
 
 return Placement
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000089"><Properties><string name="Name">Plots</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000090"><Properties><string name="Name">Plots</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- The street of restaurants: Config/Plots.Count plots side by side, one per player. A player who
 -- joins gets the first free plot (their restaurant is built there from their save); when they leave
 -- it becomes an empty lot again. Players can help in other restaurants: friends of the owner and
@@ -18420,7 +18657,7 @@ function Plots.Start()
 end
 
 return Plots
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000090"><Properties><string name="Name">Progression</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000091"><Properties><string name="Name">Progression</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Restaurant level, licenses, upgrades, ads, expansions, menu, mastery, rating and popularity.
 -- Purchases apply to the restaurant the player manages (their own, or one where they co-manage);
 -- rating, popularity and mastery belong to a restaurant (plot).
@@ -18805,7 +19042,7 @@ function Progression.Start()
 end
 
 return Progression
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000091"><Properties><string name="Name">Rewards</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000092"><Properties><string name="Name">Rewards</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Roblox-style rewards: free gifts for the minutes played in this session, redeemable codes and
 -- the leaderstats shown in the player list (yen and level).
 local Players = game:GetService("Players")
@@ -18992,7 +19229,7 @@ function Rewards.Start()
 end
 
 return Rewards
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000092"><Properties><string name="Name">Seating</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000093"><Properties><string name="Name">Seating</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Works out which seats of each restaurant are usable (stool in front of a counter, chair next to
 -- a table, booths), where the dish goes, and keeps reservations / dirty dishes per seat.
 -- Per plot: plot.seats (list), plot.seatById, plot.benches. Seat positions are in world space.
@@ -19259,7 +19496,7 @@ function Seating.Start()
 end
 
 return Seating
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000093"><Properties><string name="Name">SelfTest</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">SelfTest</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- End-to-end self test of the core loop, started from the dev panel. It drives the real services
 -- with an invisible worker: restock, broth, cook a shoyu ramen, serve a customer, get paid, wash.
 -- Results go to the Output window and to a toast.
@@ -19559,7 +19796,128 @@ function SelfTest.run(player)
 end
 
 return SelfTest
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000094"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Signs</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- The restaurant's sign over the door (Config/Signs). The owner, or a co-manager, sets its name,
+-- style and colours with SetSign (Screens/Sign). The name goes through Roblox's text filter as
+-- text that every player sees (TextService) before it is shown, and again whenever the restaurant
+-- is loaded, because the filter changes over time. A new name that cannot be checked is not shown.
+local TextService = game:GetService("TextService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Signs = require(Shared.Config.Signs)
+local Core = require(script.Parent.Parent.Core)
+
+local Service = {}
+local lastChange = {} -- [player] = os.clock() of the last change
+
+-- one line of text: no control characters, single spaces, nothing at the ends; returns the text
+-- and its length in letters, or nil when it is not text
+function Service.clean(name)
+	if type(name) ~= "string" then
+		return nil
+	end
+	local n = utf8.len(name)
+	if not n or n > 200 then
+		return nil
+	end
+	name = name:gsub("%c", " ")
+	name = name:gsub("%s+", " ")
+	name = name:gsub("^ ", "")
+	name = name:gsub(" $", "")
+	return name, utf8.len(name)
+end
+
+-- Roblox's filter for text shown to everybody; nil when it cannot be checked right now
+function Service.filter(text, userId)
+	if text == "" then
+		return ""
+	end
+	local ok, result = pcall(function()
+		local filtered = TextService:FilterStringAsync(text, userId, Enum.TextFilterContext.PublicChat)
+		return filtered:GetNonChatStringForBroadcastAsync()
+	end)
+	if ok and type(result) == "string" then
+		return result
+	end
+	-- in Studio (test players, often an unpublished place) the filter may not answer: the name is
+	-- shown as typed there so the sign can be tried; a live server never shows an unchecked name
+	if RunService:IsStudio() then
+		return text
+	end
+	return nil
+end
+
+-- req = { name, style, board, text } for the restaurant the player manages
+function Service.set(player, req)
+	local Plots, Net = Core.S.Plots, Core.S.Net
+	local plot = Plots.of(player)
+	if not plot or not Plots.canBuild(player, plot) then
+		return Net.notify(player, "msg.no_permission", nil, "error")
+	end
+	local d = Plots.data(plot)
+	if not d or type(req) ~= "table" then
+		return
+	end
+	local style = Signs.StyleById[req.style] and req.style or nil
+	local board = Signs.ColorById[req.board] and req.board or nil
+	local text = Signs.ColorById[req.text] and req.text or nil
+	local name, n = Service.clean(req.name)
+	if not style or not board or not text or not name then
+		return
+	end
+	if n > 0 and (n < Signs.MinName or n > Signs.MaxName) then
+		return Net.notify(player, "msg.sign_length", { min = Signs.MinName, max = Signs.MaxName }, "error")
+	end
+	if os.clock() - (lastChange[player] or -math.huge) < Signs.MinSecondsBetweenChanges then
+		return Net.notify(player, "msg.sign_wait", nil, "error")
+	end
+	lastChange[player] = os.clock()
+	local shown = d.sign and d.sign.name == name and d.sign.shown or nil
+	if not shown then
+		shown = Service.filter(name, player.UserId)
+		if not shown then
+			return Net.notify(player, "msg.sign_filter_failed", nil, "error")
+		end
+	end
+	d.sign = { name = name, shown = shown, style = style, board = board, text = text }
+	Core.S.Data.changed(plot.owner, "sign")
+	Core.S.World.paintSign(plot)
+	Core.S.Plots.notify(plot, "msg.sign_saved", nil, "success")
+end
+
+-- the name is checked again when a restaurant opens (its owner joined)
+local function refilter(plot, owner, d)
+	local sign = d and d.sign
+	if not sign or (sign.name or "") == "" then
+		return
+	end
+	local shown = Service.filter(sign.name, owner.UserId)
+	if shown and shown ~= sign.shown and plot.owner == owner then
+		sign.shown = shown
+		Core.S.Data.changed(owner, "sign")
+		Core.S.World.paintSign(plot)
+	end
+end
+
+function Service.Init()
+	Core.S.Net.on("SetSign", function(player, req)
+		Service.set(player, req)
+	end, 2)
+end
+
+function Service.Start()
+	Core.S.Plots.Claimed:Connect(function(plot, owner, d)
+		task.spawn(refilter, plot, owner, d or Core.S.Plots.data(plot))
+	end)
+	Players.PlayerRemoving:Connect(function(player)
+		lastChange[player] = nil
+	end)
+end
+
+return Service
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000096"><Properties><string name="Name">Staff</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Staff: hiring, training, salaries and the AI that automates each restaurant (every actor
 -- works for one plot: a.plot).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -20117,7 +20475,7 @@ function Staff.Start()
 end
 
 return Staff
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000095"><Properties><string name="Name">Supply</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000097"><Properties><string name="Name">Supply</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier orders, the delivery truck, boxes in the storage room and shelf slots.
 local TweenService = game:GetService("TweenService")
 
@@ -21328,7 +21686,7 @@ end
 
 Supply.updateBoxLabel = updateBoxLabel
 return Supply
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000096"><Properties><string name="Name">Tasks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000098"><Properties><string name="Name">Tasks</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Task board helpers for staff: finds work in their restaurant (every finder takes the plot),
 -- claims targets so two workers never do the same job.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -21508,7 +21866,7 @@ function Tasks.findRefill(plot, kinds)
 end
 
 return Tasks
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000097"><Properties><string name="Name">World</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000099"><Properties><string name="Name">World</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Builds the street (once, with a lot for every plot) and the shell of each restaurant from the
 -- zones its owner unlocked; exposes each plot's geometry (zones, walls, stairs, openings) to
 -- placement, seating and NPC services. Geometry is in restaurant-local coordinates; the shell is
@@ -21675,6 +22033,7 @@ function World.rebuild(plot, data)
 	local result = Scene.shell(f.shell, World.geo(plot), data)
 	plot.openLabel = result.openLabel
 	plot.openSign = result.openSign
+	plot.shopSign = result.shopSign
 	-- a "for sale" sign on every ground-floor room that can be built next (its rooms before it
 	-- are owned); the sign goes when the room is bought (the shell is built again)
 	for _, e in ipairs(Expansions.list) do
@@ -21694,7 +22053,7 @@ function World.rebuild(plot, data)
 	-- the supplier tablet and menu board are per restaurant
 	for _, d in ipairs(f.shell:GetDescendants()) do
 		local uid = d:GetAttribute("Uid")
-		if uid == "fixed_supplier" or uid == "fixed_menu" or uid == "fixed_opensign" then
+		if uid == "fixed_supplier" or uid == "fixed_menu" or uid == "fixed_opensign" or uid == "fixed_shopsign" then
 			d:SetAttribute("Uid", uid .. "_" .. plot.id)
 			d:SetAttribute("PlotId", plot.id)
 		end
@@ -21732,11 +22091,46 @@ function World.paintOpenSign(plot)
 	end
 end
 
+-- the restaurant's sign over the door is built again with the owner's name, style and colours
+-- (Signs); the giant sign on the roof, when bought, takes the new name at once
+function World.paintSign(plot)
+	local d = Core.S.Plots.data(plot)
+	local f = World.folders(plot)
+	if not d or not f.shell or not plot.shopSign then
+		return
+	end
+	local holder = Instance.new("Folder")
+	local m = Registry.Building.shopSign(holder, d.sign, d.zones.facade_deluxe)
+	m:SetAttribute("Uid", "fixed_shopsign_" .. plot.id)
+	m:SetAttribute("Kind", "shopsign")
+	m:SetAttribute("PlotId", plot.id)
+	CollectionService:AddTag(m, "Interactable")
+	for _, part in ipairs(m:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.CollisionGroup = "Shell"
+		end
+	end
+	Core.S.Plots.shift(m, plot)
+	local old = plot.shopSign
+	m.Parent = old.Parent or f.shell
+	old:Destroy()
+	holder:Destroy()
+	plot.shopSign = m
+	-- the giant sign on the roof shows the name too
+	local giant = f.shell:FindFirstChild("GiantName", true)
+	if giant then
+		local sign = d.sign
+		local named = sign and sign.shown and sign.shown ~= ""
+		giant.Text = named and sign.shown or "ラーメン 寿司"
+	end
+end
+
 -- the owner left: back to an empty lot
 function World.clear(plot)
 	plot.geo = nil
 	plot.openLabel = nil
 	plot.openSign = nil
+	plot.shopSign = nil
 	plot.closed = false
 	local f = World.folders(plot)
 	f.items:ClearAllChildren()
@@ -21805,7 +22199,7 @@ function World.Start()
 end
 
 return World
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000147"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000146"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000145"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000118"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000101"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="StarterPlayer" referent="RBX000150"><Properties><string name="Name">StarterPlayer</string></Properties><Item class="StarterPlayerScripts" referent="RBX000149"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="Folder" referent="RBX000148"><Properties><string name="Name">Client</string></Properties><Item class="Folder" referent="RBX000120"><Properties><string name="Name">Controllers</string></Properties><Item class="ModuleScript" referent="RBX000103"><Properties><string name="Name">Ambient</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client-only animations: swaying lanterns and noren, maneki-neko paws, koi, shishi-odoshi,
 -- streamers, and the evening train on the viaduct.
 local RunService = game:GetService("RunService")
@@ -21913,7 +22307,7 @@ function Ambient.Start()
 end
 
 return Ambient
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000102"><Properties><string name="Name">Audio</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">Audio</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Sound: one-shot effects (2D or positional, random take and pitch), the sound patterns of the
 -- cooking steps (knife chops in rhythm, broth pouring, noodles drained...), ambience loops mixed
 -- from where you are (street outside, chatter that grows with the customers, bubbling pots, the
@@ -22235,7 +22629,7 @@ end
 
 
 return Audio
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000103"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build mode: ghost preview on a 1/5/10 stud grid, rotation, local validation (same rules as the
 -- server), placing, moving, storing and selling objects.
 local Players = game:GetService("Players")
@@ -22854,7 +23248,7 @@ function Build.Start()
 end
 
 return Build
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000104"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">Camera</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Game camera (Settings → Camera): "auto" (default) picks "game" on phones and tablets and
 -- "first" with a keyboard; or one of the three modes:
 --   "first"  first person: mouse look, a crosshair in the middle, click / E on what you
@@ -23291,7 +23685,7 @@ function Camera.Start()
 end
 
 return Camera
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000105"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">Data</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Local copy of the player's profile ("me"), the data of the restaurant you work in when it is
 -- not yours ("world"), session info (plot, role, plot origins), day state and tickets.
 local Players = game:GetService("Players")
@@ -23471,7 +23865,7 @@ function Data.Start()
 end
 
 return Data
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000106"><Properties><string name="Name">Effects</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000108"><Properties><string name="Name">Effects</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Visual feedback for server events: money popups, review stars, level up confetti,
 -- dish ready sparkles, construction dust, sounds.
 local Players = game:GetService("Players")
@@ -23816,7 +24210,7 @@ function Effects.Init()
 end
 
 return Effects
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000107"><Properties><string name="Name">FirstPerson</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">FirstPerson</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- First person (Settings → Camera, the default):
 --   * a crosshair in the middle of the screen (the mouse arrow is hidden meanwhile); under it, what
 --     clicking / E does on the object you look at (gold when close enough)
@@ -24231,7 +24625,7 @@ function FirstPerson.Start()
 end
 
 return FirstPerson
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000108"><Properties><string name="Name">Hints</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">Hints</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- One-time tips after the tutorial, the first time something happens:
 --   restock  an ingredient of the menu is running out on the shelves -> the supplier button
 --   dishes   dirty dishes pile up in the sink -> the sink (done when it is empty)
@@ -24448,7 +24842,7 @@ function Hints.Start()
 end
 
 return Hints
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000109"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Interaction</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- What you can use: in first person the object under the crosshair, in third person the one under
 -- the mouse or else the nearest one in front of you. It gets an outline and a ProximityPrompt
 -- with what pressing does (E, ButtonX or a tap on the prompt; a click or a tap on the object works
@@ -24659,6 +25053,12 @@ local function actionText(model, kind, slot)
 		return t("hint.supplier")
 	elseif kind == "menuboard" then
 		return t("hint.menuboard")
+	elseif kind == "shopsign" then
+		-- the restaurant's sign over the door: its owner (or a co-manager) can change it
+		if Core.C.Data.canBuild() and Core.C.Data.isMine(model) then
+			return "🏮 " .. t("hint.sign_edit")
+		end
+		return nil
 	elseif kind == "opensign" then
 		-- the LED sign by the door: what pressing does now (Plots.setOpen, plot attribute "Open")
 		local folder = Core.C.Data.plotFolder(model:GetAttribute("PlotId"))
@@ -24904,6 +25304,9 @@ act = function(tap)
 	elseif current.kind == "menuboard" then
 		Core.C.UI.open("Menu")
 		return
+	elseif current.kind == "shopsign" then
+		Core.C.UI.open("Sign")
+		return
 	elseif current.kind == "opensign" then
 		-- opens or closes the restaurant (the server checks who you are and that you are near)
 		if not Core.C.Data.canBuild() then
@@ -25144,7 +25547,7 @@ function Interaction.Start()
 end
 
 return Interaction
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000110"><Properties><string name="Name">Lighting</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">Lighting</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Time-of-day look (sky colors, atmosphere, bloom, color grading) and night lights.
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
@@ -25257,7 +25660,7 @@ function LightingC.Start()
 end
 
 return LightingC
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000111"><Properties><string name="Name">Neighbours</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Neighbours</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Settings → Other restaurants. "Show all": the whole street as it is. "Only the outside": the
 -- restaurants you are not in keep their building (walls, roof, facade, the lanterns in the
 -- ceiling) but their objects, boxes and the people inside are hidden on this screen only, so a
@@ -25433,7 +25836,7 @@ function Neighbours.Start()
 end
 
 return Neighbours
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000112"><Properties><string name="Name">ShelfTags</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">ShelfTags</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shelf tags (as in shop games): a small paper tag on the front edge of every shelf slot with the
 -- icon and the name of the product it holds, written in your language. Empty slots get a blank
 -- tag. Tags are local parts, rebuilt only when a slot changes product.
@@ -25563,7 +25966,7 @@ end
 
 
 return ShelfTags
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000113"><Properties><string name="Name">Sink</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Sink</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Washing the dishes at the sink. While a sink has Washing = true (set by ApplianceService) every
 -- client shows a dirty plate under the running tap with a sponge scrubbing it in circles while the
 -- dirt fades away; each clean plate slides to the left, towards the drying rack, fading out.
@@ -25773,7 +26176,7 @@ function Sink.Start()
 end
 
 return Sink
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000114"><Properties><string name="Name">Timing</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">Timing</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Noodle timing (optional skill): while the noodles boil, a bar with a green part and a moving
 -- needle appears under the middle of the screen. Click / E (or ✋) when the needle is in the
 -- green: "Perfect!" and that bowl gets a bigger tip. Missing it costs nothing.
@@ -25873,7 +26276,7 @@ function Timing.Start()
 end
 
 return Timing
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000115"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- The first two minutes, one short step at a time: a customer orders by themselves, the ramen
 -- station makes it in three presses (noodles, broth, toppings), you serve it and get paid; a gift
 -- of yen opens the shop and you buy your first upgrade; then you clear and wash the bowl, and a
@@ -26346,7 +26749,7 @@ function Tutorial.Start()
 end
 
 return Tutorial
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000116"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000118"><Properties><string name="Name">UI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Screen manager, toasts and shared UI helpers.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -26673,7 +27076,7 @@ function UI.Start()
 end
 
 return UI
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000117"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">WorldUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Localized billboards over customers (order + patience), stations (board / next step),
 -- rice cookers & pots, shelf slots, dirty dishes and staff name tags.
 local Players = game:GetService("Players")
@@ -27183,13 +27586,13 @@ function WorldUI.Start()
 end
 
 return WorldUI
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000119"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Core</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Shared registry of client controllers and UI screens.
 return {
 	C = {},
 	Screens = {},
 }
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000120"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX000122"><Properties><string name="Name">Main</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Client entry point.
 if not game:IsLoaded() then
 	game.Loaded:Wait()
@@ -27235,7 +27638,7 @@ for _, name in ipairs(ORDER) do
 		end)
 	end
 end
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000144"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000121"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000147"><Properties><string name="Name">UI</string></Properties><Item class="ModuleScript" referent="RBX000123"><Properties><string name="Name">Base</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Helper to build standard modal screens: Base.make(name, titleKey, size, render)
 -- render(content, screen) rebuilds the content each refresh.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -27314,7 +27717,7 @@ function Base.make(name, titleKey, size, render)
 end
 
 return Base
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000122"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Icons</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Emoji icons for catalog cards (no image assets needed).
 local Icons = {
 	cat = {
@@ -27358,7 +27761,7 @@ function Icons.forItem(item)
 end
 
 return Icons
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000123"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000125"><Properties><string name="Name">Kit</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Tiny declarative UI toolkit + the visual theme (washi paper, dark wood, lacquer red, gold).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Color = require(Shared.Util.Color)
@@ -27779,7 +28182,7 @@ function Kit.row(icon, titleText, subtitle, height)
 end
 
 return Kit
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000124"><Properties><string name="Name">Pointer</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000126"><Properties><string name="Name">Pointer</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Arrows that show where to go next, used by the tutorial and the one-time tips:
 --   pointer:world(model)  a glowing beam from the player to the thing, with a bouncing ⬇️ above it
 --   pointer:gui(button)   a bouncing 👇 and a pulsing ring on a button of the interface
@@ -27924,7 +28327,7 @@ function Pointer:step()
 end
 
 return Pointer
-]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000142"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000125"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="Folder" referent="RBX000145"><Properties><string name="Name">Screens</string></Properties><Item class="ModuleScript" referent="RBX000127"><Properties><string name="Name">Build</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Build panel: catalog by category, inventory, floor/wall styles, grid & rotation tools,
 -- selection actions (move / rotate / store / sell).
 local Players = game:GetService("Players")
@@ -28222,7 +28625,7 @@ function Screen.close()
 end
 
 return Screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000126"><Properties><string name="Name">Codes</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000128"><Properties><string name="Name">Codes</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Redeem a code (Config/Rewards.Codes): each code works once per player.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -28253,7 +28656,7 @@ return Base.make("Codes", "ui.codes", UDim2.fromScale(0.4, 0.42), function(conte
 	end)
 	Kit.button(t("ui.redeem"), { parent = content, size = UDim2.new(1, 0, 0, 46), position = UDim2.new(0, 0, 1, -48), style = "green", onClick = redeem })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000127"><Properties><string name="Name">Daily</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000129"><Properties><string name="Name">Daily</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily login gift: a calendar of seven days that opens when you join and today's gift is still
 -- there (not during the tutorial). Past days are ticked, today's card is gold with one big button,
 -- the coming days show what waits for you tomorrow and after. Claimed by the server
@@ -28343,7 +28746,7 @@ function screen.ready()
 end
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000128"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000130"><Properties><string name="Name">DayReport</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Locale = require(Shared.Locale)
 local Format = require(Shared.Util.Format)
@@ -28389,7 +28792,7 @@ screen = Base.make("DayReport", "ui.report", UDim2.fromScale(0.42, 0.74), functi
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000129"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000131"><Properties><string name="Name">Dev</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Kit = require(script.Parent.Parent.Kit)
@@ -28419,7 +28822,7 @@ return Base.make("Dev", "ui.dev", UDim2.fromScale(0.5, 0.6), function(content)
 		end })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000130"><Properties><string name="Name">Gifts</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000132"><Properties><string name="Name">Gifts</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Free gifts for the minutes played in this session (Config/Rewards.Gifts). Timers tick every
 -- second without rebuilding the list.
 local Players = game:GetService("Players")
@@ -28543,7 +28946,7 @@ player:GetAttributeChangedSignal("GiftsClaimed"):Connect(function()
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000131"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000133"><Properties><string name="Name">Goals</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Daily quests, achievements, login calendar, leaderboards and franchise.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -28723,7 +29126,7 @@ screen = Base.make("Goals", "ui.goals", UDim2.fromScale(0.68, 0.78), function(co
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000132"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000134"><Properties><string name="Name">Guide</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Order guide: tapping an order ticket (right) shows what to do, in a few short lines with live
 -- ticks, highlights the shelf slots and the station to use and draws a glowing arrow from you to
 -- the next thing to click. The card stands on the left, under the wallet; on phones the second
@@ -29104,7 +29507,7 @@ function Guide.close()
 end
 
 return Guide
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000133"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000135"><Properties><string name="Name">HUD</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Always-visible HUD, as little as possible:
 --   top-left    wallet: yen, sakura, level badge and XP bar; under it the free gift timer
 --   top-centre  clock and day (tap: last day's summary), today's objective under it
@@ -29662,7 +30065,7 @@ function HUD.open() end
 function HUD.close() end
 
 return HUD
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000134"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000136"><Properties><string name="Name">Invite</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Friends and helpers: invite friends to this street (they get a restaurant of their own and can
 -- help in yours), choose who may help in your restaurant (friends or everyone), give players a
 -- role in your restaurant (helper / co-manager / none) and go back to your own door.
@@ -29736,7 +30139,7 @@ return Base.make("Invite", "ui.invite", UDim2.fromScale(0.5, 0.7), function(cont
 		end
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000135"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000137"><Properties><string name="Name">Menu</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Menu board: enable dishes, set prices (-30%..+30%), recipe book with mastery.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -29829,7 +30232,7 @@ screen = Base.make("Menu", "ui.menu", UDim2.fromScale(0.66, 0.76), function(cont
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000136"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000138"><Properties><string name="Name">Offline</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -29850,7 +30253,7 @@ return Base.make("Offline", "ui.offline", UDim2.fromScale(0.36, 0.4), function(c
 		Core.C.UI.close("Offline")
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000137"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000139"><Properties><string name="Name">Phone</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Phone ("More"): the screens that are not needed every minute, as apps. Opens from the 📱 button
 -- of the HUD and closes when an app is opened. Everything bought with yen is in the shop.
 local Players = game:GetService("Players")
@@ -29875,6 +30278,7 @@ local APPS = {
 	{ id = "Premium", icon = "💎", key = "ui.premium", color = "#2E5A8C" },
 	{ id = "Codes", icon = "🎟️", key = "ui.codes", color = "#3A8F8A" },
 	{ id = "Help", icon = "❓", key = "ui.howto", color = "#2EA3B3" },
+	{ id = "Sign", icon = "🏮", key = "ui.sign", color = "#C8462E" },
 	{ id = "Settings", icon = "⚙️", key = "ui.settings", color = "#5A5A64" },
 	{ id = "Dev", icon = "🛠️", key = "ui.dev", color = "#1E1E22", dev = true },
 }
@@ -29970,7 +30374,7 @@ function Phone.close()
 end
 
 return Phone
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000138"><Properties><string name="Name">Premium</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000140"><Properties><string name="Name">Premium</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Robux shop: game passes and products (only the ones with an id in Config/Monetization).
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -30012,7 +30416,7 @@ return Base.make("Premium", "ui.premium", UDim2.fromScale(0.6, 0.72), function(c
 		Kit.label("🛒 " .. t("ui.shop_soon"), { Parent = scroll, Size = UDim2.new(1, 0, 0, 80), TextSize = 20, TextXAlignment = Enum.TextXAlignment.Center })
 	end
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000139"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000141"><Properties><string name="Name">Settings</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
 local Locale = require(Shared.Locale)
@@ -30068,7 +30472,7 @@ return Base.make("Settings", "ui.settings", UDim2.fromScale(0.5, 0.72), function
 		end
 	end })
 end)
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000140"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000142"><Properties><string name="Name">Shop</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- The shop: everything the restaurant buys with yen, in five tabs of big cards (upgrades and
 -- adverts, recipes, staff, rooms, renovations). Every card says what it is and what it does, and
 -- has one clear button:
@@ -30523,7 +30927,199 @@ screen = Base.make("Shop", "ui.shop", UDim2.fromScale(0.8, 0.84), function(conte
 end)
 
 return screen
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000141"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000143"><Properties><string name="Name">Sign</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+-- The restaurant's sign over the door: name, style and colours (Config/Signs) with a live preview.
+-- Saving sends SetSign; the server checks the name with Roblox's text filter and builds the sign
+-- again. The owner and co-managers can change it; it opens by using the sign or from the phone.
+local Players = game:GetService("Players")
+
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local NetDef = require(Shared.Net)
+local Locale = require(Shared.Locale)
+local Signs = require(Shared.Config.Signs)
+local Color = require(Shared.Util.Color)
+local Kit = require(script.Parent.Parent.Kit)
+local Base = require(script.Parent.Parent.Base)
+local Core = require(script.Parent.Parent.Parent.Core)
+
+local t = Locale.t
+local T = Kit.Theme
+
+-- the letters of each style, as on the real sign (Models/Builders/Building)
+local FONTS = {
+	wood = Font.fromEnum(Enum.Font.Merriweather),
+	lacquer = Font.fromEnum(Enum.Font.Fondamento),
+	noren = Font.fromEnum(Enum.Font.PermanentMarker),
+	neon = Font.fromEnum(Enum.Font.FredokaOne),
+	lanterns = Font.fromEnum(Enum.Font.LuckiestGuy),
+}
+-- ideas for a name ({name} = the player's name)
+local IDEAS = { "{name}-ya", "Ramen {name}", "Sakura {name}", "{name} Sushi", "Ichiban {name}", "Kawaii {name}", "{name}'s Ramen", "Neko {name}" }
+
+local draft = nil -- what the player is choosing; saved only with Save
+
+local function current()
+	-- (clients only get the filtered name: what everybody sees on the sign)
+	local s = Core.C.Data.w("sign") or {}
+	return { name = s.shown or "", style = s.style or Signs.Default.style, board = s.board or Signs.Default.board, text = s.text or Signs.Default.text }
+end
+
+local function hex(id)
+	return Color.hex((Signs.ColorById[id] or Signs.ColorById.ink).hex)
+end
+
+-- at most MaxName letters
+local function clip(s)
+	if utf8.len(s) and utf8.len(s) > Signs.MaxName then
+		return s:sub(1, utf8.offset(s, Signs.MaxName + 1) - 1)
+	end
+	return s
+end
+
+local screen
+local preview = {}
+
+-- the preview looks like the sign: board colour, frame of the style, letters in its font
+local function paintPreview()
+	if not preview.board or not draft then
+		return
+	end
+	local style, board, text = draft.style, hex(draft.board), hex(draft.text)
+	local named = draft.name ~= ""
+	preview.board.BackgroundColor3 = style == "neon" and board:Lerp(Color3.new(0, 0, 0), 0.55) or board
+	local frameColor = ({ wood = T.wood, lacquer = T.gold, neon = text, lanterns = Color.hex("#2B1D14") })[style]
+	preview.frame.Enabled = frameColor ~= nil
+	preview.frame.Color = frameColor or T.wood
+	preview.frame.Thickness = style == "lacquer" and 5 or (style == "neon" and 3 or 6)
+	for _, slit in ipairs(preview.slits) do
+		slit.Visible = style == "noren"
+	end
+	for _, l in ipairs(preview.lanterns) do
+		l.Visible = style == "lanterns"
+	end
+	preview.name.Text = named and draft.name or Signs.DefaultText
+	preview.name.FontFace = named and (FONTS[style] or T.title) or T.title
+	preview.name.TextColor3 = text
+	preview.name.Size = named and UDim2.fromScale(0.84, 0.66) or UDim2.fromScale(0.84, 0.84)
+	preview.glow.Enabled = style == "neon"
+	preview.glow.Color = text
+	preview.sub.Visible = named
+	preview.sub.TextColor3 = text
+	preview.count.Text = utf8.len(draft.name) .. " / " .. Signs.MaxName
+end
+
+local function swatches(parent, order, title, selected, onPick)
+	-- as tall as its rows of colours (one row on a wide screen, two on a narrow one)
+	local card = Kit.card({ Size = UDim2.new(1, -8, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = order, Parent = parent })
+	Kit.new("UIPadding", { PaddingBottom = UDim.new(0, 12), Parent = card })
+	Kit.label(title, { Parent = card, Position = UDim2.fromOffset(12, 4), Size = UDim2.new(1, -24, 0, 26), FontFace = T.bold, TextSize = 17 })
+	local grid = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 34), Size = UDim2.new(1, -24, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, Parent = card }, { Kit.grid(40, 40, 8) })
+	for _, c in ipairs(Signs.Colors) do
+		local on = c.id == selected
+		local b = Kit.new("TextButton", { Name = "Color_" .. c.id, Text = on and "✓" or "", TextSize = 20, FontFace = T.title, TextColor3 = (c.id == "white" or c.id == "cream" or c.id == "hinoki" or c.id == "sakura" or c.id == "gold") and T.ink or T.white, BackgroundColor3 = Color.hex(c.hex), LayoutOrder = c.order, AutoButtonColor = true, Parent = grid }, { Kit.corner(20), Kit.stroke(on and T.gold or T.woodLight, on and 4 or 2) })
+		Kit.press(b)
+		b.MouseButton1Click:Connect(function()
+			onPick(c.id)
+		end)
+	end
+end
+
+screen = Base.make("Sign", "ui.sign", UDim2.fromScale(0.62, 0.86), function(content)
+	draft = draft or current()
+	local can = Core.C.Data.canBuild()
+	local scroll = Kit.scroll({ Name = "SignScroll", Position = UDim2.fromOffset(0, 0), Size = UDim2.new(1, 0, 1, -58), Parent = content })
+
+	-- the live preview (lower on a phone, so the choices below it show without scrolling far)
+	local phone = Kit.profile == "phone"
+	local stage = Kit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, -8, 0, phone and 74 or 112), LayoutOrder = 1, Parent = scroll })
+	preview.board = Kit.new("Frame", { Name = "Preview", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(0.8, 0, 0, phone and 62 or 92), Parent = stage }, { Kit.corner(6) })
+	preview.frame = Kit.stroke(T.wood, 6)
+	preview.frame.Parent = preview.board
+	preview.slits = {}
+	for _, k in ipairs({ 1 / 3, 2 / 3 }) do
+		table.insert(preview.slits, Kit.new("Frame", { BackgroundColor3 = T.paper, BorderSizePixel = 0, Position = UDim2.new(k, -2, 0.12, 0), Size = UDim2.new(0, 4, 0.88, 0), Parent = preview.board }))
+	end
+	preview.lanterns = {}
+	for _, side in ipairs({ 0, 1 }) do
+		table.insert(preview.lanterns, Kit.label("🏮", { Parent = stage, AnchorPoint = Vector2.new(side, 0.5), Position = UDim2.fromScale(side == 0 and 0.02 or 0.98, 0.5), Size = phone and UDim2.fromOffset(30, 40) or UDim2.fromOffset(40, 52), TextScaled = true }))
+	end
+	preview.name = Kit.label("", { Name = "PreviewName", Parent = preview.board, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0.06), Size = UDim2.fromScale(0.84, 0.66), TextScaled = true, TextXAlignment = Enum.TextXAlignment.Center, AutoLocalize = false })
+	-- a soft glow round the letters (neon)
+	preview.glow = Kit.new("UIStroke", { Color = T.white, Thickness = 2.5, Transparency = 0.55, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual, Parent = preview.name })
+	preview.sub = Kit.label(Signs.Subtitle, { Parent = preview.board, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.fromScale(0.5, 0.96), Size = UDim2.fromScale(0.4, 0.22), TextScaled = true, FontFace = T.title, TextXAlignment = Enum.TextXAlignment.Center, AutoLocalize = false })
+
+	-- the name
+	local nameCard = Kit.card({ Size = UDim2.new(1, -8, 0, 96), LayoutOrder = 2, Parent = scroll })
+	Kit.label("✏️ " .. t("ui.sign_name"), { Parent = nameCard, Position = UDim2.fromOffset(12, 4), Size = UDim2.new(1, -150, 0, 26), FontFace = T.bold, TextSize = 17 })
+	preview.count = Kit.label("", { Parent = nameCard, AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 4), Size = UDim2.fromOffset(120, 26), TextSize = 15, TextColor3 = T.muted, TextXAlignment = Enum.TextXAlignment.Right })
+	local box = Kit.new("TextBox", {
+		Name = "NameBox", Parent = nameCard, Position = UDim2.fromOffset(12, 36), Size = UDim2.new(1, -150, 0, 48), Text = draft.name, PlaceholderText = t("ui.sign_placeholder"),
+		ClearTextOnFocus = false, TextSize = 22, FontFace = T.bold, TextColor3 = T.ink, BackgroundColor3 = T.white, TextXAlignment = Enum.TextXAlignment.Left, TextEditable = can,
+	}, { Kit.corner(10), Kit.stroke(T.wood, 2), Kit.padding(10, 0) })
+	box:GetPropertyChangedSignal("Text"):Connect(function()
+		local clipped = clip(box.Text)
+		if clipped ~= box.Text then
+			box.Text = clipped
+			return
+		end
+		draft.name = box.Text
+		paintPreview()
+	end)
+	Kit.button("🎲 " .. t("ui.sign_idea"), { parent = nameCard, size = UDim2.fromOffset(122, 48), position = UDim2.new(1, -134, 0, 36), style = "secondary", textSize = 16, onClick = function()
+		local who = Players.LocalPlayer.DisplayName
+		local idea = IDEAS[math.random(1, #IDEAS)]:gsub("{name}", who)
+		box.Text = clip(idea)
+	end })
+
+	-- the style
+	local styleCard = Kit.card({ Size = UDim2.new(1, -8, 0, 104), LayoutOrder = 3, Parent = scroll })
+	Kit.label("🎨 " .. t("ui.sign_style"), { Parent = styleCard, Position = UDim2.fromOffset(12, 4), Size = UDim2.new(1, -24, 0, 26), FontFace = T.bold, TextSize = 17 })
+	local row = Kit.new("ScrollingFrame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(12, 36), Size = UDim2.new(1, -24, 0, 60), ScrollingDirection = Enum.ScrollingDirection.X, AutomaticCanvasSize = Enum.AutomaticSize.X, CanvasSize = UDim2.new(), ScrollBarThickness = 4, Parent = styleCard }, { Kit.list(Enum.FillDirection.Horizontal, 8) })
+	for _, st in ipairs(Signs.Styles) do
+		Kit.button(st.icon .. " " .. t("sign.style_" .. st.id), { parent = row, size = UDim2.fromOffset(136, 48), style = draft.style == st.id and "selected" or "secondary", order = st.order, textSize = 16, onClick = function()
+			draft.style = st.id
+			screen.refresh()
+		end })
+	end
+
+	-- the colours
+	swatches(scroll, 4, "🟫 " .. t("ui.sign_board"), draft.board, function(id)
+		draft.board = id
+		screen.refresh()
+	end)
+	swatches(scroll, 5, "🔤 " .. t("ui.sign_letters"), draft.text, function(id)
+		draft.text = id
+		screen.refresh()
+	end)
+	Kit.label(t("ui.sign_filter_note"), { Parent = scroll, Size = UDim2.new(1, -8, 0, 40), LayoutOrder = 6, TextSize = 14, TextColor3 = T.muted, TextWrapped = true })
+
+	-- the classic look, and save
+	local footer = Kit.new("Frame", { BackgroundTransparency = 1, Position = UDim2.new(0, 0, 1, -52), Size = UDim2.new(1, 0, 0, 50), Parent = content }, { Kit.list(Enum.FillDirection.Horizontal, 10, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Center) })
+	if not can then
+		Kit.label("🔒 " .. t("ui.sign_owner_only"), { Parent = footer, Size = UDim2.new(1, 0, 1, 0), TextSize = 16, TextColor3 = T.muted, TextXAlignment = Enum.TextXAlignment.Right })
+	else
+		Kit.button("↺ " .. t("ui.sign_classic"), { parent = footer, size = UDim2.fromOffset(170, 46), style = "secondary", order = 1, textSize = 16, onClick = function()
+			draft = { name = "", style = Signs.Default.style, board = Signs.Default.board, text = Signs.Default.text }
+			screen.refresh()
+		end })
+		local save = Kit.button("💾 " .. t("ui.sign_save"), { parent = footer, size = UDim2.fromOffset(190, 46), style = "buy", order = 2, textSize = 18, onClick = function()
+			NetDef.event("SetSign"):FireServer({ name = draft.name, style = draft.style, board = draft.board, text = draft.text })
+			Core.C.UI.close("Sign")
+		end })
+		save.Name = "Save"
+	end
+	paintPreview()
+end)
+
+-- a fresh start from the sign as it is every time the editor opens
+local baseOpen = screen.open
+function screen.open(arg)
+	draft = nil
+	baseOpen(arg)
+end
+
+return screen
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX000144"><Properties><string name="Name">Supplier</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- Supplier tablet: order boxes of ingredients and dish sets.
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local NetDef = require(Shared.Net)
@@ -30678,7 +31274,7 @@ screen = Base.make("Supplier", "ui.supplier", UDim2.fromScale(0.72, 0.78), funct
 end)
 
 return screen
-]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000143"><Properties><string name="Name">Thumbs</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+]]></ProtectedString></Properties></Item></Item><Item class="ModuleScript" referent="RBX000146"><Properties><string name="Name">Thumbs</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 -- 3D pictures for catalog and shop cards: the real model of an object or a dish shown in a
 -- ViewportFrame, seen from the front, a little from above. Each model is built once and copied for
 -- every card; with low graphics (Settings) or when a model cannot be built, the card keeps its
@@ -30799,4 +31395,4 @@ function Thumbs.later(parent, kind, id, props, fallback)
 end
 
 return Thumbs
-]]></ProtectedString></Properties></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000148"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000149"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000150"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item></Item></Item></Item><Item class="Workspace" referent="RBX000151"><Properties><string name="Name">Workspace</string><bool name="StreamingEnabled">false</bool></Properties></Item><Item class="Lighting" referent="RBX000152"><Properties><string name="Name">Lighting</string><token name="Technology">4</token><bool name="GlobalShadows">true</bool><float name="Brightness">2.4</float><float name="EnvironmentDiffuseScale">1</float><float name="EnvironmentSpecularScale">1</float><float name="ClockTime">10</float></Properties></Item><Item class="SoundService" referent="RBX000153"><Properties><string name="Name">SoundService</string></Properties></Item></roblox>

@@ -34,7 +34,7 @@ function Service.check(d, plot)
 	return true, nil, nil, nextCity
 end
 
-local KEEP = { sakura = true, mastery = true, stats = true, meta = true, settings = true, passes = true, receipts = true, created = true, inventory = true, perms = true }
+local KEEP = { sakura = true, mastery = true, stats = true, meta = true, settings = true, passes = true, receipts = true, created = true, inventory = true, perms = true, sign = true }
 
 local function open(player)
 	local Plots, Net = Core.S.Plots, Core.S.Net

@@ -383,7 +383,7 @@ Come nei tycoon, dove si può costruire la prossima stanza al piano terra c'è u
 La prima volta è disponibile dopo poche ore di gioco: **livello 11, valutazione ≥ 4,0, Sala Est, Magazzino ampliato e Sala Ovest**. Ogni città successiva chiede di più (livello 16 con ★4,1 e anche terrazza e giardino; 20 con ★4,2 e sala tatami e cucina professionale; 25 e 30 con il secondo piano). Gli obiettivi (scheda Franchise) mostrano cosa manca, voce per voce.
 - Apri un nuovo locale in un'altra città: **Kyoto → Osaka → Sapporo → Fukuoka → Okinawa**. Ogni città ha una strada diversa (templi a Kyoto, insegne giganti a Osaka, neve a Sapporo…) e **2–3 piatti regionali** esclusivi.
 - Si azzerano: livello, yen, licenze, espansioni, miglioramenti, personale (e la media degli incassi usata per i guadagni offline, che riparte dalle giornate nella nuova città).
-- Si conservano: **tutte le decorazioni** (vanno nell'inventario), gettoni, ricettario, obiettivi.
+- Si conservano: **tutte le decorazioni** (vanno nell'inventario), gettoni, ricettario, obiettivi e l'**insegna del ristorante** (§9.6).
 - Guadagni una **Stella Franchise**: +25% yen e +10% XP permanenti, e decorazioni esclusive della città.
 
 ### 8.10 Eventi stagionali
@@ -430,6 +430,15 @@ Ogni zona può avere un pavimento e uno stile di parete diversi (legno chiaro, l
 - Livelli di ambiente (Spoglio → Accogliente → Elegante → Raffinato → Leggendario): aumentano pazienza, mance e arrivo dei clienti.
 - Il comfort delle sedute aumenta pazienza e mance di chi ci si siede.
 
+### 9.6 L'insegna del ristorante
+Sopra l'ingresso c'è l'**insegna del ristorante**, che il proprietario (o un co-gestore) personalizza **gratis**: toccandola (🏮 Personalizza l'insegna) o dall'app 🏮 **Insegna** del telefono (Altro).
+- **Nome**: da 2 a 24 lettere, spazi compresi (vuoto = la scritta classica らーめん ・ 寿司). Sotto il nome compare, piccola, la riga らーめん ・ 寿司. Il pulsante 🎲 **Idea** propone un nome costruito con il tuo («Aiko-ya», «Ramen Aiko», «Sakura Aiko»…). Gli altri vedono la finestra ma non possono salvare (🔒).
+- **Stile**, ognuno con il suo carattere: 🪵 **Legno** (tavola in una cornice scura, è quella iniziale), 🏯 **Lacca** (tavola lucida con cornice d'oro), 🎌 **Noren** (tre teli appesi a un'asta, con i tagli tra un telo e l'altro), 💡 **Neon** (lettere luminose e un tubo al neon attorno a una tavola scura, si vede di notte), 🏮 **Lanterne** (tavola tra due lanterne di carta accese).
+- **Colori**: 12 per la tavola e 12 per le lettere (hinoki, legno, inchiostro, nero, rosso, arancio, oro, crema, bianco, sakura, matcha, indaco).
+- La finestra mostra l'**anteprima dal vivo** mentre scrivi e scegli; ↺ **Classica** rimette l'insegna iniziale, 💾 **Salva** la mette sulla facciata. Una modifica ogni 3 secondi.
+- **Filtro di Roblox**: il nome lo vedono tutti sulla strada, quindi passa dal filtro dei testi di Roblox prima di comparire (le parole non permesse diventano ####) e viene ricontrollato ogni volta che il ristorante si apre. Se il filtro non risponde, il nome nuovo non compare e resta quello di prima (in Studio, dove il filtro non filtra e può non rispondere, il nome compare com'è scritto, così l'insegna si può provare).
+- L'**insegna gigante sul tetto** (ristrutturazione) mostra lo stesso nome, con il colore delle lettere. Con la **facciata deluxe** l'insegna ha due tubi dorati e una luce in più.
+
 ---
 
 ## 10. Interfaccia
@@ -443,7 +452,7 @@ Stile: carta washi color crema, bordi in legno scuro, accenti rosso lacca e oro,
 | In alto a destra | **Il ristorante in cui sei**: il tuo (★ valutazione · ❤️ Mi piace) o quello di un altro (🏮 nome del proprietario, ★, pulsanti **❤️ Mi piace** e **🏠 A casa**). Sotto, solo quando c'è da lavare, la pillola dei piatti (🍽️ puliti/totale · 🧽 da lavare), dorata quando ne restano pochi |
 | A destra | **Gli ordini**, dal più vecchio (bordo dorato: è quello da cucinare ora): icona e nome del piatto, icone di cosa serve e barra della pazienza. Al massimo 3 sul telefono, 4 sul tablet, 5 sul computer (+N per gli altri). Toccandone uno si apre la **guida dell'ordine** a sinistra |
 | In basso | **Quattro pulsanti grandi**: 🛒 **Negozio** (con il numero di cose che puoi comprare adesso), 🔨 Costruisci, 📦 Fornitore, 📱 **Altro**. Sopra, cosa tieni in mano con **⬇ Posa** |
-| Altro (telefono) | Le funzioni che non servono ogni minuto, come app: Menu, Obiettivi, Regali, Invita, Premium, Codici, Come si gioca, Impostazioni |
+| Altro (telefono) | Le funzioni che non servono ogni minuto, come app: Menu, Obiettivi, Regali, Invita, Premium, Codici, Come si gioca, 🏮 Insegna, Impostazioni |
 | Sopra gli oggetti | **Solo scritte**, senza riquadro: bianche e crema con un contorno scuro spesso, così si leggono su qualsiasi sfondo (nome e livello degli aiutanti, «Raccogli le stoviglie», brodo e riso con le porzioni rimaste, passo della postazione, barattolo delle mance). Sopra i clienti, anche qui **senza riquadro** e larga quanto un posto (non si sovrappone a quella del vicino), sempre visibile: icona grande (❗, il piatto, 😋), nome del piatto in bianco con il contorno scuro e una barra della pazienza sottile con il bordo scuro (verde → gialla → rossa); la scritta lampeggia oro e bianco quando aspetta di ordinare |
 | Fine giornata | Resoconto con grafico degli incassi della giornata |
 

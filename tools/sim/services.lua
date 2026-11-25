@@ -809,6 +809,30 @@ function cm.MemoryStoreService.GetQueue(_, name)
 	return makeStore("mq", name)
 end
 
+-- Roblox's text filter: words listed in Sim.badWords become #, Sim.filterDown makes it fail
+cm.TextService = cm.TextService or {}
+Sim.badWords = { "badword" }
+function cm.TextService.FilterStringAsync(_, text, userId, context)
+	if Sim.filterDown then
+		error("TextService: the filter is not available", 2)
+	end
+	local out = text
+	for _, w in ipairs(Sim.badWords) do
+		out = out:gsub(w, string.rep("#", #w))
+	end
+	local result = {}
+	function result.GetNonChatStringForBroadcastAsync()
+		return out
+	end
+	function result.GetNonChatStringForUserAsync()
+		return out
+	end
+	function result.GetChatForUserAsync()
+		return out
+	end
+	return result
+end
+
 cm.HttpService = {}
 function cm.HttpService.JSONEncode(_, v)
 	return Sim.json.encode(v)

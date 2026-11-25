@@ -8,6 +8,7 @@ local GameConfig = require(Config.GameConfig)
 local Expansions = require(Config.Expansions)
 local Surfaces = require(Config.Surfaces)
 local Franchise = require(Config.Franchise)
+local Signs = require(Config.Signs)
 local Footprint = require(script.Parent.Parent.Logic.Footprint)
 local Registry = require(script.Parent.Registry)
 local Kit = require(script.Parent.Kit)
@@ -279,10 +280,12 @@ function Scene.shell(shell, geo, data)
 		B.stairs(shell, s, floorY(s.floor), GameConfig.FloorHeight)
 	end
 
-	-- Facade: big sign, entrance lanterns, open plate
-	local signText = "らーめん ・ 寿司"
-	local face = B.sign(shell, 0, 11.6, -0.9, 18, signText, deluxe)
-	B.tag(face, "Roof")
+	-- Facade: the restaurant's own sign (name, style and colours chosen by the owner, Screens/Sign;
+	-- using it opens the editor), entrance lanterns, open plate
+	local shopSign = B.shopSign(shell, data.sign, deluxe)
+	shopSign:SetAttribute("Uid", "fixed_shopsign")
+	shopSign:SetAttribute("Kind", "shopsign")
+	CollectionService:AddTag(shopSign, "Interactable")
 	for _, x in ipairs({ -6.4, 6.4 }) do
 		local l = Kit.blob(shell, 1.3, 1.8, 1.3, x, 8.2, -1.6, P.lacquer, P.M.smooth, { collide = false })
 		Kit.cyl(shell, 0.8, 0.2, x, 9.2, -1.6, P.black, P.M.smooth, { collide = false })
@@ -295,8 +298,13 @@ function Scene.shell(shell, geo, data)
 	if data.zones.sign_rooftop then
 		local topY = floorY(topFloor) + GameConfig.WallHeight + 2
 		local board = Kit.box(shell, 20, 5, 0.6, 0, topY + 3.5, 2, P.black, P.M.smooth, { collide = false })
-		Kit.text(board, Enum.NormalId.Front, "ラーメン 寿司", { color = "#FF3B4A", glow = true })
-		Kit.light(board, "Surface", P.neon_red, 30, 3, { face = Enum.NormalId.Front })
+		-- the restaurant's name in neon, in the colour of the sign's letters (red without a name)
+		local sign = data.sign
+		local named = sign and sign.shown and sign.shown ~= ""
+		local glowColor = named and Color.hex((Signs.ColorById[sign.text or ""] or Signs.ColorById.red).hex) or Color.hex("#FF3B4A")
+		local _, giant = Kit.text(board, Enum.NormalId.Front, named and sign.shown or "ラーメン 寿司", { color = glowColor, glow = true })
+		giant.Name = "GiantName"
+		Kit.light(board, "Surface", glowColor, 30, 3, { face = Enum.NormalId.Front })
 		for _, x in ipairs({ -8, 8 }) do
 			Kit.box(shell, 0.4, 3.5, 0.4, x, topY + 1, 2.4, P.steel_dark, P.M.metal, { collide = false })
 		end
@@ -334,7 +342,7 @@ function Scene.shell(shell, geo, data)
 			d.CollisionGroup = "Shell"
 		end
 	end
-	return { openLabel = label, openSign = openSign }
+	return { openLabel = label, openSign = openSign, shopSign = shopSign }
 end
 
 -- A plot nobody owns yet: a low construction fence along the street and a lantern sign
